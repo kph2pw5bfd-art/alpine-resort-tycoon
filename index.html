@@ -71,7 +71,9 @@ input[type=range]{width:100%;accent-color:var(--ac);margin:4px 0 10px}
 .kid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin:6px 0}.kid3>div{background:var(--chip);border-radius:14px;padding:9px 6px 8px;text-align:center;min-width:0}.kid3 .ki{display:block;font-size:30px;line-height:1.1}.kid3 small{display:block;color:var(--mut);font-size:12px}.kid3 b{display:block;font-size:18px;margin-top:2px;line-height:1.15;overflow-wrap:anywhere}.kid3 i{display:block;font-style:normal;font-size:11.5px;color:var(--mut);min-height:14px}
 .kidst{background:var(--chip);border-radius:14px;padding:8px 12px;margin:4px 0 2px}.kidst b{display:block;font-size:20px;letter-spacing:1px}.kidst small{color:var(--mut);font-size:12.5px}
 body.kid .bk.op .sh{display:block}
-#lbar{position:fixed;left:6px;right:6px;bottom:calc(6px + env(safe-area-inset-bottom,0px));margin:0 auto;max-width:620px;display:flex;align-items:center;gap:6px;background:var(--pn);color:#fff;border-radius:12px;padding:6px 10px;font-size:13px;line-height:1.25;box-shadow:0 2px 0 rgba(0,0,0,.2);cursor:pointer;z-index:4;overflow:hidden;transition:opacity .2s}
+#c{height:auto;bottom:calc(-1 * var(--vgap,0px))}.ttl{bottom:calc(-1 * var(--vgap,0px))!important}#sheet{bottom:calc(-1 * var(--vgap,0px))!important}#flk{margin-bottom:calc(-1 * var(--vgap,0px))}
+@media (max-width:420px){#bar{gap:3px;padding-left:4px;padding-right:4px}#bar .chip{padding:4px 5px}#bar .rb{width:34px}}
+#lbar{position:fixed;left:6px;right:6px;bottom:calc(6px + env(safe-area-inset-bottom,0px) - var(--vgap,0px));margin:0 auto;max-width:620px;display:flex;align-items:center;gap:6px;background:var(--pn);color:#fff;border-radius:12px;padding:6px 10px;font-size:13px;line-height:1.25;box-shadow:0 2px 0 rgba(0,0,0,.2);cursor:pointer;z-index:4;overflow:hidden;transition:opacity .2s}
 #lbar.off{opacity:0;pointer-events:none}
 #lbar .lt{flex:none;opacity:.7;font-variant-numeric:tabular-nums}#lbar .li{flex:none;width:18px;text-align:center}#lbar .lx{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}#lbar .lx.sum{font-weight:600}#lbar .lk{flex:none;opacity:.6;font-size:16px}
 #lbar.nw{animation:lbf 1.8s ease-out}#lbar.nw .lw{animation:lbi .45s ease-out}#lbar .lw{display:flex;align-items:center;gap:6px;flex:1;min-width:0}
@@ -1948,8 +1950,11 @@ function buildStatic(){LK=lkey();WAYS=waysB();
  c.fillStyle=INK;c.font='600 7px Fredoka,sans-serif';c.textAlign='center';
  c.fillStyle='#5b6577';c.fillRect(x0,R-11-RD,ww,22+2*RD);c.fillStyle='rgba(255,255,255,.55)';c.fillRect(x0,R-10-RD,ww,1);c.fillRect(x0,R+9+RD,ww,1);c.fillStyle='#fff';for(const zx of ZC)for(let i=0;i<7;i++)c.fillRect(zx-11,R-10-RD+1.3+i*5.4,22,3);c.strokeStyle='#fff';c.lineWidth=1.5;c.setLineDash([8,8]);c.beginPath();c.moveTo(x0,R);c.lineTo(x0+ww,R);c.stroke();c.setLineDash([]);
 }
+// iPhone-Home-Bildschirm-App (V168): iOS meldet dort teils eine zu kleine Fensterhöhe (Lücke unten). Lücke messen und alles nach unten verlängern.
+function vgap(){let g=0;try{if(navigator.standalone===true&&innerWidth<innerHeight)g=Math.max(0,Math.min(90,Math.max(screen.width,screen.height)-innerHeight))}catch(e){}document.documentElement.style.setProperty('--vgap',g+'px');return g}
+setTimeout(()=>{try{resize()}catch(e){}},600);setTimeout(()=>{try{resize()}catch(e){}},1800);
 function resize(){
- dpr=Math.min(devicePixelRatio||1,(typeof SET!=='undefined'&&SET.perf)?1.25:2);cw=innerWidth;ch=innerHeight;cv.width=cw*dpr;cv.height=ch*dpr;HS=ch*400/cw;
+ dpr=Math.min(devicePixelRatio||1,(typeof SET!=='undefined'&&SET.perf)?1.25:2);cw=innerWidth;ch=innerHeight+vgap();cv.width=cw*dpr;cv.height=ch*dpr;HS=ch*400/cw;
  V=780;H=V+620;R=V+300;EXT=NA*AH()+270-V;if(!viewInit){viewInit=true;homeView(true)}else clampCam();buildStatic();
 }
 const minS=()=>Math.min(cw/(XR-XL),ch/(H+EXT)),maxS=()=>Math.max(cw,ch*.6)/200;
