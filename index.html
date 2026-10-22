@@ -61,13 +61,13 @@ input[type=range]{width:100%;accent-color:var(--ac);margin:4px 0 10px}
 #toast{position:fixed;left:50%;top:calc(66px + env(safe-area-inset-top,0px));transform:translateX(-50%);background:var(--tx);color:var(--bg);padding:8px 16px;border-radius:14px;font-weight:600;font-size:14px;opacity:0;transition:opacity .25s;pointer-events:none;white-space:normal;max-width:86vw;width:max-content;text-align:center;z-index:6}
 #toast.on{opacity:1}
 @keyframes evp{50%{box-shadow:0 0 0 3px #ffd84d}}
-#flk{position:fixed;left:6px;bottom:calc(46px + env(safe-area-inset-bottom,0px));display:none;align-items:flex-end;gap:7px;z-index:4;max-width:calc(100vw - 12px)}#flk.on{display:flex}
-#flkc{position:static;inset:auto;width:46px;height:62px;flex:none;background:var(--pn);border-radius:16px;box-shadow:0 2px 0 rgba(0,0,0,.2);cursor:pointer}#flk.hop #flkc{animation:fhop 1s ease-out}
+#flk{position:fixed;left:0;bottom:calc(40px + env(safe-area-inset-bottom,0px));display:none;align-items:flex-end;gap:0;z-index:4;max-width:calc(100vw - 12px)}#flk.on{display:flex}
+#flkc{position:static;inset:auto;width:104px;height:104px;flex:none;margin-left:-35px;background:none;cursor:pointer}#flk.hop #flkc{animation:fhop 1s ease-out}
 @keyframes fhop{0%,100%{transform:none}18%{transform:translateY(-16px)}36%{transform:none}54%{transform:translateY(-8px)}72%{transform:none}}
-#flb{position:relative;background:var(--bg);color:var(--tx);border-radius:14px;padding:8px 11px 9px;max-width:290px;font-size:14px;line-height:1.35;box-shadow:0 3px 12px rgba(20,50,90,.25),0 0 0 2px #ffd84d;margin-bottom:8px}
+#flb{position:relative;background:var(--bg);color:var(--tx);border-radius:12px;padding:6px 9px 7px;max-width:225px;font-size:12.5px;line-height:1.3;box-shadow:0 3px 10px rgba(20,50,90,.25),0 0 0 2px #ffd84d;margin:0 0 34px 4px}
 #flb:before{content:'';position:absolute;left:-8px;bottom:12px;border:8px solid transparent;border-right-color:#ffd84d;border-left:0}#flk.col #flb{display:none}
-#flm{font-size:12.5px;color:var(--mut);margin-top:3px}#flm:empty{display:none}.fpb{height:8px;border-radius:5px;background:var(--chip);overflow:hidden;margin-top:4px;display:none}.fpb i{display:block;height:100%;width:0;background:#4cc27a}
-#flg{margin-top:7px;padding:6px 12px;font-size:13.5px}
+#flm{font-size:11px;color:var(--mut);margin-top:3px}#flm:empty{display:none}.fpb{height:8px;border-radius:5px;background:var(--chip);overflow:hidden;margin-top:4px;display:none}.fpb i{display:block;height:100%;width:0;background:#4cc27a}
+#flg{margin-top:5px;padding:4px 10px;font-size:12.5px;box-shadow:0 2px 0 #b83a35}
 .kid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin:6px 0}.kid3>div{background:var(--chip);border-radius:14px;padding:9px 6px 8px;text-align:center;min-width:0}.kid3 .ki{display:block;font-size:30px;line-height:1.1}.kid3 small{display:block;color:var(--mut);font-size:12px}.kid3 b{display:block;font-size:18px;margin-top:2px;line-height:1.15;overflow-wrap:anywhere}.kid3 i{display:block;font-style:normal;font-size:11.5px;color:var(--mut);min-height:14px}
 .kidst{background:var(--chip);border-radius:14px;padding:8px 12px;margin:4px 0 2px}.kidst b{display:block;font-size:20px;letter-spacing:1px}.kidst small{color:var(--mut);font-size:12.5px}
 body.kid .bk.op .sh{display:block}
@@ -268,7 +268,7 @@ function kidUpd(){const on=KID()&&started&&!inTitle;document.body.classList.togg
  if($('flm').textContent!==ms)$('flm').textContent=ms;$('flp').style.display=miss?'block':'none';if(miss)$('flp').firstChild.style.width=Math.round(cl(av/need,0,1)*100)+'%';
  $('flg').style.display=t.go?'':'none'}
 function flAnim(){requestAnimationFrame(flAnim);const el=$('flk');if(!el||!el.classList.contains('on'))return;const c=$('flkc'),x=c.getContext('2d'),d=Math.min(2,window.devicePixelRatio||1);
- if(c.width!==46*d){c.width=46*d;c.height=62*d}x.setTransform(d,0,0,d,0,0);x.clearRect(0,0,46,62);const tt=performance.now()/1000;x.save();x.translate(23,31);x.rotate(Math.sin(tt*1.6)*.06);x.scale(.265,.265);flkDraw(x,tt,performance.now()<(FK.tk||0));x.restore()}
+ if(c.width!==104*d){c.width=104*d;c.height=104*d}x.setTransform(d,0,0,d,0,0);x.clearRect(0,0,104,104);const tt=performance.now()/1000;x.save();x.translate(52,52);x.rotate(Math.sin(tt*1.6)*.06);x.scale(.62,.62);flkDraw(x,tt,performance.now()<(FK.tk||0));x.restore()}
 function kidBind(){$('flkc').onclick=()=>{FK.col=FK.col?0:1;if(!FK.col&&FK.tip)FK.tk=performance.now()+Math.min(3500,900+FK.tip.t.length*28);kidUpd()};$('flg').onclick=()=>{const t=FK.tip;if(t&&t.go){sfx('click');t.go()}}}
 
 // ===== Folgen der Laune (V136): Mundpropaganda, früher heimfahren =====
