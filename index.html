@@ -62,12 +62,12 @@ input[type=range]{width:100%;accent-color:var(--ac);margin:4px 0 10px}
 #toast.on{opacity:1}
 @keyframes evp{50%{box-shadow:0 0 0 3px #ffd84d}}
 #flk{position:fixed;left:0;bottom:calc(40px + env(safe-area-inset-bottom,0px));display:none;align-items:flex-end;gap:0;z-index:4;max-width:calc(100vw - 12px)}#flk.on{display:flex}
-#flkc{position:static;inset:auto;width:104px;height:104px;flex:none;margin-left:-35px;background:none;cursor:pointer}#flk.hop #flkc{animation:fhop 1s ease-out}
+#flkc{position:static;inset:auto;width:208px;height:208px;flex:none;margin-left:-70px;background:none;cursor:pointer}#flk.hop #flkc{animation:fhop 1s ease-out}
 @keyframes fhop{0%,100%{transform:none}18%{transform:translateY(-16px)}36%{transform:none}54%{transform:translateY(-8px)}72%{transform:none}}
-#flb{position:relative;background:var(--bg);color:var(--tx);border-radius:12px;padding:6px 9px 7px;max-width:225px;font-size:12.5px;line-height:1.3;box-shadow:0 3px 10px rgba(20,50,90,.25),0 0 0 2px #ffd84d;margin:0 0 34px 4px}
+#flb{position:relative;background:var(--bg);color:var(--tx);border-radius:12px;padding:6px 8px 6px 10px;width:calc(100vw - 104px);max-width:480px;position:relative;z-index:1;box-sizing:border-box;font-size:12px;line-height:1.28;box-shadow:0 3px 10px rgba(20,50,90,.25),0 0 0 2px #ffd84d;margin:0 0 92px -36px;display:grid;grid-template-columns:1fr auto;column-gap:8px;row-gap:3px;align-items:center}#flt{grid-column:1 / -1}#flm{grid-column:1;grid-row:2;margin:0}.fpb{grid-column:1 / -1;grid-row:3}#flg{grid-column:2;grid-row:2}
 #flb:before{content:'';position:absolute;left:-8px;bottom:12px;border:8px solid transparent;border-right-color:#ffd84d;border-left:0}#flk.col #flb{display:none}
-#flm{font-size:11px;color:var(--mut);margin-top:3px}#flm:empty{display:none}.fpb{height:8px;border-radius:5px;background:var(--chip);overflow:hidden;margin-top:4px;display:none}.fpb i{display:block;height:100%;width:0;background:#4cc27a}
-#flg{margin-top:5px;padding:4px 10px;font-size:12.5px;box-shadow:0 2px 0 #b83a35}
+#flm{font-size:10.5px;color:var(--mut);margin-top:3px}#flm:empty{display:none}.fpb{height:8px;border-radius:5px;background:var(--chip);overflow:hidden;margin-top:4px;display:none}.fpb i{display:block;height:100%;width:0;background:#4cc27a}
+#flg{margin:0;padding:5px 9px;font-size:12px;box-shadow:0 2px 0 #b83a35}
 .kid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin:6px 0}.kid3>div{background:var(--chip);border-radius:14px;padding:9px 6px 8px;text-align:center;min-width:0}.kid3 .ki{display:block;font-size:30px;line-height:1.1}.kid3 small{display:block;color:var(--mut);font-size:12px}.kid3 b{display:block;font-size:18px;margin-top:2px;line-height:1.15;overflow-wrap:anywhere}.kid3 i{display:block;font-style:normal;font-size:11.5px;color:var(--mut);min-height:14px}
 .kidst{background:var(--chip);border-radius:14px;padding:8px 12px;margin:4px 0 2px}.kidst b{display:block;font-size:20px;letter-spacing:1px}.kidst small{color:var(--mut);font-size:12.5px}
 body.kid .bk.op .sh{display:block}
@@ -268,7 +268,7 @@ function kidUpd(){const on=KID()&&started&&!inTitle;document.body.classList.togg
  if($('flm').textContent!==ms)$('flm').textContent=ms;$('flp').style.display=miss?'block':'none';if(miss)$('flp').firstChild.style.width=Math.round(cl(av/need,0,1)*100)+'%';
  $('flg').style.display=t.go?'':'none'}
 function flAnim(){requestAnimationFrame(flAnim);const el=$('flk');if(!el||!el.classList.contains('on'))return;const c=$('flkc'),x=c.getContext('2d'),d=Math.min(2,window.devicePixelRatio||1);
- if(c.width!==104*d){c.width=104*d;c.height=104*d}x.setTransform(d,0,0,d,0,0);x.clearRect(0,0,104,104);const tt=performance.now()/1000;x.save();x.translate(52,52);x.rotate(Math.sin(tt*1.6)*.06);x.scale(.62,.62);flkDraw(x,tt,performance.now()<(FK.tk||0));x.restore()}
+ if(c.width!==208*d){c.width=208*d;c.height=208*d}x.setTransform(d,0,0,d,0,0);x.clearRect(0,0,208,208);const tt=performance.now()/1000;x.save();x.translate(104,104);x.rotate(Math.sin(tt*1.6)*.06);x.scale(1.24,1.24);flkDraw(x,tt,performance.now()<(FK.tk||0));x.restore()}
 function kidBind(){$('flkc').onclick=()=>{FK.col=FK.col?0:1;if(!FK.col&&FK.tip)FK.tk=performance.now()+Math.min(3500,900+FK.tip.t.length*28);kidUpd()};$('flg').onclick=()=>{const t=FK.tip;if(t&&t.go){sfx('click');t.go()}}}
 
 // ===== Folgen der Laune (V136): Mundpropaganda, früher heimfahren =====
