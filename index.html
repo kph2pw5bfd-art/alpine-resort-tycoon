@@ -269,16 +269,20 @@ function kidTip(){const m=G.money,T=(k,ic,t,o)=>Object.assign({k,ic,t},o||{});
 function kidUpd(){const on=KID()&&started&&!inTitle;document.body.classList.toggle('kid',KID());const el=$('flk');if(!el)return;
  if(KID()&&(open==='sta'||open==='mkt'))kidStatUpd();
  const tutOn=G.tut!=null&&G.tut>=0&&G.tut<TUT.length;el.classList.toggle('on',on&&!open&&!tutOn);if(!on)return;
- kidTrack();const t=kidTip();FK.tip=t;
- if(t.k!==FK.key){FK.key=t.k;FK.col=0;FK.tk=performance.now()+Math.min(3500,900+t.t.length*28);if(t.p&&el.classList.contains('on')){el.classList.remove('hop');void el.offsetWidth;el.classList.add('hop');try{sfx('chime')}catch(e){}}}
- el.classList.toggle('col',!!FK.col);
+ kidTrack();const tc=kidTip(),now=performance.now(),av0=G.money-Math.round(cost()*1.5);
+ // V175: Flocki meldet sich nur, wenn das Geld reicht (Kauf-Tipps) bzw. bei echten Problemen ohne Kosten; Blase 5 s, Antippen zeigt die letzte Meldung
+ if(tc.k!==FK.key){FK.key=tc.k;FK.nt=false}
+ const ok=tc.need?tc.need<=av0:!!tc.p;
+ if(ok&&!FK.nt&&el.classList.contains('on')){FK.nt=true;flkSay(tc,true)}
+ const t=FK.msg;FK.tip=t;el.classList.toggle('col',!(t&&now<(FK.until||0)));if(!t)return;
  const tx=t.ic+' '+t.t;if($('flt').textContent!==tx)$('flt').textContent=tx;
  const need=t.need||0,av=G.money-Math.round(cost()*1.5),miss=need>av,ms=!need?'':miss?'Spar noch '+fmt(need-Math.max(0,av))+' – denk an die Tageskosten heute Abend.':'Kostet '+fmt(need)+' – du hast genug!';
  if($('flm').textContent!==ms)$('flm').textContent=ms;$('flp').style.display=miss?'block':'none';if(miss)$('flp').firstChild.style.width=Math.round(cl(av/need,0,1)*100)+'%';
  $('flg').style.display=t.go?'':'none'}
 function flAnim(){requestAnimationFrame(flAnim);const el=$('flk');if(!el||!el.classList.contains('on'))return;const c=$('flkc'),x=c.getContext('2d'),d=Math.min(2,window.devicePixelRatio||1);
  if(c.width!==208*d){c.width=208*d;c.height=208*d}x.setTransform(d,0,0,d,0,0);x.clearRect(0,0,208,208);const tt=performance.now()/1000;x.save();x.translate(104,104);x.rotate(Math.sin(tt*1.6)*.06);x.scale(1.24,1.24);flkDraw(x,tt,performance.now()<(FK.tk||0));x.restore()}
-function kidBind(){$('flhit').onclick=()=>{FK.col=FK.col?0:1;if(!FK.col&&FK.tip)FK.tk=performance.now()+Math.min(3500,900+FK.tip.t.length*28);kidUpd()};$('flg').onclick=()=>{const t=FK.tip;if(t&&t.go){sfx('click');t.go()}}}
+function flkSay(t,hop){FK.msg=t;const now=performance.now();FK.until=now+5000;FK.tk=now+Math.min(3500,900+t.t.length*28);const el=$('flk');if(hop&&el){el.classList.remove('hop');void el.offsetWidth;el.classList.add('hop');try{sfx('chime')}catch(e){}}}
+function kidBind(){$('flhit').onclick=()=>{const now=performance.now();if(FK.msg&&now<(FK.until||0)){FK.until=0}else{const t=kidTip();if(t)flkSay(t,false)}kidUpd()};$('flg').onclick=()=>{const t=FK.tip;if(t&&t.go){sfx('click');t.go()}}}
 
 // ===== Folgen der Laune (V136): Mundpropaganda, früher heimfahren =====
 function mpCalc(R,ab){const n=R&&R.n||0,h=R&&R.hap||0,b=R&&R.bad||0,av=n?R.s/n:.62,sh=n?(h-b)/n:0,pk=Math.min(.06,(ab||0)*.003);return {n,h,b,ab:ab||0,pk,v:cl((G.mp||0)*.5+(av-.62)*.5+sh*.06-pk,-.15,.2)}}
