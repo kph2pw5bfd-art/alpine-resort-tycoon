@@ -2051,22 +2051,25 @@ function buildStatic(){LK=lkey();WAYS=waysB();
    return 1};
   const near=(x,y,d)=>{const gx=Math.round(x/8),gy=Math.round(y/8);for(let a=-1;a<=1;a++)for(let b=-1;b<=1;b++){const L=TG[(gx+a)+','+(gy+b)];if(L)for(const t of L)if(Math.hypot(t[0]-x,t[1]-y)<d)return 1}return 0};
   const add=(x,y,sz,d)=>{if(treeInPlot(x,y))return 0;if(G.up.s&&x>-196&&x<-70&&y>V&&y-46*sz<V+24)return 0;if(!ok(x,y)||wayHit(x,y,sz)||(y>R&&y-38*sz<R+13+RD)||near(x,y,d))return 0;const t=[x,y,sz];trees.push(t);const k=Math.round(x/8)+','+Math.round(y/8);(TG[k]||(TG[k]=[])).push(t);return 1};
-  const grove=(cx,cy,rad,n,big)=>{for(let i=0;i<n;i++){const a=r()*6.283,u=Math.sqrt(r()),x=cx+Math.cos(a)*rad*u,y=cy+Math.sin(a)*rad*u*.8,c=1-u;add(x,y,.55+r()*.4+(big||.5)*c,5.5+3*r())}};
+  // Jedes Waldstück und jeder Baum hat seinen eigenen Zufall (V181), damit Bauen nicht anderswo Wälder verschiebt
+  const RG=sd=>{let q=(sd*2654435761)%2147483646+1;const f=()=>(q=(q*16807)%2147483647)/2147483647;f();f();f();return f};
+  const cOK=(x,y)=>{if(x<XL-6||x>XR+6||y<92-EXT||y>H)return 0;if(y>110-EXT&&y<V+4&&Math.abs(x-slopeX(y))<slopeW(y)+14)return 0;if(y>=V&&Math.hypot(x-slopeX(V),y-V)<slopeW(V)+14)return 0;if(y>120-EXT&&y<V-18&&(Math.abs(x-lx(y))<40||Math.abs(x-lx(y)-88)<40))return 0;if(y>R-84-RD&&y<R+66+RD)return 0;if(box(x,y,316,606,V-46,V+80))return 0;return 1};
+  const grove=(cx,cy,rad,n,big,sd)=>{for(let i=0;i<n;i++){const r=RG(sd*1000+i),a=r()*6.283,u=Math.sqrt(r()),x=cx+Math.cos(a)*rad*u,y=cy+Math.sin(a)*rad*u*.8,c=1-u;add(x,y,.55+r()*.4+(big||.5)*c,5.5+3*r())}};
   // Waldstücke an Stellen, wo noch nichts gebaut ist
-  if(!G.up.s)grove(sb.x-70,sb.y-40,110,150,.6);
-  for(let i=G.hotels;i<3;i++){const [a,b,c2]=HPL(i),d=V+212,cy=(Math.max(c2,V+60)+d)/2;grove((a+b)/2,cy,Math.min(b-a,d-c2)*.55,[46,38,52][i],.6)}grove(150,V+150,66,44,.6);grove(285,V+152,66,44,.6);
-  {const nc=Math.ceil(G.spots/2),nd=Math.floor(G.spots/2);for(let j=0;j<12;j++){const x=cX(j);if(j>=nc)for(let k=0;k<16;k++)add(x-10+r()*20,R-RD-44+r()*30,.5+r()*.3,4.8);if(j>=nd)for(let k=0;k<16;k++)add(x-10+r()*20,R+RD+39+r()*10,.5+r()*.3,4.8)}
-   for(let j=G.bus||0;j<4;j++){const x=-24*(j>>1);for(let k=0;k<16;k++)add(x-9+r()*18,(j&1)?R+RD+39+r()*20:R-RD-58+r()*44,.5+r()*.3,4.8)}}
-  if(!G.rest)grove(RX,V-50,46,26,.5);
-  if(!G.up.h)grove(hutX,hutY-12,34,16,.5);
-  if(!G.raupen)grove(dX,dY,38,20,.5);else{grove(dX-24,dY-62,22,12,.75);grove(dX+14,dY-74,24,12,.8);grove(dX-30,dY-102,16,6,.7);grove(dX+38,dY-46,10,4,.6)}
+  if(!G.up.s)grove(sb.x-70,sb.y-40,110,150,.6,11);
+  for(let i=G.hotels;i<3;i++){const [a,b,c2]=HPL(i),d=V+212,cy=(Math.max(c2,V+60)+d)/2;grove((a+b)/2,cy,Math.min(b-a,d-c2)*.55,[46,38,52][i],.6,20+i)}grove(150,V+150,66,44,.6,30);grove(285,V+152,66,44,.6,31);
+  {const nc=Math.ceil(G.spots/2),nd=Math.floor(G.spots/2);for(let j=0;j<12;j++){const x=cX(j);if(j>=nc)for(let k=0;k<16;k++){const r=RG(40000+j*20+k);add(x-10+r()*20,R-RD-44+r()*30,.5+r()*.3,4.8)}if(j>=nd)for(let k=0;k<16;k++){const r=RG(41000+j*20+k);add(x-10+r()*20,R+RD+39+r()*10,.5+r()*.3,4.8)}}
+   for(let j=G.bus||0;j<4;j++){const x=-24*(j>>1);for(let k=0;k<16;k++){const r=RG(42000+j*20+k);add(x-9+r()*18,(j&1)?R+RD+39+r()*20:R-RD-58+r()*44,.5+r()*.3,4.8)}}}
+  if(!G.rest)grove(RX,V-50,46,26,.5,70);
+  if(!G.up.h)grove(hutX,hutY-12,34,16,.5,71);
+  if(!G.raupen)grove(dX,dY,38,20,.5,72);else{grove(dX-24,dY-62,22,12,.75,73);grove(dX+14,dY-74,24,12,.8,74);grove(dX-30,dY-102,16,6,.7,75);grove(dX+38,dY-46,10,4,.6,76)}
   // natürliche Wälder
-  for(let i=0;i<Math.round(46*(XR-XL)/920*(H+EXT)/(H+900));i++){let cx,cy,tr=0;do{cx=XL+r()*(XR-XL);cy=100-EXT+r()*(H-100+EXT);tr++}while(!ok(cx,cy)&&tr<30);if(tr>=30)continue;const rad=34+r()*70;grove(cx,cy,rad,Math.round(rad*rad/95),.65)}
+  for(let i=0;i<Math.round(46*(XR-XL)/920*(H+EXT)/(H+900));i++){const r=RG(100+i);let cx,cy,tr=0;do{cx=XL+r()*(XR-XL);cy=100-EXT+r()*(H-100+EXT);tr++}while(!cOK(cx,cy)&&tr<30);if(tr>=30)continue;const rad=34+r()*70;grove(cx,cy,rad,Math.round(rad*rad/95),.65,1000+i)}
   // Waldränder links und rechts
-  for(const [x0,x1] of [[XL-6,XL+70],[XR-80,XR+6]])for(let i=0;i<Math.round((H+EXT)/7);i++)add(x0+r()*(x1-x0),100-EXT+r()*(H-100+EXT),.6+r()*.75,7);
+  [[XL-6,XL+70],[XR-80,XR+6]].forEach(([x0,x1],sI)=>{for(let i=0;i<Math.round((H+EXT)/7);i++){const r=RG(60000+sI*5000+i);add(x0+r()*(x1-x0),100-EXT+r()*(H-100+EXT),.6+r()*.75,7)}});
   // einzelne Bäume
-  for(let i=0;i<Math.round(420*(XR-XL)/920*(H+EXT)/(H+900));i++)add(XL-10+r()*(XR-XL+20),90-EXT+r()*(H-90+EXT),.55+r()*.7,9)}
- trees=treeAlt(trees);BEN.length=0;if(N)for(let i=0;i<7;i++){const y=pTopY(NA)+30+((V-40-(pTopY(NA)+30))*(i+.5))/7,sd=i%2?1:-1,w=30,rv=r();r();if(sd<0&&y>Yk(1)-10&&y<V+10)continue;let x=sd>0?slopeX(y)+slopeW(y)+14+rv*10:slopeX(y)-slopeW(y)-14-w-rv*10;x=cl(x,XL+8,XR-w-8);if(onX(x,y,8)||onX(x+w,y,8))continue;bench(c,x,y,w);BEN.push({x,y,w})}
+  for(let i=0;i<Math.round(420*(XR-XL)/920*(H+EXT)/(H+900));i++){const r=RG(80000+i);add(XL-10+r()*(XR-XL+20),90-EXT+r()*(H-90+EXT),.55+r()*.7,9)}}
+ trees=treeAlt(trees);BEN.length=0;if(N)for(let i=0;i<7;i++){const y=pTopY(NA)+30+((V-40-(pTopY(NA)+30))*(i+.5))/7,sd=i%2?1:-1,w=30,rv=(()=>{let q=(i*2654435761+999)%2147483646+1;for(let k=0;k<4;k++)q=(q*16807)%2147483647;return q/2147483647})();if(sd<0&&y>Yk(1)-10&&y<V+10)continue;let x=sd>0?slopeX(y)+slopeW(y)+14+rv*10:slopeX(y)-slopeW(y)-14-w-rv*10;x=cl(x,XL+8,XR-w-8);if(onX(x,y,8)||onX(x+w,y,8))continue;bench(c,x,y,w);BEN.push({x,y,w})}
  trees=trees.filter(t=>!BEN.some(b=>t[0]>b.x-8&&t[0]<b.x+b.w+8&&t[1]>b.y-14&&t[1]<b.y+16));
  FL=flBuild();if(G.flut)trees=trees.filter(t=>!FL.some(m=>Math.abs(t[0]-m[0])<11&&t[1]>m[1]-5&&t[1]<m[1]+18));
  if(G.train){const ty=TY();c.fillStyle='#b9b3a8';c.fillRect(x0,ty-6,ww,12);c.fillStyle='#7a5c45';for(let x=x0;x<x0+ww;x+=8)c.fillRect(x,ty-5,3,10);c.strokeStyle='#6b7280';c.lineWidth=1.3;for(const o of [-3,3]){c.beginPath();c.moveTo(x0,ty+o);c.lineTo(x0+ww,ty+o);c.stroke()}
