@@ -7,7 +7,7 @@
 <meta name="theme-color" content="#6fc3ee">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Alpine Resort">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600&display=swap" rel="stylesheet">
@@ -1982,7 +1982,7 @@ function buildStatic(){LK=lkey();WAYS=waysB();
 }
 // iPhone-Home-Bildschirm-App (V168): iOS meldet dort teils eine zu kleine Fensterhöhe (Lücke unten). Lücke messen und alles nach unten verlängern.
 function scrInfo(){let st='',sb='';try{const d=document.createElement('div');d.style.cssText='position:fixed;top:0;left:0;visibility:hidden;padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom)';document.body.appendChild(d);const c=getComputedStyle(d);st=parseInt(c.paddingTop);sb=parseInt(c.paddingBottom);d.remove()}catch(e){}const vv=window.visualViewport;return 'iH '+innerHeight+' · sH '+screen.height+' · vv '+(vv?Math.round(vv.height):'-')+' · cH '+document.documentElement.clientHeight+' · sa '+st+'/'+sb+' · st '+(navigator.standalone===true?1:0)+' · vg '+(getComputedStyle(document.documentElement).getPropertyValue('--vgap')||'-').trim()+' · ch '+ch}
-function vgap(){let g=0;try{if(navigator.standalone===true&&innerWidth<innerHeight)g=Math.max(0,Math.min(90,Math.max(screen.width,screen.height)-innerHeight))}catch(e){}document.documentElement.style.setProperty('--vgap',g+'px');return g}
+function vgap(){let g=0;document.documentElement.style.setProperty('--vgap',g+'px');return g}
 setTimeout(()=>{try{resize()}catch(e){}},600);setTimeout(()=>{try{resize()}catch(e){}},1800);
 function resize(){
  dpr=Math.min(devicePixelRatio||1,(typeof SET!=='undefined'&&SET.perf)?1.25:2);cw=innerWidth;ch=innerHeight+vgap();cv.width=cw*dpr;cv.height=ch*dpr;HS=ch*400/cw;
