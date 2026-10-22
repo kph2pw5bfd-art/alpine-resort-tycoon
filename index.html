@@ -139,7 +139,7 @@ if(G.ev&&(G.ev.k==='rennen'||G.ev.k==='nacht')&&G.ev.st==='run')G.ev.st='pre';
 if(G.nk==null)G.nk=Math.max(5,Math.round(G.ticket*.5));
 if(!G.tk2){G.ticket=Math.round(Math.min(120,Math.max(10,G.ticket*(hasSave?2.3:1.75))));G.half=Math.round(G.ticket*.6);G.tk2=1}
 let OL=INK;function setLook(){G.look='neu';OL='rgba(0,0,0,0)'}setLook();
-const XL=-420,XR=880,RD=9,LN=10;let S=1,offX=0,H,V,R,dpr,cw,ch,stat,cam=0,EXT=0,HS=900,camX=0,camY=0,rs=1,camA=null,viewInit=false,cars=[],folks=[],queues=[[],[],[],[],[],[]],lifts=[[],[],[],[],[],[]],open=null,confirmReset=false,paused=false,inTitle=true,started=false,newAsk=false,speed=1,trees=[],BEN=[],ROCKS=[],FL=[];
+const XL=-580,XR=1040,RD=9,LN=10;let S=1,offX=0,H,V,R,dpr,cw,ch,stat,cam=0,EXT=0,HS=900,camX=0,camY=0,rs=1,camA=null,viewInit=false,cars=[],folks=[],queues=[[],[],[],[],[],[]],lifts=[[],[],[],[],[],[]],open=null,confirmReset=false,paused=false,inTitle=true,started=false,newAsk=false,speed=1,trees=[],BEN=[],ROCKS=[],FL=[];
 const flakes=Array.from({length:26},()=>({x:Math.random()*600-100,y:Math.random()*900,s:.5+Math.random()}));
 const clouds=[{x:40,y:30,k:.8,v:5},{x:250,y:44,k:.7,v:3},{x:380,y:20,k:.6,v:4}];
 const fmt=n=>Math.round(n).toLocaleString('de-DE')+' €';
