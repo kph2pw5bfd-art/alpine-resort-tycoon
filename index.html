@@ -2119,7 +2119,7 @@ function person(c,f,t){if(G.look==='neu')return personN(c,f,t);const ski=f.st===
  if(bd){c.fillStyle='#fff';c.beginPath();c.arc(0,-15.4,1.3,0,7);c.fill()}
  c.restore()}
 const wrapA=a=>{while(a>Math.PI)a-=2*Math.PI;while(a<-Math.PI)a+=2*Math.PI;return a};
-function vPose(k){const ex=k.st==='out'||k.st==='gone',dir=ex?-(k.d||1):(k.d||1),ly=R+dir*LN,a0=dir>0?0:Math.PI,sy=k.sp>=0?spotY(k.sp):ly,a1=sy>R?Math.PI/2:-Math.PI/2,p=k.p;return {y:ly+(sy-ly)*p,a:a0+p*wrapA(a1-a0)}}
+function vPose(k){const ex=(k.st==='out'||k.st==='gone')&&!k.rx,dir=ex?-(k.d||1):(k.d||1),ly=R+dir*LN,a0=dir>0?0:Math.PI,sy=k.sp>=0?(k.ey||spotY(k.sp)):ly,a1=sy>R?Math.PI/2:-Math.PI/2,p=k.p;return {y:ly+(sy-ly)*p,a:a0+p*wrapA(a1-a0)}}
 
 const vSpawnX=(d,a,b)=>{let x=d>0?a:b;for(const o of cars.concat(buses))if(o.st==='in'&&(o.d||1)===d){const g=o.bus||1?40:32;if(d>0)x=Math.min(x,o.x-46);else x=Math.max(x,o.x+46)}return x},allV=()=>cars.concat(buses),vSpd=k=>k.bus?(k.st==='in'?60:70):70;
 function vCirc(k){if(k.st==='stay'||k.st==='unl')return [];if((k.sp>=100&&k.sp<200||k.sp>=300)&&k.p>.55)return [];const q=vPose(k),ca=Math.cos(q.a),sa=Math.sin(q.a),O=k.bus?[-14,0,14]:[-6,6],r=k.bus?9.5:8;return O.map(o=>[k.x+o*ca,q.y+o*sa,r])}
@@ -2132,10 +2132,10 @@ function vGo(k,nx,np,dt){const ox=k.x,op=k.p,y0=vPose(k).y,C0=vCirc(k);k.x=nx;k.
  for(const o of allV()){if(o===k)continue;const D=vCirc(o);if(D.length){const oy=vPose(o).y;if(!(Math.abs(my)<1e-6&&Math.abs(oy-y0)>=15&&(o.st==='in'||o.st==='gone'))&&(o.x-ox)*mx+(oy-y0)*my>0&&vHit(C,D,Math.abs(my)<1e-6&&Math.abs(oy-y0)<4?7:1.5))return blk(0)}
   const RZ=o.rz||((o.st==='park'||o.st==='out')?vPath(o,o.st,o.p):null);if(RZ&&(k.st==='in'||k.st==='gone')&&!vHit(C0,RZ)){const Z=RZ.filter(c=>(c[0]-ox)*mx+(c[1]-y0)*my>0);if(Z.length&&vHit(C,Z))return blk(1)}}
  k.w=0;k.zw=0;return true}
-function vFree(k,mode,dt){if(k.yd>0){k.yd-=dt;k.rz=null;return false}if(allV().some(o=>o!==k&&(o.st==='in'||o.st==='gone')&&o.w>2.5&&o.wz&&Math.abs(o.x-k.x)<90)){k.yd=3;k.rz=null;return false}const kl=mode==='park'?(k.d||1):-(k.d||1),O=[];
+function vFree(k,mode,dt){if(k.yd>0){k.yd-=dt;k.rz=null;return false}if(allV().some(o=>o!==k&&(o.st==='in'||o.st==='gone')&&o.w>2.5&&o.wz&&Math.abs(o.x-k.x)<90)){k.yd=3;k.rz=null;return false}const kl=mode==='park'||k.rx?(k.d||1):-(k.d||1),O=[];
  for(const o of allV()){if(o===k)continue;const D=vCirc(o);if(o.st==='park'||o.st==='out')O.push(vPath(o,o.st,o.p));if(!D.length)continue;if(mode==='park'&&o.st==='in'&&(o.d||1)===kl&&(k.x-o.x)*kl>0)continue;O.push(D);
  
-  if((o.st==='in'||o.st==='gone')&&!(o.w>0&&o.wz)&&!(o.st==='in'&&o.x===spotX(o.sp))){const dir=o.st==='in'?(o.d||1):-(o.d||1);if((k.x-o.x)*dir>0&&!(mode==='park'&&dir===kl))for(const f of (o.w>0?[.3]:[.3,.6,.9]))O.push(D.map(c=>[c[0]+vSpd(o)*dir*f,c[1],c[2]]))}}
+  if((o.st==='in'||o.st==='gone')&&!(o.w>0&&o.wz)&&!(o.st==='in'&&o.x===spotX(o.sp))){const dir=o.st==='in'||o.rx?(o.d||1):-(o.d||1);if((k.x-o.x)*dir>0&&!(mode==='park'&&dir===kl))for(const f of (o.w>0?[.3]:[.3,.6,.9]))O.push(D.map(c=>[c[0]+vSpd(o)*dir*f,c[1],c[2]]))}}
  const P=vPath(k,mode);let ok=true;for(let i=0;i<ZC.length;i++)if(zStop(i)&&P.some(q=>Math.abs(q[1]-R)<34&&Math.abs(q[0]-ZC[i])<13+q[2]))ok=false;for(const D of O)if(vHit(P,D)){ok=false;break}
  if(ok){k.pw=0;k.rz=null;return true}k.pw=(k.pw||0)+dt;if(k.pw>1.5)k.rz=P;if(k.pw>20){G.gh=(G.gh||0)+1;k.pw=0;k.rz=null;return true}return false}
 function car(c,x,y,a,col){c.save();c.translate(x,y);c.fillStyle='rgba(30,50,80,.25)';c.beginPath();c.ellipse(1,4,16,9,a,0,7);c.fill();c.rotate(a);c.fillStyle=col;c.strokeStyle=OL;c.lineWidth=1.3;
@@ -2249,7 +2249,7 @@ function pick2(i){return ['#4fa3e0','#f2a63b','#6cc07a','#b177e0'][i%4]}
 // ===== Parkhaus (V107) =====
 // Maße an Auto (28×16) und Person (4×13) ausgerichtet: Stellplatz 22 breit / 30 tief, Stockwerk 18 hoch.
 // Tiefgaragen (V182): zwei Garagen, je bis zu 3 Untergeschosse à 16/+12 Plätze
-const GC2=9000,GEC=[0,5000,7000],gLv=n=>Math.max(1,Math.min(3,(n===1?G.gl:G.gl2)||1)),gCap=n=>(n===1?G.garage:G.garage2)?16+12*(gLv(n)-1):0,gNb=n=>cars.filter(k=>k.g===n&&k.st!=='gone').length,gFree=n=>gCap(n)-gNb(n),gAll=()=>gCap(1)+gCap(2),gY2=()=>R-74-RD;
+const GC2=9000,GEC=[0,5000,7000],gLv=n=>Math.max(1,Math.min(3,(n===1?G.gl:G.gl2)||1)),gCap=n=>(n===1?G.garage:G.garage2)?16+12*(gLv(n)-1):0,gNb=n=>cars.filter(k=>k.g===n&&k.st!=='gone').length,gFree=n=>gCap(n)-gNb(n),gAll=()=>gCap(1)+gCap(2),gY2=()=>R-74-RD,GEX=724,gEX=n=>GEX,gPend=n=>cars.some(k=>k.g===n&&(k.st==='out'||(k.st==='stay'&&k.back>=k.n)));
 function gUp(n){const L=gLv(n),p=GEC[L];if(L>=3||!(n===1?G.garage:G.garage2)||G.money<p)return;spend(p);if(n===1)G.gl=L+1;else G.gl2=L+1;toast('Tiefgarage'+(n===2?' 2':'')+': '+(L+1)+'. Untergeschoss, jetzt '+gCap(n)+' Plätze');save()}
 function gBuild2(){if(G.garage2||!G.garage||G.money<GC2)return;spend(GC2);G.garage2=1;G.gl2=1;toast('Zweite Tiefgarage eröffnet!');save()}
 const PHC=9000,PHC3=5000,PX0=-226,PX1=-90,PTX=-52,PEX=-71,PFH=18,PDK=76,PB=()=>R+137,
@@ -2293,10 +2293,19 @@ function phDraw(c,t){const L=G.ph,B=PB(),H=phH(),T=phT(),x0=PX0,x1=PX1,xe=PTX,n=
 // Rampe: immer nur ein Auto gleichzeitig hinaus, und nicht während eines hineinfährt
 function phGate(c){if(cars.some(k=>k.ph&&k!==c&&(k.st==='out'||k.st==='park')))return false;return cars.find(k=>k.ph&&k.st==='stay'&&k.back>=k.n)===c}
 // Tiefgarage (V182): pro Einfahrt immer nur ein Auto gleichzeitig hinaus, und nicht während eines hineinfährt
-function gGate(c){if(cars.some(k=>k.g===c.g&&k!==c&&(k.st==='park'||(k.st==='out'&&k.p>.45))))return false;return cars.find(k=>k.g===c.g&&k.st==='stay'&&k.back>=k.n)===c}
+function gGate(c){if(cars.some(k=>k.g&&k!==c&&k.st==='out'&&k.p>.45))return false;return cars.find(k=>k.g&&k.st==='stay'&&k.back>=k.n)===c}
 function phBuild(){if(!G.ph&&G.areas>=2&&G.money>=PHC){spend(PHC);G.ph=2;toast('Parkhaus eröffnet: 24 Plätze auf 2 Ebenen');save()}}
 function phUp(){if(G.ph===2&&G.money>=PHC3){spend(PHC3);G.ph=3;toast('Parkhaus aufgestockt: jetzt 36 Plätze');save()}}
-function garagePortal(c,free,t,x,lv,nm){x=x||GX;lv=lv||1;nm=nm||'';const y=R-RD;c.lineWidth=1.4;c.strokeStyle=OL;
+// Gemeinsame Ausfahrt beider Tiefgaragen (V185): südlich der Straße, ganz rechts; Autos biegen rechts ab nach Osten
+function gExitDraw(c){const ex=GEX,y=R+RD,op=cars.some(k=>k.g&&k.st==='out');c.lineWidth=1.2;c.strokeStyle=OL;
+ c.fillStyle='rgba(30,50,80,.18)';c.beginPath();c.ellipse(ex+2,y+50,20,4,0,0,7);c.fill();
+ c.fillStyle='#aab3c2';c.beginPath();c.roundRect(ex-16,y+10,32,40,3);c.fill();c.stroke();
+ c.fillStyle='#2d3342';c.beginPath();c.roundRect(ex-11,y+10,22,24,[0,0,8,8]);c.fill();c.stroke();
+ c.fillStyle='#fff';c.beginPath();c.roundRect(ex-16,y+38,32,10,2);c.fill();c.fillStyle=INK;c.font='700 5.4px Fredoka,sans-serif';c.textAlign='center';c.fillText('AUSFAHRT',ex,y+42.4,30);c.font='600 3.8px Fredoka,sans-serif';c.fillText('TIEFGARAGE',ex,y+46.6,30);
+ c.save();c.translate(ex-12,y+11);c.rotate(op?1.3:0);c.fillStyle='#fff';c.fillRect(0,-1.2,22,2.4);c.fillStyle='#e8504a';for(let q=0;q<5;q++)c.fillRect(q*4.4,-1.2,2.2,2.4);c.restore();c.fillStyle='#5d667a';c.fillRect(ex-14,y+8,2.4,6);
+ c.fillStyle='#ffd84d';c.font='700 8px Fredoka,sans-serif';c.fillText('⟶',ex,y+29)}
+function garagePortal(c,free,t,x,lv,nm){x=x||GX;lv=lv||1;nm=nm||'';const y=R-RD;
+c.lineWidth=1.4;c.strokeStyle=OL;
  c.fillStyle='#aab3c2';c.beginPath();c.roundRect(x-17,y-60,34,48,3);c.fill();c.stroke();
  c.fillStyle='#2d3342';c.beginPath();c.roundRect(x-11,y-38,22,26,[8,8,0,0]);c.fill();c.stroke();
  c.fillStyle='#fff';c.beginPath();c.roundRect(x-17,y-66,34,8,3);c.fill();
@@ -2315,7 +2324,7 @@ function evenChairs(k){const q=lifts[k-1].slice().sort((a,b)=>a.u-b.u),g=2/q.len
 function spawnCar(nt,oa){
  const used=new Set(cars.filter(c=>c.sp>=0&&c.sp<100).map(c=>c.sp)),free=[];
  for(let i=0;i<G.spots;i++)if(!used.has(i))free.push(i);
- const f1=gFree(1),f2=gFree(2),gf=f1+f2,gar=gf>0&&(!free.length||Math.random()<.4),gn=gar?(f2>0&&(f1<=0||Math.random()<f2/gf)?2:1):0,pf=G.ph?phCap()-phN():0,ph=!gar&&!free.length&&pf>0;
+ const lp=phase()>=pAt(15),f1=lp&&gPend(1)?0:gFree(1),f2=lp&&gPend(2)?0:gFree(2),gf=f1+f2,gar=gf>0&&(!free.length||Math.random()<.4),gn=gar?(f2>0&&(f1<=0||Math.random()<f2/gf)?2:1):0,pf=G.ph?phCap()-phN():0,ph=!gar&&!free.length&&pf>0;
  if(ph&&pf===1&&G.phF!==G.day){G.phF=G.day;lg('🅿️','anr','Parkhaus voll, alle '+phCap()+' Plätze belegt')}
  if(gar||free.length||ph){const sp=ph?300:gar?(gn===2?101:100):pick(free),d=(sp>=300||(sp<100&&(sp&1)))?1:-1;const n0=oa?3:2+(Math.random()*3|0);cars.push({fam:!oa&&!nt&&n0>=3&&Math.random()<(prjOk('kind')?.62:.45)?1:0,d,x:vSpawnX(d,XL-30,XR+30),sp,g:gn,ph:ph?1:0,st:'in',p:0,n:n0,back:0,col:pick(COL),nt:nt?1:0,oa:oa?1:0});return 1}else{G.inc.ab=(G.inc.ab||0)+1;if(G.inc.ab===1)lg('🅿️','anr',(G.garage&&G.ph?'Parkplatz, Tiefgarage und Parkhaus voll':G.garage?'Parkplatz und Tiefgarage voll':G.ph?'Parkplatz und Parkhaus voll':'Parkplatz voll')+', erstes Auto abgewiesen');return 0}
 }
@@ -3146,9 +3155,11 @@ function step(dt){
   if(c.st==='in'){const sx=spotX(c.sp);let nx=c.x+70*c.d*dt;if(c.d>0?nx>=sx:nx<=sx)nx=sx;if(vGo(c,nx,c.p,dt)){c.x=nx;if(nx===sx&&vFree(c,'park',dt))c.st='park'}}
   else if(c.st==='park'){const np=Math.min(1,c.p+dt/.7);if(vGo(c,c.x,np,dt))c.p=np;if(c.p>=1){c.p=1;c.st='stay';G.money+=G.park;G.inc.p+=G.park;if(G.park>0)pop(spotX(c.sp),spotY(c.sp)-14,G.park);
    for(let i=0;i<c.n;i++){const f={nt:c.nt||0,x:spotX(c.sp)+(i-1)*5,y:fy(c.sp),st:'qu',col:pick(COL),car:c,rides:0,l:1,arr:0,board:Math.random()<bdP(),bc:pick(['#ff7a45','#34c0b8','#8a5ae0','#2f80ed'])};f.st='kas';if(c.oa)Object.assign(f,{oa:1,st:'oaR',id:Math.random()*20,qw:0,sw:0,ph:Math.random()<.6});folks.push(f)}}}
-  else if(c.st==='stay'){if(c.back>=c.n&&(!c.ph||phGate(c))&&(!c.g||gGate(c))&&vFree(c,'out',dt))c.st='out'}
+  else if(c.st==='stay'){if(c.g&&c.back>=c.n&&!c.rx){c.rx=1;c.x=GEX;c.d=1;c.ey=R+30+RD}if(c.back>=c.n&&(!c.ph||phGate(c))&&(!c.g||gGate(c))&&vFree(c,'out',dt))c.st='out'}
   else if(c.st==='out'){const np=Math.max(0,c.p-dt/(c.g&&c.p>.55?.2:.7));if(vGo(c,c.x,np,dt))c.p=np;if(c.p<=0){c.p=0;c.st='gone';c.sp=-1}}
-  else{const nx=c.x-70*c.d*dt;if(vGo(c,nx,c.p,dt))c.x=nx}
+  else{const nx=c.x+70*(c.rx?c.d:-c.d)*dt;if(vGo(c,nx,c.p,dt))c.x=nx}
+  // Sicherheitsnetz (V185): um 3 Uhr fährt, wer noch in Garage/Parkhaus feststeckt, still weg
+  if((c.g||c.ph)&&(c.st==='stay'||c.st==='out')&&c.back>=c.n&&hrOf(phase())>=27){c.st='gone';c.sp=-1;c.x=c.d>0?XL-100:XR+100}
  }
  cars=cars.filter(c=>!(c.st==='gone'&&(c.x>XR+40||c.x<XL-40)));
  for(const f of folks){
@@ -3225,7 +3236,7 @@ function draw(dt){
  if(G.areas<NA){const y=Yk(G.areas)-34;c.save();c.beginPath();c.rect(XL-10,-EXT-20,XR-XL+20,y+EXT+20);c.clip();c.fillStyle='rgba(206,230,247,.88)';c.fillRect(XL-10,-EXT-20,XR-XL+20,y+EXT+20);
   c.restore();c.fillStyle='rgba(206,230,247,.88)';for(let x=XL-20;x<XR+20;x+=24){c.beginPath();c.arc(x,y,15,0,7);c.fill()}
   c.fillStyle='#4d6a8a';c.textAlign='center';c.font='26px sans-serif';c.fillText('🔒',240,y-40);c.font='600 12px Fredoka,sans-serif';c.fillText('Bereich '+(G.areas+1)+' gesperrt',240,y-20)}
- for(const k of cars){const p=k.p,q=vPose(k);if(k.sp>=100)c.globalAlpha=Math.max(0,1-p);car(c,k.x,q.y,q.a,k.col);c.globalAlpha=1}
+ for(const k of cars){const p=k.p,q=vPose(k);if(k.sp>=100)c.globalAlpha=Math.max(0,1-p);car(c,k.x,q.y,q.a,k.col);c.globalAlpha=1}if(G.garage)gExitDraw(c);
  for(const tr of trains)drawTrain(c,tr);if(trains.length&&window.FTR)for(const t of FTR){const q=Math.round(t[2]*20),sz=q/20,sp=TSP[q];if(sp)c.drawImage(sp,t[0]-15*sz,t[1]-38*sz,40*sz,46*sz)}
  for(const k of buses){const q=vPose(k);bus(c,k.x,q.y,q.a,k.col,k.sch?'SCHULE':k.sh?'SHUTTLE':0)}
  for(const p of fx){p.t-=dt;p.x+=p.vx*dt;p.y+=p.vy*dt}fx=fx.filter(p=>p.t>0);c.fillStyle='#bcdcf2';for(const p of fx){c.globalAlpha=Math.min(1,p.t*2);c.beginPath();c.arc(p.x,p.y,1+(.6-p.t)*3,0,7);c.fill()}c.globalAlpha=1;
