@@ -191,6 +191,11 @@ function goBuild(g){if(g==='pre'){open='pre';render();$('sheet').scrollTop=0;ret
 async function webSave(fn,data){try{const f=new File([data],fn,{type:'application/json'});if(navigator.canShare&&navigator.canShare({files:[f]})){await navigator.share({files:[f],title:'Alpine Resort Tycoon – Spielstand'});return 1}}catch(e){if(e&&e.name==='AbortError')return 0}
  try{const u=URL.createObjectURL(new Blob([data],{type:'application/json'})),a=document.createElement('a');a.href=u;a.download=fn;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),5000);return 1}catch(e){return 0}}
 if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostname==='localhost'))window.addEventListener('load',()=>{navigator.serviceWorker.register('sw.js').catch(()=>{})});
+// ===== Bildschirm anlassen (V174): Screen Wake Lock, solange gespielt wird =====
+let wakeL=null,wakeB=false;
+async function wakeUpd(){const want=SET.wake!==0&&started&&!inTitle&&document.visibilityState==='visible';if(wakeB||!('wakeLock' in navigator))return;wakeB=true;
+ try{if(want&&!wakeL){wakeL=await navigator.wakeLock.request('screen');wakeL.addEventListener('release',()=>{wakeL=null})}else if(!want&&wakeL){const w=wakeL;wakeL=null;await w.release()}}catch(e){}wakeB=false}
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')wakeUpd()});addEventListener('pointerdown',()=>{if(!wakeL)wakeUpd()},true);
 // ===== Kindermodus + Helfer Flocki (V162) =====
 // Kindermodus (Einstellung SET.kid): weniger auf einmal, kurze Texte. Flocki zeigt unten links den einen besten nächsten Schritt.
 const KID=()=>!!SET.kid;
@@ -343,7 +348,7 @@ function revHTML(){const A=G.rvA||[],last=A[A.length-1],Rv=(G.rev||[]).slice(-6)
  return h+`<div class="pc" style="padding:4px 11px">`+Rv.map(r=>`<div class="lg" style="display:block"><div style="display:flex;justify-content:space-between;gap:8px"><b>${r.nm} <small style="color:var(--mut);font-weight:400">${GT[r.ty]?GT[r.ty][0]+' '+GT1[r.ty]:''}${r.hg?' · 🏨':''} · Tag ${r.d}</small></b><span style="color:#e8a33a;white-space:nowrap">${starsH(r.st)}</span></div><div style="margin-top:2px">${r.t}</div></div>`).join('')+'</div>'}
 
 // ===== Einstellungen (V141), getrennt vom Spielstand gespeichert =====
-let SET={kid:0,bub:1,sp:1,nf:1,hint:1,th:'auto',snw:1,perf:0,sfx:1,mus:0,vol:60};try{const o=JSON.parse(localStorage.getItem('art-settings')||'null');if(o)SET=Object.assign(SET,o)}catch(e){}
+let SET={wake:1,kid:0,bub:1,sp:1,nf:1,hint:1,th:'auto',snw:1,perf:0,sfx:1,mus:0,vol:60};try{const o=JSON.parse(localStorage.getItem('art-settings')||'null');if(o)SET=Object.assign(SET,o)}catch(e){}
 function setSave(){try{localStorage.setItem('art-settings',JSON.stringify(SET))}catch(e){}}
 function setTheme(){const r=document.documentElement;if(SET.th==='auto')delete r.dataset.theme;else r.dataset.theme=SET.th==='dunkel'?'dark':'light'}
 setTheme();speed=SET.sp||1;
@@ -351,7 +356,7 @@ const snK=()=>SET.snw===0?0:SET.snw===2?.35:1;
 const nIdle=()=>SET.nf&&closed()&&!folks.length;
 function setHTML(){const sg=(k,opts)=>`<div class="seg">${opts.map(([v,l])=>`<button data-set="${k}:${v}" class="${String(SET[k])===String(v)?'on':''}">${l}</button>`).join('')}</div>`,R=(l,x)=>`<div class="srow"><span>${l}</span>${x}</div>`;
  return `<h3>Einstellungen<a data-x>✕</a></h3>
- <div class="bgh">🎮 Spiel</div>${R('👦 Kindermodus',sg('kid',[[0,'Aus'],[1,'An']]))}${R('Sprechblasen',sg('bub',[[1,'An'],[2,'Selten'],[0,'Aus']]))}${R('Tempo beim Start',sg('sp',[[1,'×1'],[2,'×2'],[3,'×3'],[4,'×4'],[5,'×5']]))}${R('Nachts schneller',sg('nf',[[1,'An'],[0,'Aus']]))}${R('Popups',sg('hint',[[1,'Einblenden'],[0,'Nur Logbuch']]))}
+ <div class="bgh">🎮 Spiel</div>${R('👦 Kindermodus',sg('kid',[[0,'Aus'],[1,'An']]))}${R('Sprechblasen',sg('bub',[[1,'An'],[2,'Selten'],[0,'Aus']]))}${R('Tempo beim Start',sg('sp',[[1,'×1'],[2,'×2'],[3,'×3'],[4,'×4'],[5,'×5']]))}${R('Bildschirm anlassen',sg('wake',[[1,'An'],[0,'Aus']]))}${R('Nachts schneller',sg('nf',[[1,'An'],[0,'Aus']]))}${R('Popups',sg('hint',[[1,'Einblenden'],[0,'Nur Logbuch']]))}
  <div class="bgh">🔊 Ton</div>${R('Geräusche',sg('sfx',[[1,'An'],[0,'Aus']]))}${R('Musik',sg('mus',[[1,'An'],[0,'Aus']]))}<div class="srow"><span>Lautstärke</span><div class="stp" style="margin:0;flex:none;width:60%"><button class="pm" data-d="svol" data-s="-10">−</button><input type="range" id="svol" min="0" max="100" step="10" value="${SET.vol}"><button class="pm" data-d="svol" data-s="10">+</button><b id="vvol" style="min-width:38px;text-align:right">${SET.vol} %</b></div></div>
  <div class="bgh">❄️ Grafik</div>${R('Schneefall',sg('snw',[[1,'Normal'],[2,'Wenig'],[0,'Aus']]))}${R('Leistungsmodus',sg('perf',[[0,'Aus'],[1,'An']]))}${R('Fenster',sg('th',[['auto','Auto'],['hell','Hell'],['dunkel','Dunkel']]))}
  <div class="bgh">💾 Spielstand</div>
@@ -362,7 +367,8 @@ function setHTML(){const sg=(k,opts)=>`<div class="seg">${opts.map(([v,l])=>`<bu
  <div class="row"><span>Alles löschen</span><button class="btn ghost" id="rs" ${confirmReset?'style="background:#e8504a;color:#fff"':''}>${confirmReset?'Wirklich neu starten?':'Neu starten'}</button></div>
  <p class="hint">Kindermodus: weniger Infos auf einmal, kurze Texte und große Zahlen. Unten links zeigt Flocki, was als Nächstes am besten wäre. „Zeig mir!“ springt direkt zur richtigen Stelle.</p>
   <p class="hint">Sprechblasen: Die Gedanken im Ruf-Reiter werden immer gesammelt, auch wenn die Blasen aus sind. „Selten“ heißt etwa 2,5-mal weniger.</p>
- <p class="hint">Nachts schneller: Sind alle Gäste weg und die Lifte zu, läuft die Zeit mit ×5 bis zum Morgen. Oben rechts steht dann 🌙.</p>
+ <p class="hint">Bildschirm anlassen: Solange du im Spiel bist, geht das Display nicht von selbst aus. Kostet etwas mehr Akku.</p>
+  <p class="hint">Nachts schneller: Sind alle Gäste weg und die Lifte zu, läuft die Zeit mit ×5 bis zum Morgen. Oben rechts steht dann 🌙.</p>
  <p class="hint">Popups: Bei „Nur Logbuch“ kommen Tagesabschluss und Ereignis-Anfragen nicht als Popup, und das Ereignis-Fenster öffnet sich nicht von selbst. Der gelbe Punkt bei 🎪 bleibt.</p>
  <p class="hint">Ton: Kassenklingeln, Bau-Fanfare, Wind und Sturm, Glocke bei Anfragen und eine kleine Melodie am Tagesende. Am iPhone muss der Lautlos-Schalter aus sein.</p>
  <p class="hint">Leistungsmodus: für ältere Handys. Etwas geringere Auflösung, 30 statt 60 Bilder pro Sekunde, weniger Schneepartikel. Das Spiel läuft gleich schnell. „Auto“ bei Fenster folgt der Einstellung deines Handys.</p>
@@ -3341,7 +3347,7 @@ cv.addEventListener('pointerup',pend);cv.addEventListener('pointercancel',pend);
 cv.addEventListener('wheel',e=>{e.preventDefault();camA=null;const r0=rc();zoomAt(e.clientX-r0.left,e.clientY-r0.top,S*Math.exp(-e.deltaY*.0015))},{passive:false});
 $('zb').onclick=()=>{if(S>minS()*1.08)allView();else homeView(false)};
 let resetting=false;function save(){if(resetting||(!started&&!hasSave))return;G.sv=Date.now();try{localStorage.setItem(KEY,JSON.stringify(G))}catch(e){}}
-setInterval(save,4000);setInterval(()=>cloudPush(),20000);kidBind();setTimeout(flAnim,300);setInterval(()=>{hud();tutUpd();kidUpd();pbUpd();if(open&&open!=='pre')upd();if(started&&!inTitle&&Math.random()<.25)achChk()},500);
+setInterval(save,4000);setInterval(()=>cloudPush(),20000);kidBind();setTimeout(flAnim,300);setInterval(()=>{hud();tutUpd();kidUpd();pbUpd();wakeUpd();if(open&&open!=='pre')upd();if(started&&!inTitle&&Math.random()<.25)achChk()},500);
 $('lbar').onclick=()=>{open='log';lgDay=G.day;lgCat='all';render();$('sheet').scrollTop=0};
 document.addEventListener('visibilitychange',()=>{save();if(document.visibilityState==='hidden')cloudPush(true)});addEventListener('pagehide',()=>{save();cloudPush(true)});
 resize();for(let k=1;k<=G.areas;k++)buildLift(k);for(let k=1;k<=5;k++)for(const fr of [.3,.72])cann.push({k,fr,on:0,cd:3+Math.random()*25});hud();
