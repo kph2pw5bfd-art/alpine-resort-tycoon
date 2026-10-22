@@ -61,8 +61,8 @@ input[type=range]{width:100%;accent-color:var(--ac);margin:4px 0 10px}
 #toast{position:fixed;left:50%;top:calc(66px + env(safe-area-inset-top,0px));transform:translateX(-50%);background:var(--tx);color:var(--bg);padding:8px 16px;border-radius:14px;font-weight:600;font-size:14px;opacity:0;transition:opacity .25s;pointer-events:none;white-space:normal;max-width:86vw;width:max-content;text-align:center;z-index:6}
 #toast.on{opacity:1}
 @keyframes evp{50%{box-shadow:0 0 0 3px #ffd84d}}
-#flk{position:fixed;left:0;bottom:calc(40px + env(safe-area-inset-bottom,0px));display:none;align-items:flex-end;gap:0;z-index:4;max-width:calc(100vw - 12px)}#flk.on{display:flex}
-#flkc{position:static;inset:auto;width:208px;height:208px;flex:none;margin-left:-70px;background:none;cursor:pointer}#flk.hop #flkc{animation:fhop 1s ease-out}
+#flk{pointer-events:none;position:fixed;left:0;bottom:calc(40px + env(safe-area-inset-bottom,0px));display:none;align-items:flex-end;gap:0;z-index:4;max-width:calc(100vw - 12px)}#flk.on{display:flex}
+#flkc{position:static;inset:auto;width:208px;height:208px;flex:none;margin-left:-70px;background:none;pointer-events:none}#flhit{position:absolute;left:-14px;bottom:56px;width:96px;height:96px;border-radius:50%;pointer-events:auto;cursor:pointer}#flb{pointer-events:auto}#flk.hop #flkc{animation:fhop 1s ease-out}
 @keyframes fhop{0%,100%{transform:none}18%{transform:translateY(-16px)}36%{transform:none}54%{transform:translateY(-8px)}72%{transform:none}}
 #flb{position:relative;background:var(--bg);color:var(--tx);border-radius:12px;padding:6px 8px 6px 10px;width:calc(100vw - 104px);max-width:480px;position:relative;z-index:1;box-sizing:border-box;font-size:12px;line-height:1.28;box-shadow:0 3px 10px rgba(20,50,90,.25),0 0 0 2px #ffd84d;margin:0 0 0 -36px;display:grid;grid-template-columns:1fr auto;column-gap:8px;row-gap:3px;align-items:center}#flt{grid-column:1 / -1}#flm{grid-column:1;grid-row:2;margin:0}.fpb{grid-column:1 / -1;grid-row:3}#flg{grid-column:2;grid-row:2}
 #flb:before{content:'';position:absolute;left:-8px;top:14px;border:8px solid transparent;border-right-color:#ffd84d;border-left:0}#flk.col #flb{display:none}
@@ -103,7 +103,7 @@ body.kid .bk.op .sh{display:block}
 <button data-p="ev" id="evb"><span>🎪</span>Ereignisse<i class="rd"></i></button>
 <button data-p="set"><span>⚙️</span>Optionen</button>
 </div>
-<div id="tut"></div><div id="flk"><canvas id="flkc" title="Flocki"></canvas><div id="flb"><div id="flt"></div><div id="flm"></div><div class="fpb" id="flp"><i></i></div><button class="btn" id="flg">Zeig mir! ›</button></div></div><div id="lbar"><span class="lw"><span class="lt"></span><span class="li">📖</span><span class="lx">Noch keine Einträge</span></span><span class="lk">›</span></div><div id="sheet"></div><div id="toast"></div>
+<div id="tut"></div><div id="flk"><canvas id="flkc"></canvas><div id="flhit" title="Flocki"></div><div id="flb"><div id="flt"></div><div id="flm"></div><div class="fpb" id="flp"><i></i></div><button class="btn" id="flg">Zeig mir! ›</button></div></div><div id="lbar"><span class="lw"><span class="lt"></span><span class="li">📖</span><span class="lx">Noch keine Einträge</span></span><span class="lk">›</span></div><div id="sheet"></div><div id="toast"></div>
 <div id="title" class="ttl"><div class="ttlbg" role="img" aria-label="Alpine Resort Tycoon"></div><div class="ttlbtn"><button id="tcont" class="tb blue">Fortfahren</button><button id="tnew" class="tb orange">Neues Spiel</button><div id="tsv"><button id="tbk">💾 Spielstand sichern</button><button id="tld">📂 Spielstand laden</button></div><input type="file" id="tfile" accept=".json,application/json" hidden><div id="tscn" hidden><div class="tdh">Was möchtest du spielen?</div><div id="tscl"></div><button id="tsb" class="tdb">Zurück</button></div><div id="tdiff" hidden><div class="tdh">Freies Spiel: Wie schwer soll es werden?</div><button class="tb green" data-df="leicht">🟢 Leicht<small>1.500 € Startgeld · großzügige Gäste</small></button><button class="tb blue" data-df="normal">🔵 Normal<small>300 € Startgeld · wie bisher</small></button><button class="tb red" data-df="schwer">🔴 Schwer<small>200 € Startgeld · strenge Gäste</small></button><button id="tdb" class="tdb">Zurück</button></div><p id="tnote"></p></div></div>
 <script>
 const $=id=>document.getElementById(id),cv=$('c'),cx=cv.getContext('2d');
@@ -271,7 +271,7 @@ function kidUpd(){const on=KID()&&started&&!inTitle;document.body.classList.togg
  $('flg').style.display=t.go?'':'none'}
 function flAnim(){requestAnimationFrame(flAnim);const el=$('flk');if(!el||!el.classList.contains('on'))return;const c=$('flkc'),x=c.getContext('2d'),d=Math.min(2,window.devicePixelRatio||1);
  if(c.width!==208*d){c.width=208*d;c.height=208*d}x.setTransform(d,0,0,d,0,0);x.clearRect(0,0,208,208);const tt=performance.now()/1000;x.save();x.translate(104,104);x.rotate(Math.sin(tt*1.6)*.06);x.scale(1.24,1.24);flkDraw(x,tt,performance.now()<(FK.tk||0));x.restore()}
-function kidBind(){$('flkc').onclick=()=>{FK.col=FK.col?0:1;if(!FK.col&&FK.tip)FK.tk=performance.now()+Math.min(3500,900+FK.tip.t.length*28);kidUpd()};$('flg').onclick=()=>{const t=FK.tip;if(t&&t.go){sfx('click');t.go()}}}
+function kidBind(){$('flhit').onclick=()=>{FK.col=FK.col?0:1;if(!FK.col&&FK.tip)FK.tk=performance.now()+Math.min(3500,900+FK.tip.t.length*28);kidUpd()};$('flg').onclick=()=>{const t=FK.tip;if(t&&t.go){sfx('click');t.go()}}}
 
 // ===== Folgen der Laune (V136): Mundpropaganda, früher heimfahren =====
 function mpCalc(R,ab){const n=R&&R.n||0,h=R&&R.hap||0,b=R&&R.bad||0,av=n?R.s/n:.62,sh=n?(h-b)/n:0,pk=Math.min(.06,(ab||0)*.003);return {n,h,b,ab:ab||0,pk,v:cl((G.mp||0)*.5+(av-.62)*.5+sh*.06-pk,-.15,.2)}}
