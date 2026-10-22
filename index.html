@@ -146,7 +146,7 @@ const fmt=n=>Math.round(n).toLocaleString('de-DE')+' €';
 const CHL=()=>[[415,V,46,28],[578,R+88,36,24],[624,R+88,36,24],[668,R+88,36,24]];
 const slopeX=y=>{const u=y-120;return 155+55*sfr(y)+16*Math.sin(u/52)+10*Math.sin(u/27+1.3)+7*Math.sin(u/80+.5)}, slopeW=y=>1.5*(28+(sfr(y)<0?9:32)*sfr(y))*(1+.15*Math.sin((y-120)/37+2));
 const NA=6,AHF=1.6,AH=()=>(V-130)/3*AHF,Yk=k=>V-k*AH(),TOPY4=()=>V-4*AH()-10,TOPY=()=>V-NA*AH()-10,sfr=y=>(y-TOPY4())/(V-TOPY4()), lx=y=>315+100*(y-Yk(4))/((V-22)-Yk(4));
-const GX=414,GX2=566,PGAP=30,ZC=[215,500,31],cX=j=>57+26*j+(j>=6?PGAP:0),spotX=i=>i>=500?SZW:i>=300?-71:i>=200?-24*((i-200)>>1):i===101?GX2:i>=100?GX:cX(i>>1), spotY=i=>i>=500?SZT():i>=300?R+52:i>=200?((i&1)?R+38+RD:R-38-RD):i>=100?R-30-RD:(i&1)?R+32+RD:R-32-RD, fy=i=>i>=500?SZT()+20:i>=300?R+133:i>=200?((i&1)?R+60+RD:R-64-RD):i>=100?R-40-RD:(i&1)?R+46+RD:R-46-RD, spotCost=()=>G.spots<24?600+120*(G.spots-4):0, cost=()=>zins()+Math.round(seaK()*CF*(40+60*G.areas+8*G.spots+10*G.lg.reduce((a,b)=>a+b,0)+15*G.up.s+20*G.up.h+25*G.garage+25*(G.garage2||0)+10*((G.garage?gLv(1):1)-1)+10*((G.garage2?gLv(2):1)-1)+30*(G.ph?1:0)+9*((G.ph||0)>=3?1:0)+25*(G.sz?1:0)+6*Math.max(0,(G.sz||0)-1)+20*G.cap.filter((c,i)=>i<G.areas&&c>2).length+30*G.cap.filter((c,i)=>i<G.areas&&c>4).length+45*G.cap.filter((c,i)=>i<G.areas&&c>6).length+60*G.hotels+50*G.raupen+20*(G.rupg||0)+30*stf().lw+40*stf().bw+25*stf().ph+(prjOk('gipf')?70:0)+(prjOk('park')?45:0)+(prjOk('schanze')?110:0)+(prjOk('kind')?50:0)+(prjOk('teich')?(G.tm==='voll'?120:60):0)+(prjOk('arena')?120:0)+(prjOk('therme')?150:0)+(prjOk('g2')?250:0)+30*(G.rest||0)+60*(G.train||0)+40*(G.kan||0)+20*(G.kup||0)+15*(G.bus||0)+15*(G.pb||0)+25*(G.ps||0)+40*(G.ap||0))+(G.inc.fl||0)+(G.inc.nl||0)), gcost=k=>G.lg[k-1]<6?400+250*G.lg[k-1]:0,qcost=k=>[2500,4000,6000,9000,12000,15000][k-1],HC=[9000,16000,26000],KC=5500,RSC=6000,TRC=15000,BPC=[3500,6000],RUC=9000,KUC=8000,RC=[4500,12000],pqf=()=>G.areas>=2?cl(G.pq/100,0,1):1,wxOn=()=>G.areas>=2,WI={sonne:'☀️',schnee:'❄️',tau:'💧',sturm:'🌪️'},WN={sonne:'Sonne',schnee:'Neuschnee',tau:'Tauwetter',sturm:'Sturm'},wxA=()=>wxOn()?({sonne:1.1,schnee:1.35,tau:.9,sturm:.25})[G.wx]*(.5+.5*cl(G.snow/50,0,1)):1,hw=()=>wxOn()?({sonne:0,schnee:.08,tau:-.05,sturm:.12})[G.wx]:0,HX=[438,552,644],occ=()=>oaDay()?.98:cl(.15+(G.ap?.04:0)+(prjOk('gipf')?.03:0)+rufE()/130-(G.hp-45)/150+hw(),.05,.98),hInc=()=>Math.round(G.hotels*20*occ()*G.hp*CF)+thInc();
+const GX=414,GX2=566,PGAP=30,ZC=[215,500,31],cX=j=>57+26*j+(j>=6?PGAP:0),spotX=i=>i>=500?SZW:i>=300?-71:i>=200?-24*((i-200)>>1):i===101?GX2:i>=100?GX:cX(i>>1), spotY=i=>i>=500?SZT():i>=300?R+52:i>=200?((i&1)?R+38+RD:R-38-RD):i>=100?R-30-RD:(i&1)?R+32+RD:R-32-RD, fy=i=>i>=500?SZT()+20:i>=300?R+133:i>=200?((i&1)?R+60+RD:R-64-RD):i>=100?R-40-RD:(i&1)?R+46+RD:R-46-RD, spotCost=()=>G.spots<24?600+120*(G.spots-4):0, cost=()=>zins()+Math.round(seaK()*CF*(40+60*G.areas+8*G.spots+10*G.lg.reduce((a,b)=>a+b,0)+15*G.up.s+20*G.up.h+25*G.garage+25*(G.garage2||0)+10*((G.garage?gLv(1):1)-1)+10*((G.garage2?gLv(2):1)-1)+30*(G.ph?1:0)+9*((G.ph||0)>=3?1:0)+25*(G.sz?1:0)+6*Math.max(0,(G.sz||0)-1)+20*(G.ss?1:0)+10*(G.fb?1:0)+20*G.cap.filter((c,i)=>i<G.areas&&c>2).length+30*G.cap.filter((c,i)=>i<G.areas&&c>4).length+45*G.cap.filter((c,i)=>i<G.areas&&c>6).length+60*G.hotels+50*G.raupen+20*(G.rupg||0)+30*stf().lw+40*stf().bw+25*stf().ph+(prjOk('gipf')?70:0)+(prjOk('park')?45:0)+(prjOk('schanze')?110:0)+(prjOk('kind')?50:0)+(prjOk('teich')?(G.tm==='voll'?120:60):0)+(prjOk('arena')?120:0)+(prjOk('therme')?150:0)+(prjOk('g2')?250:0)+30*(G.rest||0)+60*(G.train||0)+40*(G.kan||0)+20*(G.kup||0)+15*(G.bus||0)+15*(G.pb||0)+25*(G.ps||0)+40*(G.ap||0))+(G.inc.fl||0)+(G.inc.nl||0)), gcost=k=>G.lg[k-1]<6?400+250*G.lg[k-1]:0,qcost=k=>[2500,4000,6000,9000,12000,15000][k-1],HC=[9000,16000,26000],KC=5500,RSC=6000,TRC=15000,BPC=[3500,6000],RUC=9000,KUC=8000,RC=[4500,12000],pqf=()=>G.areas>=2?cl(G.pq/100,0,1):1,wxOn=()=>G.areas>=2,WI={sonne:'☀️',schnee:'❄️',tau:'💧',sturm:'🌪️'},WN={sonne:'Sonne',schnee:'Neuschnee',tau:'Tauwetter',sturm:'Sturm'},wxA=()=>wxOn()?({sonne:1.1,schnee:1.35,tau:.9,sturm:.25})[G.wx]*(.5+.5*cl(G.snow/50,0,1)):1,hw=()=>wxOn()?({sonne:0,schnee:.08,tau:-.05,sturm:.12})[G.wx]:0,HX=[438,552,644],occ=()=>oaDay()?.98:cl(.15+(G.ap?.04:0)+(prjOk('gipf')?.03:0)+rufE()/130-(G.hp-45)/150+hw(),.05,.98),hInc=()=>Math.round(G.hotels*20*occ()*G.hp*CF)+thInc();
 const spend=p=>{G.money-=p;if(p>=100)sfx('build',300);G.inc.b=(G.inc.b||0)+p;if(!spP)queueMicrotask(()=>{if(spP){lg('🛠️','geld','Ausgabe −'+fmt(spP));spP=0}});spP+=p};
 const cl=(a,lo,hi)=>Math.min(hi,Math.max(lo,a)),AC=[0,1200,4500,12000,25000,45000],GC=6000;
 const CAMP=[['Plakate',250,10,2],['Radiospot',600,20,2],['Influencer-Kampagne',1500,35,3]],UPG={s:['Skischule',2000,6,15],h:['Berghütte',3500,8,20]};
@@ -330,6 +330,7 @@ function kidTip(){const m=G.money,T=(k,ic,t,o)=>Object.assign({k,ic,t},o||{});
  const D=FK.kd,abT=G.inc.ab||0,abY=D?D.abY:0,ab=Math.max(abT,abY);
  if(ab>=3){let o=null;if(spotCost())o={t:'Bau 4 Parkplätze dazu!',p:spotCost(),sel:'[data-s]'};else if(!G.garage)o={t:'Bau eine Tiefgarage!',p:GC,sel:'[data-t]'};else if(G.areas>=2&&!G.ph)o={t:'Bau ein Parkhaus!',p:PHC,sel:'[data-ph]'};else if(G.ph&&G.ph<3)o={t:'Stock das Parkhaus auf!',p:PHC3,sel:'[data-ph3]'};else if(G.ph>=3&&G.areas>=3&&!G.sz)o={t:'Bau die Parkzone Süd!',p:SZC[0],sel:'[data-sz]'};
   if(o)return T('park','🅿️','Der Parkplatz ist voll! '+(abT>=abY?'Heute':'Gestern')+' sind '+ab+' Autos wieder heimgefahren. '+o.t,{p:1,need:o.p,go:()=>kidGo('par',o.sel)})}
+ if((G.inc.stN||0)>=5){let o=null;if(G.sz&&!G.fb)o={t:'Bau die Fußgängerbrücke, dann warten die Leute nicht mehr an Schranke und Zebrastreifen!',p:FBC,sel:'[data-fb]'};else if(ssOK()&&!G.ss)o={t:'Bau die Schnellstraße, dann rollt der Verkehr!',p:SSC,sel:'[data-ss]'};if(o)return T('stau','🚗','Bei der Anreise gibt es Stau, die Autos warten lange. '+o.t,{p:1,need:o.p,go:()=>kidGo('par',o.sel)})}
  // 3. Alter Lift
  for(let L=1;L<=G.areas;L++)if(lrel(L)<70)return T('old'+L,'🛠️','Lift '+L+' ist alt und geht oft kaputt. Lass ihn überholen, dann ist er wie neu!',{need:ohC(L),go:()=>kidInf('l'+L)});
  // 4. Was die Gäste ab Bereich 2 erwarten (bald oder schon jetzt)
@@ -373,7 +374,7 @@ function mpDay(){const m=mpCalc(G.rk,G.inc.ab);G.mp=m.v;G.mpL=Object.assign({d:G
 function earlyChk(f){if(f.early||f.kid||f.oa||f.nt||(f.rides||0)<2||closed()||phase()>=f.home)return;const {sat}=satQ(f);if(sat>=.38)return;
  f.early=1;f.home=phase();G.inc.ea=(G.inc.ea||0)+1;if(G.inc.ea===1)lg('😠','anr','Erster Gast fährt verärgert früher heim');
  if(!bub&&SET.bub){const vx=camX,vy=camY;if(f.x>vx&&f.x<vx+cw/S&&f.y>vy&&f.y<vy+ch/S){const th=['😠','Mir reicht\'s, ich fahr heim!',0];bub={f,th,t:0};sfx('bad');bubT=8+Math.random()*5;const R=G.thR||(G.thR=[]);R.push({d:G.day,h:clock(Math.min(phase(),1)),ic:th[0],t:th[1],p:0});if(R.length>8)R.shift()}}}
-function satQ(f){const ty=gTy(f),ww=(f.wt||0)/Math.max(1,f.bd||f.rides)/(DAY*.056/TSD)*60,cp=cpen(),Wm=ty==='pro'?2:ty==='anf'?.8:1,Pm=ty==='fam'?1.6:ty==='pro'?.8:1,q={f:f.ate?(1-fpm())*.1*(ty==='fam'?1.5:1):0,pi:-cp.pi/100*(ty==='sb'?.7:1),sn:-cp.sn/100,w:-Math.min(ty==='pro'?.6:.45,Math.max(0,ww-8)/60*Wm*DF().w*(1+.08*(stars()-1))),p:-Math.max(0,(f.nt?G.nk/(fair()*.5):f.half?G.half/(fair()*.6):G.ticket/fair())-1)*.6*Pm,m:-(.12*(f.nbA||0)*(ty==='fam'?1.5:1)*rq('mb')+.08*(f.nkA||0)*(ty==='pro'?1.5:1)*rq('mk'))/Math.max(1,f.rd||0),k:f.pk?.03*(ty==='pro'?1.5:1):0,pw:ty==='sb'&&G.wx==='schnee'?.05:0,ap:f.hg&&G.areas>=2?(G.ap?.04:-.04*rq('ap')):0,hu:G.areas>=2&&!G.rest&&f.wl&&!f.nt&&!f.half&&!f.kid&&phase()>=.40?-.03*(ty==='fam'?1.5:1)*rq('hu'):0,st:-(f.stm?.05:0)-(f.sto?.04:0),bw:G.areas>=4&&!stf().bw?-.03*rq('bw'):0,gf:f.gpf?(f.gpf<=32?.05:f.gpf<=42?.02:-.03):0,kl:f.ty==='fam'&&prjOk('kind')?(kfp()<=12?.06:kfp()<=20?.03:-.02):0,sp:f.board&&prjOk('park')?((G.pkq??100)>=50?.08:-.03):0};return {q,sat:cl(DF().b+seaB()+q.f+q.pi+q.sn+q.w+q.p+q.m+q.k+q.pw+q.ap+q.hu+q.st+q.bw+q.gf+q.sp+q.kl,0,1)}}
+function satQ(f){const ty=gTy(f),ww=(f.wt||0)/Math.max(1,f.bd||f.rides)/(DAY*.056/TSD)*60,cp=cpen(),Wm=ty==='pro'?2:ty==='anf'?.8:1,Pm=ty==='fam'?1.6:ty==='pro'?.8:1,q={f:f.ate?(1-fpm())*.1*(ty==='fam'?1.5:1):0,pi:-cp.pi/100*(ty==='sb'?.7:1),sn:-cp.sn/100,w:-Math.min(ty==='pro'?.6:.45,Math.max(0,ww-8)/60*Wm*DF().w*(1+.08*(stars()-1))),p:-Math.max(0,(f.nt?G.nk/(fair()*.5):f.half?G.half/(fair()*.6):G.ticket/fair())-1)*.6*Pm,m:-(.12*(f.nbA||0)*(ty==='fam'?1.5:1)*rq('mb')+.08*(f.nkA||0)*(ty==='pro'?1.5:1)*rq('mk'))/Math.max(1,f.rd||0),k:f.pk?.03*(ty==='pro'?1.5:1):0,pw:ty==='sb'&&G.wx==='schnee'?.05:0,ap:f.hg&&G.areas>=2?(G.ap?.04:-.04*rq('ap')):0,hu:G.areas>=2&&!G.rest&&f.wl&&!f.nt&&!f.half&&!f.kid&&phase()>=.40?-.03*(ty==='fam'?1.5:1)*rq('hu'):0,st:-(f.stm?.05:0)-(f.sto?.04:0),bw:G.areas>=4&&!stf().bw?-.03*rq('bw'):0,gf:f.gpf?(f.gpf<=32?.05:f.gpf<=42?.02:-.03):0,kl:f.ty==='fam'&&prjOk('kind')?(kfp()<=12?.06:kfp()<=20?.03:-.02):0,sp:f.board&&prjOk('park')?((G.pkq??100)>=50?.08:-.03):0,sa:stauQ(f)};return {q,sat:cl(DF().b+seaB()+q.f+q.pi+q.sn+q.w+q.p+q.m+q.k+q.pw+q.ap+q.hu+q.st+q.bw+q.gf+q.sp+q.kl+q.sa,0,1)}}
 
 // ===== Gedanken der Gäste (V134): Heimfahr-Bewertung, kleine Sprechblasen im Spiel =====
 
@@ -381,11 +382,11 @@ function satQ(f){const ty=gTy(f),ww=(f.wt||0)/Math.max(1,f.bd||f.rides)/(DAY*.05
 const GT={fam:['👨‍👩‍👧','Familien'],anf:['🔰','Anfänger'],pro:['⛷️','Profis'],sb:['🏂','Snowboarder']},GT1={fam:'Familie',anf:'Anfänger',pro:'Profi',sb:'Snowboarder'};
 function gTy(f){if(f.ty)return f.ty;setTimeout(()=>{if(f.ty==='fam'&&prjOk('kind')&&!f.kpaid){f.kpaid=1;G.money+=kfp();G.inc.ev=(G.inc.ev||0)+kfp();G.inc.kn=(G.inc.kn||0)+1;G.inc.km=(G.inc.km||0)+kfp()}},0);if(f.kid)f.ty='anf';else if(f.car&&f.car.fam){f.ty='fam';f.sk=0;f.board=Math.random()<.2}else if(f.board)f.ty='sb';else f.ty=f.sk===0?'anf':f.sk===2?'pro':(Math.random()<.5?'anf':'pro');if(f.hx!==undefined&&!f.oa)f.hg=1;return f.ty}
 const wLift=f=>{const W=f.wq||{};let b=1,m=-1;for(const k in W)if(W[k]>m){m=W[k];b=+k}return b};
-const TH={w:['😤','Viel zu lange angestanden',0],p:['💸','Die Liftkarte ist zu teuer',0],pi:['😖','Die Pisten sind voller Buckel',0],sn:['🪨','Viel zu wenig Schnee',0],
+const TH={sa:['🚗','Ewig im Stau gestanden',0],w:['😤','Viel zu lange angestanden',0],p:['💸','Die Liftkarte ist zu teuer',0],pi:['😖','Die Pisten sind voller Buckel',0],sn:['🪨','Viel zu wenig Schnee',0],
  mb:['😰','Keine blaue Piste für Anfänger',0],mk:['🥱','Keine schwarze Piste für Profis',0],ap:['🍻','Abends war im Ort nichts los',0],hu:['🍽️','Nur ein Kiosk, kein richtiges Mittagessen',0],st:['🌬️','Der Lift stand still',0],bw:['🚑','Ohne Bergwacht fühl ich mich unsicher',0],apy:['🎉','Das Après-Ski war super',1],pw:['🏂','Pulverschnee, ein Traum',1],k:['🤩','Die schwarze Abfahrt war der Hammer',1],f:['😋','Gutes Essen, faire Preise',1],
  top:['🥰','Ein richtig schöner Skitag',1],ok:['🙂','Ganz okay heute',1],meh:['😕','Irgendwie kein guter Tag',0]};
 function thAdd(k,f){const D=G.thd||(G.thd={});D[k]=(D[k]||0)+1;if(f&&f.ty){const T=G.tht||(G.tht={}),o=T[f.ty]||(T[f.ty]={});o[k]=(o[k]||0)+1}if(k==='w'&&f){const L=G.thw||(G.thw={}),l=wLift(f);L[l]=(L[l]||0)+1}}
-function thHome(f,q,sat){let k=null,v=-.05;for(const [a,b] of [['w',q.w],['p',q.p],['pi',q.pi],['sn',q.sn],['m',q.m],['ap',q.ap],['hu',q.hu],['st',q.st],['bw',q.bw]])if(b<v){v=b;k=a}
+function thHome(f,q,sat){let k=null,v=-.05;for(const [a,b] of [['w',q.w],['p',q.p],['pi',q.pi],['sn',q.sn],['m',q.m],['ap',q.ap],['hu',q.hu],['st',q.st],['bw',q.bw],['sa',q.sa]])if(b<v){v=b;k=a}
  if(k==='m')k=(f.nkA||0)>(f.nbA||0)?'mk':'mb';if(!k)k=sat>=.85?(q.pw>0&&Math.random()<.5?'pw':q.ap>0&&Math.random()<.4?'apy':q.k>0&&Math.random()<.5?'k':q.f>=.02&&Math.random()<.5?'f':'top'):sat>=.6?'ok':'meh';thAdd(k,f);f.fin=sat;revKeep(f,sat,k)}
 function thNow(f){const st=f.st,r=Math.random(),A=[],ty=gTy(f);
  if(st==='qu'&&f.arr&&!closed()&&!liftGo(f.l||1)){const L=f.l||1;A.push(stoerL(L)?['🔧','Lift '+L+' kaputt? Na toll …',0]:['🌬️','Warum steht Lift '+L+' bei Sturm?',0])}
@@ -418,7 +419,7 @@ function gstBody(){const f=gSel;if(!f)return '';const ty=gTy(f),{q,sat}=satQ(f),
 function gstOpen(f){gSel=f;gName(f);{const sy=(f.y+cam)*S;if(sy>ch*.42||sy<90){camA=null;camY=f.y-ch*.3/S;clampCam()}}open='gst';confirmReset=false;render();$('sheet').scrollTop=0}
 function gstMark(c){if(open!=='gst'||!gSel||gSel.dead||gSel.hid||gSel.inside||gSel.st==='lift')return;const f=gSel,b=Math.sin(T*5)*1.5;c.save();c.translate(f.x,f.y-(f.kid?10:14)+b);c.scale(1/S,1/S);c.fillStyle='#e8504a';c.strokeStyle='#fff';c.lineWidth=2;c.beginPath();c.moveTo(-7,-12);c.lineTo(7,-12);c.lineTo(0,-2);c.closePath();c.stroke();c.fill();c.restore()}
 // Bewertungen
-const REV={w:['Die Wartezeiten am Lift sind eine Zumutung.','Mehr anstehen als Ski fahren.','Lange Schlangen, da muss sich was tun.'],p:['Für das Gebotene viel zu teuer.','Die Preise sind gesalzen.','Schönes Gebiet, aber die Karte ist zu teuer.'],
+const REV={sa:['Bei der Anreise ewig im Stau gestanden.','Die Anfahrt war ein einziger Stau.'],w:['Die Wartezeiten am Lift sind eine Zumutung.','Mehr anstehen als Ski fahren.','Lange Schlangen, da muss sich was tun.'],p:['Für das Gebotene viel zu teuer.','Die Preise sind gesalzen.','Schönes Gebiet, aber die Karte ist zu teuer.'],
  pi:['Die Pisten waren schlecht präpariert.','Buckelpiste ohne Ende.'],sn:['Kaum Schnee, überall Steine.','Die Schneelage war leider schlecht.'],mb:['Für Anfänger fehlt eine leichte Piste.','Keine blaue Abfahrt, für uns zu schwer.'],mk:['Für Könner gibt es nichts Anspruchsvolles.','Eine schwarze Piste fehlt hier.'],
  ap:['Abends ist im Ort nichts los.','Ein Après-Ski würde dem Ort guttun.'],hu:['Mittags gibt es nur einen Kiosk, schade.','Ein Restaurant fehlt hier.'],st:['Der Lift stand stundenlang still.','Wegen Stillstand viel Zeit verloren.'],
  k:['Die schwarze Abfahrt ist ein Traum!','Anspruchsvolle Piste, so muss das sein.'],f:['Gutes Essen zu fairen Preisen.','Der Kaiserschmarrn war super und günstig.'],top:['Rundum ein perfekter Skitag!','Tolles Skigebiet, alles hat gepasst.','Super Pisten, kurze Wartezeiten, gerne wieder.'],
@@ -800,7 +801,7 @@ function treeInPlot(x,y){if(prj('gipf')){const P=GPOS();if(x>P.x-104&&x<P.x+72&&
 function plotSign(c,x,y,t1,t2,sold){c.save();c.translate(x,y);c.fillStyle='rgba(40,60,90,.22)';c.beginPath();c.ellipse(2,1,12,3,0,0,7);c.fill();c.fillStyle='#7a4a28';c.fillRect(-9,-14,2,14);c.fillRect(7,-14,2,14);
  c.fillStyle=sold?'#f2c53b':'#fff8e6';c.strokeStyle='#7a4a28';c.lineWidth=1.2;c.beginPath();c.roundRect(-24,-28,48,16,2.5);c.fill();c.stroke();c.fillStyle=sold?'#5a3a10':'#b8402f';c.font='700 5.2px Fredoka,sans-serif';c.textAlign='center';c.fillText(t1,0,-21.5);c.fillStyle='#3a2a1a';c.font='600 4.4px Fredoka,sans-serif';c.fillText(t2,0,-15.5);c.restore()}
 function stake(c,x,y){c.fillStyle='#e8504a';c.fillRect(x-.6,y-7,1.2,7);c.fillStyle='#fff';c.fillRect(x-.6,y-5,1.2,1.4)}
-function plotDraw(c,t){for(const P of PLOT){const x0=P.x0,x1=P.x1,y0=P.y0(),y1=P.y1(),cx=(x0+x1)/2;
+function plotDraw(c,t){for(const P of PLOT){const x0=P.x0,x1=P.x1,y0=P.y0(),y1=P.y1(),cx=(x0+x1)/2+(P.id==='to'&&G.fb?30:0);
   if(!land(P.id)){if(G.areas>=2)plotSign(c,cx,y1-6,'BAULAND',P.n+' · '+fmt(P.p),0);continue}
   const used=PRJ.filter(d=>d.pl===P.id&&prj(d.id)),full=used.length>=PRJ.filter(d=>d.pl===P.id).length;if(!full){c.strokeStyle='rgba(232,80,74,.55)';c.lineWidth=.6;c.setLineDash([3,3]);c.strokeRect(x0,y0,x1-x0,y1-y0);c.setLineDash([]);for(const [a,b] of [[x0,y0],[x1,y0],[x0,y1],[x1,y1]])stake(c,a,b)}
   if(!used.length)plotSign(c,cx,y1-6,'BAUPLATZ',P.n,1)}
@@ -1151,10 +1152,10 @@ function bubDraw(c){if(!bub)return;const f=bub.f,t=bub.t,a=Math.min(1,t*5,(3.4-t
  c.fillStyle='#fff';c.strokeStyle=bub.th[2]?'#7cc79a':'#f0a07a';c.lineWidth=1.6;c.beginPath();c.arc(0,y,R,0,7);c.fill();c.stroke();
  c.beginPath();c.moveTo(-3.5,y+R-1.2);c.lineTo(0,y+R+5);c.lineTo(3.5,y+R-1.2);c.closePath();c.fill();c.beginPath();c.moveTo(-3.5,y+R-.4);c.lineTo(0,y+R+5);c.lineTo(3.5,y+R-.4);c.stroke();
  c.fillStyle='#fff';c.fillRect(-3,y+R-2.4,6,2);c.font='13px system-ui,"Apple Color Emoji","Segoe UI Emoji",sans-serif';c.textAlign='center';c.textBaseline='middle';c.fillText(bub.th[0],0,y+1);c.restore();c.textBaseline='alphabetic'}
-function bubHit(e){if(!bub)return 0;const r=cv.getBoundingClientRect(),f=bub.f,sx=(f.x+offX)*S+r.left,sy=(f.y-(f.kid?9:12)+cam)*S+r.top-20;if(Math.hypot(e.clientX-sx,e.clientY-sy)<22){toast((GT[bub.f.ty]?GT[bub.f.ty][0]+' '+GT1[bub.f.ty]+(bub.f.hg?' (Hotelgast)':'')+': ':'')+'„'+bub.th[1]+'“',3200);return 1}return 0}
+function bubHit(e){if(!bub)return 0;const r=cv.getBoundingClientRect(),f=bub.f,sx=(f.x+offX)*S+r.left,sy=(wY(f.y)-(f.kid?9:12)+cam)*S+r.top-20;if(Math.hypot(e.clientX-sx,e.clientY-sy)<22){toast((GT[bub.f.ty]?GT[bub.f.ty][0]+' '+GT1[bub.f.ty]+(bub.f.hg?' (Hotelgast)':'')+': ':'')+'„'+bub.th[1]+'“',3200);return 1}return 0}
 function rufUpd(f){const {q,sat}=satQ(f);thHome(f,q,sat);{const R0=G.rk||(G.rk={n:0,s:0});if(sat>=.85)R0.hap=(R0.hap||0)+1;else if(sat<.45)R0.bad=(R0.bad||0)+1}{const T=G.rty||(G.rty={}),k=f.ty,o=T[k]||(T[k]={n:0,s:0});o.n++;o.s+=sat;if(f.hg){const h=T.hg||(T.hg={n:0,s:0});h.n++;h.s+=sat}}{const R=G.rk||(G.rk={n:0,s:0});R.n++;R.s+=sat;for(const k in q)R[k]=(R[k]||0)+q[k]}G.ruf+=(sat*100-G.ruf)*.06}
 const fair=()=>Math.round((30+8*G.areas)*DF().f*(1+.035*(stars()-1))),isHalf=()=>phase()>=.32,dT=()=>isHalf()?cl(2-G.half/(fair()*.6),0,1.6):cl(2-G.ticket/fair(),0,1.6), dP=()=>cl(1.3-G.park/12,.15,1.3);
-const arrW=()=>{const w=waitMin(1);return w<=8?1:w<=15?1-.5*(w-8)/7:w<=30?.5-.45*(w-15)/15:.05},rate=()=>(prjOk('g2')?1.1:1)*(1+(G.mp||0))*arrW()*.22*dT()*dP()*(.8+.4*G.areas)*(.45+rufE()/85)*(.6+.4*pqf())*wxA()*pdem(), gi=f=>{if(f.mx===undefined){const q=Math.random();f.mx=q<.08?1:q<.16?2:q<.26?3:q<.44?4:q<.62?5:6;f.sk=rollSk();gTy(f);if(f.sk===2)f.mx=6;f.half=f.nt?false:isHalf();f.home=f.nt?NEP+.01-(Math.random()<.35?Math.random()*.04:0):f.byT?Math.max(phase()+.06,hp(f.dep||18)-.12):Math.max(phase()+.06,.43+Math.random()*.17);f.wl=!f.nt&&Math.random()<.85}return f};
+const arrW=()=>{const w=waitMin(1);return w<=8?1:w<=15?1-.5*(w-8)/7:w<=30?.5-.45*(w-15)/15:.05},rate=()=>(G.ss?1.06:1)*(prjOk('g2')?1.1:1)*(1+(G.mp||0))*arrW()*.22*dT()*dP()*(.8+.4*G.areas)*(.45+rufE()/85)*(.6+.4*pqf())*wxA()*pdem(), gi=f=>{if(f.mx===undefined){const q=Math.random();f.mx=q<.08?1:q<.16?2:q<.26?3:q<.44?4:q<.62?5:6;f.sk=rollSk();gTy(f);if(f.sk===2)f.mx=6;f.half=f.nt?false:isHalf();f.home=f.nt?NEP+.01-(Math.random()<.35?Math.random()*.04:0):f.byT?Math.max(phase()+.06,hp(f.dep||18)-.12):Math.max(phase()+.06,.43+Math.random()*.17);f.wl=!f.nt&&Math.random()<.85}return f};
 const yb=k=>k<2?V-22:Yk(k-1), XO=[0,0,88,0,88,0,88], YB=[0,0,8,8,8,8,8], YT=[0,-4,-4,-4,-4,-4,-4], ends=k=>({b:{x:lx(yb(k))+XO[k],y:yb(k)+YB[k]},t:{x:lx(Yk(k))+XO[k],y:Yk(k)+YT[k]}}), slot=(l,i)=>{const e=ends(l).b;if(l<2){const r2=Math.floor(i/8),j=i%8;return {x:r2%2?339+j*9:402-j*9,y:V+14+r2*9}}return {x:XO[l]?e.x+30+(i%6)*8:e.x-30-(i%6)*8,y:e.y+10+Math.floor(i/6)*8}};
 const COL=['#e8504a','#f2a63b','#4fa3e0','#6cc07a','#b177e0','#ff8fb1'],pick=a=>a[Math.random()*a.length|0];
 const PBC=4000,PSC=9000,BKL=200,sm=v=>{v=cl(v,0,1);return v*v*(3-2*v)},
@@ -1994,7 +1995,7 @@ function nightFx(c){const p=phase(),nt=1-bright();c.save();c.setTransform(1,0,0,
  if(nt>.12){c.setTransform(S*dpr,0,0,S*dpr,offX*S*dpr,cam*S*dpr);const la=cl(nt*1.3,0,1);
   c.globalCompositeOperation='lighter';
   const soft=(x,y,rx,ry,rgb,al,st)=>{c.save();c.translate(x,y);c.scale(1,ry/rx);const g=c.createRadialGradient(0,0,0,0,0,rx);for(const [o,m] of st||[[0,1],[.2,.72],[.45,.34],[.7,.1],[1,0]])g.addColorStop(o,'rgba('+rgb+','+(al*m).toFixed(3)+')');c.fillStyle=g;c.beginPath();c.arc(0,0,rx,0,7);c.fill();c.restore()};
-  for(const x of LX){if(G.garage&&Math.abs(x-GX)<26||G.garage2&&Math.abs(x-GX2)<26)continue;soft(x,R-2-RD,60,34,'255,214,130',.34*la);soft(x,R-34-RD,18,18,'255,232,170',.3*la)}for(const [x,y] of WAYS.L){soft(x,y+1,34,19,'255,214,130',.34*la);soft(x,y-15,11,11,'255,232,170',.3*la)}
+  for(const x of LX){if(G.garage&&Math.abs(x-GX)<26||G.garage2&&Math.abs(x-GX2)<26||G.fb&&Math.abs(x-FBX)<16)continue;soft(x,R-2-RD,60,34,'255,214,130',.34*la);soft(x,R-34-RD,18,18,'255,232,170',.3*la)}for(const [x,y] of WAYS.L){soft(x,y+1,34,19,'255,214,130',.34*la);soft(x,y-15,11,11,'255,232,170',.3*la)}
   const cone=(r,la)=>{c.save();c.translate(r.x,r.y);c.rotate(r.th||0);const y0=11,L=78;for(const [w0,w1,al] of [[7,34,.10],[5.5,26,.14],[4,18,.18]]){const g=c.createLinearGradient(0,y0,0,y0+L);g.addColorStop(0,'rgba(255,240,175,'+(al*la).toFixed(3)+')');g.addColorStop(.55,'rgba(255,236,165,'+(al*.55*la).toFixed(3)+')');g.addColorStop(1,'rgba(255,232,160,0)');c.fillStyle=g;c.beginPath();c.moveTo(-w0,y0);c.lineTo(w0,y0);c.lineTo(w1,y0+L);c.quadraticCurveTo(0,y0+L+w1*.35,-w1,y0+L);c.closePath();c.fill()}c.restore();soft(r.x-Math.sin(r.th||0)*11,r.y+Math.cos(r.th||0)*11,10,10,'255,245,200',.35*la)};
   for(const r of rps)if(r.st==='run'){cone(r,la)}
   if(floodOn()||(G.flL||0)>.01){const fa=Math.min(1,la*1.25)*(G.flL||0),vx=cw/S,vy=ch/S,vis=FL.filter(m=>!(m[0]<camX-20||m[0]>camX+vx+20||m[1]<camY-10||m[1]>camY+vy+50));for(const [x,y] of vis)soft(x,y-35,13,13,'255,252,230',.85*fa);for(const r of racers)soft(r.x,r.y-5,6,6,'255,250,210',.55*la)}
@@ -2094,7 +2095,7 @@ function resize(){
  V=780;H0=V+620;H=V+880;R=V+300;EXT=NA*AH()+270-V;if(!viewInit){viewInit=true;homeView(true)}else clampCam();buildStatic();
 }
 const minS=()=>Math.min(cw/(XR-XL),ch/(H+EXT)),maxS=()=>Math.max(cw,ch*.6)/200;
-function clampCam(){S=cl(S,minS(),maxS());const vw=cw/S,vh=ch/S;camX=vw>=XR-XL?(XL+XR-vw)/2:cl(camX,XL,XR-vw);camY=vh>=H+EXT?(H-EXT-vh)/2:cl(camY,-EXT,H-vh);offX=-camX;cam=-camY}
+function clampCam(){S=cl(S,minS(),maxS());const vw=cw/S,vh=ch/S;camX=vw>=XR-XL?(XL+XR-vw)/2:cl(camX,XL,XR-vw);camY=vh>=H+ssW()+EXT?(H+ssW()-EXT-vh)/2:cl(camY,-EXT,H+ssW()-vh);offX=-camX;cam=-camY}
 function homeTarget(){const s2=cl(Math.min(cw/420,ch/560),minS(),maxS());return {s:s2,x:320-cw/s2/2,y:V+150-ch/s2/2}}
 function homeView(now){const t=homeTarget();if(now){S=t.s;camX=t.x;camY=t.y;clampCam()}else camA=t}
 function allView(){const s2=minS();camA={s:s2,x:(XL+XR)/2-cw/s2/2,y:(H-EXT)/2-ch/s2/2}}
@@ -2309,7 +2310,7 @@ const szV1=()=>SZY()-SZRR-SZT(),szA=Math.PI/2*SZRR,szH=SZE-SZW-2*SZRR,szL=()=>2*
 const szCap=()=>24*(G.sz||0),szIn=k=>k.z&&k.zi!=null&&(k.st==='in'||k.st==='park'||k.st==='zin'||k.st==='zpk'||k.st==='stay'||k.st==='zout');
 const szN=()=>cars.reduce((n,k)=>n+(szIn(k)?1:0),0);
 function szSlot(i){const s=i/24|0,j=i%24,col=j>>1,row=j&1;return {x:SZX0[s]+13+26*col,y:row?SZY()+38:SZY()-38,row}}
-function szFree(){if(!G.sz)return -1;const u=new Set(cars.filter(szIn).map(k=>k.zi));let b=-1,bd=1e9;for(let i=0;i<szCap();i++){if(u.has(i))continue;const d=Math.abs(szSlot(i).x+13-SZPX)+(i&1)*6;if(d<bd){bd=d;b=i}}return b}
+function szFree(){if(!G.sz)return -1;const u=new Set(cars.filter(szIn).map(k=>k.zi));let b=-1,bd=1e9;for(let i=0;i<szCap();i++){if(u.has(i))continue;const d=Math.abs(szSlot(i).x+13-szAX())+(i&1)*6;if(d<bd){bd=d;b=i}}return b}
 function szPt(s){const v=szV1();if(s<=v)return {x:SZW,y:SZT()+s,a:Math.PI/2};s-=v;
  if(s<=szA){const t=s/SZRR,th=Math.PI-t;return {x:SZW+SZRR+SZRR*Math.cos(th),y:SZY()-SZRR+SZRR*Math.sin(th),a:Math.PI/2-t}}s-=szA;
  if(s<=szH)return {x:SZW+SZRR+s,y:SZY(),a:0};s-=szH;
@@ -2325,11 +2326,12 @@ function szLane(o){if(o.st==='zin'||o.st==='zdr'||o.st==='zex')return o.zs;if(o.
  if((o.st==='zpk'||o.st==='zout')&&o.p<.75)return szSX(szSlot(o.zi).x);return null}
 const szSBI=()=>TY()-38-SZT(),szSBO=()=>szL()-((TY()+38)-SZT());
 function szMove(c,dt,v,tg){let s1=Math.min(tg,c.zs+v*dt),lim=1e9;
- for(const o of cars){if(o===c||!o.z)continue;const so=szLane(o);if(so==null||so<=c.zs+.01)continue;lim=Math.min(lim,so-30)}
+ for(const o of cars){if(o===c||!o.z)continue;const so=szLane(o);if(so==null||so<=c.zs+.01)continue;if(G.ss&&o.zl!=null&&c.zl!=null&&o.zl!==c.zl&&o.st==='zdr'&&so>szL()-szV1()+16&&so<=szL()-23.5)continue;lim=Math.min(lim,so-30)}
  s1=Math.min(s1,lim);
- for(const [sb,x] of [[szSBI(),SZW],[szSBO(),SZE]])if(c.zs<=sb+.01&&s1>sb&&(szShut(x)||lim<sb+78))s1=sb;
+ if(!G.ss)for(const [sb,x] of [[szSBI(),SZW],[szSBO(),SZE]])if(c.zs<=sb+.01&&s1>sb&&(szShut(x)||lim<sb+78))s1=sb;
+ if(G.ss&&c.zl===1){const mz=szL()-24;if(c.zs<=mz+.01&&s1>mz&&cars.some(o=>o!==c&&o.z&&o.zl===0&&o.st==='zdr'&&o.zs>mz-34&&o.zs<mz+30))s1=mz}
  if(s1>c.zs)c.zs=s1}
-function szInOK(c){for(const o of cars){if(o===c||!o.z)continue;if(o.st==='park')return false;const so=szLane(o);if(so!=null&&so<36)return false}return true}
+function szInOK(c){for(const o of cars){if(o===c||!o.z)continue;if(o.st==='park'&&!(G.ss&&o.p>.55))return false;const so=szLane(o);if(so!=null&&so<(G.ss?26:36))return false}return true}
 function szOutOK(c){const sx=szSX(szSlot(c.zi).x);for(const o of cars){if(o===c||!o.z)continue;const so=szLane(o);if(so!=null&&so>sx-52&&so<sx+32)return false}return true}
 function szFolks(c){const q=szSlot(c.zi);G.money+=G.park;G.inc.p+=G.park;if(G.park>0)pop(q.x,q.y-14,G.park);
  for(let i=0;i<c.n;i++){const f={nt:c.nt||0,x:q.x+12+(i%2)*2,y:q.y+(i-1)*4,st:'qu',col:pick(COL),car:c,rides:0,l:1,arr:0,board:Math.random()<bdP(),bc:pick(['#ff7a45','#34c0b8','#8a5ae0','#2f80ed'])};f.st='kas';if(c.oa)Object.assign(f,{oa:1,st:'oaR',id:Math.random()*20,qw:0,sw:0,ph:Math.random()<.6});folks.push(f)}}
@@ -2339,9 +2341,9 @@ function szCar(c,dt){const st=c.st;
  if(st==='zin'){const t=szSX(szSlot(c.zi).x);szMove(c,dt,65,t);if(c.zs>=t-.01){c.zs=t;c.st='zpk';c.p=0}return true}
  if(st==='zpk'){c.p=Math.min(1,c.p+dt/.8);if(c.p>=1){c.p=1;c.st='stay';szFolks(c)}return true}
  if(st==='stay'){if(c.back>=c.n&&szOutOK(c))c.st='zout';return true}
- if(st==='zout'){c.p=Math.max(0,c.p-dt/.9);if(c.p<=0){c.st='zdr';c.zs=szSX(szSlot(c.zi).x)}return true}
+ if(st==='zout'){c.p=Math.max(0,c.p-dt/.9);if(c.p<=0){c.st='zdr';c.zs=szSX(szSlot(c.zi).x);c.zl=G.ss?(SZLC=1-SZLC):0}return true}
  if(st==='zdr'){szMove(c,dt,65,szL());if(c.zs>=szL()-.01){c.zs=szL();c.st='zex';c.rx=1;c.x=SZE;c.d=1;c.ey=SZT();c.p=1}return true}
- if(st==='zex'){if(vFree(c,'out',dt))c.st='out';return true}
+ if(st==='zex'){if(G.ss?!cars.some(o=>o!==c&&o.z&&o.st==='out'&&o.rx&&o.p>.4):vFree(c,'out',dt))c.st='out';return true}
  return false}
 // Wege zu Fuß: von/zum Auto über den Gehsteig, den Bahnübergang (Fußweg) und den Bahnsteig
 function szWalk(c,inb){const q=szSlot(c.zi),x=q.x+13,ny=SZNY(),ty=TY();
@@ -2364,7 +2366,8 @@ function szStatic(c){if(!G.sz)return;const y=SZY(),ty=TY(),A=Math.PI;
  const arw=(x,yy,a)=>{c.save();c.translate(x,yy);c.rotate(a);c.fillStyle='rgba(255,255,255,.85)';c.fillRect(-7,-1,8,2);c.beginPath();c.moveTo(5,-4);c.lineTo(10,0);c.lineTo(5,4);c.fill();c.restore()};
  for(let x=SZW+60;x<SZE-40;x+=156)arw(x,y,0);arw(SZW,R+60,A/2);arw(SZW,ty+52,A/2);arw(SZE,ty+52,-A/2);arw(SZE,R+60,-A/2);
  // Bahnübergänge: Gleise über die Fahrbahn, Haltelinien
- if(G.train)for(const x of [SZW,SZE]){c.fillStyle='#4b515d';c.fillRect(x-11,ty-7,22,14);c.fillStyle='#3d424c';for(let k=-10;k<11;k+=5)c.fillRect(x+k,ty-7,.6,14);c.strokeStyle='#8b93a3';c.lineWidth=1.3;for(const o of [-3,3]){c.beginPath();c.moveTo(x-11,ty+o);c.lineTo(x+11,ty+o);c.stroke()}
+ if(G.ss){c.save();for(const [lw,col] of [[40,'rgba(255,255,255,.9)'],[35.5,'rgba(255,255,255,.55)'],[33.5,'#5b6577']]){c.strokeStyle=col;c.lineWidth=lw;c.beginPath();c.moveTo(SZE,R+RD);c.lineTo(SZE,y-SZRR-6);c.stroke()}c.strokeStyle='#fff';c.lineWidth=1.2;c.setLineDash([6,6]);c.beginPath();c.moveTo(SZE,R+RD+14);c.lineTo(SZE,y-SZRR-14);c.stroke();c.setLineDash([]);c.restore()}
+ if(G.train&&!G.ss)for(const x of [SZW,SZE]){c.fillStyle='#4b515d';c.fillRect(x-11,ty-7,22,14);c.fillStyle='#3d424c';for(let k=-10;k<11;k+=5)c.fillRect(x+k,ty-7,.6,14);c.strokeStyle='#8b93a3';c.lineWidth=1.3;for(const o of [-3,3]){c.beginPath();c.moveTo(x-11,ty+o);c.lineTo(x+11,ty+o);c.stroke()}
   c.fillStyle='#fff';c.fillRect(x-10,x===SZW?ty-25:ty+23,20,2)}}
 // Schild „Parkzone Süd“ (nach den Bäumen gezeichnet)
 function szSign(c){const ty=TY();
@@ -2373,7 +2376,7 @@ function szSign(c){const ty=TY();
   c.fillStyle='#2f6fd0';c.strokeStyle='#fff';c.lineWidth=.9;c.beginPath();c.roundRect(-7,-33,14,14,2);c.fill();c.stroke();c.fillStyle='#fff';c.font='700 10px Fredoka,sans-serif';c.textAlign='center';c.fillText('P',0,-22.5);
   c.fillStyle='#fff';c.strokeStyle='#2f6fd0';c.lineWidth=.6;c.beginPath();c.roundRect(-14,-19,28,7,1.5);c.fill();c.stroke();c.fillStyle='#2f4a7a';c.font='600 4.6px Fredoka,sans-serif';c.fillText(t2,0,-14,26);c.restore()};
  sg(SZW+26,R+60,'SÜD ↓');sg(SZW+24,SZY()+40,'EINFAHRT');sg(SZE-24,SZY()+40,'AUSFAHRT');
- const xa=SZX0[0];c.save();c.translate(SZPX+16,SZNY()+10);c.fillStyle='#6b7280';c.fillRect(-.6,-14,1.2,14);c.fillStyle='#fff8e6';c.strokeStyle='#7a4a28';c.lineWidth=.8;c.beginPath();c.roundRect(-13,-22,26,9,2);c.fill();c.stroke();c.fillStyle='#3a2a1a';c.font='600 4.2px Fredoka,sans-serif';c.textAlign='center';c.fillText('🎫 KASSA ↑',0,-16,24);c.restore()}
+ if(G.fb)return;const xa=SZX0[0];c.save();c.translate(SZPX+16,SZNY()+10);c.fillStyle='#6b7280';c.fillRect(-.6,-14,1.2,14);c.fillStyle='#fff8e6';c.strokeStyle='#7a4a28';c.lineWidth=.8;c.beginPath();c.roundRect(-13,-22,26,9,2);c.fill();c.stroke();c.fillStyle='#3a2a1a';c.font='600 4.2px Fredoka,sans-serif';c.textAlign='center';c.fillText('🎫 KASSA ↑',0,-16,24);c.restore()}
 // --- Zeichnen (dynamisch) ---
 function szBar(c,x,y,dir,a,T){c.save();c.translate(x,y);c.fillStyle='rgba(30,50,80,.22)';c.beginPath();c.ellipse(1,1,4,1.6,0,0,7);c.fill();
  const L=23,th=(1-a)*Math.PI/2*.94,ex=dir*L*Math.cos(th),ey=-6-L*Math.sin(th);
@@ -2382,22 +2385,196 @@ function szBar(c,x,y,dir,a,T){c.save();c.translate(x,y);c.fillStyle='rgba(30,50,
  c.save();c.translate(0,-20);for(const r of [.62,-.62]){c.save();c.rotate(r);c.fillStyle='#fff';c.strokeStyle='#d8332d';c.lineWidth=.8;c.beginPath();c.rect(-6,-1.1,12,2.2);c.fill();c.stroke();c.restore()}c.restore();
  const bl=a>.02;for(const k of [-1,1]){c.fillStyle='#2a2f3a';c.beginPath();c.arc(k*2.4,-13,1.5,0,7);c.fill();const lit=bl&&((Math.floor(T*2.6)+(k>0?1:0))%2===0);c.fillStyle=lit?'#ff4a3a':'#5a2525';c.beginPath();c.arc(k*2.4,-13,1.05,0,7);c.fill();if(lit){c.fillStyle='rgba(255,90,60,.35)';c.beginPath();c.arc(k*2.4,-13,3.2,0,7);c.fill()}}
  c.restore()}
-function szCarPose(k){if(k.st==='zin'||k.st==='zdr')return szPt(k.zs);if(k.st==='zex')return szPt(szL());const q=szSlot(k.zi),p=k.p;return {x:q.x,y:SZY()+(q.y-SZY())*p,a:p*(q.row?Math.PI/2:-Math.PI/2)}}
+let SZLC=0;const szLo=k=>G.ss&&k.zl!=null?(k.zl?8.5:-8.5)*cl((k.zs-(szL()-szV1()))/16,0,1)*cl((szL()-k.zs)/24,0,1):0;
+function szCarPose(k){if(k.st==='zdr'){const q=szPt(k.zs);q.x+=szLo(k);return q}if(k.st==='zin')return szPt(k.zs);if(k.st==='zex')return szPt(szL());const q=szSlot(k.zi),p=k.p;return {x:q.x,y:SZY()+(q.y-SZY())*p,a:p*(q.row?Math.PI/2:-Math.PI/2)}}
 const szZone=k=>k.z&&(k.st==='stay'||k.st==='zin'||k.st==='zpk'||k.st==='zout'||k.st==='zdr'||k.st==='zex');
 // Teil nördlich der Gleise (vor dem Zug) bzw. südlich (danach)
 function szDraw(c,T,south){if(!G.sz)return;const ty=TY();
  for(const k of cars){if(!szZone(k))continue;const q=szCarPose(k);if((q.y>=ty)!==!!south)continue;car(c,q.x,q.y,q.a,k.col)}
  if(!G.train)return;
- if(!south){szBar(c,SZW+16,ty-15,-1,SZB.w,T);szBar(c,SZE+16,ty-15,-1,SZB.e,T);
+ if(!south){if(!G.ss){szBar(c,SZW+16,ty-15,-1,SZB.w,T);szBar(c,SZE+16,ty-15,-1,SZB.e,T)}
   // Fußgänger-Übergang: Gleise über den Fußweg, kleine Warnlichter
   c.strokeStyle='#8b93a3';c.lineWidth=1.3;for(const o of [-3,3]){c.beginPath();c.moveTo(SZPX-6,ty+o);c.lineTo(SZPX+6,ty+o);c.stroke()}
   szMini(c,SZPX+9,ty-13,SZB.p,T)}
- else{szBar(c,SZW-16,ty+19,1,SZB.w,T);szBar(c,SZE-16,ty+19,1,SZB.e,T);szMini(c,SZPX-9,ty+19,SZB.p,T)}}
+ else{if(!G.ss){szBar(c,SZW-16,ty+19,1,SZB.w,T);szBar(c,SZE-16,ty+19,1,SZB.e,T)}szMini(c,SZPX-9,ty+19,SZB.p,T)}}
 function szMini(c,x,y,a,T){c.save();c.translate(x,y);c.fillStyle='rgba(30,50,80,.2)';c.beginPath();c.ellipse(1,1,3,1.2,0,0,7);c.fill();c.fillStyle='#e9edf3';c.fillRect(-.6,-12,1.2,12);
  c.save();c.translate(0,-13);for(const r of [.62,-.62]){c.save();c.rotate(r);c.fillStyle='#fff';c.strokeStyle='#d8332d';c.lineWidth=.6;c.beginPath();c.rect(-4,-.8,8,1.6);c.fill();c.stroke();c.restore()}c.restore();
  const lit=a>.02&&Math.floor(T*2.6)%2===0;c.fillStyle='#2a2f3a';c.beginPath();c.arc(0,-8,1.3,0,7);c.fill();c.fillStyle=lit?'#ff4a3a':'#5a2525';c.beginPath();c.arc(0,-8,.9,0,7);c.fill();
  // kleines Umlaufgitter
  c.strokeStyle='#d8332d';c.lineWidth=1;c.beginPath();c.moveTo(-3,-3);c.lineTo(-11,-3);c.stroke();c.strokeStyle='#fff';c.setLineDash([1.5,1.5]);c.beginPath();c.moveTo(-3,-3);c.lineTo(-11,-3);c.stroke();c.setLineDash([]);c.restore()}
+
+// ===== Schnellstraße & Fußgängerbrücke (V187) =====
+// Schnellstraße (ab 4 Sternen, braucht die Parkzone Süd): Die Straße bekommt in der Mitte zwei schnelle Spuren für den
+// Durchgangsverkehr und eine Mitteltrennung. Die Spiel-Welt selbst bleibt gleich: beim Zeichnen wird alles südlich der
+// Straßenmitte um SSD nach unten geschoben (wY), die Lücke füllt ssPost mit den neuen Spuren. Abfahrt (West) und
+// Auffahrt (Ost) der Parkzone führen über Brücken über die Gleise, die Auffahrt ist zweispurig.
+// Fußgängerbrücke (braucht die Parkzone Süd): von der Parkzone über Gleise und Straße, je Turm Treppe + Aufzug,
+// oben ein neuer Weg zum Fußweg bei der Kassa. Gäste auf der Brücke: f.fb = {d (1 = nach Norden), ph (0 Turm, 1 Deck, 2 Turm), t, lf (Aufzug)}.
+const SSC=60000,FBC=25000,SSD=38,FBX=752,FBXN=732,FBH=30,FBTH=44;
+const ssW=()=>G.ss?SSD:0,wY=y=>y>R?y+ssW():y,uwY=y=>{const w=ssW();return !w||y<=R?y:y<=R+w?R:y-w};
+const FBN=()=>R-46,FBS=()=>R+172,FBP=()=>R-36,szAX=()=>G.fb?FBX:SZPX;
+const ssOK=()=>!!G.sz&&stars()>=4,fbOK=()=>!!G.sz;
+function ssBuild(){if(G.ss||!ssOK()||G.money<SSC)return;spend(SSC);ssShiftLive(SSD);G.ss=1;G.ssD=G.day;toast('Schnellstraße eröffnet: 4 Spuren, Abfahrt und Auffahrt über die Gleise');lg('🛣️','anr','Schnellstraße eröffnet');save()}
+function fbBuild(){if(G.fb||!fbOK()||G.money<FBC)return;spend(FBC);G.fb=1;toast('Fußgängerbrücke eröffnet: von der Parkzone direkt zur Kassa');lg('🌉','anr','Fußgängerbrücke eröffnet');
+ // wer schon zu Fuß von/zur Parkzone unterwegs ist, nimmt ab dem nächsten Weg die Brücke
+ save()}
+// Beim Bau der Schnellstraße rückt die Anzeige südlich der Straße nach unten. Gespeicherte Wegpunkte, die durch die
+// Straßenmitte laufen, bleiben gleich (die Welt ändert sich nicht) – nur die Kamera rückt mit, damit nichts springt.
+function ssShiftLive(d){if(camY>R)camY+=d;clampCam()}
+// ---------- Durchgangsverkehr auf den schnellen Spuren ----------
+let TT=[],ttCD=[1,2.5];const TTY=d=>d>0?R+28.5:R+9.5,TTC=['#e8504a','#3d7fd8','#f2c23a','#4cc27a','#ffffff','#8a5ae0','#2b303d','#ff7a45','#9aa5b1'];
+function ttRate(){const h=hrOf(phase())%24;return h<6?.06:h<7?.25:h<9.5?.6:h<16?.42:h<19?.62:h<21?.3:h<23?.15:.06}
+function ttStep(dt){if(!G.ss){if(TT.length)TT=[];return}
+ for(const d of [1,-1]){const i=d>0?0:1;ttCD[i]-=dt;if(ttCD[i]<=0){ttCD[i]=(.6+Math.random()*1.6)/ttRate();
+  const x0=d>0?XL-60:XR+60;if(!TT.some(k=>k.d===d&&Math.abs(k.x-x0)<70)){const tr=Math.random()<.16;TT.push({d,x:x0,v:110,v0:tr?95+Math.random()*15:120+Math.random()*35,tr,col:pick(TTC),id:Math.random()*99})}}}
+ for(const k of TT){const hl=k.tr?22:14,front=k.x+k.d*hl;let vt=k.v0;
+  for(const o of TT){if(o===k||o.d!==k.d)continue;const gap=k.d*(o.x-k.x)-hl-(o.tr?22:14)-7;if(gap>-30&&k.d*(o.x-k.x)>0)vt=Math.min(vt,Math.max(0,gap)*3.2)}
+  // vor dem Zebrastreifen halten, wenn Fußgänger gehen/warten oder dahinter kein Platz ist (nie auf dem Streifen stehen bleiben)
+  let zw=-1;for(let i=0;i<ZC.length;i++){const sl=ZC[i]-k.d*14,dist=k.d*(sl-front);if(dist<-1||dist>=90)continue;
+   let bl=zStop(i);if(!bl){const far=ZC[i]+k.d*14;for(const o of TT){if(o===k||o.d!==k.d||k.d*(o.x-k.x)<=0)continue;const rear=o.x-k.d*(o.tr?22:14);if(k.d*(rear-far)<2*hl+6){bl=true;break}}}
+   if(bl){vt=Math.min(vt,Math.max(0,dist-1)*3.6);if(dist<8)zw=i}}
+  if(zw>=0&&k.v<4){k.zw=(k.zw||0)+dt;k.zi=zw}else if(k.v>6){k.zw=0;k.zi=null}
+  const a=vt>k.v?90:420;k.v+=cl(vt-k.v,-a*dt,a*dt);k.x+=k.d*k.v*dt;k.sw=k.v<1?(k.sw||0)+dt:0}
+ // Sicherheitsnetz: wer über 25 s steht, biegt ab (verschwindet), damit sich nie alles festfährt
+ TT=TT.filter(k=>k.x>XL-90&&k.x<XR+90&&!(k.sw>25&&!(k.zi!=null&&Math.abs(k.x-ZC[k.zi])<k.d*0+60)))}
+const ttZebra=zx=>G.ss&&TT.some(k=>{const hl=k.tr?22:14,dx=zx-k.x;return Math.abs(dx)<hl+12||(k.v>30&&k.d*dx>0&&k.d*dx<hl+14+k.v*.45)});
+function ttDraw(c){for(const k of TT){const y=TTY(k.d),a=k.d>0?0:Math.PI;if(k.tr)truckD(c,k.x,y,a,k.col);else car(c,k.x,y,a,k.col)}}
+function truckD(c,x,y,a,col){c.save();c.translate(x,y);c.fillStyle='rgba(30,50,80,.25)';c.beginPath();c.ellipse(1,4,24,9,a,0,7);c.fill();c.rotate(a);c.strokeStyle=OL;c.lineWidth=1.2;
+ c.fillStyle='#eef2f6';c.beginPath();c.roundRect(-22,-7.5,32,15,2.5);c.fill();c.stroke();c.fillStyle=col;c.fillRect(-20,-1.2,28,2.4);
+ c.fillStyle=col;c.beginPath();c.roundRect(11,-7,11,14,3);c.fill();c.stroke();c.fillStyle='#bfe6ff';c.beginPath();c.roundRect(16,-5.5,4,11,1.5);c.fill();
+ c.fillStyle='#ffe27a';c.fillRect(20.5,-6,1.6,2.6);c.fillRect(20.5,3.4,1.6,2.6);c.restore()}
+// ---------- Fußgängerbrücke: Gäste ----------
+const fbLen=()=>wY(FBS())-14-FBN();
+let FBT={cab:[0,0]};const fbAct=f=>!!f.fb&&f.st==='rt'&&f.cw===f.fb.k;
+function fbStep(f,dt){let b=f.fb;
+ if(!b||b.k!==f.cw){b=f.fb={k:f.cw,d:f.cw==='Bn'?1:-1,ph:0,t:0,lf:Math.random()<(f.kid||f.ty==='fam'?.62:.38)?1:0};G.inc.fbn=(G.inc.fbn||0)+1;if(b.lf)G.inc.fbl=(G.inc.fbl||0)+1}
+ const du=b.lf?2.3:3.3,sp=closed()?50:36;
+ if(b.ph===1){b.t+=dt*sp/fbLen();if(b.t>=1){b.t=0;b.ph=2}}
+ else{b.t+=dt;if(b.t>=du){b.t=0;b.ph++;if(b.ph===3){f.fb=null;f.x=b.d>0?FBXN+5:FBX+2;f.y=b.d>0?FBN():FBS();return true}}}
+ // Position am Boden (für die Logik); gezeichnet wird in fbDraw
+ const n=FBN(),s=FBS();f.x=FBX;f.y=b.ph===0?(b.d>0?s:n):b.ph===2?(b.d>0?n:s):(b.d>0?s+(n-s)*b.t:n+(s-n)*b.t);
+ return false}
+// Turm i: 0 = Nord, 1 = Süd. Liefert für jeden Turm die Leute auf der Treppe und die Aufzugsposition.
+function fbTower(i){const st=[];let cab=null;for(const f of folks){const b=f.fb;if(!fbAct(f)||b.ph===1)continue;const ti=(b.ph===0)===(b.d>0)?1:0;if(ti!==i)continue;
+  const du=b.lf?2.3:3.3,u=b.ph===0?b.t/du:1-b.t/du;if(b.lf){if(cab==null)cab=u}else st.push([f,u])}
+ if(cab!=null)FBT.cab[i]=cab;return {st,cab:FBT.cab[i],busy:cab!=null}}
+// ---------- Wege der Parkzonen-Gäste ----------
+function szLegIn(c){if(!G.fb)return [...szWalk(c,1),[HWX,TY()-34],[HWX,zS(),1],[HWX,zN()]];const q=szSlot(c.zi),x=q.x+13,ny=SZNY();return [[x,ny],[FBX+2,ny],[FBX+2,FBS(),'Bn'],[FBXN+5,FBP()],[HWX,FBP()]]}
+function szLegOut(c){if(!G.fb)return [[HWX,zN(),1],[HWX,zS()],[HWX,TY()-34],...szWalk(c,0)];const q=szSlot(c.zi),x=q.x+13,ny=SZNY();return [[HWX,FBP()],[FBXN+5,FBP()],[FBXN+5,FBN(),'Bs'],[FBX+2,ny],[x,ny],[x,q.y]]}
+// ---------- Stau bei der Anreise ----------
+// Autos zählen Sekunden, in denen sie auf dem Weg zum Parkplatz stehen (c.stw, Ursachen in c.sts); Gäste zu Fuß zählen
+// Wartezeit am Zebrastreifen und an der Schranke (f.cwt). Daraus wird bei der Heimfahrt ein kleiner Abzug (q.sa).
+function stwCar(c,x0,p0,z0,s0,dt){if(s0!=='in'&&s0!=='park'&&s0!=='zin')return;if(c.x!==x0||c.p!==p0||c.zs!==z0)return;
+ const k=s0==='zin'?(G.train&&!G.ss&&c.zs<=szSBI()+.5&&c.zs>=szSBI()-40?'bahn':'ein'):s0==='park'?'ein':c.zw>0?'zeb':c.z&&c.x===SZW?'ein':'str';
+ c.stw=(c.stw||0)+dt;const S2=c.sts||(c.sts={});S2[k]=(S2[k]||0)+dt;
+ if(c.stw>8&&c.stw-dt<=8){G.inc.stN=(G.inc.stN||0)+1;if(G.stLg!==G.day){G.stLg=G.day;const w={bahn:'am Bahnübergang',ein:'an der Einfahrt',zeb:'am Zebrastreifen',str:'auf der Zufahrt'}[k];lg('🚗','anr','Stau bei der Anreise: Autos warten über eine Viertelstunde '+w)}}}
+const stauW=f=>(((f.car&&f.car.stw)||0)+(f.cwt||0))/32*60,stauQ=f=>-Math.min(.06,Math.max(0,stauW(f)-12)*.0015);
+const stauGo=()=>!G.sz?'par|Parkzone Süd':!G.ss&&stars()>=4?'par|Schnellstraße':!G.fb?'par|Fußgängerbrücke':!G.ss?'par|Schnellstraße':'par|';
+// ---------- Zeichnen ----------
+// draw() zeichnet die Welt; liegt die Kamera ganz südlich der Straße, wird mit um SSD verschobener Kamera gezeichnet (Modus 1),
+// sonst wird alles unter der Straßenmitte nachträglich nach unten kopiert (Modus 0). Danach kommt die Ebene PL mit
+// Lücke, Durchgangsverkehr, Rampen-Brücken und Fußgängerbrücke, inkl. Nacht.
+let PLc=null,PLx=null,TMc=null,TMx=null;
+function ssCanv(){const W=cv.width,H2=cv.height;if(!PLc){PLc=document.createElement('canvas');PLx=PLc.getContext('2d');TMc=document.createElement('canvas');TMx=TMc.getContext('2d')}
+ if(PLc.width!==W||PLc.height!==H2){PLc.width=W;PLc.height=H2;TMc.width=W;TMc.height=H2}}
+function ssPost(mode){const w=ssW();if(!w&&!G.fb)return;const c=cx,vw=cw/S,vh=ch/S,K=S*dpr;
+ const gapVis=w&&R<camY+vh&&R+w>camY,fbVis=G.fb&&FBX+30>camX&&FBX-30<camX+vw&&FBN()-FBTH-20<camY+vh&&wY(FBS())+10>camY;
+ const rampVis=w&&TY()+w+20>camY&&TY()+w-20<camY+vh;
+ if(!gapVis&&!fbVis&&!rampVis&&!(w&&mode===0&&R>camY&&R<camY+vh))return;
+ ssCanv();
+ if(w&&mode===0){const sR=Math.round((R-camY)*K),dy=Math.round(w*K),h2=cv.height-sR-dy;if(sR>=0&&h2>0){TMx.setTransform(1,0,0,1,0,0);TMx.clearRect(0,0,cv.width,h2);TMx.drawImage(cv,0,sR,cv.width,h2,0,0,cv.width,h2);c.save();c.setTransform(1,0,0,1,0,0);c.drawImage(TMc,0,0,cv.width,h2,0,sR+dy,cv.width,h2);c.restore()}}
+ // nur den Bereich bearbeiten, in dem etwas gezeichnet wird (Bildschirm-Pixel)
+ let ry0=1e9,ry1=-1e9,rx0=1e9,rx1=-1e9;const U=(a0,b0,a1,b1)=>{rx0=Math.min(rx0,a0);ry0=Math.min(ry0,b0);rx1=Math.max(rx1,a1);ry1=Math.max(ry1,b1)};
+ if(gapVis||w)U(camX,R-40,camX+vw,R+w+26);if(rampVis)U(SZW-30,TY()+w-30,SZE+30,TY()+w+30);if(fbVis)U(FBXN-20,FBN()-FBTH-36,FBX+20,wY(FBS())+8);
+ const qx0=Math.max(0,Math.floor((rx0-camX)*K)),qy0=Math.max(0,Math.floor((ry0-camY)*K)),qx1=Math.min(cv.width,Math.ceil((rx1-camX)*K)),qy1=Math.min(cv.height,Math.ceil((ry1-camY)*K));if(qx1<=qx0||qy1<=qy0)return;
+ const p=PLx;p.setTransform(1,0,0,1,0,0);p.clearRect(qx0,qy0,qx1-qx0,qy1-qy0);p.setTransform(K,0,0,K,offX*K,cam*K);
+ const x0=camX-30,x1=camX+vw+30;
+ if(gapVis)ssGap(p,x0,x1);
+ if(w){ttDraw(p);ssZebFolks(p)}
+ if(rampVis)ssRamps(p);
+ if(fbVis)fbDraw(p);
+ // Nacht und Abendrot nur über dem, was hier gezeichnet wurde
+ const ph=phase(),nt=1-bright(),sg=Math.sin(Math.PI*cl((ph-.56)/.16,0,1)),dg=ph>.93?Math.sin(Math.PI*cl((ph-.93)/.07,0,1)):0;
+ p.save();p.setTransform(1,0,0,1,0,0);p.globalCompositeOperation='source-atop';
+ if(sg>.01){p.fillStyle='rgba(255,140,70,'+(.17*sg)+')';p.fillRect(qx0,qy0,qx1-qx0,qy1-qy0)}
+ if(dg>.01){p.fillStyle='rgba(255,170,150,'+(.11*dg)+')';p.fillRect(qx0,qy0,qx1-qx0,qy1-qy0)}
+ if(nt>.01){p.fillStyle='rgba(12,22,58,'+(.58*nt)+')';p.fillRect(qx0,qy0,qx1-qx0,qy1-qy0)}
+ p.restore();
+ if(nt>.12){const la=cl(nt*1.3,0,1);p.save();p.globalCompositeOperation='lighter';if(w)ttLights(p,la);if(fbVis)fbLights(p,la);p.restore()}
+ c.save();c.setTransform(1,0,0,1,0,0);c.drawImage(PLc,qx0,qy0,qx1-qx0,qy1-qy0,qx0,qy0,qx1-qx0,qy1-qy0);c.restore()}
+function ssGap(c,x0,x1){const w=SSD;c.fillStyle='#5b6577';c.fillRect(x0,R-.2,x1-x0,w+.4);
+ // Mitteltrennung mit Leitplanke, Öffnungen an den Zebrastreifen
+ c.fillStyle='rgba(255,255,255,.55)';c.fillRect(x0,R+15.6,x1-x0,.8);c.fillRect(x0,R+22.1,x1-x0,.8);
+ const segs=[];let a=x0;for(const zx of ZC.slice().sort((p,q)=>p-q)){if(zx+13<x0||zx-13>x1)continue;segs.push([a,zx-13]);a=zx+13}segs.push([a,x1]);
+ for(const [s0,s1] of segs){if(s1<=s0)continue;c.fillStyle='#c9d0d6';c.fillRect(s0,R+17,s1-s0,4);c.fillStyle='#e2b53a';c.fillRect(s0,R+18.7,s1-s0,.6);
+  c.fillStyle='#8e98a6';c.fillRect(s0,R+16.8,s1-s0,.9);c.fillRect(s0,R+20.3,s1-s0,.9);c.fillStyle='#6f7a88';for(let x=Math.ceil(s0/12)*12;x<s1;x+=12){c.fillRect(x-.5,R+16.6,1,1.4);c.fillRect(x-.5,R+20.1,1,1.4)}}
+ // gestrichelte Linien (dieselbe Phase wie die alte Mittellinie)
+ c.strokeStyle='#fff';c.lineWidth=1.5;c.setLineDash([8,8]);c.lineDashOffset=0;c.beginPath();c.moveTo(XL-10,R);c.lineTo(XR+10,R);c.moveTo(XL-10,R+w);c.lineTo(XR+10,R+w);c.stroke();c.setLineDash([]);
+ // Zebrastreifen über die schnellen Spuren
+ c.fillStyle='#fff';for(const zx of ZC){if(zx+12<x0||zx-12>x1)continue;for(let i=4;i<11;i++){const y=R-10-RD+1.3+i*5.4;if(y+3<=R+w+.5)c.fillRect(zx-11,y,22,3)}}
+ // kleine Verkehrsschilder an der Mitteltrennung
+ for(const sx of [-160,980])if(sx>x0&&sx<x1){c.save();c.translate(sx,R+19);c.fillStyle='#6b7280';c.fillRect(-.5,-13,1,13);c.fillStyle='#2f6fd0';c.strokeStyle='#fff';c.lineWidth=.7;c.beginPath();c.roundRect(-9,-21,18,9,1.5);c.fill();c.stroke();c.fillStyle='#fff';c.font='600 4px Fredoka,sans-serif';c.textAlign='center';c.fillText('SCHNELLSTR.',0,-15.3,16);c.restore()}}
+// Gäste auf dem Zebrastreifen über die verbreiterte Straße (sie werden in draw() ausgelassen)
+const ssZeb=f=>G.ss&&!fbAct(f)&&f.st!=='lift'&&!f.hid&&f.y>R-21&&f.y<R+21;
+function ssZebFolks(c){const A=folks.filter(ssZeb).sort((a,b)=>a.y-b.y);for(const f of A){const y=R-21+(f.y-(R-21))*(42+SSD)/42;person(c,Object.assign({},f,{y,_pt:T,_ms:1}),T+(f.id||0))}}
+// Rampen-Brücken der Parkzone über die Gleise (Zug fährt darunter durch)
+function ssRamps(c){const ty=TY()+SSD;for(const [x,two] of [[SZW,0],[SZE,1]]){const hw=two?17:11;
+  c.fillStyle='rgba(30,50,80,.25)';c.fillRect(x-hw+3,ty-16,2*hw,34);
+  c.fillStyle='#5b6577';c.fillRect(x-hw,ty-18,2*hw,36);
+  if(two){c.strokeStyle='#fff';c.lineWidth=1.2;c.setLineDash([6,6]);c.beginPath();c.moveTo(x,ty-18);c.lineTo(x,ty+18);c.stroke();c.setLineDash([])}
+  for(const s of [-1,1]){const ex=x+s*hw;c.fillStyle='#c9d0d6';c.fillRect(ex-(s>0?2.2:0),ty-20,2.2,40);c.fillStyle='#8e98a6';c.fillRect(ex-(s>0?2.2:0),ty-20,2.2,.8);c.fillStyle='#6f7a88';for(let y=ty-18;y<ty+19;y+=6)c.fillRect(ex-(s>0?1.6:-.6)-.5,y,1,1.6)}
+  c.fillStyle='rgba(255,255,255,.75)';c.fillRect(x-hw,ty-20.5,2*hw,1.2)}
+ // Autos auf den Rampen-Brücken noch einmal obendrauf
+ for(const k of cars){if(!szZone(k))continue;const q=szCarPose(k);if(Math.abs(q.y-TY())>20)continue;car(c,q.x,q.y+SSD,q.a,k.col)}}
+// Fußgängerbrücke zeichnen (Anzeige-Koordinaten)
+function fbDraw(c){const n=FBN(),s=wY(FBS()),L=s-14-n,yT=n-14-FBH,yB=s-14-FBH;
+ // Schatten am Boden
+ c.fillStyle='rgba(30,50,80,.13)';c.fillRect(FBX-2,n-14,15,s-n);
+ fbTowerD(c,0,n,FBXN);
+ c.fillStyle='#d9cdb9';c.fillRect(FBXN+11,yT+1,FBX-7-FBXN-11,12);c.fillStyle='#2f6fd0';c.fillRect(FBXN+11,yT+12.4,FBX-7-FBXN-11,1);
+ // Deck
+ c.fillStyle='#e6dccd';c.fillRect(FBX-7,yT,14,L+14);c.fillStyle='rgba(150,130,100,.28)';for(let y=yT+4;y<yB;y+=7)c.fillRect(FBX-6,y,12,.6);
+ c.fillStyle='#2f6fd0';c.fillRect(FBX-8.2,yT+13,1.4,L+1);c.fillRect(FBX+6.8,yT,1.4,L+14);c.fillRect(FBX-8.2,yT,15.4,1.2);
+ c.fillStyle='rgba(191,226,245,.8)';c.fillRect(FBX-7.6,yT+13,1.2,L+1);c.fillRect(FBX+6.4,yT,1.2,L+14);
+ c.fillStyle='#1f4f9a';for(let y=yT+10;y<yB;y+=20){c.fillRect(FBX-8.5,y,2,2);c.fillRect(FBX+6.5,y,2,2)}
+ c.fillStyle='rgba(255,255,255,.9)';for(let y=yT+3;y<yB;y+=9){c.fillRect(FBX-8.4,y,1.8,1.3);c.fillRect(FBX+6.6,y+4,1.8,1.3)}
+ // Lichterkette (tagsüber kleine Birnen)
+ for(let y=yT+5,i=0;y<yB-2;y+=6,i++){c.fillStyle=i%2?'#ffe9a8':'#fff4d6';c.beginPath();c.arc(FBX-7.6,y,.75,0,7);c.arc(FBX+7.6,y+3,.75,0,7);c.fill()}
+ // Gäste auf dem Deck
+ const A=[];for(const f of folks){const b=f.fb;if(!fbAct(f)||b.ph!==1)continue;const g=b.d>0?(s-14)-b.t*L:n+b.t*L;A.push([f,g,b.d])}A.sort((a,b)=>a[1]-b[1]);
+ for(const [f,g,d] of A)person(c,Object.assign({},f,{x:FBX+(d>0?3:-3),y:g-FBH+1,_pt:T,_ms:1}),T+(f.id||0));
+ fbTowerD(c,1,s,FBX)}
+function fbTowerD(c,i,yb,x){const TH=FBTH,y0=yb-TH,Tw=fbTower(i);
+ c.fillStyle='rgba(30,50,80,.22)';c.beginPath();c.ellipse(x+3,yb+1.5,15,3.4,0,0,7);c.fill();
+ // Dach (Draufsicht) mit Schnee
+ c.fillStyle='#7f8c99';c.fillRect(x-11,y0-14,22,14);c.fillStyle='#fff';c.beginPath();c.roundRect(x-11.5,y0-14.5,23,12.5,3);c.fill();c.fillStyle='rgba(160,190,220,.5)';c.fillRect(x-10,y0-3,20,1.2);
+ // Front: Rahmen + Glas
+ c.fillStyle='#7f8c99';c.fillRect(x-11,y0,22,TH);c.fillStyle='#2f6fd0';c.fillRect(x-11,y0,22,4.5);
+ c.fillStyle='#fff';c.font='700 3.6px Fredoka,sans-serif';c.textAlign='center';c.fillText(i?'🎫 KASSA ↑':'🅿️ PARKZONE ↓',x,y0+3.4,20.5);
+ c.fillStyle='#cfeaf8';c.fillRect(x-9.5,y0+5.5,19,TH-7);
+ // Aufzugsschacht links
+ c.fillStyle='rgba(120,150,180,.35)';c.fillRect(x-9.5,y0+5.5,8,TH-7);c.fillStyle='#8796a5';c.fillRect(x-1.6,y0+5.5,1,TH-7);
+ const cy=yb-2-Tw.cab*FBH;c.fillStyle='#eef3f8';c.strokeStyle='#4b5468';c.lineWidth=.6;c.beginPath();c.rect(x-8.8,cy-10,6.6,10);c.fill();c.stroke();c.fillStyle='#a8d8f2';c.fillRect(x-8,cy-8.6,5,4.2);
+ if(Tw.busy){c.fillStyle='#3a4654';c.beginPath();c.arc(x-5.5,cy-6.2,1.2,0,7);c.fill();c.fillRect(x-6.6,cy-5,2.2,3)}
+ c.strokeStyle='#4b5468';c.lineWidth=.4;c.beginPath();c.moveTo(x-5.5,y0+5.5);c.lineTo(x-5.5,cy-10);c.stroke();
+ // Treppe rechts (Zickzack)
+ const sx0=x-.4,sx1=x+9.2,yb2=yb-2,yt2=yb-2-FBH;c.strokeStyle='#8a96a6';c.lineWidth=1.4;c.beginPath();
+ const fl=3,hgt=(yb2-yt2)/fl;for(let k=0;k<fl;k++){const ya=yb2-k*hgt,yb3=ya-hgt;if(k%2===0){c.moveTo(sx0,ya);c.lineTo(sx1,yb3)}else{c.moveTo(sx1,ya);c.lineTo(sx0,yb3)}}c.stroke();
+ c.strokeStyle='rgba(255,255,255,.7)';c.lineWidth=.4;for(let k=1;k<fl;k++){const y=yb2-k*hgt;c.beginPath();c.moveTo(sx0,y);c.lineTo(sx1,y);c.stroke()}
+ c.save();c.beginPath();c.rect(x-9.5,y0+5.5,19,TH-7);c.clip();
+ for(const [f,u] of Tw.st){const k=Math.min(fl-1,Math.floor(u*fl)),v=u*fl-k,px=k%2===0?sx0+(sx1-sx0)*v:sx1-(sx1-sx0)*v,py=yb2-(k+v)*hgt;c.save();c.translate(px,py);c.scale(.82,.82);personN(c,Object.assign({},f,{x:0,y:0,_pt:T,_ms:1,kid:0}),T+(f.id||0));c.restore()}
+ c.restore();
+ // Glas-Spiegelung, Tür unten
+ c.fillStyle='rgba(255,255,255,.35)';c.beginPath();c.moveTo(x-9.5,y0+12);c.lineTo(x-4,y0+5.5);c.lineTo(x-1.5,y0+5.5);c.lineTo(x-9.5,y0+16);c.fill();
+ c.fillStyle='#3a4654';c.fillRect(x+2,yb-9,6,9);c.fillStyle='#6f7a88';c.fillRect(x+4.8,yb-9,.5,9);
+ c.fillStyle='rgba(255,255,255,.6)';c.fillRect(x-11,yb-.8,22,.8)}
+function fbLights(c,la){const n=FBN(),s=wY(FBS()),yT=n-FBH,yB=s-14-FBH;
+ for(let y=yT+5,i=0;y<yB-2;y+=6,i++){const tw=.75+.25*Math.sin(T*3+i);for(const [x,o] of [[FBX-7.6,0],[FBX+7.6,3]]){const g=c.createRadialGradient(x,y+o,0,x,y+o,4);g.addColorStop(0,'rgba(255,214,130,'+(.55*la*tw)+')');g.addColorStop(1,'rgba(255,214,130,0)');c.fillStyle=g;c.fillRect(x-4,y+o-4,8,8)}}
+ for(const [yb,x] of [[n,FBXN],[s,FBX]]){c.fillStyle='rgba(255,220,150,'+(.28*la)+')';c.fillRect(x-9.5,yb-FBTH+5.5,19,FBTH-7)}}
+function ttLights(c,la){for(const k of TT){const y=TTY(k.d),hl=k.tr?22:14,fx=k.x+k.d*hl,g=c.createRadialGradient(fx+k.d*10,y,0,fx+k.d*10,y,18);g.addColorStop(0,'rgba(255,240,190,'+(.4*la)+')');g.addColorStop(1,'rgba(255,240,190,0)');c.fillStyle=g;c.fillRect(fx+k.d*10-18,y-18,36,36);
+  const bx=k.x-k.d*hl;c.fillStyle='rgba(255,60,40,'+(.5*la)+')';c.fillRect(bx-1,y-5,2,2.4);c.fillRect(bx-1,y+2.6,2,2.4)}}
+// Antippen der Brücke (Anzeige-Koordinaten)
+function fbHit(wx,wyD){if(!G.fb)return false;const n=FBN(),s=wY(FBS());return (Math.abs(wx-FBX)<14&&wyD>n-FBTH-30&&wyD<s+4)||(Math.abs(wx-FBXN)<14&&wyD>n-FBTH-16&&wyD<n+4)}
 
 function phBuild(){if(!G.ph&&G.areas>=2&&G.money>=PHC){spend(PHC);G.ph=2;toast('Parkhaus eröffnet: 24 Plätze auf 2 Ebenen');save()}}
 function phUp(){if(G.ph===2&&G.money>=PHC3){spend(PHC3);G.ph=3;toast('Parkhaus aufgestockt: jetzt 36 Plätze');save()}}
@@ -2515,7 +2692,7 @@ function oaOut(f){const K=[[OGX-4,V+50],[EXX,EXY()],[470,EXY()],[484,V+72],[HWX,
  if(f.hx!=null&&!f.car)return {r:[...K,[HWX,hY()],[f.hx,hY()]],nx:'tohotel'};
  if(f.sh){const x=-14+Math.random()*52;return {r:[...K,...along(PN,HWX,x)],nx:'oaSW'}}
  const c=f.car,sd=gSide(c.sp),x=spotX(c.sp);let r;
- if(sd==='z')r=[...K,[HWX,zN(),1],[HWX,zS()],[HWX,TY()-34],...szWalk(c,0)];else if(sd==='g')r=[...K,...along(PN,HWX,GX)];else if(sd==='g2')r=[...K,[HWX,gY2()],[GX2,gY2()]];else if(sd==='n')r=[...K,...along(PN,HWX,x)];else if(x<z)r=[...K,...along(PN,HWX,z),[z,zN(),0],[z,zS()],...along(PS,z,x)];else r=[...K,[HWX,zN(),1],[HWX,zS()],[420,R+26],...along(PS,420,x)];
+ if(sd==='z')r=[...K,...szLegOut(c)];else if(sd==='g')r=[...K,...along(PN,HWX,GX)];else if(sd==='g2')r=[...K,[HWX,gY2()],[GX2,gY2()]];else if(sd==='n')r=[...K,...along(PN,HWX,x)];else if(x<z)r=[...K,...along(PN,HWX,z),[z,zN(),0],[z,zS()],...along(PS,z,x)];else r=[...K,[HWX,zN(),1],[HWX,zS()],[420,R+26],...along(PS,420,x)];
  return {r,nx:'tocar'}}
 function oaSpot(){const v=Math.pow(Math.random(),1.6),y=V-46+v*84,w=80+v*110,c=154+v*30;let x=c+(Math.random()-.5)*w;x=cl(x,124,300);if(Math.hypot(x-212,y-(V+18))<14)x+=18;return [x,y]}
 function oaLeave(f){OA.q=OA.q.filter(g=>g!==f);for(const s of OA.st){s.q=s.q.filter(g=>g!==f);if(s.f===f)s.f=null}OA.wc.q=OA.wc.q.filter(g=>g!==f);for(const b of OA.wc.b)if(b.f===f){b.f=null;b.in=0}
@@ -2809,7 +2986,7 @@ const LX=[];for(let x=-190;x<XR-8;x+=52)if(x<-40||x>12)LX.push(x);
 const liftGo=L=>!(wxOn()&&G.wx==='sturm'&&!isG(L))&&!stoerL(L)&&(!closed()||lifts[L-1].some(k=>k.r.length>0)||queues[L-1].some(f=>f.lc));
 const TSD=.35;function gTS(){const r=rps.find(k=>k.st==='run'),p=phase();if(!r||!r.path||p>=.95||p<.5)return 1.3;let L=0,x=r.x,y=r.y;for(let i=r.pi;i<r.path.length;i++){const w=r.path[i];L+=Math.hypot(w[0]-x,w[1]-y);x=w[0];y=w[1]}if(r.ph==='out')L*=2.05;const need=L/((r.ph==='tour'?100:60)*.72);return cl((.95-p)*DAY/need,.18,1.3)}
 function timeScale(){if(evSlow())return .14;{const p=phase();if(oaDay()&&p>=pAt(15.5)&&p<pAt(24.5)&&(folks.length||cars.length||buses.length))return nTS(p);if(G.ap&&p>=.60&&p<apEnd()+.01&&folks.length)return nTS(p);if(nToday()&&p>=.60&&p<NEP+.04&&(p>=NA0-.01||folks.length||cars.length))return nTS(p)}if(G.ev&&G.ev.k==='nacht'&&G.ev.st==='pre')return TSD;if(!closed())return TSD;if(G.ph&&(folks.some(f=>f.car&&f.car.ph)||cars.some(k=>k.ph&&k.st!=='gone'&&k.back>=k.n)))return nTS(phase());if(cars.some(k=>k.g&&k.st!=='gone'&&k.back>=k.n))return nTS(phase());if(G.sz&&(folks.some(f=>f.car&&f.car.z)||cars.some(k=>k.z&&k.st!=='gone'&&k.back>=k.n)))return nTS(phase());if(rps.some(r=>r.st==='run'))return gTS();if(folks.length||cars.length)return 1;if(rps.some(r=>r.st==='run'))return gTS();return 4}
-function drawLamps(c){const on=1-bright()>.12;for(const x of LX){if(G.garage&&Math.abs(x-GX)<26||G.garage2&&Math.abs(x-GX2)<26)continue;c.fillStyle='rgba(30,50,80,.25)';c.beginPath();c.ellipse(x+1,R-9-RD,3.5,1.6,0,0,7);c.fill();c.fillStyle='#4b5468';c.fillRect(x-1,R-34-RD,2,25);c.beginPath();c.roundRect(x-5,R-38-RD,10,5,2);c.fill();c.fillStyle=on?'#fff1b0':'#cfd6e2';c.beginPath();c.roundRect(x-3.5,R-36-RD,7,3,1.5);c.fill()}}
+function drawLamps(c){const on=1-bright()>.12;for(const x of LX){if(G.garage&&Math.abs(x-GX)<26||G.garage2&&Math.abs(x-GX2)<26||G.fb&&Math.abs(x-FBX)<16)continue;c.fillStyle='rgba(30,50,80,.25)';c.beginPath();c.ellipse(x+1,R-9-RD,3.5,1.6,0,0,7);c.fill();c.fillStyle='#4b5468';c.fillRect(x-1,R-34-RD,2,25);c.beginPath();c.roundRect(x-5,R-38-RD,10,5,2);c.fill();c.fillStyle=on?'#fff1b0':'#cfd6e2';c.beginPath();c.roundRect(x-3.5,R-36-RD,7,3,1.5);c.fill()}}
 function onSlope(){for(const f of folks)if(f.st==='qu'||f.st==='lift'||f.st==='ski')return true;return false}
 function groomStep(dt){
  const p=phase();
@@ -3081,7 +3258,8 @@ function waysB(){const S=[],L=[],g=(k,...p)=>S.push({k,p}),PN=sideP(1),PS=sideP(
  L.push([431,R+52],[392,V+75]);
  {const C=CHL().slice(1);g('f',[HWX,zS()-4],[HWX,R+100],[C[C.length-1][0]+16,R+100]);for(const q of C)g('f',[q[0],q[1]],[q[0],R+100]);L.push([601,R+109],[646,R+109])}
  g('f',[124,V+46],[64,V+84],[20,V+124],[44,V+150],[44,R-56-RD]);L.push([84,V+84],[53,V+196]);if(G.ap){g('f',[20,V+124],[AX0,V+124]);if(G.hotels)g('f',[44,hY()],[HX[0],hY()])}for(const y of [V+250,V+190])L.push([HWX+10,y]);L.push([HWX-12,V+122]);
- if(G.sz){const xs=SZX0.slice(0,G.sz),xa=Math.min(...xs),xb=Math.max(...xs.map(x=>x+312),SZPX);g('g',[xa,SZNY()],[xb,SZNY()]);g('f',[SZPX,SZNY()],[SZPX,TY()-14],[560,TY()-14]);if(!G.train)g('f',[HWX,R+100],[HWX,TY()-14],[560,TY()-14]);for(let k=0;k<G.sz;k++)for(let x=SZX0[k]+39;x<SZX0[k]+312;x+=78)L.push([x,SZY()+64]);L.push([SZW+20,R+70],[SZW+20,TY()+60],[SZE-20,R+70],[SZE-20,TY()+60])}
+ if(G.sz){const xs=SZX0.slice(0,G.sz),xa=Math.min(...xs),xb=Math.max(...xs.map(x=>x+312),SZPX,G.fb?FBX+8:0);g('g',[xa,SZNY()],[xb,SZNY()]);g('f',[SZPX,SZNY()],[SZPX,TY()-14],[560,TY()-14]);if(!G.train)g('f',[HWX,R+100],[HWX,TY()-14],[560,TY()-14]);for(let k=0;k<G.sz;k++)for(let x=SZX0[k]+39;x<SZX0[k]+312;x+=78)L.push([x,SZY()+64]);L.push([SZW+20,R+70],[SZW+20,TY()+60],[SZE-20,R+70],[SZE-20,TY()+60])}
+ if(G.fb){g('f',[FBXN+5,FBN()],[FBXN+5,FBP()],[HWX,FBP()]);g('f',[FBX+2,SZNY()],[FBX+2,FBS()]);L.push([668,FBP()-9],[564,FBP()-9])}
  if(G.hotels&&G.ap)for(const x of [150,270,376])L.push([x,hY()+9]);if(G.hotels)L.push([484,hY()+9]);if(G.hotels>1)L.push([597,hY()-9]);
  return {S,L,PN,PS}}
 function lotFree(x,y){const nc=Math.ceil(G.spots/2),nd=Math.floor(G.spots/2),N=y>R-64-RD&&y<R-12-RD,Sd=y>R+12+RD&&y<R+50+RD;if(!N&&!Sd)return 0;if(N&&LX.some(l=>Math.abs(x-l)<8))return 0;
@@ -3103,15 +3281,15 @@ function wayLamps(c,front){const on=1-bright()>.12;for(const [x,y] of WAYS.L){if
  c.fillStyle='rgba(30,50,80,.22)';c.beginPath();c.ellipse(x+.8,y,2.6,1.2,0,0,7);c.fill();
  c.fillStyle='#4b5468';c.fillRect(x-.7,y-13,1.4,13);c.fillRect(x-2,y-1.3,4,1.4);c.beginPath();c.roundRect(x-2.7,y-17.6,5.4,1.7,.8);c.fill();
  c.fillStyle=on?'#fff1b0':'#cfd6e2';c.beginPath();c.arc(x,y-14.6,2.1,0,7);c.fill()}}
-function zStep(){ZO.fill(0);ZW.fill(0);ZY.fill(0);for(const f of folks){if(f.zc!=null)ZO[f.zc]++;if(f.cw!=null&&f.cw!=='b')ZW[f.cw]++}for(const o of allV())if(o.zw>3&&o.zi!=null)ZY[o.zi]=1}
+function zStep(){ZO.fill(0);ZW.fill(0);ZY.fill(0);for(const f of folks){if(f.zc!=null)ZO[f.zc]++;if(typeof f.cw==='number')ZW[f.cw]++}if(G.ss)for(const o of TT)if(o.zw>3&&o.zi!=null)ZY[o.zi]=1;for(const o of allV())if(o.zw>3&&o.zi!=null)ZY[o.zi]=1}
 const zStop=i=>ZO[i]>0||(ZW[i]>0&&!ZY[i]);
-function zFree(i){if(ZY[i])return false;const zx=ZC[i];for(const o of allV()){const m=(o.zw>0||o.w>0)?0:4;for(const q of vCirc(o))if(Math.abs(q[1]-R)<34&&Math.abs(q[0]-zx)<13+q[2]+m)return false}return true}
+function zFree(i){if(ZY[i])return false;const zx=ZC[i];if(ttZebra(zx))return false;for(const o of allV()){const m=(o.zw>0||o.w>0)?0:4;for(const q of vCirc(o))if(Math.abs(q[1]-R)<34&&Math.abs(q[0]-zx)<13+q[2]+m)return false}return true}
 const gSide=sp=>sp>=500?'z':sp>=300?'p':sp===101?'g2':sp>=100&&sp<200?'g':(sp&1)?'s':'n';
 function rIn(f){const K=[[HWX,V+100],[484,V+72]],PN=WAYS.PN,PS=WAYS.PS,z=ZC[0];
  if(f.byT)return [[HWX,TY()-34],[HWX,zS(),1],[HWX,zN()],...K];
  if(f.hx!=null&&!f.car)return [[f.hx,hY()],[HWX,hY()],...K];
  const c=f.car;if(!c)return null;const sd=gSide(c.sp),x=f.x;
- if(sd==='z')return [...szWalk(c,1),[HWX,TY()-34],[HWX,zS(),1],[HWX,zN()],...K];
+ if(sd==='z')return [...szLegIn(c),...K];
  if(sd==='g'){f.x=GX;f.y=yAt(PN,GX);return [...along(PN,GX,HWX),...K]}
  if(sd==='g2'){f.x=GX2;f.y=gY2();return [[HWX,gY2()],...K]}
  if(sd==='p'){f.x=-53;f.y=R+133;const A=along(PS,-43,z);A[A.length-1].length=2;return [[-43,R+133],...A,[z,zS(),0],[z,zN()],...along(PN,z,HWX),...K]}
@@ -3127,7 +3305,7 @@ function rOutK(f,K,S0,west){const PN=WAYS.PN,PS=WAYS.PS,A=x1=>along(PN,S0,x1);
  if(f.byT)return [...K,...A(HWX),[HWX,zN(),1],[HWX,zS()],[HWX,TY()-34],[452+Math.random()*96,TY()-13]];
  if(f.hx!=null&&!f.car)return S0===44?[...K,[44,hY()],[f.hx,hY()]]:[...K,[HWX,hY()],[f.hx,hY()]];
  const c=f.car;if(!c)return null;const sd=gSide(c.sp),x=spotX(c.sp);
- if(sd==='z')return [...K,...A(HWX),[HWX,zN(),1],[HWX,zS()],[HWX,TY()-34],...szWalk(c,0)];
+ if(sd==='z')return [...K,...A(HWX),...szLegOut(c)];
  if(sd==='g')return [...K,...A(GX)];
  if(sd==='g2')return [...K,...A(HWX),[HWX,gY2()],[GX2,gY2()]];
  if(sd==='n')return [...K,...A(x)];
@@ -3205,7 +3383,7 @@ function staRuf(){const pt=v=>{const r=Math.round(v);return r>0?'+'+r:r<0?'−'+
   +(a('pi')<=-.5?L('🚜','Pistenzustand','Pisten '+Math.round(G.pq)+' % präpariert',a('pi'),null,G.raupen?'rau|Profi-Fräse für die Raupe':'rau|Pistenraupe'):'')
   +(a('sn')<=-.5?L('❄️','Schneelage','Schneehöhe '+Math.round(G.snow)+' %',a('sn'),null,G.kan?'rau|Hochleistungs-Düsen':'rau|Schneekanonen-Paket'):'')
   +L('⏱️','Wartezeit am Lift','Mehr als 8 Minuten Warten pro Fahrt stört',a('w'),null,'lif|')
-  +L('🎟️','Kartenpreis','Teurer als fair kostet Punkte',a('p'),null,'pre')
+  +L('🎟️','Kartenpreis','Teurer als fair kostet Punkte',a('p'),null,'pre')+(a('sa')<=-.5?L('🚗','Stau bei der Anreise','Warten an Schranke, Zebrastreifen oder Einfahrt',a('sa'),null,stauGo()):'')
   +(G.areas>=2?L('🗺️','Passende Abfahrten','Anfänger wollen blau, Profis schwarz',a('m'),null,!G.pb?'rau|Blaue Abfahrt':'rau|Schwarze Abfahrt'):'')
   +(a('k')>=.5?L('⚫','Schwarze Abfahrt','Profis freuen sich darüber',a('k')):'')
   +(a('f')>=.5?L('🍲','Günstiges Essen','',a('f')):'')+(a('hu')<=-.5?L('🍽️','Kein Restaurant','Ab Bereich 2 wollen Gäste mittags richtig essen',a('hu'),null,'gas|Restaurant'):'')+(Math.abs(a('gf'))>=.5?L('🍽️','Gipfelrestaurant','Panorama-Essen oben',a('gf')):'')+(Math.abs(a('kl'))>=.5?L('🧒','Kinderland','für Familien',a('kl')):'')+(Math.abs(a('sp'))>=.5?L('🏂','Snowpark','für Snowboarder',a('sp')):'')+(a('bw')<=-.5?L('🚑','Keine Bergwacht','Ab Bereich 4 erwartet',a('bw'),null,'stf|Bergwacht'):'')+(a('st')<=-.5?L('🌬️','Lift stand still','Bei Sturm (nur Gondeln fahren) oder Störung',a('st')):'')+(Math.abs(a('ap'))>=.5?L(a('ap')>0?'🎉':'🍻','Après-Ski für Hotelgäste','',a('ap'),null,'gas|Après-Ski-Hütte'):'')+(a('pw')>=.5?L('🏂','Neuschnee für Snowboarder','',a('pw')):'')
@@ -3251,7 +3429,7 @@ function staUpd(){const T=(i,v)=>{const e=$(i);if(e)e.textContent=v};
 function step(dt){
  hxStep(dt);G.t+=dt*timeScale();flStep(dt);groomStep(dt);wxStep(dt);evStep(dt);if(G.ct>5)G.ct/=45;if(G.ct>0)G.ct-=dt*timeScale()/DAY;const af=arrF(phase())*(evSlow()?.2:1)*(oaDay()&&phase()>=pAt(13.5)?0:1);if(af>0){if(Math.random()<rate()*ARS*af*dt)spawnCar();if(G.hotels&&Math.random()<G.hotels*20*occ()*.6/(DAY*.724)*ARS*af*dt)spawnHG()}
  {const an=nArr(phase());if(an>0){if(Math.random()<nRate()*an*dt)spawnCar(1);if(G.hotels&&Math.random()<G.hotels*20*occ()*.25/(DAY*.724)*an*dt)spawnHG(1)}}
- zStep();szStep(dt);oaStep(dt);brkStep(dt);showStep();arStep();busStep(dt);trainStep(dt);engStep(dt);tdStep();
+ zStep();szStep(dt);ttStep(dt);oaStep(dt);brkStep(dt);showStep();arStep();busStep(dt);trainStep(dt);engStep(dt);tdStep();
  {const c=closed(),p=phase();if(c&&!wasC){G.lcU=p+.5/hpp(p);for(const q of queues)for(const f of q)if(f.arr&&!(f.nt&&nPending()))f.lc=1}wasC=c;if(G.lcU&&(!c||p>=G.lcU)){G.lcU=0;for(const q of queues)for(const f of q)f.lc=0}}
  if(closed()){const kp=nPending();for(const q of queues)for(let i=q.length-1;i>=0;i--){const f=q[i];if(f.lc||(kp&&f.nt))continue;q.splice(i,1);leave(f)}}
  if(!plane){pt-=dt;if(pt<=0&&bright()>.5&&!(wxOn()&&G.wx==='sturm')){const d=Math.random()<.5?1:-1,vh=ch/S;plane={d,x:d>0?XL-130:XR+130,y:cl(camY+vh*(.15+Math.random()*.35),-EXT+30,H-40),msg:pick(ADS),hit:0}}}
@@ -3260,13 +3438,14 @@ function step(dt){
   for(let i=0;i<m;i++){const tx=slopeX(p.y+20)+(Math.random()-.5)*slopeW(p.y)-p.x;sn.push({x:p.x+9,y:p.y-9,vx:tx*(.6+Math.random()*.6)+(Math.random()-.5)*14,vy:-30-Math.random()*26,t:1,r:.6+Math.random()*.9,ph:Math.random()*6})}}
   else{n.cd-=dt*(wxOn()?(G.snow<30?6:G.snow<60?3:1):1);if(n.cd<=0){n.on=6+Math.random()*5;n.cd=25+Math.random()*35}}}
  if(G.t>=DAY){for(const f of folks){if(f.seat>=0)seats[f.seat]=null;if(f.car)f.car.back++;else if(!f.byT){G.guests++;G.gT++}f.dead=1}folks=[];queues.forEach(q=>q.length=0);const hi=hInc();if(hi){G.money+=hi;G.inc.h=hi;for(let i=0;i<G.hotels;i++)pop(HX[i],HDY(i)-34,Math.round(hi/G.hotels))}const inc=G.inc.l+G.inc.p+hi+(G.inc.g||0)+(G.inc.ev||0),k=cost();G.money-=k;G.last={inc,k,profit:inc-k};{const F=lf(),pr=inc-k,g=G.gT;lg('🏁','geld','Tagesabschluss: '+gN(g)+' · Einnahmen '+fmt(inc)+' · Tageskosten '+fmt(k)+' · Saldo '+(pr>=0?'+':'')+fmt(pr),{s:1});if(G.inc.b)lg('🛠️','geld','Gebaut und Werbung heute: '+fmt(G.inc.b));if(G.inc.fl>=1)lg('💡','geld','Flutlicht heute: '+fmt(G.inc.fl)+' Stromkosten');if(G.inc.nn||G.inc.nl>=1)lg('🌙','geld','Nachtskilauf heute: '+gN(G.inc.nn||0)+' · Nachtkarten '+fmt(G.inc.nk||0)+' · Abendbetrieb Lifte '+fmt(G.inc.nl||0));if(G.inc.ab)lg('🅿️','anr','Abgewiesen heute: '+G.inc.ab+(G.inc.ab===1?' Auto':' Autos'));if(F.mw>=1)lg('⏱️','lif','Längste Wartezeit: Lift '+F.mL+', '+wfmt(F.mw)+' um '+F.mt);if(G.rec){if(g>G.rec.g)lg('🏆','geld','Rekord: '+g+' Gäste an einem Tag (bisher '+G.rec.g+')',{s:1});if(pr>G.rec.s&&pr>0)lg('🏆','geld','Rekord: bester Saldo mit +'+fmt(pr)+' (bisher '+fmt(G.rec.s)+')',{s:1});G.rec.g=Math.max(G.rec.g,g);G.rec.s=Math.max(G.rec.s,pr)}else G.rec={g,s:Math.max(pr,...(G.hist||[]).map(x=>x.l+x.p+(x.h||0)+(x.g||0)+(x.e||0)-x.k))}}G.gLast=G.gT;G.gT=0;G.hist=(G.hist||[]).concat([{d:G.day,l:G.inc.l,p:G.inc.p,h:hi,g:G.inc.g||0,e:G.inc.ev||0,a:G.inc.au||0,k,b:G.inc.b||0,z:zins(),n:G.gLast,r:Math.round(rufE())}]).slice(-10);{const tg=90-cpen().t;if(tg<G.ruf)G.ruf+=(tg-G.ruf)*.25}ageDay();prjDay();parkDay();showDayEnd();seaDay();scnDay();achChk();mpDay();revDay();G.rkL=G.rk&&G.rk.n?G.rk:G.rkL;G.rk={n:0,s:0};G.thdL=G.thd&&Object.keys(G.thd).length?G.thd:G.thdL;G.thd={};G.thw={};G.rtyL=G.rty&&Object.keys(G.rty).length?G.rty:G.rtyL;G.rty={};G.thtL=G.tht&&Object.keys(G.tht).length?G.tht:G.thtL;G.tht={};G.day++;if(G.up.s)G.skl=Math.min(12,(G.skl||0)+1);G.t=0;G.inc={l:0,p:0,b:0,h:0,n:0,nh:0,g:0,ev:0};evRoll();oaRoll();expDay();sfx('day');if(SET.hint)toast(sTk(G.day-1)+' vorbei: '+(G.last.profit>=0?'+':'')+fmt(G.last.profit))}
- for(const c of cars){if(c.z&&szCar(c,dt))continue;
-  if(c.st==='in'){const sx=spotX(c.sp);let nx=c.x+70*c.d*dt;if(c.d>0?nx>=sx:nx<=sx)nx=sx;if(vGo(c,nx,c.p,dt)){c.x=nx;if(nx===sx&&c.z){c.zq=(c.zq||0)+dt;if(szInOK(c)&&(vFree(c,'park',dt)||c.zq>15)){if(c.zq>15)G.gh=(G.gh||0)+1;c.st='park'}}else if(nx===sx&&vFree(c,'park',dt))c.st='park'}}
-  else if(c.st==='park'){const np=Math.min(1,c.p+dt/.7);if(vGo(c,c.x,np,dt))c.p=np;if(c.p>=1){c.p=1;if(c.z){c.st='zin';c.zs=0;continue}c.st='stay';G.money+=G.park;G.inc.p+=G.park;if(G.park>0)pop(spotX(c.sp),spotY(c.sp)-14,G.park);
+ for(const c of cars){const a0=c.x,b0=c.p,z0=c.zs,s0=c.st;if(c.z&&szCar(c,dt)){stwCar(c,a0,b0,z0,s0,dt);continue}
+  if(c.st==='in'){const sx=spotX(c.sp);let nx=c.x+70*c.d*dt;if(c.d>0?nx>=sx:nx<=sx)nx=sx;if(vGo(c,nx,c.p,dt)){c.x=nx;if(nx===sx&&c.z){c.zq=(c.zq||0)+dt;if(szInOK(c)&&(G.ss||vFree(c,'park',dt)||c.zq>15)){if(c.zq>15)G.gh=(G.gh||0)+1;c.st='park'}}else if(nx===sx&&vFree(c,'park',dt))c.st='park'}}
+  else if(c.st==='park'){const np=Math.min(1,c.p+dt/(c.z&&G.ss?.45:.7));if(vGo(c,c.x,np,dt))c.p=np;if(c.p>=1){c.p=1;if(c.z){c.st='zin';c.zs=0;continue}c.st='stay';G.money+=G.park;G.inc.p+=G.park;if(G.park>0)pop(spotX(c.sp),spotY(c.sp)-14,G.park);
    for(let i=0;i<c.n;i++){const f={nt:c.nt||0,x:spotX(c.sp)+(i-1)*5,y:fy(c.sp),st:'qu',col:pick(COL),car:c,rides:0,l:1,arr:0,board:Math.random()<bdP(),bc:pick(['#ff7a45','#34c0b8','#8a5ae0','#2f80ed'])};f.st='kas';if(c.oa)Object.assign(f,{oa:1,st:'oaR',id:Math.random()*20,qw:0,sw:0,ph:Math.random()<.6});folks.push(f)}}}
   else if(c.st==='stay'){if(c.g&&c.back>=c.n&&!c.rx){c.rx=1;c.x=GEX;c.d=1;c.ey=R+30+RD}if(c.back>=c.n&&(!c.ph||phGate(c))&&(!c.g||gGate(c))&&vFree(c,'out',dt))c.st='out'}
   else if(c.st==='out'){const np=Math.max(0,c.p-dt/(c.g&&c.p>.55?.2:c.z?.5:.7));if(vGo(c,c.x,np,dt))c.p=np;if(c.p<=0){c.p=0;c.st='gone';c.sp=-1}}
   else{const nx=c.x+70*(c.rx?c.d:-c.d)*dt;if(vGo(c,nx,c.p,dt))c.x=nx}
+  stwCar(c,a0,b0,z0,s0,dt);
   // Sicherheitsnetz (V185): um 3 Uhr fährt, wer noch in Garage/Parkhaus feststeckt, still weg
   if((c.g||c.ph)&&(c.st==='stay'||c.st==='out')&&c.back>=c.n&&hrOf(phase())>=27){c.st='gone';c.sp=-1;c.x=c.d>0?XL-100:XR+100}
  }
@@ -3277,7 +3456,7 @@ function step(dt){
   if(f.st==='qu'&&f.l===1){if(f.qr===undefined)f.qr=qRoute(f);if(f.qr.length){const w=f.qr[0];f.arr=false;if(mv(f,w[0],w[1],36,dt)){f.qr.shift();if(!f.qr.length&&w[2]){const p=slot(1,queues[0].indexOf(f));if(Math.abs(p.y-f.y)>3)f.qr.push([QCX,p.y])}}continue}}
   if(f.st==='qu'){const q=queues[f.l-1],p=slot(f.l,q.indexOf(f));const dq=Math.hypot(p.x-f.x,p.y-f.y);mv(f,p.x,p.y,dq>30?32:70,dt);f.arr=dq<11;if(f.arr){f.wt=(f.wt||0)+dt;const W=f.wq||(f.wq={});W[f.l]=(W[f.l]||0)+dt;if(!closed()&&!liftGo(f.l)){if(stoerL(f.l))f.sto=1;else if(stormOn())f.stm=1}}if(f.l===1&&f.wl&&!f.lunched&&lunchT()&&Math.random()<dt*.06&&q.indexOf(f)>3&&Math.random()<(G.rest?1:.75)){q.splice(q.indexOf(f),1);f.lunched=1;startLunch(f,18+Math.random()*16);toBrk(f)}}
   else if(f.st==='wp'){const w=f.wp[0];if(!w){f.st=f.nx}else if(mv(f,w[0],w[1],45,dt)){f.wp.shift();if(!f.wp.length)f.st=f.nx}}
-  else if(f.st==='rt'){const w=f.rt[0];if(!w){f.st=f.nx}else if(f.cw!=null){if(f.cw==='b'?szPedOK():zFree(f.cw)){if(f.cw!=='b')f.zc=f.cw;f.cw=null}}else if(mv(f,w[0],w[1],closed()?50:36,dt)){f.rt.shift();f.zc=null;if(w[2]!=null)f.cw=w[2];if(!f.rt.length&&f.cw==null)f.st=f.nx}}
+  else if(f.st==='rt'){const w=f.rt[0];if(!w){f.st=f.nx}else if(f.cw!=null){if(typeof f.cw==='string'&&f.cw[0]==='B'){if(fbStep(f,dt))f.cw=null}else if(f.cw==='b'?szPedOK():zFree(f.cw)){if(f.cw!=='b')f.zc=f.cw;f.cw=null}else f.cwt=(f.cwt||0)+dt}else if(mv(f,w[0],w[1],closed()?50:36,dt)){f.rt.shift();f.zc=null;if(w[2]!=null)f.cw=w[2];if(!f.rt.length&&f.cw==null)f.st=f.nx}}
   else if(f.st==='aps'){if(!f.in){if(mv(f,f.x<AX0-30||f.x>AX0+30?AX0:f.x,AY0()+11,30,dt)){if(apIn()>=APCAP||!apOpen()){f.ap=2;if(f.oa){f.rt=[[20,V+124],[44,V+150],...along(WAYS.PN,44,HWX)];f.st='rt';f.nx='oaJ';f.cw=null;f.zc=null}else leave(f)}else{f.in=1;f.hid=1}}}else{f.bt-=dt;f.dk-=dt;if(f.dk<=0){f.dk=12+Math.random()*10;eat(f,6)}if(f.bt<=0||!apOpen()){f.in=0;f.hid=0;f.ap=2;f.y=AY0()+12;f.x=AX0+Math.random()*8-4;if(f.oa){f.rt=[[20,V+124],[44,V+150],...along(WAYS.PN,44,HWX)];f.st='rt';f.nx='oaJ';f.cw=null;f.zc=null}else leave(f)}}}
   else if(f.st==='plat'){if(lastGone)gone(f)}
   else if(f.st==='kas'){if(!f.rd){f.rd=1;const r=rIn(f);if(r){f.rt=r;f.st='rt';f.nx='kas';f.cw=null;f.zc=null;continue}}if(closed()&&!(f.nt&&nPending())){leave(f)}else if(!f.kb){if(f.kx==null)f.kx=KX-10+Math.random()*20;if(mv(f,f.kx,ky()+9,32,dt)){f.kb=1;f.kt=.5+Math.random()*.7}}else{f.kt-=dt;if(f.kt<=0){gi(f);buyT(f);f.st='qu';f.l=1;f.arr=0;queues[0].push(f)}}}
@@ -3305,8 +3484,9 @@ function step(dt){
 }
 
 let T=0,yeti=null,yt=20,plane=null,pt=50,pops=[],fx=[],cann=[],sn=[];
-let LK='';const lkey=()=>[G.areas,G.pb,G.ps,G.flut,G.hotels,G.up.s,G.up.h,G.rest,G.raupen,G.train,G.kan,G.spots,G.bus,G.garage,G.garage2||0,G.ph||0,G.sz||0,G.ap,oaK()>0?1:0,JSON.stringify(G.land||{}),prj('gipf')?1:0,prj('teich')?1:0,prj('g2')?1:0].join();
-function draw(dt){
+let LK='';const lkey=()=>[G.areas,G.pb,G.ps,G.flut,G.hotels,G.up.s,G.up.h,G.rest,G.raupen,G.train,G.kan,G.spots,G.bus,G.garage,G.garage2||0,G.ph||0,G.sz||0,G.ss||0,G.fb||0,G.ap,oaK()>0?1:0,JSON.stringify(G.land||{}),prj('gipf')?1:0,prj('teich')?1:0,prj('g2')?1:0].join();
+function draw(dt){const w=ssW();let m=0;if(w&&camY>=R){camY-=w;cam=-camY;m=1}try{draw0(dt)}finally{if(m){camY+=w;cam=-camY}}ssPost(m)}
+function draw0(dt){
  if(stat&&lkey()!==LK){LK=lkey();buildStatic()}
  T+=dt;oaFxStep(dt);for(const p of pops){p.t-=dt;p.y-=16*dt}pops=pops.filter(p=>p.t>0);bubStep(dt);auStep();if(!closed()&&G.areas>=2)G.inc.pqm=Math.min(G.inc.pqm??100,G.pq);const c=cx;c.setTransform(1,0,0,1,0,0);camStep(dt);c.fillStyle='#edf4fb';c.fillRect(0,0,cv.width,cv.height);c.drawImage(stat,(camX-XL)*rs,(camY+EXT)*rs,cw/S*rs,ch/S*rs,0,0,cv.width,cv.height);
  c.setTransform(S*dpr,0,0,S*dpr,offX*S*dpr,cam*S*dpr);
@@ -3350,7 +3530,7 @@ function draw(dt){
  szDraw(c,T,1);for(const k of buses){const q=vPose(k);bus(c,k.x,q.y,q.a,k.col,k.sch?'SCHULE':k.sh?'SHUTTLE':0)}
  for(const p of fx){p.t-=dt;p.x+=p.vx*dt;p.y+=p.vy*dt}fx=fx.filter(p=>p.t>0);c.fillStyle='#bcdcf2';for(const p of fx){c.globalAlpha=Math.min(1,p.t*2);c.beginPath();c.arc(p.x,p.y,1+(.6-p.t)*3,0,7);c.fill()}c.globalAlpha=1;
  pisteFx(c);if(G.look==='neu')trails(c);drawGroom(c);drawMasts(c);drawCourse(c);hxGround(c,T);
- {const sq=stQ.slice().sort((a,b)=>a[1]-b[1]);let si=0;for(const f of folks.slice().sort((a,b)=>a.y-b.y)){while(si<sq.length&&sq[si][1]+18<f.y)stFront(c,...sq[si++]);if(f.st==='bnk'&&f.bs)personSit(c,f);else if(f.st!=='lift'&&!f.hid){const ob=f.oa?oaB(f):0;if(ob)f.y-=ob;person(c,f,f.sit?(f.id||0)*0:T+(f.id||(f.id=Math.random()*20)));if(ob)f.y+=ob}}while(si<sq.length)stFront(c,...sq[si++])}kassaSign(c);
+ {const sq=stQ.slice().sort((a,b)=>a[1]-b[1]);let si=0;for(const f of folks.slice().sort((a,b)=>a.y-b.y)){while(si<sq.length&&sq[si][1]+18<f.y)stFront(c,...sq[si++]);if(f.st==='bnk'&&f.bs)personSit(c,f);else if(f.st!=='lift'&&!f.hid&&!fbAct(f)&&!ssZeb(f)){const ob=f.oa?oaB(f):0;if(ob)f.y-=ob;person(c,f,f.sit?(f.id||0)*0:T+(f.id||(f.id=Math.random()*20)));if(ob)f.y+=ob}}while(si<sq.length)stFront(c,...sq[si++])}kassaSign(c);
  wayLamps(c,1);drawRacers(c);drawStoer(c);hxAir(c,T);
  for(const p of sn){p.vx*=1-1.3*dt;p.vy+=32*dt;p.x+=(p.vx+Math.sin(T*3+p.ph)*7)*dt;p.y+=p.vy*dt;p.t-=dt*.7}sn=sn.filter(p=>p.t>0);
  c.fillStyle='#d3e7f6';for(const p of sn){c.globalAlpha=Math.min(.6,p.t*.9);c.beginPath();c.arc(p.x,p.y,p.r*(1+(1-p.t)*1.4),0,7);c.fill()}c.globalAlpha=1;
@@ -3368,7 +3548,7 @@ function hud(){
 }
 const GRM=(w,h)=>'<svg viewBox="0 0 32 24" width="'+w+'" height="'+h+'" style="display:block"><rect x="0.5" y="13.5" width="4.5" height="7.5" rx="1.6" fill="#4a5164"/><rect x="3" y="15" width="23" height="7.5" rx="3.7" fill="#2b303d"/><circle cx="7.5" cy="18.7" r="2" fill="#8791a6"/><circle cx="14.5" cy="18.7" r="2" fill="#8791a6"/><circle cx="21.5" cy="18.7" r="2" fill="#8791a6"/><rect x="5" y="9" width="20" height="6.5" rx="1.6" fill="#f39a35"/><rect x="8" y="3" width="11" height="7" rx="1.8" fill="#f39a35"/><rect x="9.5" y="4.4" width="8" height="4.2" rx="1" fill="#a8dcf5"/><circle cx="13.5" cy="2.1" r="1.4" fill="#ffd84d"/><path d="M25 12.5h2.8" stroke="#4a5164" stroke-width="1.6"/><path d="M27.3 8.5q3.4 6 0 13.5h2.6q2.2-7 0-13.5z" fill="#c9d1de" stroke="#8892a6" stroke-width=".8"/></svg>';
 let bilMode='s',bTab='ber';
-const canTab=k=>{const m=G.money;if(k==='ber')return G.areas<NA&&m>=AC[G.areas]&&stars()>=({3:2,4:3,5:4,6:4}[G.areas+1]||0);if(k==='lif')return [1,2,3,4,5,6].some(j=>j<=G.areas&&((gcost(j)&&m>=gcost(j))||(G.cap[j-1]<4&&m>=qcost(j))||(G.cap[j-1]===4&&m>=q6cost(j))||(G.cap[j-1]===6&&m>=g8cost(j))));if(k==='par')return (G.areas>=2&&!G.ph&&m>=PHC)||(G.ph===2&&m>=PHC3)||(G.areas>=3&&!G.sz&&m>=SZC[0])||(G.sz&&G.sz<3&&m>=SZC[G.sz])||(!G.train&&G.areas>=3&&m>=TRC&&stars()>=3)||(spotCost()&&m>=spotCost())||(!G.garage&&m>=GC)||(G.garage&&!G.garage2&&m>=GC2)||(G.garage&&gLv(1)<3&&m>=GEC[gLv(1)])||(G.garage2&&gLv(2)<3&&m>=GEC[gLv(2)])||((G.bus||0)<4&&m>=BPC[(G.bus||0)/2]);if(k==='gas')return (G.areas>=2&&G.hotels<3&&m>=HC[G.hotels]&&stars()>=[0,3,4][G.hotels])||(!G.rest&&m>=RSC)||(!G.up.h&&m>=UPG.h[1])||(!G.ap&&G.areas>=2&&m>=APC);if(k==='stf')return false;if(k==='prj')return PLOT.some(P=>!land(P.id)&&stars()>=P.st&&m>=P.p);return G.areas>=2&&((G.raupen<1&&m>=RC[0])||(G.raupen&&!G.rupg&&m>=RUC)||(!G.kan&&m>=KC)||(G.kan&&!G.kup&&m>=KUC)||(!G.flut&&m>=FLC)||(!G.pb&&m>=PBC)||(!G.ps&&m>=PSC))};
+const canTab=k=>{const m=G.money;if(k==='ber')return G.areas<NA&&m>=AC[G.areas]&&stars()>=({3:2,4:3,5:4,6:4}[G.areas+1]||0);if(k==='lif')return [1,2,3,4,5,6].some(j=>j<=G.areas&&((gcost(j)&&m>=gcost(j))||(G.cap[j-1]<4&&m>=qcost(j))||(G.cap[j-1]===4&&m>=q6cost(j))||(G.cap[j-1]===6&&m>=g8cost(j))));if(k==='par')return (G.areas>=2&&!G.ph&&m>=PHC)||(G.ph===2&&m>=PHC3)||(G.areas>=3&&!G.sz&&m>=SZC[0])||(G.sz&&G.sz<3&&m>=SZC[G.sz])||(fbOK()&&!G.fb&&m>=FBC)||(ssOK()&&!G.ss&&m>=SSC)||(!G.train&&G.areas>=3&&m>=TRC&&stars()>=3)||(spotCost()&&m>=spotCost())||(!G.garage&&m>=GC)||(G.garage&&!G.garage2&&m>=GC2)||(G.garage&&gLv(1)<3&&m>=GEC[gLv(1)])||(G.garage2&&gLv(2)<3&&m>=GEC[gLv(2)])||((G.bus||0)<4&&m>=BPC[(G.bus||0)/2]);if(k==='gas')return (G.areas>=2&&G.hotels<3&&m>=HC[G.hotels]&&stars()>=[0,3,4][G.hotels])||(!G.rest&&m>=RSC)||(!G.up.h&&m>=UPG.h[1])||(!G.ap&&G.areas>=2&&m>=APC);if(k==='stf')return false;if(k==='prj')return PLOT.some(P=>!land(P.id)&&stars()>=P.st&&m>=P.p);return G.areas>=2&&((G.raupen<1&&m>=RC[0])||(G.raupen&&!G.rupg&&m>=RUC)||(!G.kan&&m>=KC)||(G.kan&&!G.kup&&m>=KUC)||(!G.flut&&m>=FLC)||(!G.pb&&m>=PBC)||(!G.ps&&m>=PSC))};
 const kf=v=>{const a=Math.abs(v),m=v<0?'-':'';return m+(a>=1000?(a/1000).toFixed(a>=10000?0:1).replace('.',',')+'k':Math.round(a))};
 function chart(){const hs=G.hist||[],M=bilMode;if(!hs.length)return '';
  const vals=hs.map(x=>M==='e'?x.l+x.p+(x.h||0)+(x.g||0)+(x.e||0):M==='a'?x.k+x.b:(x.l+x.p+(x.h||0)+(x.g||0)+(x.e||0))-(x.k+x.b));
@@ -3418,7 +3598,7 @@ function render(){
   return `<div class="bk${done?' done':''}${lock?' lock':''}${bOpen===key?' op':''}" data-bk="${key.replace(/"/g,'')}"><div class="ic">${ic}</div><div class="tx"><b>${t}${more?'<i class="cv">›</i>':''}</b><small class="sh">${lock?'🔒 ':''}${sh}</small><div class="bx">${dd}${cost?`<span class="cl">Betriebskosten: ${cost.replace(' pro ','/Tag pro ').replace(/€$/,'€/Tag')}</span>`:''}</div></div><div class="br">${r}${cost&&!done?`<small class="cst">${cost.split(' pro')[0]}/Tag</small>`:''}</div></div>`},dn=t=>`<b class="ok">${t}</b>`;let body='';
   if(bTab==='ber'){body=[1,2,3,4,5,6].map(k=>G.areas>=k?cd(k===6?'🏔️':'⛰️',k===6?'Bereich 6 · Gletscher':'Bereich '+k,k===1?'Startgebiet mit Lift 1':k===6?'Gletscher mit Gondelbahn, Gipfel und Aussichtsplattform':k===5?'Hochgebirge mit Felsen, Lift 5':'Eigener Pistenabschnitt mit Lift '+k,dn('✓ Frei')):cd(k===6?'🏔️':'⛰️',k===6?'Bereich 6 · Gletscher':'Bereich '+k,G.areas<k-1?'Erst Bereich '+(k-1)+' freischalten':k===6?'Gletscher: schneesicher, Lift 6 gleich als 8er-Gondelbahn, Aussichtsplattform am Gipfel (+4 Ruf), +'+fmt(60*CF)+'/Tag':k===5?'Hochgebirge mit Felsen und lichtem Wald, Lift 5 gleich als 6er-Sesselbahn, mehr Gäste, +'+fmt(60*CF)+'/Tag':k===2?'Neuer Pistenabschnitt mit eigenem Lift, mehr Gäste. Danach wollen die Gäste nach und nach eine Pistenraupe, Schneekanonen, eine blaue Abfahrt und ein Restaurant, zusammen etwa '+fmt(Math.round((RC[0]+KC+PBC+RSC)/1000)*1000)+'. Am besten erst kaufen, wenn das Geld dafür in Sicht ist. +'+fmt(60*CF)+'/Tag':'Neuer Pistenabschnitt, Lift '+k+' gleich als 4er-Sessellift, mehr Gäste, +'+fmt(60*CF)+'/Tag',`<button class="btn" data-a="${k}" ${G.areas<k-1||m<AC[k-1]?'disabled':''}>${fmt(AC[k-1])}</button>`)).join('')+'<p class="hint">Neue Bereiche bringen mehr Gäste, aber auch höhere Tageskosten. Ab Bereich 2 gibt es Wetter, Hotels und Pistenraupen.</p>'}
   else if(bTab==='lif'){body=[1,2,3,4,5,6].filter(k=>k<=G.areas).map(k=>{const p=gcost(k);return `<div class="bgh">🚡 Lift ${k} · ${liftName(k)} · ⏱ ${wfmt(waitMin(k))}</div>`+cd(isG(k)?'🚡':'🪑',isG(k)?'Mehr Gondeln':'Mehr Sessel',lifts[k-1].length+(isG(k)?' Gondeln':' Sessel')+' · +'+fmt(10*CF)+'/Tag pro Kauf',p?`<button class="btn" data-g="${k}" ${m<p?'disabled':''}>+2 · ${fmt(p)}</button>`:dn('Voll'))+(G.cap[k-1]<4?cd('💺','4er-Sessellift','Doppelt so viele Gäste pro Fahrt, +'+fmt(20*CF)+'/Tag',`<button class="btn" data-q="${k}" ${m<qcost(k)?'disabled':''}>${fmt(qcost(k))}</button>`):G.cap[k-1]<6?cd('🚠','6er-Sesselbahn','Kuppelbar: fährt schneller und nimmt 6 Gäste pro Sessel mit, +'+fmt(30*CF)+'/Tag',`<button class="btn" data-q6="${k}" ${m<q6cost(k)?'disabled':''}>${fmt(q6cost(k))}</button>`):G.cap[k-1]<8?cd('🚡','8er-Gondelbahn','Geschlossene Gondeln für 8 stehende Gäste, schneller und fährt auch bei Sturm (langsam), +'+fmt(45*CF)+'/Tag',`<button class="btn" data-g8="${k}" ${m<g8cost(k)?'disabled':''}>${fmt(g8cost(k))}</button>`):cd('🚡','8er-Gondelbahn','8 Gäste pro Gondel, fährt auch bei Sturm',dn('✓ Gebaut')))}).join('')+'<p class="hint">Mehr Sessel, 4er-Sessellifte, die schnelle 6er-Sesselbahn und die 8er-Gondelbahn bringen mehr Gäste pro Minute nach oben und verkürzen die Wartezeit. Lange Wartezeiten kosten Ruf. Mit jedem neuen Bereich kommt ein weiterer Lift dazu.</p>'}
-  else if(bTab==='par'){body=cd('🅿️','Parkplätze',G.spots+' von 24 Plätzen',sc?`<button class="btn" data-s ${m<sc?'disabled':''}>+4 · ${fmt(sc)}</button>`:dn('Voll'))+cd('🏢','Tiefgarage',G.garage?gCap(1)+' Plätze auf '+gLv(1)+(gLv(1)>1?' Untergeschossen':' Untergeschoss')+' neben der Parkplatz-Reihe':'16 Plätze unter der Erde, +'+fmt(25*CF)+'/Tag',G.garage?'<b class="ok" id="gf"></b>':`<button class="btn" data-t ${m<GC?'disabled':''}>${fmt(GC)}</button>`)+(G.garage?cd('⬇️','Tiefgarage erweitern',gLv(1)>=3?'Alle 3 Untergeschosse in Betrieb':'Noch ein Untergeschoss (das '+(gLv(1)+1)+'.) mit +12 Plätzen, +'+fmt(10*CF)+'/Tag',gLv(1)>=3?dn('✓ Gebaut'):`<button class="btn" data-ge="1" ${m<GEC[gLv(1)]?'disabled':''}>${fmt(GEC[gLv(1)])}</button>`):'')+(G.garage?cd('🏢','Tiefgarage 2',G.garage2?gCap(2)+' Plätze auf '+gLv(2)+(gLv(2)>1?' Untergeschossen':' Untergeschoss')+', Einfahrt rechts vom Fußweg':'Zweite Einfahrt rechts vom Fußweg zur Kassa, 16 Plätze, +'+fmt(25*CF)+'/Tag',G.garage2?'<b class="ok" id="gf2"></b>':`<button class="btn" data-t2 ${m<GC2?'disabled':''}>${fmt(GC2)}</button>`):'')+(G.garage2?cd('⬇️','Tiefgarage 2 erweitern',gLv(2)>=3?'Alle 3 Untergeschosse in Betrieb':'Noch ein Untergeschoss (das '+(gLv(2)+1)+'.) mit +12 Plätzen, +'+fmt(10*CF)+'/Tag',gLv(2)>=3?dn('✓ Gebaut'):`<button class="btn" data-ge="2" ${m<GEC[gLv(2)]?'disabled':''}>${fmt(GEC[gLv(2)])}</button>`):'')+cd('🅿️','Parkhaus',G.ph?phCap()+' Plätze auf '+G.ph+' Ebenen, links unten an der Straße. Wird belegt, wenn Parkplatz und Tiefgarage voll sind.':G.areas<2?'Ab Bereich 2':'24 Plätze auf 2 Ebenen, links unten zwischen Straße und Gleisen. Wird belegt, wenn Parkplatz und Tiefgarage voll sind. +'+fmt(30*CF)+'/Tag',G.ph?'<b class="ok" id="phf"></b>':`<button class="btn" data-ph ${G.areas<2||m<PHC?'disabled':''}>${fmt(PHC)}</button>`)+(G.ph?cd('🏗️','Parkhaus aufstocken',G.ph>=3?'Offenes Oberdeck in Betrieb':'Ein offenes Oberdeck mehr: +12 Plätze, +'+fmt(9*CF)+'/Tag',G.ph>=3?dn('✓ Gebaut'):`<button class="btn" data-ph3 ${m<PHC3?'disabled':''}>${fmt(PHC3)}</button>`):'')+cd('🅿️','Parkzone Süd',G.sz?szCap()+' Plätze südlich der Bahn. Zufahrt im Westen, Ausfahrt im Osten, Bahnübergänge mit Schranke. Wird belegt, wenn alles andere voll ist.':G.areas<3?'Ab Bereich 3':'Großer Schotterparkplatz südlich der Bahn mit 24 Plätzen. Einbahn-Schleife: Zufahrt im Westen, Ausfahrt im Osten, Bahnübergänge mit Schranke. Die Gäste gehen über den Fußweg bei den Gleisen, den Bahnsteig und den Zebrastreifen zur Kassa. Wird belegt, wenn Parkplatz, Tiefgarage und Parkhaus voll sind. +'+fmt(25*CF)+'/Tag',G.sz?'<b class="ok" id="szf"></b>':`<button class="btn" data-sz ${G.areas<3||m<SZC[0]?'disabled':''}>${fmt(SZC[0])}</button>`)+(G.sz?cd('🚧','Parkzone Süd erweitern',G.sz>=3?'Alle 3 Abschnitte in Betrieb':'Abschnitt '+'ABC'[G.sz]+(G.sz===1?' rechts':' links')+' anlegen: +24 Plätze, +'+fmt(6*CF)+'/Tag',G.sz>=3?dn('✓ Gebaut'):`<button class="btn" data-sz2 ${m<SZC[G.sz]?'disabled':''}>${fmt(SZC[G.sz])}</button>`):'')+cd('🚌','Busparkplätze',(G.bus||0)+' von 4 · morgens kommen Reisebusse mit 10–20 Gästen, +'+fmt(15*CF)+'/Tag pro Platz',(G.bus||0)<4?`<button class="btn" data-bp ${m<BPC[(G.bus||0)/2]?'disabled':''}>+2 · ${fmt(BPC[(G.bus||0)/2])}</button>`:dn('Voll'))+cd('🚆','Bahnhof',G.train?'Züge um 8–13 Uhr bringen Gäste, ab 14:30 fahren sie heim':G.areas<3?'Ab Bereich 3':'Bahnanschluss mit Bahnhof, Gäste brauchen keinen Parkplatz, +'+fmt(60*CF)+'/Tag',G.train?dn('✓ In Betrieb'):`<button class="btn" data-tr ${G.areas<3||m<TRC?'disabled':''}>${fmt(TRC)}</button>`)+'<p class="hint">Lange Wartezeiten an der Talstation sprechen sich herum: ab etwa 8 Minuten kommen weniger Gäste, egal ob mit Auto, Bus oder Bahn.</p><p class="hint">Mehr Parkplätze heißt: mehr Autos gleichzeitig, also mehr Gäste. Busse kommen nur am Morgen, bleiben bis Liftschluss und zahlen das Dreifache vom Parkpreis. Ob ein Bus kommt, hängt von Ruf, Liftkartenpreis und Wetter ab.</p>'}
+  else if(bTab==='par'){body=cd('🅿️','Parkplätze',G.spots+' von 24 Plätzen',sc?`<button class="btn" data-s ${m<sc?'disabled':''}>+4 · ${fmt(sc)}</button>`:dn('Voll'))+cd('🏢','Tiefgarage',G.garage?gCap(1)+' Plätze auf '+gLv(1)+(gLv(1)>1?' Untergeschossen':' Untergeschoss')+' neben der Parkplatz-Reihe':'16 Plätze unter der Erde, +'+fmt(25*CF)+'/Tag',G.garage?'<b class="ok" id="gf"></b>':`<button class="btn" data-t ${m<GC?'disabled':''}>${fmt(GC)}</button>`)+(G.garage?cd('⬇️','Tiefgarage erweitern',gLv(1)>=3?'Alle 3 Untergeschosse in Betrieb':'Noch ein Untergeschoss (das '+(gLv(1)+1)+'.) mit +12 Plätzen, +'+fmt(10*CF)+'/Tag',gLv(1)>=3?dn('✓ Gebaut'):`<button class="btn" data-ge="1" ${m<GEC[gLv(1)]?'disabled':''}>${fmt(GEC[gLv(1)])}</button>`):'')+(G.garage?cd('🏢','Tiefgarage 2',G.garage2?gCap(2)+' Plätze auf '+gLv(2)+(gLv(2)>1?' Untergeschossen':' Untergeschoss')+', Einfahrt rechts vom Fußweg':'Zweite Einfahrt rechts vom Fußweg zur Kassa, 16 Plätze, +'+fmt(25*CF)+'/Tag',G.garage2?'<b class="ok" id="gf2"></b>':`<button class="btn" data-t2 ${m<GC2?'disabled':''}>${fmt(GC2)}</button>`):'')+(G.garage2?cd('⬇️','Tiefgarage 2 erweitern',gLv(2)>=3?'Alle 3 Untergeschosse in Betrieb':'Noch ein Untergeschoss (das '+(gLv(2)+1)+'.) mit +12 Plätzen, +'+fmt(10*CF)+'/Tag',gLv(2)>=3?dn('✓ Gebaut'):`<button class="btn" data-ge="2" ${m<GEC[gLv(2)]?'disabled':''}>${fmt(GEC[gLv(2)])}</button>`):'')+cd('🅿️','Parkhaus',G.ph?phCap()+' Plätze auf '+G.ph+' Ebenen, links unten an der Straße. Wird belegt, wenn Parkplatz und Tiefgarage voll sind.':G.areas<2?'Ab Bereich 2':'24 Plätze auf 2 Ebenen, links unten zwischen Straße und Gleisen. Wird belegt, wenn Parkplatz und Tiefgarage voll sind. +'+fmt(30*CF)+'/Tag',G.ph?'<b class="ok" id="phf"></b>':`<button class="btn" data-ph ${G.areas<2||m<PHC?'disabled':''}>${fmt(PHC)}</button>`)+(G.ph?cd('🏗️','Parkhaus aufstocken',G.ph>=3?'Offenes Oberdeck in Betrieb':'Ein offenes Oberdeck mehr: +12 Plätze, +'+fmt(9*CF)+'/Tag',G.ph>=3?dn('✓ Gebaut'):`<button class="btn" data-ph3 ${m<PHC3?'disabled':''}>${fmt(PHC3)}</button>`):'')+cd('🅿️','Parkzone Süd',G.sz?szCap()+' Plätze südlich der Bahn. Zufahrt im Westen, Ausfahrt im Osten, Bahnübergänge mit Schranke. Wird belegt, wenn alles andere voll ist.':G.areas<3?'Ab Bereich 3':'Großer Schotterparkplatz südlich der Bahn mit 24 Plätzen. Einbahn-Schleife: Zufahrt im Westen, Ausfahrt im Osten, Bahnübergänge mit Schranke. Die Gäste gehen über den Fußweg bei den Gleisen, den Bahnsteig und den Zebrastreifen zur Kassa. Wird belegt, wenn Parkplatz, Tiefgarage und Parkhaus voll sind. +'+fmt(25*CF)+'/Tag',G.sz?'<b class="ok" id="szf"></b>':`<button class="btn" data-sz ${G.areas<3||m<SZC[0]?'disabled':''}>${fmt(SZC[0])}</button>`)+(G.sz?cd('🚧','Parkzone Süd erweitern',G.sz>=3?'Alle 3 Abschnitte in Betrieb':'Abschnitt '+'ABC'[G.sz]+(G.sz===1?' rechts':' links')+' anlegen: +24 Plätze, +'+fmt(6*CF)+'/Tag',G.sz>=3?dn('✓ Gebaut'):`<button class="btn" data-sz2 ${m<SZC[G.sz]?'disabled':''}>${fmt(SZC[G.sz])}</button>`):'')+(G.sz?cd('🌉','Fußgängerbrücke',G.fb?'Von der Parkzone über Gleise und Straße zur Kassa, mit Treppe und Aufzug. Heute '+(G.inc.fbn||0)+' Gäste':'Brücke von der Parkzone Süd über Gleise und Straße zur Kassa. Treppe und Aufzug in beiden Türmen, nachts mit Lichterkette. Die Gäste warten nicht mehr an Schranke und Zebrastreifen, und die Autos auf der Straße werden nicht aufgehalten. +'+fmt(10*CF)+'/Tag',G.fb?dn('✓ In Betrieb'):`<button class="btn" data-fb ${m<FBC?'disabled':''}>${fmt(FBC)}</button>`)+cd('🛣️','Schnellstraße',G.ss?'4 Spuren mit Mitteltrennung, Durchgangsverkehr in der Mitte. Abfahrt und zweispurige Auffahrt der Parkzone über die Gleise.':stars()<4?'Ab 4 Sternen. Die Hauptstraße wird vierspurig, die Parkzone bekommt Abfahrt und Auffahrt über die Gleise.':'Die Hauptstraße wird vierspurig: zwei schnelle Spuren in der Mitte für den Durchgangsverkehr. Die Parkzone bekommt eine Abfahrt und eine zweispurige Auffahrt über die Gleise, ohne Schranken. Bringt etwas mehr Tagesgäste (+6 % Autos). +'+fmt(20*CF)+'/Tag',G.ss?dn('✓ In Betrieb'):`<button class="btn" data-ss ${!ssOK()||m<SSC?'disabled':''}>${fmt(SSC)}</button>`):'')+cd('🚌','Busparkplätze',(G.bus||0)+' von 4 · morgens kommen Reisebusse mit 10–20 Gästen, +'+fmt(15*CF)+'/Tag pro Platz',(G.bus||0)<4?`<button class="btn" data-bp ${m<BPC[(G.bus||0)/2]?'disabled':''}>+2 · ${fmt(BPC[(G.bus||0)/2])}</button>`:dn('Voll'))+cd('🚆','Bahnhof',G.train?'Züge um 8–13 Uhr bringen Gäste, ab 14:30 fahren sie heim':G.areas<3?'Ab Bereich 3':'Bahnanschluss mit Bahnhof, Gäste brauchen keinen Parkplatz, +'+fmt(60*CF)+'/Tag',G.train?dn('✓ In Betrieb'):`<button class="btn" data-tr ${G.areas<3||m<TRC?'disabled':''}>${fmt(TRC)}</button>`)+'<p class="hint">Lange Wartezeiten an der Talstation sprechen sich herum: ab etwa 8 Minuten kommen weniger Gäste, egal ob mit Auto, Bus oder Bahn.</p><p class="hint">Mehr Parkplätze heißt: mehr Autos gleichzeitig, also mehr Gäste. Busse kommen nur am Morgen, bleiben bis Liftschluss und zahlen das Dreifache vom Parkpreis. Ob ein Bus kommt, hängt von Ruf, Liftkartenpreis und Wetter ab.</p>'}
   else if(bTab==='gas'){const u=UPG.h;body='<div class="bgh">🏨 Hotels</div>'+([0,1,2].map(i=>G.hotels>i?cd('🏨',HNM[i],HDS[i]+', 20 Betten',dn('✓ Gebaut')):cd('🏨',HNM[i],G.areas<2?'Ab Bereich 2':G.hotels<i?'Erst '+HNM[i-1]+' bauen':HDS[i]+', 20 Betten, +'+fmt(60*CF)+'/Tag Unterhalt',G.hotels===i?`<button class="btn" data-h ${G.areas<2||m<HC[i]?'disabled':''}>${fmt(HC[i])}</button>`:`<button class="btn" disabled>${fmt(HC[i])}</button>`)).join('')+'<p class="hint">Hotels bringen jede Nacht Geld. Den Zimmerpreis stellst du unter Preise ein.</p>')+'<div class="bgh">🍽️ Gastro</div>'+cd('🥤','Kiosk','An der Sonnenterrasse: Getränke und Snacks in den Pausen',dn('✓ Vorhanden'))+cd('🍽️','Restaurant',G.rest?'Mittagessen für viele Gäste, drinnen viel Platz':'Mittagessen um '+fmt(22*fpm())+', mehr Gäste machen Mittag, +'+fmt(30*CF)+'/Tag',G.rest?dn('✓ Geöffnet'):`<button class="btn" data-rs ${m<RSC?'disabled':''}>${fmt(RSC)}</button>`)+cd('🎶','Après-Ski-Hütte',G.ap?'Täglich 15–20 Uhr'+(G.flut?' (mit Nachtskilauf bis 22:30)':'')+', bis '+APCAP+' Gäste. Heute '+gN(G.inc.an||0)+', Umsatz '+fmt(G.inc.ga||0):G.areas<2?'Ab Bereich 2':'Runde Hütte am Pistenrand unter der Skischule. Nach dem Skifahren wird gefeiert, Getränke zum Preis unter Preise. +3 Ruf, Hotels etwas besser belegt, +'+fmt(40*CF)+'/Tag für DJ und Personal. Après-Ski-Gäste parken länger.',G.ap?dn('✓ Geöffnet'):`<button class="btn" data-ap ${G.areas<2||m<APC?'disabled':''}>${fmt(APC)}</button>`)+cd('🛖','Berghütte','Oben in Bereich 1: Essen auf dem Berg, +'+u[2]+' Ruf, +'+fmt(u[3]*CF)+'/Tag',G.up.h?dn('✓ Gebaut'):`<button class="btn" data-u="h" ${m<u[1]?'disabled':''}>${fmt(u[1])}</button>`)+'<p class="hint">Gäste in der Pause kaufen Getränke und Snacks, mittags Essen. Den Preis stellst du unter Preise ein: günstig heißt mehr Käufer und etwas mehr Ruf, teuer heißt mehr pro Gast, aber weniger Käufer.</p>'}
   else if(bTab==='stf'){body=stfCards(cd,dn,m)}
   else if(bTab==='prj'){body=prjCards(cd,dn,m)}
@@ -3451,7 +3631,7 @@ function render(){
   const brs=el.querySelector('[data-rs]');if(brs)brs.onclick=()=>{if(!G.rest&&G.money>=RSC){spend(RSC);G.rest=1;toast('Das Restaurant hat geöffnet!');render();save()}};
   const bku=el.querySelector('[data-ku]');if(bku)bku.onclick=()=>{if(G.kan&&!G.kup&&G.money>=KUC){spend(KUC);G.kup=1;lg('💨','lif','Hochleistungs-Düsen für die Schneekanonen eingebaut');toast('Hochleistungs-Düsen eingebaut: Die Kanonen machen mehr Schnee 💨');render();save()}};const bk=el.querySelector('[data-k]');if(bk)bk.onclick=()=>{if(!G.kan&&G.areas>=2&&G.money>=KC){spend(KC);G.kan=1;for(const n of cann)n.cd=Math.random()*4;toast('Schneekanonen in Betrieb!');render();save()}};
   {const b1=el.querySelector('[data-ph]');if(b1)b1.onclick=()=>{phBuild();render()};const b2=el.querySelector('[data-ph3]');if(b2)b2.onclick=()=>{phUp();render()}}
-  {const b1=el.querySelector('[data-sz]');if(b1)b1.onclick=()=>{szBuild();render()};const b2=el.querySelector('[data-sz2]');if(b2)b2.onclick=()=>{szUp();render()}}
+  {const b1=el.querySelector('[data-sz]');if(b1)b1.onclick=()=>{szBuild();render()};const b2=el.querySelector('[data-sz2]');if(b2)b2.onclick=()=>{szUp();render()};const b3=el.querySelector('[data-fb]');if(b3)b3.onclick=()=>{fbBuild();render()};const b4=el.querySelector('[data-ss]');if(b4)b4.onclick=()=>{ssBuild();render()}}
   el.querySelectorAll('[data-ge]').forEach(b=>b.onclick=()=>{gUp(+b.dataset.ge);render()});{const b2=el.querySelector('[data-t2]');if(b2)b2.onclick=()=>{gBuild2();render()}}
   const bt=el.querySelector('[data-t]');if(bt)bt.onclick=()=>{if(!G.garage&&G.money>=GC){spend(GC);G.garage=1;toast('Tiefgarage eröffnet!');render();save()}};
  el.querySelectorAll('[data-c]').forEach(b=>b.onclick=()=>{const d=CAMP[+b.dataset.c];if(G.ct<=0&&G.money>=d[1]){spend(d[1]);G.cv=d[2];G.ct=d[3];toast(d[0]+' läuft: +'+d[2]+' Ruf');render();save()}});
@@ -3504,12 +3684,13 @@ $('pz').onclick=()=>{paused=!paused;$('pz').textContent=paused?'▶':'⏸'};
 $('hxs').onclick=()=>{sfx('click');hxEnd(true)};
 $('ff').onclick=()=>{if(RSQ)return;if(wcLive()){showEnd();return}if(evSlow()){evSkip();toast('⏭ Rennen übersprungen');return}speed=speed%5+1;$('ff').textContent='×'+speed};
 
-function tap(e){const r=cv.getBoundingClientRect(),wx=(e.clientX-r.left)/S-offX,wy=(e.clientY-r.top)/S-cam;
+function tap(e){const r=cv.getBoundingClientRect(),wx=(e.clientX-r.left)/S-offX,wyD=(e.clientY-r.top)/S-cam,wy=uwY(wyD);
  if(open&&open!=='inf'&&open!=='gst'){open=null;infB=null;render();return}
  if(bubHit(e))return;
- for(const P of PLOT){const cx=(P.x0+P.x1)/2,y1=P.y1();if(Math.abs(wx-cx)<22&&wy>y1-40&&wy<y1+4&&(G.areas>=2||land(P.id))&&!PRJ.some(d=>d.pl===P.id&&prjOk(d.id))){open='bau';bTab='prj';render();$('sheet').scrollTop=0;return}}
+ for(const P of PLOT){const cx=(P.x0+P.x1)/2+(P.id==='to'&&G.fb?30:0),y1=P.y1();if(Math.abs(wx-cx)<22&&wy>y1-40&&wy<y1+4&&(G.areas>=2||land(P.id))&&!PRJ.some(d=>d.pl===P.id&&prjOk(d.id))){open='bau';bTab='prj';render();$('sheet').scrollTop=0;return}}
  {const g=gstHit(wx,wy);if(g){gstOpen(g);return}}
  if(plane&&!plane.hit){const P=plane,rx=(wx-P.x)*P.d,ry=wy-P.y;if((Math.abs(rx)<42&&Math.abs(ry)<27)||(rx<-38&&rx>-168&&Math.abs(ry-4)<22)){const b=40+Math.floor(Math.random()*50);G.money+=b;G.fotos++;G.ruf=Math.min(100,G.ruf+2);P.hit=1;pop(P.x,P.y-20,b);toast('Werbeflieger angetippt! +'+fmt(b)+' und mehr Ruf');lg('✈️','geld','Werbeflieger angetippt, +'+fmt(b));return}}
+ if(fbHit(wx,wyD)){infK='fbr';infB={k:'fbr',x0:FBXN-14,y0:FBN()-FBTH-18,x1:FBX+10,y1:FBN()+4};open='inf';confirmReset=false;render();$('sheet').scrollTop=0;return}
  const h=infHit(wx,wy);if(h){infK=h.k;infB=h;open='inf';confirmReset=false;render();$('sheet').scrollTop=0}else if(open==='inf'||open==='gst'){open=null;infB=null;gSel=null;render()}}
 let infK=null,infB=null,infD=null;
 const LTN=liftName,hh=h=>Math.floor(h)+':'+(h%1?'30':'00'),amp=w=>w>22?'🔴':w>8?'🟠':'🟢',nBrk=a=>folks.filter(f=>f.st==='brk'&&f.at===a).length;
@@ -3547,7 +3728,8 @@ function infDef(k){const m=G.money,pre={l:'Preise einstellen',b:'Preise ›',p:0
  if(k[0]==='P'){const i=+k[1],nm=['Wo die meisten Gäste fahren, für alle offen','Für Anfänger und Familien, westlich der Hauptpiste','Für Profis, von ganz oben, östlich der Lifte'][i],H=i===0?(G.areas<2?'Ab Bereich 2 kannst du eine blaue und eine schwarze Abfahrt dazubauen.':!G.pb&&!G.ps?'Anfänger fühlen sich hier unsicher, Profis ist sie zu leicht. Baue unter Bauen › Piste eine blaue oder schwarze Abfahrt.':!G.pb?'Anfänger fühlen sich hier unsicher. Eine blaue Abfahrt hilft.':!G.ps?'Profis ist sie zu leicht. Eine schwarze Abfahrt hilft.':'Mit allen drei Farben findet jeder Gast seine Piste.'):i===1?'Anfänger fahren ab Bereich 2 hier, Fortgeschrittene manchmal auch.':'Profis fahren von ganz oben hierher und bleiben länger. Sie nutzt die Piste stärker ab.';return {ic:PIC[i],t:PNM[i],sub:nm,rows:[['Abfahrten heute',()=>(G.inc['r'+i]||0)+''],['Gerade auf der Piste',()=>folks.filter(f=>f.st==='ski'&&(f.pi||0)===i).length+' Gäste'],['Pistenzustand',()=>G.areas<2?'gut':Math.round(G.pq)+' %'],['Gäste-Können',()=>Math.round(anfA()*100)+' / '+Math.round((.8-anfA())*100)+' / 20 %']],btns:[],hint:H+' Gäste-Können: Anfänger / Fortgeschrittene / Profis.'}}
  if(k==='kas')return {ic:'🎟️',t:'Kassa',sub:'Hier kaufen alle Gäste ihre Liftkarte',rows:[['Gerade an der Kassa',()=>folks.filter(f=>f.st==='kas').length+' Gäste'],['Verkauft heute',()=>(G.inc.n||0)+'× Tag, '+(G.inc.nh||0)+'× Halbtag'],['Einnahmen heute',()=>fmt(G.inc.l)],['Tageskarte / Halbtag',()=>fmt(G.ticket)+' / '+fmt(G.half)],['Fairer Preis',()=>fmt(fair())]],btns:[pre]};
  if(k==='park'){const p=spotCost();return {ic:'🅿️',t:'Parkplatz',sub:G.spots+' von 24 Plätzen gebaut',rows:[['Belegt',()=>cars.filter(c=>c.sp>=0&&c.sp<100&&c.st!=='gone').length+' von '+G.spots],['Abgewiesen heute',()=>(G.inc.ab||0)+' Autos'],['Parkgebühr',()=>fmt(G.park)+' pro Auto'],['Parken heute',()=>fmt(G.inc.p)]],btns:[{l:'4 Parkplätze mehr',b:'+4',p,ok:()=>p&&G.money>=p,go:()=>{if(p&&G.money>=p){spend(p);G.spots+=4;toast('4 neue Parkplätze')}},full:!p},pre],hint:'Abgewiesene Autos fanden keinen freien Platz und sind wieder heimgefahren.'}}
- if(k==='psz')return {ic:'🅿️',t:'Parkzone Süd',sub:G.sz+(G.sz>1?' Abschnitte':' Abschnitt')+' · '+szCap()+' Plätze',rows:[['Belegt',()=>szN()+' von '+szCap()],['Abgewiesen heute',()=>(G.inc.ab||0)+' Autos'],['Parkgebühr',()=>fmt(G.park)],['Bahnübergang',()=>G.train?(SZB.w>.5||SZB.e>.5?'Schranke zu, ein Zug kommt':'Schranken offen'):'kein Zugverkehr']],btns:G.sz<3?[{l:'Abschnitt '+'ABC'[G.sz]+': +24 Plätze',b:'+24',p:SZC[G.sz],ok:()=>G.money>=SZC[G.sz],go:()=>szUp()},pre]:[pre],hint:'Autos fahren erst in die Parkzone Süd, wenn Parkplatz, Tiefgarage und Parkhaus voll sind. Sie kommen von Westen, biegen ab, fahren über den Bahnübergang und verlassen die Zone im Osten. Die Gäste gehen über den Fußweg bei den Gleisen, den Bahnsteig und den Zebrastreifen beim Bahnhof zur Kassa.'};
+ if(k==='fbr')return {ic:'🌉',t:'Fußgängerbrücke',sub:'Parkzone Süd ↔ Kassa · Treppe und Aufzug',rows:[['Über die Brücke heute',()=>(G.inc.fbn||0)+' Gäste'],['Davon mit dem Aufzug',()=>(G.inc.fbl||0)+' Gäste'],['Gerade auf der Brücke',()=>folks.filter(fbAct).length+' Gäste']],btns:[],hint:'Gäste aus der Parkzone Süd gehen über die Brücke zur Kassa und am Abend zurück. Familien und Kinder nehmen öfter den Aufzug. Kein Warten an der Schranke und am Zebrastreifen.'};
+ if(k==='psz')return {ic:'🅿️',t:'Parkzone Süd',sub:G.sz+(G.sz>1?' Abschnitte':' Abschnitt')+' · '+szCap()+' Plätze',rows:[['Belegt',()=>szN()+' von '+szCap()],['Abgewiesen heute',()=>(G.inc.ab||0)+' Autos'],['Parkgebühr',()=>fmt(G.park)],[G.ss?'Zufahrt':'Bahnübergang',()=>G.ss?'Abfahrt und Auffahrt über die Gleise, keine Schranke':G.train?(SZB.w>.5||SZB.e>.5?'Schranke zu, ein Zug kommt':'Schranken offen'):'kein Zugverkehr']],btns:G.sz<3?[{l:'Abschnitt '+'ABC'[G.sz]+': +24 Plätze',b:'+24',p:SZC[G.sz],ok:()=>G.money>=SZC[G.sz],go:()=>szUp()},pre]:[pre],hint:'Autos fahren erst in die Parkzone Süd, wenn Parkplatz, Tiefgarage und Parkhaus voll sind. Sie kommen von Westen, biegen ab, fahren über den Bahnübergang und verlassen die Zone im Osten. Die Gäste gehen über den Fußweg bei den Gleisen, den Bahnsteig und den Zebrastreifen beim Bahnhof zur Kassa.'};
  if(k==='ph')return {ic:'🅿️',t:'Parkhaus',sub:G.ph+' Ebenen · '+phCap()+' Plätze',rows:[['Belegt',()=>phN()+' von '+phCap()],['Abgewiesen heute',()=>(G.inc.ab||0)+' Autos'],['Parkgebühr',()=>fmt(G.park)]],btns:G.ph===2?[{l:'Aufstocken: +12 Plätze',b:'+12',p:PHC3,ok:()=>G.money>=PHC3,go:()=>phUp()},pre]:[pre],hint:'Autos fahren erst ins Parkhaus, wenn Parkplatz und Tiefgarage voll sind. Die Gäste gehen über den Gehsteig und den Zebrastreifen zur Kassa.'};
 if(k==='gar'||k==='gar2'){const n=k==='gar'?1:2,L=gLv(n),p=GEC[L];return {ic:'🏢',t:n===1?'Tiefgarage':'Tiefgarage 2',sub:L+(L===1?' Untergeschoss':' Untergeschosse')+' · '+gCap(n)+' Plätze',rows:[['Belegt',()=>gNb(n)+' von '+gCap(n)],['Abgewiesen heute',()=>(G.inc.ab||0)+' Autos'],['Parkgebühr',()=>fmt(G.park)]],btns:L<3?[{l:(L+1)+'. Untergeschoss: +12 Plätze',b:'+12',p,ok:()=>G.money>=p&&gLv(n)<3,go:()=>gUp(n)},pre]:[pre],hint:'Bis zu 3 Untergeschosse pro Tiefgarage. Die Tiefgaragen werden gern genommen, auch wenn oben noch Plätze frei sind.'}}
  if(k==='bus'){const bp=BPC[(G.bus||0)/2];return {ic:'🚌',t:'Busparkplätze',sub:(G.bus||0)+' von 4 Plätzen',rows:[['Busse gerade da',()=>buses.filter(b=>b.st!=='gone').length+''],['Busse heute',()=>(G.inc.bu||0)+''],['Gebühr pro Bus',()=>fmt(G.park*3)]],btns:(G.bus||0)<4?[{l:'2 Busparkplätze mehr',b:'+2',p:bp,ok:()=>G.money>=bp,go:()=>{if((G.bus||0)<4&&G.money>=bp){spend(bp);G.bus=(G.bus||0)+2;toast('2 Busparkplätze gebaut!')}}}]:[],hint:'Reisebusse kommen nur am Morgen. Ob einer kommt, hängt von Ruf, Preis und Wetter ab.'}}
