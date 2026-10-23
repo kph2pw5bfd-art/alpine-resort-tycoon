@@ -1671,7 +1671,7 @@ function trNext(){const h=hrOf(Math.min(phase(),.9999));const L=(tsch||[]).filte
  if(L.length){const e=L[0];return {h:e.h,txt:e.k==='arr'?'ANKUNFT':e.k==='dep'?'ABFAHRT':e.k==='oarr'?'SONDERZUG AN':'SONDERZUG AB'}}
  return {h:8,txt:'ANKUNFT',mo:1}}
 const hhmm=h=>{h=((h%24)+24)%24;const m=Math.round(h*60);return String(Math.floor(m/60)%24).padStart(2,'0')+':'+String(m%60).padStart(2,'0')};
-function bahnhof(c,t){const ty=TY(),x=TSX,y=ty-30,nt=1-bright();c.save();
+function bahnhof(c,t,X,lab,sw){const ty=TY(),x=X??TSX,y=ty-30,nt=1-bright();lab=lab||'🚉 BAHNHOF';sw=sw||36;c.save();
  c.fillStyle='rgba(110,140,180,.25)';c.fillRect(x-32,y+1,66,5);
  // Gebäude: Steinsockel, helle Wände, Holzgiebel-Band
  c.fillStyle='#b9b2a6';c.fillRect(x-30,y-5,60,5);c.fillStyle='rgba(90,85,75,.35)';for(let q=x-29;q<x+30;q+=5)c.fillRect(q,y-5,.6,5);
@@ -1689,7 +1689,7 @@ function bahnhof(c,t){const ty=TY(),x=TSX,y=ty-30,nt=1-bright();c.save();
  {const cx=x,cy=y-44,h=hrOf(Math.min(phase(),.9999)),mn=(h%1)*60,hr=h%12;c.fillStyle='#fff';c.beginPath();c.arc(cx,cy,4.6,0,7);c.fill();c.strokeStyle='#2b3a55';c.lineWidth=.6;c.stroke();
   c.lineWidth=.7;c.beginPath();c.moveTo(cx,cy);c.lineTo(cx+Math.sin(hr/12*Math.PI*2)*2.4,cy-Math.cos(hr/12*Math.PI*2)*2.4);c.stroke();c.lineWidth=.45;c.beginPath();c.moveTo(cx,cy);c.lineTo(cx+Math.sin(mn/60*Math.PI*2)*3.6,cy-Math.cos(mn/60*Math.PI*2)*3.6);c.stroke()}
  c.fillStyle='#8a3a3a';c.beginPath();c.moveTo(x-10,y-53);c.lineTo(x,y-66);c.lineTo(x+10,y-53);c.closePath();c.fill();c.fillStyle='#fff';c.beginPath();c.moveTo(x-5,y-59.5);c.lineTo(x,y-66);c.lineTo(x+5,y-59.5);c.quadraticCurveTo(x,y-57,x-5,y-59.5);c.fill();
- c.fillStyle='#fff';c.beginPath();c.roundRect(x-18,y-33,36,6.6,1.5);c.fill();c.fillStyle=INK;c.font='700 4.8px Fredoka,sans-serif';c.textAlign='center';c.fillText('🚉 BAHNHOF',x,y-28.2,33);
+ c.fillStyle='#fff';c.beginPath();c.roundRect(x-sw/2,y-33,sw,6.6,1.5);c.fill();c.fillStyle=INK;c.font='700 4.8px Fredoka,sans-serif';c.textAlign='center';c.fillText(lab,x,y-28.2,sw-3);
  // Bahnsteig: Dach auf Stützen, Bänke, Automat, Gepäckwagen, Laternen
  const py=ty-10;c.fillStyle='#5d667a';for(const px of [-56,-34,-12,12,34,56])c.fillRect(x+px-.6,y+3,1.2,py-y-3);
  for(const [a,b] of [[-60,-9],[9,60]]){c.fillStyle='#4b5468';c.beginPath();c.moveTo(x+a+2,y-12);c.lineTo(x+b-2,y-12);c.lineTo(x+b,y+3);c.lineTo(x+a,y+3);c.closePath();c.fill();
@@ -2213,7 +2213,7 @@ function buildStatic(){LK=lkey();WAYS=waysB();WAYS.L=WAYS.L.filter(q=>!(Math.abs
  if(G.train){const ty=TY();c.fillStyle='#b9b3a8';c.fillRect(x0,ty-6,ww,12);c.fillStyle='#7a5c45';for(let x=x0;x<x0+ww;x+=8)c.fillRect(x,ty-5,3,10);c.strokeStyle='#6b7280';c.lineWidth=1.3;for(const o of [-3,3]){c.beginPath();c.moveTo(x0,ty+o);c.lineTo(x0+ww,ty+o);c.stroke()}
  c.fillStyle='#cfd6df';c.fillRect(TSX-6,R+11+RD,12,ty-24-R-11-RD);c.fillStyle='#9aa3b2';c.fillRect(TSX-60,ty-20,120,11);c.fillStyle='#f2c53b';c.fillRect(TSX-60,ty-10,120,1.2);
  }
- szStatic(c);pzStatic(c);sxStatic(c);wayDraw(c);pzStatic2(c);sxStatic2(c);trees.sort((a,b)=>a[1]-b[1]);window.FTR=trees.filter(t=>(t[1]>TY()+3&&t[1]-38*t[2]<TY()+12)||(s4()&&G.train&&t[1]>TY2()+3&&t[1]-38*t[2]<TY2()+12));{const SP=window.TSP={};for(const t of trees){const q=Math.round(t[2]*20),sz=q/20;let sp=SP[q];if(!sp){sp=document.createElement('canvas');const k=sz*rs;sp.width=Math.ceil(40*k);sp.height=Math.ceil(46*k);const g=sp.getContext('2d');g.setTransform(k,0,0,k,15*k,38*k);pine(g,0,0,1);SP[q]=sp}c.drawImage(sp,t[0]-15*sz,t[1]-38*sz,40*sz,46*sz)}}
+ szStatic(c);pzStatic(c);sxStatic(c);wayDraw(c);pzStatic2(c);sxStatic2(c);obStatic2(c);trees.sort((a,b)=>a[1]-b[1]);window.FTR=trees.filter(t=>(t[1]>TY()+3&&t[1]-38*t[2]<TY()+12)||(s4()&&G.train&&t[1]>TY2()+3&&t[1]-38*t[2]<TY2()+12));{const SP=window.TSP={};for(const t of trees){const q=Math.round(t[2]*20),sz=q/20;let sp=SP[q];if(!sp){sp=document.createElement('canvas');const k=sz*rs;sp.width=Math.ceil(40*k);sp.height=Math.ceil(46*k);const g=sp.getContext('2d');g.setTransform(k,0,0,k,15*k,38*k);pine(g,0,0,1);SP[q]=sp}c.drawImage(sp,t[0]-15*sz,t[1]-38*sz,40*sz,46*sz)}}
  CHL().slice(1).forEach((q,k)=>chalet(c,...q,k));szSign(c);
  c.fillStyle=INK;c.font='600 7px Fredoka,sans-serif';c.textAlign='center';
  c.fillStyle='#5b6577';c.fillRect(x0,R-11-RD,ww,22+2*RD);c.fillStyle='rgba(255,255,255,.55)';c.fillRect(x0,R-10-RD,ww,1);c.fillRect(x0,R+9+RD,ww,1);c.fillStyle='#fff';for(const zx of ZC)for(let i=0;i<7;i++)c.fillRect(zx-11,R-10-RD+1.3+i*5.4,22,3);c.strokeStyle='#fff';c.lineWidth=1.5;c.setLineDash([8,8]);c.beginPath();c.moveTo(x0,R);c.lineTo(x0+ww,R);c.stroke();c.setLineDash([]);pzJoin(c);
@@ -3616,7 +3616,7 @@ function pzStatic(c){if(!s3())return;const tr=!!G.train,ty=TY(),ty2=TY2();
   {const x=ZBX-33,y=R+64;c.fillStyle='#6b7280';c.fillRect(x-.7,y-14,1.4,14);c.fillStyle='#1f6fd0';c.strokeStyle='#fff';c.lineWidth=.7;c.beginPath();c.roundRect(x-12,y-26,24,12,2);c.fill();c.stroke();c.fillStyle='#fff';c.font='700 5px Fredoka,sans-serif';c.textAlign='center';c.fillText('P ↓',x,y-21,22);c.font='500 3.8px Fredoka,sans-serif';c.fillText('Parkhäuser',x,y-16.6,22)}
  }
  // Holzzaun entlang der Gleise (Stufe 3)
- if(tr){const gN=[[TSX-68,TSX+68],...(ost()?[[OBPL[0]-6,OBPL[1]+6]]:[])],gS=[];if(s4())for(const g of [gN,gS])g.push([ZBX-24,ZBX+24],...(g===gS&&s5()?[]:[[FWX-10,FWX+10]]));pzFence(c,ty-12,gN);pzFence(c,(s4()?ty2:ty)+15,gS)}
+ if(tr){const gN=[[TSX-68,TSX+68],...(ost()?[[OBPL[0]-6,OBBX+90]]:[])],gS=[];if(s4())for(const g of [gN,gS])g.push([ZBX-24,ZBX+24],...(g===gS&&s5()?[]:[[FWX-10,FWX+10]]));pzFence(c,ty-12,gN);pzFence(c,(s4()?ty2:ty)+15,gS)}
  if(s5())pzDeko5(c);if(s6()){pzWall(c);exitSign(c,ZBX+270,ssY(ZBX+270)-SSH()-3,'Alpine Resort')}}
 // --- Zeichnen: dynamisch
 function pkDraw(c,T){if(!s4())return;for(let i=0;i<NPK();i++){const [a,b]=PKX[i];if(!pkB(i)){plotSign(c,(a+b)/2,PGY()+50,'BAUPLATZ P'+(i+1),'Parkhaus · im Baumenü',0);continue}pkHouse(c,i,T)}}
@@ -3664,10 +3664,10 @@ function pcDraw(c,L){for(const k of PC){if(k.hid)continue;if((L===2)!==!!k.ss)co
 // Brücke der Schnellstraße über den Zubringer aus dem statischen Bild nachzeichnen (Autos darunter verschwinden)
 function pzBridge(c){if(!s4()||!stat)return;const y=ssY(ZBX),hh=SSH()+4,x0=ZBX-30,y0=y-hh,w=60,h=2*hh;if(x0>camX+cw/S||x0+w<camX||y0>camY+ch/S||y0+h<camY)return;try{c.drawImage(stat,(x0-XL)*rs,(y0+EXT)*rs,w*rs,h*rs,x0,y0,w,h)}catch(e){}}
 // Mehr Deko am Bahnhof (Stufe 3)
-function bahnDeko(c,T){if(!s3()||!G.train)return;const ty=TY(),x=TSX,y=ty-30;
+function bahnDeko(c,T,X,east){if(!s3()||!G.train)return;const ty=TY(),x=X??TSX,y=ty-30;
  for(const bx of [x-38,x+38]){c.fillStyle='#8a5a3c';c.beginPath();c.roundRect(bx-4,y-5,8,6,1.5);c.fill();c.fillStyle='#4f9a52';for(let k=0;k<5;k++){c.beginPath();c.arc(bx-3+k*1.5,y-6-Math.sin(k*1.7)*1.4,1.8,0,7);c.fill()}c.fillStyle=bx>x?'#f2c53b':'#e8504a';for(let k=0;k<3;k++){c.beginPath();c.arc(bx-2.5+k*2.5,y-8,.9,0,7);c.fill()}}
  {const fx=x+48;c.fillStyle='#5d667a';c.fillRect(fx,y-1,18,1);c.strokeStyle='#5d667a';c.lineWidth=.6;for(let k=0;k<4;k++){c.beginPath();c.arc(fx+2.5+k*4.4,y-2.6,2,Math.PI,0);c.stroke()}c.strokeStyle='#2f80ed';c.lineWidth=.9;for(const o of [3,8]){c.beginPath();c.arc(fx+o,y-3,2.3,0,7);c.stroke()}c.strokeStyle='#e8504a';c.beginPath();c.moveTo(fx+3,y-3);c.lineTo(fx+5.5,y-6);c.lineTo(fx+8,y-3);c.stroke()}
- {const ix=x-58;c.fillStyle='#6b4a2b';c.fillRect(ix-.8,y-14,1.6,14);c.fillStyle='#fff';c.strokeStyle='#2b4a6f';c.lineWidth=.7;c.beginPath();c.roundRect(ix-8,y-24,16,11,1.5);c.fill();c.stroke();c.fillStyle='#2b4a6f';c.font='700 3.6px Fredoka,sans-serif';c.textAlign='center';c.fillText('FAHRPLAN',ix,y-19.5,14);c.fillStyle='#9aa3b2';for(let k=0;k<3;k++)c.fillRect(ix-6,y-18+k*1.6,12,.6)}}
+ {const ix=east?x+80:x-58;c.fillStyle='#6b4a2b';c.fillRect(ix-.8,y-14,1.6,14);c.fillStyle='#fff';c.strokeStyle='#2b4a6f';c.lineWidth=.7;c.beginPath();c.roundRect(ix-8,y-24,16,11,1.5);c.fill();c.stroke();c.fillStyle='#2b4a6f';c.font='700 3.6px Fredoka,sans-serif';c.textAlign='center';c.fillText('FAHRPLAN',ix,y-19.5,14);c.fillStyle='#9aa3b2';for(let k=0;k<3;k++)c.fillRect(ix-6,y-18+k*1.6,12,.6)}}
 // --- Fußwege der Parkhaus-Gäste (Marke 'a' = Zebrastreifen Parkallee, 'q' = Bahnübergang Fußweg)
 const pzU=()=>s5()&&!!G.train; // V193: Fußgänger-Unterführung beginnt am Gehsteig der Parkhäuser (Treppe hinunter) und führt unter Parkallee und Gleisen durch
 function pkLegIn(c){const [dx]=pkDoor(c.pk),g=PGY(),pay=PAY();if(pzU())return [[dx,g],[FWX,g],[FWX,g+17,'U'],[FWX,TY()-12,'u'],[FWX,yAt(WAYS.PS,FWX)]];return [[dx,g],[FWX,g,'a'],[FWX,pay-23],[FWX,TY2()+12,'q'],[FWX,TY()-12],[FWX,yAt(WAYS.PS,FWX)]]}
@@ -3840,7 +3840,7 @@ function waysB(){const S=[],L=[],g=(k,...p)=>S.push({k,p}),PN=sideP(1),PS=sideP(
  if(G.sz){const xs=SZX0.slice(0,G.sz),xa=Math.min(...xs),xb=Math.max(...xs.map(x=>x+312),SZPX,G.fb?FBX+8:0);g('g',[xa,SZNY()],[xb,SZNY()]);g('f',[SZPX,SZNY()],[SZPX,TY()-14],[560,TY()-14]);if(!G.train)g('f',[HWX,R+100],[HWX,TY()-14],[560,TY()-14]);for(let k=0;k<G.sz;k++)for(let x=SZX0[k]+39;x<SZX0[k]+312;x+=78)L.push([x,SZY()+64]);L.push([SZW+20,R+70],[SZW+20,TY()+60],[SZE-20,R+70],[SZE-20,TY()+60])}
  if(G.fb){g('f',[FBXN+5,FBN()],[FBXN+5,FBP()],[HWX,FBP()]);g('f',[FBX+2,SZNY()],[FBX+2,FBS()]);L.push([668,FBP()-9],[564,FBP()-9])}
  if(G.hotels&&G.ap)for(const x of G.hotels>1?[150,376]:[150,270,376])L.push([x,hY()+9]);if(G.hotels)L.push([484,hY()+9]);if(G.hotels>2)L.push([597,hY()-9]);
- pkWays(S,L,g,PS);return {S,L,PN,PS}}
+ pkWays(S,L,g,PS);if(ost())obWays(S);return {S,L,PN,PS}}
 function lotFree(x,y){const nc=Math.ceil(G.spots/2),nd=Math.floor(G.spots/2),N=y>R-64-RD&&y<R-12-RD,Sd=y>R+12+RD&&y<R+50+RD;if(!N&&!Sd)return 0;if(N&&LX.some(l=>Math.abs(x-l)<8))return 0;
  if(N?y>R-52-RD:y<R+50+RD)for(let j=0;j<30;j++)if(Math.abs(x-cX(j))<12&&(N?j>=nc:j>=nd))return 1;
  if(N)for(let j=G.bus||0;j<6;j++)if(Math.abs(x-spotX(200+j))<11)return 1;
@@ -3853,7 +3853,7 @@ function wayHit(x,y,sz){const x0=x-13*sz,x1=x+13*sz,y0=y-38*sz,y1=y+2;
 function segD(px,py,a,b){const dx=b[0]-a[0],dy=b[1]-a[1],l=dx*dx+dy*dy,t=l?cl(((px-a[0])*dx+(py-a[1])*dy)/l,0,1):0;return Math.hypot(px-a[0]-t*dx,py-a[1]-t*dy)}
 function wayDraw(c){c.save();c.lineJoin='round';c.lineCap='round';
  for(const pass of [0,1,2])for(const w of WAYS.S){const gs=w.k==='g',wd=gs?10:9;c.beginPath();w.p.forEach((q,i)=>i?c.lineTo(q[0],q[1]):c.moveTo(q[0],q[1]));
-  if(pass===0){c.strokeStyle='rgba(255,255,255,.95)';c.lineWidth=wd+6}else if(pass===1){c.strokeStyle=gs?'#8f99aa':'#b19a78';c.lineWidth=wd+1.8}else{c.strokeStyle=gs?'#cfd6e0':'#ddd0b6';c.lineWidth=wd}c.stroke()}
+  if(pass===0){c.strokeStyle='rgba(255,255,255,.95)';c.lineWidth=wd+6}else if(pass===1){c.strokeStyle=gs?'#8f99aa':'#b19a78';c.lineWidth=wd+1.8}else{c.strokeStyle=gs?'#cfd6e0':'#ddd0b6';c.lineWidth=wd}c.stroke();if(w===WAYS.S[WAYS.S.length-1])obPlaza(c,pass)}
  c.lineWidth=.6;for(const w of WAYS.S){const gs=w.k==='g',h=(gs?10:9)/2;c.strokeStyle=gs?'rgba(115,128,150,.45)':'rgba(150,122,85,.42)';for(let i=1;i<w.p.length;i++){const a=w.p[i-1],b=w.p[i],L=Math.hypot(b[0]-a[0],b[1]-a[1]);if(L<4)continue;const ux=(b[0]-a[0])/L,uy=(b[1]-a[1])/L;for(let d=gs?10:7;d<L-3;d+=gs?12:8){const x=a[0]+ux*d,y=a[1]+uy*d;c.beginPath();c.moveTo(x-uy*h,y+ux*h);c.lineTo(x+uy*h,y-ux*h);c.stroke()}}}
  c.restore()}
 function wayLamps(c,front){const on=1-bright()>.12;for(const [x,y] of WAYS.L){if((y>R)!==!!front)continue;if(!inV(x,y,40))continue;
@@ -3939,7 +3939,7 @@ function obTree(x,y){if(x<OBX0-40)return 0;if(y<R-90&&Math.abs(x-obBach(y))<10)r
  if(!ost())return 0;const box=(a,b,c2,d)=>x>a&&x<b&&y>c2&&y<d;
  if(obOnP(x,y)||obOnP(x,y-16)||obOnP(x,y-32))return 1;const b=obB(),t=obT();if(y>t.y-40&&y<b.y+30){const lx=b.x+(t.x-b.x)*(b.y-y)/(b.y-t.y);if(Math.abs(x-lx)<34)return 1}
  if(box(OBMX-70,OBMX+64,OBMY()-56,OBMY()+58))return 1;if(box(1180,1432,R-214,R-60))return 1;
- if(box(1216,1246,R-160,R-60))return 1;if(box(1176,1336,R+60,TY()+6))return 1;return 0}
+ if(box(1216,1246,R-160,R-60))return 1;if(box(1176,OBBX+92,R+44,TY()+6))return 1;return 0}
 // --- Gondel: Schritt, Einsteigen unten, Aussteigen oben
 function obStep(dt){if(!ost()){if(OBQ.length)OBQ=[];return}obInit();const len=obLen(),c=obCl(),p=phase();
  if(c&&!obWasC){obLcU=p+.5/hpp(p);for(const f of OBQ)if(f.arr)f.lc=1}obWasC=c;if(obLcU&&(!c||p>=obLcU)){obLcU=0;for(const f of OBQ)f.lc=0}
@@ -4015,7 +4015,7 @@ const OBACT={okas:'Kauft eine Karte an der Kassa Ost',oq:'Steht an der Ostberg-G
 // --- Info-Fenster
 function obBoxes(P){if(!ost()){P('obl',OBX0+30,OBPY()-60,XR-6,R-110);return}
  P('obt',OBTX-56,R-232,OBTX+56,R-152);P('obt',1322,R-138,1404,R-74);P('obk',OBKX-18,R-132,OBKX+18,R-96);P('obm',OBMX-48,OBMY()-56,OBMX+48,OBMY()+30);
- if(G.train)P('obb',OBPL[0],R+84,OBPL[1],TY()-6);P('obp',1059,R-60,1241,R-18);P('obp',1059,R+18,1189,R+60);P('obp',1351,R+18,1507,R+60);
+ if(G.train)P('obb',OBPL[0],R+84,OBBX+62,TY()-6);P('obp',1059,R-60,1241,R-18);P('obp',1059,R+18,1189,R+60);P('obp',1351,R+18,1507,R+60);
  P('obu',OBUX-12,R-108,OBUX+12,R-70);P('obu',OBUX-12,R+70,OBUX+12,R+108)}
 function obInf(k,pre){const n=st=>folks.reduce((a,f)=>a+(!f.dead&&f.ost&&f.st===st?1:0),0);
  if(k==='obl')return {ic:'🔒',t:'Ostberg',sub:'Ausbau Stufe 7 · noch nicht erschlossen',rows:[['Freischalten',()=>G.areas<NA?'nach Ausbau Stufe 6':reqOK(7)?'jetzt möglich':reqOpen(7).length+' Voraussetzungen offen'],['Preis',()=>fmt(OBC7)]],btns:[{l:'Zum Ausbau',b:'Ansehen ›',p:0,ok:()=>1,go:()=>goBuild('ber|')}],hint:'Hier entsteht ein zweiter Berg: Talstation Ost mit 10er-Gondelbahn, blaue Piste, Parkplätze und ein eigener Bahnhof. Später kommen der Gipfel und die Skischaukel dazu.'};
@@ -4027,6 +4027,14 @@ function obInf(k,pre){const n=st=>folks.reduce((a,f)=>a+(!f.dead&&f.ost&&f.st===
  if(k==='obu')return {ic:'🚇',t:'Unterführung',sub:'Unter Talstraße und Gehsteig hindurch',rows:[['Gerade darin',()=>String(folks.reduce((a,f)=>a+(f.ost&&f.hid&&f.st==='ort'?1:0),0))]],btns:[pre],hint:'Verbindet Bahnsteig und Süd-Parkplätze mit dem Platz vor der Talstation Ost. Niemand muss über die Straße.'};
  return null}
 // ===== Zeichnen =====
+// V203: Gehsteige und Fußweg am Ostberg laufen im gemeinsamen Wegenetz (WAYS) mit -> gleiche Querstriche wie im Westen, Kreuzungen verschmelzen
+const OBBX=1310; // Mitte Bahnhof Ost (Gebäude wie im Dorf)
+function obWays(S){S.push({k:'g',p:[[1056,R-66],[1268,R-66]]},{k:'g',p:[[1056,R+66],[1512,R+66]]},{k:'g',p:[[1232,R+66],[1232,R+113],[OBUX,R+113],[OBUX,TY()-20]]},{k:'f',p:[[1226,R-66],[1226,R-120],[1222,R-150]]})}
+// Platz vor der Talstation Ost: wird in wayDraw in denselben Durchgängen gezeichnet -> Übergänge ohne Naht
+function obPlaza(c,pass){if(!ost())return;if(pass===0){c.fillStyle='rgba(255,255,255,.95)';c.beginPath();c.roundRect(1259,R-155,174,97,11);c.fill()}
+ else if(pass===1){c.fillStyle='#b19a78';c.beginPath();c.roundRect(1262,R-152,168,91,8);c.fill()}
+ else{c.fillStyle='#e7dcc4';c.beginPath();c.roundRect(1263.5,R-150.5,165,88,7);c.fill();
+  c.strokeStyle='rgba(150,122,85,.28)';c.lineWidth=.5;for(let x=1268;x<1428;x+=9){c.beginPath();c.moveTo(x,R-150);c.lineTo(x,R-63);c.stroke()}for(let y=R-146;y<R-63;y+=9){c.beginPath();c.moveTo(1264,y);c.lineTo(1428,y);c.stroke()}}}
 function obPath(c,P,w,col,edge){c.save();c.lineJoin='round';c.lineCap='round';c.beginPath();P.forEach((q,i)=>i?c.lineTo(q[0],q[1]):c.moveTo(q[0],q[1]));c.strokeStyle='rgba(255,255,255,.95)';c.lineWidth=w+6;c.stroke();c.strokeStyle=edge;c.lineWidth=w+1.8;c.stroke();c.strokeStyle=col;c.lineWidth=w;c.stroke();c.restore()}
 // Gelände (immer): Ostbach im Graben, Schatten an den Flanken, Gipfel Ost, Felsen
 function obTerrain(c){const y0=OBPY()+10,y1=R-92;
@@ -4060,22 +4068,22 @@ function obStatic(c){if(!ost())return;const P=obPiste();
  // Zielauslauf mit Banner
  {const Z=obZ();c.fillStyle='rgba(47,128,237,.06)';c.beginPath();c.ellipse(Z.x,Z.y+2,44,18,0,0,7);c.fill()}
  // Wege: Gehsteige, Platz, Zugang Bahnsteig
- obPath(c,[[1056,R-66],[1246,R-66],[1278,R-68]],10,'#cfd6e0','#8f99aa');obPath(c,[[1056,R+66],[1512,R+66]],10,'#cfd6e0','#8f99aa');
- obPath(c,[[1232,R+66],[1232,R+113],[OBUX,R+113]],8,'#cfd6e0','#8f99aa');obPath(c,[[1226,R-66],[1226,R-120],[1222,R-150]],8,'#ddd0b6','#b19a78');
+ // (V203: im Wegenetz, siehe obWays)
  // Platz vor der Talstation (warmes Pflaster)
- c.fillStyle='#b19a78';c.beginPath();c.roundRect(1262,R-152,168,86,8);c.fill();c.fillStyle='#e7dcc4';c.beginPath();c.roundRect(1263.5,R-150.5,165,83,7);c.fill();
- c.strokeStyle='rgba(150,122,85,.28)';c.lineWidth=.5;for(let x=1268;x<1428;x+=9){c.beginPath();c.moveTo(x,R-150);c.lineTo(x,R-68);c.stroke()}for(let y=R-146;y<R-68;y+=9){c.beginPath();c.moveTo(1264,y);c.lineTo(1428,y);c.stroke()}
+ // (V203: Platz in obPlaza)
  // Parkplätze Ost (Asphalt mit Linien)
  for(let i=0;i<OBPK.length;i++){const [x,sd]=OBPK[i],a=x-13,y0=sd?R+11+RD:R-50-RD;c.fillStyle='#7b8497';c.fillRect(a,y0,26,39);c.strokeStyle='#fff';c.lineWidth=1.2;c.beginPath();c.moveTo(a,y0+1);c.lineTo(a,y0+38);c.moveTo(a+26,y0+1);c.lineTo(a+26,y0+38);c.stroke()}
  // Bahnsteig Ost + Vorplatz
- if(G.train){const ty=TY();c.fillStyle='#d9dde4';c.fillRect(OBPL[0],R+108,OBPL[1]-OBPL[0],ty-20-(R+108));c.fillStyle='#9aa3b2';c.fillRect(OBPL[0],ty-20,OBPL[1]-OBPL[0],11);c.fillStyle='#f2c53b';c.fillRect(OBPL[0],ty-10,OBPL[1]-OBPL[0],1.2)}
+ if(G.train){const ty=TY(),a=OBPL[0],b=OBBX+62;c.fillStyle='#9aa3b2';c.fillRect(a,ty-20,b-a,11);c.fillStyle='#f2c53b';c.fillRect(a,ty-10,b-a,1.2)}}
+// Treppen der Unterführung erst nach dem Wegenetz zeichnen (liegen über den Gehsteig-Enden)
+function obStatic2(c){if(!ost())return;
  // Treppen der Unterführung (Nord: oben im Norden, Süd: oben im Süden)
  for(const [ya,yb,dn] of [[R-104,R-72,1],[R+72,R+104,-1]]){const x0=OBUX-8,w=16;c.fillStyle='#5d6575';c.fillRect(x0-2,ya-2,w+4,yb-ya+4);
   for(let k=0;k<8;k++){const t=k/8,y=dn>0?ya+t*(yb-ya):yb-t*(yb-ya),h=(yb-ya)/8;c.fillStyle='rgb('+Math.round(205-120*t)+','+Math.round(210-120*t)+','+Math.round(220-115*t)+')';c.fillRect(x0,dn>0?y:y-h,w,h-.6)}
   const my=dn>0?yb:ya;c.fillStyle='#1d2230';c.beginPath();c.roundRect(x0,dn>0?my-6:my,w,6,dn>0?[0,0,2,2]:[2,2,0,0]);c.fill()}}
 // Talstraße-Laternen im Osten weg, eigene Laternen am Platz, an den Gehsteigen und am Bahnsteig
 const obLX=x=>ost()&&x>1046&&x<1528;
-function obLamps(){if(!ost())return [];const L=[[1060,R-70],[1150,R-70],[1432,R-150],[1432,R-72],[1110,R+72],[1300,R+72],[1430,R+72]];if(G.train)L.push([OBPL[0]+6,TY()-22],[1238,TY()-22]);return L}
+function obLamps(){if(!ost())return [];const L=[[1060,R-70],[1150,R-70],[1432,R-150],[1432,R-72],[1110,R+72],[1300,R+72],[1430,R+72]];if(G.train)L.push([OBPL[0]+6,TY()-22]);return L}
 // Gondel-Kabine (10er), Farbe Anthrazit mit Bernstein-Band
 function gondelO(c,k,open){const R2=k.r,n=R2.length;
  c.fillStyle='#2a2e44';c.fillRect(-1.6,-1.6,3.2,3.2);c.strokeStyle='#2a2e44';c.lineWidth=1.2;c.beginPath();c.moveTo(0,1);c.lineTo(0,4);c.quadraticCurveTo(0,5,3,5.4);c.stroke();
@@ -4116,15 +4124,7 @@ function obKassa(c){const x=OBKX,y=OBKY(),nt=1-bright();c.fillStyle='rgba(110,14
 function obQFence(c){c.strokeStyle='#8a94a8';c.lineWidth=1;for(let r=0;r<=8;r++){const y=R-136+8*r;let a=1326,b=1398;if(r>0&&r<8){if(r%2)b=1388;else a=1336}c.beginPath();c.moveTo(a,y);c.lineTo(b,y);c.stroke();c.fillStyle='#5d667a';for(let x=a;x<=b;x+=12)c.fillRect(x-.8,y-1.6,1.6,3.2)}
  c.beginPath();c.moveTo(1398,R-136);c.lineTo(1398,R-72);c.stroke();
  const w=obWait(),x=1272,y=R-158;c.fillStyle='#5d667a';c.fillRect(x-.8,y,1.6,13);c.fillStyle=w>22?'#e8504a':w>8?'#f2a63b':'#2e9e5b';c.beginPath();c.roundRect(x-15,y-12,30,13,2.5);c.fill();c.fillStyle='#fff';c.font='700 5.2px Fredoka,sans-serif';c.textAlign='center';c.fillText('WARTEZEIT',x,y-6.4,28);c.font='600 4.8px Fredoka,sans-serif';c.fillText(obCl()?'zu':w<1?'keine':wfmt(w),x,y-1.4,28)}
-function obBahnhof(c){if(!G.train)return;const ty=TY(),x=1300,y=ty-21,nt=1-bright();
- c.fillStyle='rgba(110,140,180,.25)';c.fillRect(x-20,y+1,42,4);c.fillStyle='#b9b2a6';c.fillRect(x-18,y-4,36,4);c.fillStyle='#efe3c8';c.fillRect(x-18,y-20,36,16);c.fillStyle='#e0d2b4';c.fillRect(x+8,y-20,10,16);
- for(const wx of [-14,-4]){c.fillStyle='#3f8f5a';c.fillRect(x+wx-1.4,y-16,1.2,8);c.fillRect(x+wx+6.2,y-16,1.2,8);c.fillStyle='#bfe3f5';c.beginPath();c.roundRect(x+wx,y-16,6,8,[3,3,0,0]);c.fill();if(nt>.3)NWIN.push([x+wx,y-14,6,6])}
- c.fillStyle='#6b3e22';c.beginPath();c.roundRect(x+9,y-13,7,13,[3,3,0,0]);c.fill();
- snowRoof(c,x-22,x+22,y-20,x-14,x+14,y-30,'#8a3a3a','#702c2c');
- c.fillStyle='#2f6fb5';c.beginPath();c.roundRect(x-17,y-41,34,9,2);c.fill();c.fillStyle='#fff';c.font='700 4.6px Fredoka,sans-serif';c.textAlign='center';c.fillText('🚉 BAHNHOF OST',x,y-35,31);
- // Wartehäuschen und Stationsschild auf dem Bahnsteig
- {const sx=1214;c.fillStyle='#5d667a';c.fillRect(sx-12,ty-30,1.4,12);c.fillRect(sx+11,ty-30,1.4,12);c.fillStyle='rgba(168,220,245,.55)';c.fillRect(sx-11,ty-28,22,8);c.fillStyle='#3a4256';c.fillRect(sx-14,ty-32,28,3);c.fillStyle='#fff';c.fillRect(sx-13,ty-33.4,26,1.4);c.fillStyle='#8a5a3a';c.fillRect(sx-8,ty-22,16,2)}
- {const sx=1250;c.fillStyle='#5d667a';c.fillRect(sx-.6,ty-30,1.2,10);c.fillStyle='#2f6fb5';c.fillRect(sx-12,ty-36,24,7);c.fillStyle='#fff';c.font='700 4px Fredoka,sans-serif';c.textAlign='center';c.fillText('OSTBERG',sx,ty-31.2,22)}}
+function obBahnhof(c){if(!G.train)return;bahnhof(c,T,OBBX,'🚉 BAHNHOF OST',46);bahnDeko(c,T,OBBX,1)}
 function obDeko(c,T){
  // Bänke, Skiständer, Pistenplan auf dem Platz
  for(const [bx,by] of [[1276,R-142],[1414,R-82]]){c.fillStyle='rgba(30,50,80,.2)';c.fillRect(bx-8,by+3,17,2);c.fillStyle='#8a5a3a';c.fillRect(bx-8,by-3,16,3.5);c.fillStyle='#6b4428';c.fillRect(bx-8,by-6,16,1.6);c.fillRect(bx-7,by,1.4,3);c.fillRect(bx+5.6,by,1.4,3)}
@@ -4147,7 +4147,7 @@ function obDraw(c,T){if(!ost())return;obInit();const b=obB(),t=obT(),len=obLen()
 function obLock(c){if(ost())return;const y1=R-96,x0=OBX0+14;c.save();c.fillStyle='rgba(206,230,247,.55)';c.fillRect(x0,-EXT-20,XR-x0+20,y1+EXT+20);c.fillStyle='rgba(206,230,247,.55)';for(let y=-EXT;y<y1;y+=24){c.beginPath();c.arc(x0,y,12,0,7);c.fill()}
  const cx=(x0+XR)/2,cy=V-120;c.fillStyle='rgba(255,255,255,.9)';c.strokeStyle='#4d6a8a';c.lineWidth=1.4;c.beginPath();c.roundRect(cx-92,cy-58,184,72,10);c.fill();c.stroke();
  c.fillStyle='#4d6a8a';c.textAlign='center';c.font='26px sans-serif';c.fillText('🔒',cx,cy-28);c.font='700 13px Fredoka,sans-serif';c.fillText('Ostberg',cx,cy-8,170);c.font='500 9px Fredoka,sans-serif';c.fillText('Ausbau Stufe 7 · '+(G.areas<NA?'nach Stufe 6':reqOK(7)?'bereit zum Freischalten':'Voraussetzungen offen'),cx,cy+6,176);c.restore()}
-function obNight(c,la,soft){if(!ost())return;soft(OBTX,R-150,70,24,'255,214,140',.3*la);soft(OBKX,R-104,26,10,'255,214,140',.25*la);soft(OBMX,OBMY()+16,46,16,'255,214,140',.25*la);if(G.train)soft(1254,TY()-20,64,12,'255,224,160',.22*la)}
+function obNight(c,la,soft){if(!ost())return;soft(OBTX,R-150,70,24,'255,214,140',.3*la);soft(OBKX,R-104,26,10,'255,214,140',.25*la);soft(OBMX,OBMY()+16,46,16,'255,214,140',.25*la);if(G.train)soft(OBBX,TY()-20,70,12,'255,224,160',.22*la)}
 
 // ===== Statistik (V106) =====
 function hrOf(p){for(let i=1;i<CP.length;i++)if(p<=CP[i][0]){const a=CP[i-1],b=CP[i];return a[1]+(b[1]-a[1])*(p-a[0])/(b[0]-a[0])}return 30}
