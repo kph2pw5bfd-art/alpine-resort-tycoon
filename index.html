@@ -200,64 +200,125 @@ let wakeL=null,wakeB=false;
 async function wakeUpd(){const want=SET.wake!==0&&started&&!inTitle&&document.visibilityState==='visible';if(wakeB||!('wakeLock' in navigator))return;wakeB=true;
  try{if(want&&!wakeL){wakeL=await navigator.wakeLock.request('screen');wakeL.addEventListener('release',()=>{wakeL=null})}else if(!want&&wakeL){const w=wakeL;wakeL=null;await w.release()}}catch(e){}wakeB=false}
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')wakeUpd()});addEventListener('pointerdown',()=>{if(!wakeL)wakeUpd()},true);
-// ===== Rettungseinsatz mit Notarzthubschrauber (V176) =====
-// Etwa einmal pro Spielwoche stürzt tagsüber ein Gast schwer. Spiel auf ×1, Kamera zur Unfallstelle, Absperrung (andere Gäste fahren außen herum),
-// mit Bergwacht bringen Bergretter den Gast im Akja zum Hubschrauber (schnell, wenig Ruf-Verlust), ohne dauert es länger. „Überspringen“ beendet sofort.
+// ===== Rettungseinsatz mit Notarzthubschrauber (V176, überarbeitet V192) =====
+// Etwa einmal pro Spielwoche stürzt tagsüber ein Gast schwer. Der Hubschrauber kommt von außerhalb der Karte, landet neben der Unfallstelle,
+// der Gast wird ordentlich auf einer Trage zur Tür getragen und eingeladen, dann fliegt der Hubschrauber zur anderen Seite hinaus.
+// Mit Bergwacht sind Bergretter schneller da (wenig Ruf-Verlust), ohne bringt die Hubschrauber-Crew die Trage selbst.
+// Kamera: erst Unfallstelle, dann dem Hubschrauber folgen, bis er die Karte verlassen hat. Nach dem 3. Überspringen (G.hxSk) läuft der
+// Einsatz nur noch im Hintergrund: kein Zoom, keine Zeitlupe, kein Knopf.
 let RSQ=null;
-const hxS=(a,b,t)=>{const u=Math.min(1,Math.max(0,(t-a)/(b-a)));return u*u*(3-2*u)};
+const hxS=(a,b,t)=>{const u=Math.min(1,Math.max(0,(t-a)/(b-a)));return u*u*(3-2*u)},hxL=(a,b,t)=>Math.min(1,Math.max(0,(t-a)/(b-a))),hxQ=()=>(G.hxSk||0)>=3;
 function hxPlan(){if(G.hxN==null)G.hxN=G.day+2+Math.floor(Math.random()*5);if(G.hxD!==G.day){G.hxD=G.day;G.hxT=pAt(10.2+Math.random()*4.8)}}
 function hxCan(){return started&&!inTitle&&!paused&&!RSQ&&G.day>=G.hxN&&phase()>=(G.hxT||1)&&phase()<pAt(15.6)&&!closed()&&!stormOn()&&!evSlow()&&!(typeof oaDay==='function'&&oaDay())&&!(G.tut!=null&&G.tut>=0&&G.tut<TUT.length)&&folks.length>=6}
 function hxStart(){const yl=Yk(Math.min(G.areas,2))+70,C=folks.filter(f=>f.st==='ski'&&!f.hid&&!(f.pi||0)&&f.y>yl&&f.y<V-90&&!f.sy);if(!C.length)return;
- const f=C[Math.random()*C.length|0],X=slopeX(f.y),W=slopeW(f.y),x=cl(f.x,X-W+18,X+W-18),dir=x>X?-1:1,lx=x+dir*46;
+ const f=C[Math.random()*C.length|0],X=slopeX(f.y),W=slopeW(f.y),x=cl(f.x,X-W+30,X+W-30),es=Math.random()<.5?-1:1,fx=es,lx=x-fx*22,hy=f.y-16;
  f.st='hx';f.hid=1;f.x=x;f.vx=0;
- RSQ={f,x,y:f.y,dir,lx,t:0,bw:stf().bw>0,prev:{sp:speed,S,camX,camY,open},rot:0,rs:0,fx:dir};
- const s=Math.min(maxS(),Math.max(S,2.5)),cx=(x+lx)/2;camA={s,x:cx-cw/s/2,y:f.y-ch*.42/s};open=null;render();
- speed=1;$('ff').textContent='×1';sfx('bad');lg('🚁','ev','Unfall auf der Piste: Ein Gast ist schwer gestürzt. Der Notarzthubschrauber ist unterwegs.',{s:1});
+ // Absperrung eng um Gast und Hubschrauber (Rumpf), etwa halb so groß wie früher
+ const za=Math.min(x-11,lx-24)-3,zb=Math.max(x+11,lx+24)+3,ya=hy-9,yb=f.y+10;
+ const bw=stf().bw>0,q=hxQ(),sx=es<0?XL-170:XR+170,sy=hy-240-Math.random()*60,ex=es<0?XR+170:XL-170,ey=hy-200-Math.random()*120;
+ const fd=cl(Math.abs(sx-lx)/210,3,8.5),ed=cl(Math.abs(ex-lx)/240,3,8);
+ const T={};T.rA=bw?.8:-1;T.rB=bw?4.6:-1;T.hA=bw?2.4:7;T.hB=T.hA+fd;T.hL=T.hB+2.6;T.dA=T.hL+.7;T.dB=T.dA+1.9;T.pA=T.dB+(bw?2.2:3.4);T.pB=T.pA+1.3;
+ const dX=lx+fx*9.5,dY=hy+5,cd=Math.hypot(dX-x,dY-(f.y+7))/13+.6;T.cA=T.pB+.4;T.cB=T.cA+cd;T.lA=T.cB+.2;T.lM=T.lA+1;T.lB=T.lM+1.3;T.cl=T.lB+1.1;T.up=T.cl+.7;T.away=T.up+2.6;T.end=T.away+ed+.4;
+ RSQ={f,x,y:f.y,lx,hy,fx,es,sx,sy,ex,ey,za,zb,ya,yb,dX,dY,T,t:0,bw,q,rot:0,rs:0,hv:0,hx:sx,hh:140,h:140,pp:[],uc:0,fol:0,prev:{sp:speed,S,camX,camY,open}};
+ lg('🚁','ev','Unfall auf der Piste: Ein Gast ist schwer gestürzt. Der Notarzthubschrauber ist unterwegs.',{s:1});
+ if(q)return;
+ const s=Math.min(maxS(),Math.max(S,2.5));RSQ.cs=s;camA={s,x:x-cw/s/2,y:f.y-ch*.42/s};open=null;render();
+ speed=1;$('ff').textContent='×1';sfx('bad');
  if(SET.hint)toast('🚁 Unfall! Der Notarzthubschrauber kommt.',3500);$('hxs').classList.add('on')}
-// Zeitplan in Echtzeit-Sekunden
-function hxTL(){return RSQ.bw?{rA:1,rB:5,hA:4,hB:12,hL:14,dA:14.6,dB:16.6,kA:17,kB:21,in:21.6,up:23,away:26,end:32}:{rA:-1,rB:-1,hA:8,hB:16,hL:18,dA:18.8,dB:21.2,kA:25,kB:29,in:29.6,up:31,away:34,end:40}}
+function hxTL(){return RSQ.T}
 function hxStep(dt){hxPlan();if(!RSQ){if(hxCan())hxStart();return}
- RSQ.t+=dt;speed=1;const T=hxTL(),t=RSQ.t,H=RSQ;
- // Hubschrauber: Anflug, Landung, Start, Abflug
- const sx=H.lx+H.dir*300,sy=H.y-300;
- if(t<T.hA){H.hv=0}else if(t<T.hB){const u=hxS(T.hA,T.hB,t);H.hv=1;H.hx=sx+(H.lx-sx)*u;H.hy=sy+(H.y-sy)*u;H.h=140;H.fx=-H.dir}
- else if(t<T.hL){H.hv=1;H.hx=H.lx;H.hy=H.y;H.h=140*(1-hxS(T.hB,T.hL,t))}
- else if(t<T.up){H.hv=1;H.h=0}
- else if(t<T.away){H.h=70*hxS(T.up,T.away,t)}
- else{const u=hxS(T.away,T.end-1,t);H.hx=H.lx-H.dir*260*u;H.hy=H.y-260*u;H.h=70+80*u;H.fx=H.dir}
- H.rs=H.hv?(t>T.up-1.5||t<T.hL+2?1:.55):0;H.rot+=dt*(6+22*H.rs);
- if(H.hv&&H.h>2&&H.h<50&&sn.length<90&&Math.random()<.5)for(let i=0;i<1;i++){const a=Math.random()*6.28,r=10+Math.random()*30;sn.push({x:H.hx+Math.cos(a)*r,y:H.hy+Math.sin(a)*r*.4,vx:Math.cos(a)*60,vy:-20-Math.random()*20,t:1,r:1.5+Math.random()*2,ph:Math.random()*6})}
- if(t>=T.end){hxEnd(false)}}
+ const H=RSQ,T=H.T;H.t+=dt;if(!H.q)speed=1;const t=H.t;
+ // Hubschrauber: Anflug von außerhalb, Sinkflug, am Boden, Steigflug, Abflug zur anderen Seite
+ if(t<T.hA){H.hv=0}
+ else if(t<T.hB){const u=hxS(T.hA,T.hB,t);H.hv=1;H.hx=H.sx+(H.lx-H.sx)*u;H.hyy=H.sy+(H.hy-H.sy)*u;H.h=140;H.ho=0}
+ else if(t<T.hL){H.hv=1;H.hx=H.lx;H.hyy=H.hy;H.h=140*(1-hxS(T.hB,T.hL,t))}
+ else if(t<T.up){H.hv=1;H.hx=H.lx;H.hyy=H.hy;H.h=0}
+ else if(t<T.away){H.hv=1;H.hx=H.lx;H.hyy=H.hy;H.h=75*hxS(T.up,T.away,t)}
+ else{const u=hxL(T.away,T.end-.4,t),e=u*u;H.hv=1;H.hx=H.lx+(H.ex-H.lx)*e;H.hyy=H.hy+(H.ey-H.hy)*e;H.h=75+40*u}
+ H.rs=H.hv?(t>T.up-1.2||t<T.hL+1.6?1:.5):0;H.rot+=dt*(6+22*H.rs);
+ // Schneewirbel beim Landen, Starten und solange der Rotor schnell dreht
+ if(H.hv&&H.hyy!=null&&Math.abs(H.hx-H.lx)<30&&H.rs>.9){const near=H.h<85?1-H.h/85:0,rate=near*near*320*dt;let n=rate|0;if(Math.random()<rate-n)n++;
+  for(let i=0;i<n&&H.pp.length<420;i++){const a=Math.random()*6.28,r=8+Math.random()*24,sp=45+Math.random()*80,lf=.7+Math.random()*1.1;H.pp.push({x:H.hx+2*H.fx+Math.cos(a)*r,y:H.hy+Math.sin(a)*r*.36,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp*.36,z:Math.random()*2,vz:6+Math.random()*22,t:lf,t0:lf,r:.8+Math.random()*1.3})}}
+ for(const p of H.pp){p.t-=dt;p.x+=p.vx*dt;p.y+=p.vy*dt;p.z+=p.vz*dt;p.vx*=1-1.6*dt;p.vy*=1-1.6*dt;p.vz-=14*dt;if(p.z<0){p.z=0;p.vz=0}}H.pp=H.pp.filter(p=>p.t>0);
+ // Kamera: Unfallstelle, dann Hubschrauber folgen, bis er die Karte verlassen hat
+ if(!H.q&&!H.uc){const on=H.hv&&H.hx>XL+20&&H.hx<XR-20;
+  if(on){H.fol=1;const s=H.cs||S;camA={s,x:H.hx-cw/s/2,y:(H.hyy-H.h*.6)-ch*.45/s}}
+  else if(H.fol&&t>T.away&&!H.back){H.back=1;const p=H.prev;camA={s:p.S,x:p.camX,y:p.camY}}}
+ if(t>=T.end&&!H.pp.length)hxEnd(false)}
 function hxEnd(skip){const H=RSQ;if(!H)return;if(H.f&&!H.f.dead){H.f.dead=1;if(H.f.car)H.f.car.back++}
- const p=H.prev;camA={s:p.S,x:p.camX,y:p.camY};speed=p.sp;$('ff').textContent='×'+speed;
+ if(!H.q){const p=H.prev;if(!H.uc&&(!H.back||skip))camA={s:p.S,x:p.camX,y:p.camY};speed=p.sp;$('ff').textContent='×'+speed}
+ if(skip&&!H.q){G.hxSk=(G.hxSk||0)+1;if(G.hxSk===3)toast('🚁 Rettungseinsätze laufen ab jetzt im Hintergrund – ohne Zoom und ohne Zeitlupe.',4500)}
  const r=H.bw?-1:-4,dd=H.bw?1:2;G.eb=(G.ebD>=G.day?G.eb||0:0)+r;G.ebD=G.day+dd-1;G.hxC=(G.hxC||0)+1;G.hxN=G.day+6+Math.floor(Math.random()*3);
  lg(H.bw?'🚑':'🚁','ev',H.bw?'Bergwacht und Notarzt haben den verletzten Gast schnell versorgt und ausgeflogen (Ruf −1 für heute)':'Ohne Bergwacht hat die Rettung lange gedauert. Die Gäste sind beunruhigt (Ruf −4 für 2 Tage)',{s:1});
  RSQ=null;$('hxs').classList.remove('on')}
 // Andere Skifahrer fahren außen um die Absperrung herum
-function hxAv(f,x,y){const H=RSQ;if(!H||(f.pi||0)||f===H.f)return x;const dy=y-H.y,w=dy<-110||dy>70?0:dy<-40?(dy+110)/70:dy>30?(70-dy)/40:1;if(w<=0)return x;
- const za=Math.min(H.x,H.lx)-30,zb=Math.max(H.x,H.lx)+30,t=H.dir>0?Math.max(x,zb+6):Math.min(x,za-6);return x+(t-x)*w}
-// Zeichnen
-function hxMan(c,x,y,col,o){o=o||{};c.save();c.translate(x,y);if(o.lie){c.rotate(Math.PI/2*o.lie);c.translate(0,-1)}
+function hxAv(f,x,y){const H=RSQ;if(!H||(f.pi||0)||f===H.f)return x;const dy=y<H.ya?H.ya-y:y>H.yb?y-H.yb:0,w=dy>=60?0:dy>20?(60-dy)/40:1;if(w<=0)return x;
+ const t=x>(H.za+H.zb)/2?Math.max(x,H.zb+6):Math.min(x,H.za-6);return x+(t-x)*w}
+// ---- Zeichnen ----
+function hxMan(c,x,y,col,o){o=o||{};c.save();c.translate(x,y);if(o.a!=null)c.globalAlpha*=o.a;
  c.fillStyle='#2b3a55';c.fillRect(-1.8,-4,1.5,4);c.fillRect(.3,-4,1.5,4);c.fillStyle=col;c.fillRect(-2.2,-9.6,4.4,6);if(o.cross){c.fillStyle='#fff';c.fillRect(-.5,-8.8,1,3.4);c.fillRect(-1.6,-7.6,3.2,1)}
+ if(o.arms){c.fillStyle=col;c.fillRect(-3.2,-8.6,1.1,3.8);c.fillRect(2.1,-8.6,1.1,3.8)}
  c.fillStyle='#f2c8a0';c.beginPath();c.arc(0,-11.4,2,0,7);c.fill();c.fillStyle=o.hel||col;c.beginPath();c.arc(0,-11.8,2.1,Math.PI,0);c.fill();if(o.bag){c.fillStyle='#e8504a';c.fillRect(2,-7,3,3)}c.restore()}
-function hxAkja(c,x,y,man){c.save();c.translate(x,y);c.fillStyle='#f28c28';c.strokeStyle='#7a3d0a';c.lineWidth=.6;c.beginPath();c.moveTo(-9,-1.5);c.lineTo(7,-1.5);c.quadraticCurveTo(11,0,7,1.5);c.lineTo(-9,1.5);c.closePath();c.fill();c.stroke();
- if(man){c.fillStyle='#e8504a';c.fillRect(-7,-1.8,9,2.6);c.fillStyle='#f2c8a0';c.beginPath();c.arc(-8,-.6,1.6,0,7);c.fill()}c.restore()}
-function hxGround(c,T){const H=RSQ;if(!H)return;const za=Math.min(H.x,H.lx)-34,zb=Math.max(H.x,H.lx)+34,ya=H.y-26,yb=H.y+18;
- c.save();c.lineWidth=1.2;c.setLineDash([4,3]);c.strokeStyle='#e8504a';c.strokeRect(za,ya,zb-za,yb-ya);c.lineDashOffset=3.5;c.strokeStyle='#fff';c.strokeRect(za,ya,zb-za,yb-ya);c.setLineDash([]);
- c.fillStyle='#c0392b';for(const [px,py] of [[za,ya],[zb,ya],[za,yb],[zb,yb]])c.fillRect(px-.6,py-6,1.2,6);c.restore();
- 
- // Schatten des Hubschraubers
- if(H.hv){c.fillStyle='rgba(60,80,110,'+(.28*Math.max(.25,1-H.h/180))+')';c.beginPath();c.ellipse(H.hx,H.hy+2,32,6,0,0,7);c.fill()}
- }
-function hxPeople(c,T){const H=RSQ;if(!H)return;const t=H.t,TL=hxTL(),gx=H.x,gy=H.y;
- // Verletzter Gast (bis er eingeladen ist)
- const k=H.bw?hxS(TL.kA,TL.kB,t):0,inside=t>=TL.in;
- if(H.bw){const ax=gx+(H.lx-H.dir*20-gx)*k;
-  if(!inside){if(t<TL.kA){c.strokeStyle='#ffd84d';c.lineWidth=1;c.beginPath();c.moveTo(gx-6,gy+1);c.lineTo(gx+6,gy-2);c.moveTo(gx-6,gy-2);c.lineTo(gx+6,gy+1);c.stroke();hxMan(c,gx,gy+2,'#4a6fd1',{lie:1})}else hxAkja(c,ax,gy+2,1)}
-  if(t>=TL.rA){const u=hxS(TL.rA,TL.rB,t),ry=gy-150+150*u;if(t<TL.kA){hxAkja(c,gx-10,ry+4,0);hxMan(c,gx-12,ry,'#e8504a',{cross:1});hxMan(c,gx+8,ry,'#e8504a',{cross:1})}else if(!inside||t<TL.end-1){const ex=inside?H.lx-H.dir*26:ax;hxMan(c,ex-8,gy,'#e8504a',{cross:1});hxMan(c,ex+10,gy,'#e8504a',{cross:1})}}}
- else if(!inside){const kk=hxS(TL.kA,TL.kB,t),bx=gx+(H.lx-H.dir*18-gx)*kk;c.fillStyle='#fff';c.strokeStyle='#8a94a8';c.lineWidth=.5;c.fillRect(bx-8,gy-1,14,3);c.strokeRect(bx-8,gy-1,14,3);hxMan(c,bx,gy+2,'#4a6fd1',{lie:1});if(t>=TL.kA){hxMan(c,bx-10,gy,'#2b3a55',{hel:'#ffd84d'})}}
- // Notarzt: steigt aus, geht zum Gast, zurück
- if(t>=TL.dA&&t<TL.in){const go=hxS(TL.dA,TL.dB,t),back=hxS(TL.kA,TL.kB,t),dx=H.lx+9.5*H.fx,px=dx+(gx+H.dir*8-dx)*go+(dx-(gx+H.dir*8))*back;hxMan(c,px,gy+1,'#ffffff',{bag:1,hel:'#e8504a'})}}
+// liegender Gast (Draufsicht schräg): Kopf links, Beine rechts; d = Blickrichtung (−1 dreht)
+function hxLie(c,x,y,d,o){o=o||{};c.save();c.translate(x,y);c.scale(d,1);
+ c.fillStyle='rgba(40,60,90,.18)';c.beginPath();c.ellipse(.5,1.2,9,2.2,0,0,7);c.fill();
+ c.fillStyle='#2b3a55';c.fillRect(1.2,-1.6,6.6,1.4);c.fillRect(1.2,.1,6.6,1.4);c.fillStyle='#39404c';c.fillRect(7.6,-1.8,1.6,1.7);c.fillRect(7.6,0,1.6,1.7);
+ c.fillStyle='#4a6fd1';c.beginPath();c.roundRect(-5,-2.2,6.6,4.2,1.2);c.fill();
+ if(o.bl){c.fillStyle='#e8c24a';c.beginPath();c.roundRect(-3.6,-2.5,12.6,4.8,1.2);c.fill();c.strokeStyle='rgba(255,255,255,.65)';c.lineWidth=.4;c.beginPath();c.moveTo(-1.8,-2.2);c.lineTo(-.6,2);c.moveTo(2.2,-2.2);c.lineTo(3.4,2);c.moveTo(6,-2.2);c.lineTo(7.2,2);c.stroke()}
+ c.fillStyle='#f2c8a0';c.beginPath();c.arc(-6.9,-.1,1.9,0,7);c.fill();c.fillStyle=o.hel||'#4a6fd1';c.beginPath();c.arc(-7.4,-.1,2,Math.PI*.5,Math.PI*1.5);c.fill();c.restore()}
+// Trage mit Gestell; pat = Gast liegt ordentlich darauf (Kopfende links), Decke und Gurte
+function hxStr(c,x,y,o){o=o||{};c.save();c.translate(x,y);if(o.k)c.scale(o.k,o.k);if(o.d)c.scale(o.d,1);
+ if(!o.air){c.fillStyle='rgba(40,60,90,.2)';c.beginPath();c.ellipse(0,2.2+(o.lift||0),11,2.4,0,0,7);c.fill()}
+ c.strokeStyle='#5d667a';c.lineWidth=.9;c.beginPath();c.moveTo(-10,-1.9);c.lineTo(10,-1.9);c.moveTo(-10,1.9);c.lineTo(10,1.9);c.stroke();
+ c.fillStyle='#3a3f47';c.fillRect(-10.6,-2.4,1.4,4.8);c.fillRect(9.2,-2.4,1.4,4.8);
+ c.fillStyle='#f28c28';c.beginPath();c.roundRect(-8.2,-1.7,16.4,3.4,1);c.fill();
+ if(o.pat){c.fillStyle='#e8c24a';c.beginPath();c.roundRect(-4.6,-2,12,4,1.2);c.fill();c.strokeStyle='rgba(255,255,255,.7)';c.lineWidth=.35;c.beginPath();for(const u of [-2.6,.8,4.2])c.moveTo(u,-1.8),c.lineTo(u+1,1.8);c.stroke();
+  c.fillStyle='#2b3a55';c.fillRect(-1.2,-2.1,.9,4.2);c.fillRect(4.6,-2.1,.9,4.2);
+  c.fillStyle='#f2c8a0';c.beginPath();c.arc(-6.2,0,1.75,0,7);c.fill();c.fillStyle=o.hel||'#4a6fd1';c.beginPath();c.arc(-6.7,0,1.85,Math.PI*.5,Math.PI*1.5);c.fill()}
+ c.restore()}
+function hxAkja(c,x,y){c.save();c.translate(x,y);c.fillStyle='#f28c28';c.strokeStyle='#7a3d0a';c.lineWidth=.6;c.beginPath();c.moveTo(-9,-1.5);c.lineTo(7,-1.5);c.quadraticCurveTo(11,0,7,1.5);c.lineTo(-9,1.5);c.closePath();c.fill();c.stroke();c.restore()}
+function hxGround(c,T){const H=RSQ;if(!H)return;const za=H.za,zb=H.zb,ya=H.ya,yb=H.yb;
+ c.save();c.lineWidth=1;c.setLineDash([3.5,2.5]);c.strokeStyle='#e8504a';c.strokeRect(za,ya,zb-za,yb-ya);c.lineDashOffset=3;c.strokeStyle='#fff';c.strokeRect(za,ya,zb-za,yb-ya);c.setLineDash([]);
+ c.fillStyle='#c0392b';for(const [px,py] of [[za,ya],[zb,ya],[za,yb],[zb,yb]])c.fillRect(px-.5,py-5,1,5);c.restore();
+ if(H.hv&&H.hyy!=null){c.fillStyle='rgba(60,80,110,'+(.28*Math.max(.15,1-H.h/180))+')';c.beginPath();c.ellipse(H.hx,H.hyy+2,24,5,0,0,7);c.fill()}}
+function hxSnow(c,front){const H=RSQ;for(const p of H.pp){if((p.y>H.hy)!==front)continue;const u=p.t/p.t0,a=Math.min(1,u*1.8)*.78;c.fillStyle='rgba(250,252,255,'+a+')';c.beginPath();c.arc(p.x,p.y-p.z,p.r*(1.9-u),0,7);c.fill()}}
+function hxPeople(c,T0){const H=RSQ;if(!H)return;const t=H.t,T=H.T,gx=H.x,gy=H.y,fx=H.fx,hel=H.f.col||'#4a6fd1';
+ const sX=gx,sY=gy+7,dX=H.dX,dY=H.dY,cu=hxS(T.cA,T.cB,t),onS=t>=T.pA+.65*(T.pB-T.pA),inside=t>=T.lB;
+ // Trage: Position und Höhe
+ const strOut=()=>(H.bw?t>=T.rB:t>=T.dB+.4),typ=i=>(i===0)===(fx>0)?'d':'s';
+ let px=sX+(dX-sX)*cu,py=sY+(dY-sY)*cu,lift=t>=T.cA?6*hxS(T.cA,T.cA+.4,t):0;
+ if(t>=T.lA)lift=6+6.8*hxS(T.lA,T.lM,t);
+ // Gast im Schnee (bis er auf die Trage gehoben wird)
+ if(!onS){const u=hxS(T.pA,T.pB,t),ly=gy+(sY-gy)*u*.8-Math.sin(Math.PI*u)*3;if(t<T.pA){c.strokeStyle='#ffd84d';c.lineWidth=.9;c.beginPath();c.moveTo(gx-4,gy+3);c.lineTo(gx+6,gy-1.5);c.moveTo(gx-4,gy-1.5);c.lineTo(gx+6,gy+3);c.stroke()}hxLie(c,gx,ly,fx>0?1:-1,{hel})}
+ // Bergretter (mit Bergwacht) kommen mit dem Akja herunter
+ const crew=[];
+ if(H.bw&&t>=T.rA){const u=hxS(T.rA,T.rB,t),ry=gy-150+150*u;
+  if(t<T.rB){hxAkja(c,gx+fx*4,ry-8);crew.push([gx-9,ry-4,'b'],[gx+9,ry-4,'b'])}else{hxAkja(c,gx+fx*4,gy-10)}}
+ // Trage zeichnen (liegt bereit, getragen, in die Tür)
+ const drawStr=()=>{if(!strOut())return;if(inside)return;
+  if(t>=T.lM){const u=hxS(T.lM,T.lB,t),dw=4.9,yTop=H.hy-24.3,yBot=H.hy-6.6;c.save();c.beginPath();c.rect(dX-dw,yTop,dw*2,yBot-yTop);c.clip();c.globalAlpha=1-u*.85;hxStr(c,dX,dY-lift-u*5,{pat:1,hel,k:1-.35*u,air:1,d:fx>0?1:-1});c.fillStyle='rgba(30,25,15,'+(.5*u)+')';c.fillRect(dX-dw,yTop,dw*2,yBot-yTop);c.restore();return}
+  hxStr(c,px,py-lift,{pat:onS,hel,lift,d:fx>0?1:-1})};
+ // Crew: Träger an den Tragen-Enden, Notarzt, Sanitäter
+ const ends=[[px-11,py+.5],[px+11,py+.5]],walk=(a,b,u)=>[a[0]+(b[0]-a[0])*u,a[1]+(b[1]-a[1])*u];
+ const door=[dX,H.hy+1],dOut=[dX+fx*3,H.hy+3];
+ // Notarzt
+ let doc=null;if(t>=T.dA&&!inside){const spot=[gx-fx*9,gy-2];if(t<T.dB)doc=walk(dOut,spot,hxS(T.dA,T.dB,t));else if(t<T.cA)doc=spot;else if(!H.bw)doc=null;else doc=walk(spot,[dX-fx*8,H.hy+4],hxS(T.cA,T.cB,t))}
+ if(H.bw&&t>=T.lA&&t<T.cl){doc=walk([dX-fx*8,H.hy+4],door,hxS(T.lB,T.cl,t))}
+ // Träger: mit Bergwacht die zwei Bergretter, ohne Notarzt + Sanitäter
+ const dSp=[gx-fx*9,gy-2],sSp=[gx+fx*10,gy+8],kneel=H.bw?[[gx-9,gy-3],[gx+9,gy-3]]:(fx>0?[dSp,sSp]:[sSp,dSp]);
+ let car=[];if(t>=T.cA&&t<T.lB){car=ends.map((e,i)=>t<T.cA+.4?walk(kneel[i],e,hxS(T.cA,T.cA+.4,t)):e)}
+ if(H.bw){if(t>=T.rB&&t<T.cA)crew.push([kneel[0][0],kneel[0][1],'b'],[kneel[1][0],kneel[1][1],'b']);for(const p of car)crew.push([p[0],p[1],'b']);
+  if(t>=T.lB){const back=[[H.za-4,H.yb-2],[H.zb+4,H.yb-2]],u=hxS(T.lB,T.cl,t);for(let i=0;i<2;i++){const a=ends[i];crew.push([a[0]+(back[i][0]-a[0])*u,a[1]+(back[i][1]-a[1])*u,'b'])}}}
+ else{if(t>=T.dA+.4&&t<T.cA){const spot=[gx+fx*10,gy+8];crew.push([...(t<T.dB+.4?walk(dOut,spot,hxS(T.dA+.4,T.dB+.4,t)):spot),'s'])}
+  if(car.length){crew.push([car[0][0],car[0][1],typ(0)],[car[1][0],car[1][1],typ(1)])}
+  if(t>=T.lB&&t<T.cl){const u=hxS(T.lB,T.cl,t);for(let i=0;i<2;i++){const a=ends[i];crew.push([a[0]+(door[0]-a[0])*u,a[1]+(door[1]-a[1])*u,typ(i),1-u*u])}}}
+ // Zeichnen in Tiefenreihenfolge (weiter hinten zuerst)
+ const items=crew.map(p=>({y:p[1],f:()=>{if(p[2]==='b')hxMan(c,p[0],p[1],'#e8504a',{cross:1,arms:car.length>0,a:p[3]});else if(p[2]==='s')hxMan(c,p[0],p[1],'#f4f4f4',{hel:'#e8504a',cross:0,arms:car.length>0,a:p[3]});else hxMan(c,p[0],p[1],'#ffffff',{bag:!car.length,hel:'#e8504a',arms:car.length>0,a:p[3]})}}));
+ if(doc)items.push({y:doc[1],f:()=>hxMan(c,doc[0],doc[1],'#ffffff',{bag:1,hel:'#e8504a',a:H.bw&&t>=T.lB?1-hxS(T.lB+.6,T.cl,t):1})});
+ // Sanitäter trägt die zusammengeklappte Trage heraus
+ if(!H.bw&&t>=T.dA+.4&&t<T.dB+.4){const p=walk(dOut,[gx+fx*10,gy+8],hxS(T.dA+.4,T.dB+.4,t));items.push({y:p[1]+.1,f:()=>{c.fillStyle='#f28c28';c.fillRect(p[0]+2.4,p[1]-11,1.6,9);c.fillStyle='#5d667a';c.fillRect(p[0]+2.2,p[1]-11.5,2,1)}})}
+ items.push({y:(car.length?py+.6:py-.1),f:drawStr});
+ items.sort((a,b)=>a.y-b.y);for(const it of items)it.f()}
 function hxHeli(c,x,y,h,fx,rot,rs,door,T){c.save();c.translate(x,y-h);c.scale(fx*.38,.38);c.translate(-74,-108);const Y='#f6c21c',D='#3a2f12',P=(p,f,s)=>{c.fillStyle=f;c.fill(p);if(s){c.strokeStyle=D;c.lineWidth=s;c.stroke(p)}};
  P(new Path2D('M126 52 L206 56 L206 64 L128 70 Z'),Y,1.5);P(new Path2D('M200 58 L214 26 L224 28 L216 60 Z'),Y,1.5);
  c.fillStyle=Y;c.beginPath();c.arc(214,60,11,0,7);c.fill();c.strokeStyle=D;c.lineWidth=1.5;c.stroke();c.fillStyle='#3a3f47';c.beginPath();c.arc(214,60,6.5,0,7);c.fill();
@@ -268,9 +329,9 @@ function hxHeli(c,x,y,h,fx,rot,rs,door,T){c.save();c.translate(x,y-h);c.scale(fx
  P(new Path2D('M18 70 Q20 50 44 44 L52 44 L46 72 Z'),'#8fd0f4',1.3);
  c.fillStyle='rgba(255,255,255,.55)';c.fillRect(22,52,6,10);
  P(new Path2D('M58 46 h22 v16 h-22 Z'),'#8fd0f4',1.3);
- if(door){P(new Path2D('M86 44 h26 v46 h-26 Z'),'#4a3f2a',1.3)}else{P(new Path2D('M86 46 h22 v16 h-22 Z'),'#8fd0f4',1.3);c.strokeStyle=D;c.lineWidth=1;c.beginPath();c.moveTo(84,44);c.lineTo(84,90);c.stroke()}
+ if(door){P(new Path2D('M86 44 h26 v46 h-26 Z'),'#4a3f2a',1.3);c.fillStyle='#2e2718';c.fillRect(88,46,22,8)}else{P(new Path2D('M86 46 h22 v16 h-22 Z'),'#8fd0f4',1.3);c.strokeStyle=D;c.lineWidth=1;c.beginPath();c.moveTo(84,44);c.lineTo(84,90);c.stroke()}
  c.fillStyle='#2b2b2b';c.fill(new Path2D(door?'M16 80 L84 80 L84 92 L42 92 Q24 91 18 86 Z':'M16 80 L134 80 L133 86 Q128 91 112 92 L42 92 Q24 91 18 86 Z'));
- c.save();if(fx<0){c.translate(74,0);c.scale(-1,1);c.translate(-74,0)}c.fillStyle='#2b2b2b';c.font='700 9px sans-serif';c.textAlign='center';if(!door)c.fillText('NOTARZT',fx<0?74:74,76);c.restore();
+ c.save();if(fx<0){c.translate(74,0);c.scale(-1,1);c.translate(-74,0)}c.fillStyle='#2b2b2b';c.font='700 9px sans-serif';c.textAlign='center';if(!door)c.fillText('NOTARZT',74,76);c.restore();
  const cx=door?70:118,cy=door?68:70;c.fillStyle='#fff';c.beginPath();c.arc(cx,cy,6.5,0,7);c.fill();c.strokeStyle=D;c.lineWidth=1;c.stroke();c.fillStyle='#e8504a';c.fillRect(cx-1.5,cy-4.5,3,9);c.fillRect(cx-4.5,cy-1.5,9,3);
  c.fillStyle=Math.sin(T*9)>0?'#ff3b30':'#7a1d18';c.beginPath();c.arc(96,31,3.2,0,7);c.fill();
  c.fillStyle='#fff6c8';c.beginPath();c.ellipse(22,92,5,3,0,0,7);c.fill();c.strokeStyle=D;c.stroke();
@@ -279,7 +340,11 @@ function hxHeli(c,x,y,h,fx,rot,rs,door,T){c.save();c.translate(x,y-h);c.scale(fx
  if(rs>.3){c.fillStyle='rgba(90,100,112,'+(.18*rs)+')';c.beginPath();c.ellipse(80,22,98,6,0,0,7);c.fill()}
  c.strokeStyle='rgba(58,63,71,'+(rs>.3?.75:1)+')';c.lineWidth=2.6;for(const a of [rot,rot+Math.PI/2]){const dx=98*Math.cos(a),dy=6*Math.sin(a);c.beginPath();c.moveTo(80-dx,22-dy);c.lineTo(80+dx,22+dy);c.stroke()}
  c.fillStyle='#2b303d';c.beginPath();c.arc(80,22,3.5,0,7);c.fill();c.restore()}
-function hxAir(c,T){const H=RSQ;if(!H)return;if(!H.hv){hxPeople(c,T);return}const TL=hxTL(),door=H.h<1&&H.t>=TL.dA-.3&&H.t<TL.in+.6;hxHeli(c,H.hx,H.hy,H.h,H.fx,H.rot,H.rs,door,T);hxPeople(c,T)}
+function hxAir(c,T0){const H=RSQ;if(!H)return;hxSnow(c,false);
+ if(H.hv&&H.hyy!=null){const T=H.T,door=H.h<1&&H.t>=T.dA-.3&&H.t<T.cl;
+  // Personen hinter dem Hubschrauber gibt es nicht (er steht nördlich der Unfallstelle) → erst Hubschrauber, dann Personen
+  hxHeli(c,H.hx,H.hyy,H.h,H.fx,H.rot,H.rs,door,T0)}
+ hxPeople(c,T0);hxSnow(c,true)}
 // ===== Kindermodus + Helfer Flocki (V162) =====
 // Kindermodus (Einstellung SET.kid): weniger auf einmal, kurze Texte. Flocki zeigt unten links den einen besten nächsten Schritt.
 const KID=()=>!!SET.kid;
@@ -353,7 +418,7 @@ function kidTip(){const m=G.money,T=(k,ic,t,o)=>Object.assign({k,ic,t},o||{});
  return T('ok','😊','Alles läuft super! Schau den Skifahrern zu.')}
 function kidUpd(){const on=KID()&&started&&!inTitle;document.body.classList.toggle('kid',KID());const el=$('flk');if(!el)return;
  if(KID()&&(open==='sta'||open==='mkt'))kidStatUpd();
- const tutOn=G.tut!=null&&G.tut>=0&&G.tut<TUT.length;el.classList.toggle('on',on&&!open&&!tutOn&&!RSQ);if(!on)return;
+ const tutOn=G.tut!=null&&G.tut>=0&&G.tut<TUT.length;el.classList.toggle('on',on&&!open&&!tutOn&&!(RSQ&&!RSQ.q));if(!on)return;
  kidTrack();const tc=kidTip(),now=performance.now(),av0=G.money-Math.round(cost()*1.5);
  // V175: Flocki meldet sich nur, wenn das Geld reicht (Kauf-Tipps) bzw. bei echten Problemen ohne Kosten; Blase 5 s, Antippen zeigt die letzte Meldung
  if(tc.k!==FK.key){FK.key=tc.k;FK.nt=false}
@@ -850,10 +915,12 @@ const parkGood=()=>prjOk('park')&&(G.pkq??100)>=50;
 const bdP=()=>parkGood()?.52:.4;
 // Shows: Freestyle-Contest (Tag 12) und Skisprung-Weltcup (Tag 22)
 const wcLive=()=>!!(G.show&&G.show.k==='wc'&&G.show.st==='run');
+// V192: Rennen/Weltcup nach dem 3. Überspringen (je Art getrennt) nur noch im Hintergrund – ohne Zoom und Zeitlupe
+const rcQ=k=>((G.rcSk||{})[k]||0)>=3;function rcSkip(k){const o=G.rcSk||(G.rcSk={});o[k]=(o[k]||0)+1;if(o[k]===3)setTimeout(()=>toast('⏭ '+({rennen:'Skirennen',nacht:'Nachtrennen',wc:'Skisprung-Weltcups'})[k]+' laufen ab jetzt im Hintergrund – ohne Zoom und ohne Zeitlupe.',4500),1600)}
 function showPlan(){const d=seaD()+1;if(d===12&&prjOk('park'))return 'fs';if(d===22&&prjOk('schanze'))return 'wc';return null}
 function showDayEnd(){const k=showPlan();if(k){G.showN={k,d:G.day+1};const t=k==='wc'?'🎿 Morgen ist Skisprung-Weltcup! Start 10:30 Uhr.':'🏂 Morgen ist Freestyle-Contest im Snowpark!';lg(k==='wc'?'🎿':'🏂','ev',t,{s:1});if(SET.hint)setTimeout(()=>toast(t,4500),900)}}
 function showStep(){const N=G.showN,p=phase();if(N&&N.d===G.day&&!G.show&&p>=pAt(10.5)){const wc=N.k==='wc',base=wc?2000:600,pr=wc?wcp():12,n=Math.round(base*(.45+rufE()/180)*(.6+.1*stars())*cl(1.65-pr/(wc?40:20),.25,1.3));
-  G.show={k:N.k,st:'run',n,pr,end:p+(wc?pAt(12.5)-pAt(10.5):pAt(12)-pAt(10.5)),t0:p,j:0};G.showN=null;lg(wc?'🎿':'🏂','ev',(wc?'Skisprung-Weltcup':'Freestyle-Contest')+' beginnt, '+gN(n)+' Zuschauer');if(wc){sfx('chime');if(SET.hint)toast('🎿 Der Weltcup läuft! Die Zeit läuft langsamer. ⏭ oben rechts überspringt.',4500);camA={s:Math.max(S,1.1),x:-330-cw/Math.max(S,1.1)/2,y:V-430-ch*.35/Math.max(S,1.1)}}}
+  G.show={k:N.k,st:'run',n,pr,end:p+(wc?pAt(12.5)-pAt(10.5):pAt(12)-pAt(10.5)),t0:p,j:0};G.showN=null;lg(wc?'🎿':'🏂','ev',(wc?'Skisprung-Weltcup':'Freestyle-Contest')+' beginnt, '+gN(n)+' Zuschauer');if(wc&&!rcQ('wc')){sfx('chime');if(SET.hint)toast('🎿 Der Weltcup läuft! Die Zeit läuft langsamer. ⏭ oben rechts überspringt.',4500);camA={s:Math.max(S,1.1),x:-330-cw/Math.max(S,1.1)/2,y:V-430-ch*.35/Math.max(S,1.1)}}}
  const W=G.show;if(W&&W.st==='run'&&p>=W.end)showEnd()}
 function showEnd(){const W=G.show;if(!W||W.st!=='run')return;W.st='done';const wc=W.k==='wc',inc=W.n*W.pr+W.n*(wc?8:5);G.money+=inc;G.inc.ev=(G.inc.ev||0)+inc;const r=wc?8:5;G.cb=(G.cbD>=G.day?G.cb||0:0)+r;G.cbD=G.day+(wc?4:3);
  lg(wc?'🏆':'🏂','ev',(wc?'Skisprung-Weltcup':'Freestyle-Contest')+' vorbei: '+gN(W.n)+' Zuschauer, +'+fmt(inc)+', Ruf +'+r,{s:1});toast((wc?'🏆 Weltcup':'🏂 Contest')+' vorbei: +'+fmt(inc)+', Ruf +'+r,4500);sfx('day');G.evLog=(G.evLog||[]).concat([{d:G.day,k:W.k,m:inc,r}]).slice(-6);setTimeout(()=>{if(G.show&&G.show.st==='done')G.show=null},20000)}
@@ -3045,7 +3112,7 @@ const EV={
  oa:{ic:'🎤',t:'Open Air',d:()=>''},
  stoer:{ic:'🔧',t:'Liftstörung',d:()=>''}};
 const RACE={rennen:{h:10,org:800,sg:50,ent:10,gas:8,rb:6,f:1},nacht:{h:19,org:1200,sg:60,ent:15,gas:12,rb:10,f:1.3}};
-const schulOn=()=>!!(G.ev&&G.ev.k==='schul'),isRace=e=>!!(e&&(e.k==='rennen'||e.k==='nacht')),evSlow=()=>(isRace(G.ev)&&G.ev.st==='run')||wcLive(),
+const schulOn=()=>!!(G.ev&&G.ev.k==='schul'),isRace=e=>!!(e&&(e.k==='rennen'||e.k==='nacht')),evSlow=()=>(isRace(G.ev)&&G.ev.st==='run'&&!rcQ(G.ev.k))||(wcLive()&&!rcQ('wc')),
  stoerL=L=>!!(G.ev&&G.ev.k==='stoer'&&G.ev.st==='run'&&(G.ev.L===L||L===0))||!!(L&&G.brk&&G.brk.L===L),kidP=()=>Math.max(5,Math.round(G.ticket*.5)),repC=()=>Math.max(500,Math.round(cost()*.35/50)*50),
  specN=k=>Math.round(cl(30+rufE()*.6,20,90)*RACE[k].f),
  evHoldGroom=()=>{const e=G.ev;return !!(e&&e.k==='nacht'&&(e.st!=='done'||(e.sa||0)>0))},
@@ -3096,7 +3163,7 @@ function evStep(dt){evPlan();const e=G.ev,p=phase();
  if(e.k==='schul'){if(e.st==='wait'&&p>=.04)e.st='run';
   if(e.st==='run'&&p>=.45&&!folks.some(f=>f.kid)&&!buses.some(b=>b.sch&&b.st!=='gone')){if(e.kids>0){evRuf(4);evEnd('🚌 Schulausflug vorbei: '+e.kids+' Kinder, +'+fmt(e.inc)+', Ruf +4',e.inc,4)}else evEnd('🚌 Der Schulausflug ist ausgefallen',0,0)}return}
  const R0=RACE[e.k],rc=RCo();
- if(e.st==='wait'&&p>=e.t0-.05){e.st='pre';evCam();toast(EV[e.k].ic+' Die Zuschauer kommen, gleich startet das '+EV[e.k].t,3500)}
+ if(e.st==='wait'&&p>=e.t0-.05){e.st='pre';if(!rcQ(e.k))evCam();toast(EV[e.k].ic+' Die Zuschauer kommen, gleich startet das '+EV[e.k].t,3500)}
  if(e.st==='pre'&&p>=e.t0)evStart(e);
  if(0){e.i=0;e.fin=0;e.res=[];e.last=null;e.nx=1.2;racers=[];
   if(!e.paid){e.paid=1;e.pq=G.pq;spend(R0.org);const g=RN*R0.sg+e.n*R0.ent;G.money+=g;G.inc.ev=(G.inc.ev||0)+g;e.inc=g-R0.org;pop(rcC(rc.yf),rc.yf-30,g)}
@@ -3178,7 +3245,7 @@ function evHTML(){const e=G.ev,n=G.evN&&G.evN.k!=='stoer'?G.evN:null;let h='<h3>
 
 function evStart(e,quiet){const R0=RACE[e.k],rc=RCo();e.st='run';e.i=0;e.fin=0;e.res=[];e.last=null;e.nx=1.2;racers=[];
  if(!e.paid){e.paid=1;e.pq=G.pq;spend(R0.org);const g=RN*R0.sg+e.n*R0.ent;G.money+=g;G.inc.ev=(G.inc.ev||0)+g;e.inc=g-R0.org;pop(rcC(rc.yf),rc.yf-30,g)}
- if(!quiet){evCam();toast(EV[e.k].ic+' Das Rennen läuft! Die Zeit läuft langsamer. Mit ⏭ oben rechts kannst du es überspringen.',4500)}}
+ if(!quiet&&!rcQ(e.k)){evCam();toast(EV[e.k].ic+' Das Rennen läuft! Die Zeit läuft langsamer. Mit ⏭ oben rechts kannst du es überspringen.',4500)}}
 function evSkip(){const e=G.ev;if(!isRace(e)||(e.st!=='pre'&&e.st!=='run'))return;if(e.st==='pre')evStart(e,true);const rc=RCo(),L=rc.yf-rc.ys;
  for(const r of racers)if(r.st==='go'||r.st==='wait'){const tm=(r.t+(rc.yf-r.y)/r.v)*TF;e.res.push({nr:r.nr,t:tm});e.last={nr:r.nr,t:tm};e.fin++}
  while(e.i<RN){e.i++;const tm=L/(24*(.88+Math.random()*.2))*TF;e.res.push({nr:e.i,t:tm});e.last={nr:e.i,t:tm};e.fin++}
@@ -3340,16 +3407,18 @@ function pcSpawnLane(r){const q=rAt(r,0);for(const k of PC)if(!k.hid&&Math.hypot
 function pcNew(o){const k=Object.assign({id:pcId++,s:0,v:40,w:0,gh:0,hid:0,col:pick(COL)},o);const q=rAt(k.r,k.s);k.x=q[0];k.y=q[1];k.a=q[2];k.ss=q[4];PC.push(k);return k}
 // Ankunft eines Gästeautos im Parkhaus (org: w = Schnellstraße aus Westen, e = aus Osten, t = über die Talstraße)
 function pkSpawn(nt,oa){if(!s4()||!pkNB()||nt)return 0;let best=-1,bw=0;for(const i of PKO)if(pkB(i)){const fr=pkCap(i)-pkN(i);if(fr>0){const w=(fr+4)*(i===1||i===2?1.4:1)*Math.random();if(w>bw){bw=w;best=i}}}if(best<0)return 0;
- const n0=oa?3:2+(Math.random()*3|0),fam=!oa&&!nt&&n0>=3&&Math.random()<(prjOk('kind')?.62:.45)?1:0,col=pick(COL);
+ const n0=oa?4:3+(Math.random()*4|0),fam=!oa&&!nt&&n0>=3&&Math.random()<(prjOk('kind')?.62:.45)?1:0,col=pick(COL);
  if(pkN(best)===pkCap(best)-1&&G.pkF!==G.day+'-'+best){G.pkF=G.day+'-'+best;lg('🅿️','anr','Parkhaus P'+(best+1)+' voll, alle '+pkCap(best)+' Plätze belegt')}
  const tq=cars.filter(k=>k.sp===700&&k.st!=='gone').length+PC.filter(k=>k.org==='t'&&!k.out&&k.st==='drv').length;
- if(Math.random()<.3&&tq<6){cars.push({fam,d:1,x:vSpawnX(1,XL-30,XR+30),sp:700,pz:1,pk:best,org:'t',st:'in',p:0,n:n0,back:0,col,nt:nt?1:0,oa:oa?1:0});return 1}
- if(PQ.length>=14)return 0;PQ.push({pk:best,org:Math.random()<.5?'w':'e',n:n0,fam,col,nt:nt?1:0,oa:oa?1:0});return 1}
+ if(Math.random()<.3&&tq<3&&pkArr()<PKAM){cars.push({fam,d:1,x:vSpawnX(1,XL-30,XR+30),sp:700,pz:1,pk:best,org:'t',st:'in',p:0,n:n0,back:0,col,nt:nt?1:0,oa:oa?1:0});return 1}
+ if(PQ.length>=24)return 0;PQ.push({pk:best,org:Math.random()<.5?'w':'e',n:n0,fam,col,nt:nt?1:0,oa:oa?1:0});return 1}
 // Auto von der Talstraße an den Zubringer übergeben (Ende der Einbiege-Animation)
 function pzHand(c){const r=pkRoute('a','t',c.pk);pcNew({ty:'pk',r,pk:c.pk,org:'t',n:c.n,back:0,fam:c.fam,col:c.col,nt:c.nt,oa:c.oa,hold:1,st:'drv',sp:600+c.pk,v:20});c.st='gone';c.sp=-1;c.x=XR+999;c.pz=0}
 function pkFolks(k){const [dx,dy]=pkDoor(k.pk);G.money+=G.park;G.inc.p+=G.park;if(G.park>0)pop(dx,dy-14,G.park);
  for(let i=0;i<k.n;i++){const f={nt:k.nt||0,x:dx+(i-1)*3,y:dy+1,st:'qu',col:pick(COL),car:k,rides:0,l:1,arr:0,board:Math.random()<bdP(),bc:pick(['#ff7a45','#34c0b8','#8a5ae0','#2f80ed'])};f.st='kas';if(k.oa)Object.assign(f,{oa:1,st:'oaR',id:Math.random()*20,qw:0,sw:0,ph:Math.random()<.6});folks.push(f)}}
-function ttRate2(){const h=hrOf(phase())%24;return h<6?.05:h<7?.2:h<9.5?.45:h<16?.32:h<19?.48:h<21?.24:h<23?.12:.05}
+function ttRate2(){const h=hrOf(phase())%24;return h<6?.03:h<7?.1:h<9.5?.22:h<16?.16:h<19?.24:h<21?.12:h<23?.06:.03}
+// V192: höchstens so viele Parkhaus-Autos gleichzeitig auf dem Weg hinein (der Rest wartet unsichtbar außerhalb der Karte)
+const PKAM=12,pkArr=()=>PC.filter(k=>k.ty==='pk'&&k.st==='drv'&&!k.out).length+cars.filter(k=>k.sp===700&&k.st!=='gone').length;
 // Platz hinter einer Kreuzung frei? (nicht in die Kreuzung fahren, wenn man drin stehen bleiben müsste)
 function kcBlk(k,s0,kc,O,st){for(let d=kc[0];d<=kc[1];d+=8){const q=rAt(k.r,s0+d);for(const o of O)if(o!==k&&(st||o.reg||(o.v||0)<8)&&Math.hypot(o.x-q[0],o.y-q[1])<11)return true}return false}
 // Marke prüfen: true = anhalten
@@ -3367,7 +3436,7 @@ function pcStep(dt){
  // Durchgangsverkehr
  for(const d of [1,-1]){const j=d>0?0:1;pcCD[j]-=dt;if(pcCD[j]<=0){pcCD[j]=(.7+Math.random()*1.8)/ttRate2();const ln=Math.random()<.55?1:0,tr=ln&&Math.random()<.22,r=ttRoute(d,ln);if(pcSpawnLane(r))pcNew({ty:'tt',r,st:'drv',v:ln?100:120,tr,vc:tr?90+Math.random()*8:ln?102+Math.random()*12:122+Math.random()*16,col:pick(TTC)})}}
  // wartende Ankünfte über die Schnellstraße
- for(let j=0;j<PQ.length;j++){const q=PQ[j],r=pkRoute('a',q.org,q.pk);if(pcSpawnLane(r)){PQ.splice(j,1);pcNew(Object.assign({ty:'pk',r,st:'drv',v:100,hold:1,back:0,sp:600+q.pk},q));break}}
+ if(pkArr()<PKAM&&!((pcCD[2]=(pcCD[2]||0)-dt)>0))for(let j=0;j<PQ.length;j++){const q=PQ[j],r=pkRoute('a',q.org,q.pk);if(pcSpawnLane(r)){pcCD[2]=1.1+Math.random()*1.1;PQ.splice(j,1);pcNew(Object.assign({ty:'pk',r,st:'drv',v:100,hold:1,back:0,sp:600+q.pk},q));break}}
  const O=pcObs(),late=hrOf(phase())>=27;
  for(const k of PC){k.bo=null;
   if(k.st==='park'){if(k.back>=k.n||(late&&!folks.some(f=>f.car===k)))k.st='qx';continue}
@@ -3882,7 +3951,7 @@ function render(){
   el.querySelectorAll('[data-d]').forEach(b=>{let t,iv;const go=()=>{const r=$(b.dataset.d);r.value=cl(+r.value+ +b.dataset.s,+r.min,+r.max);r.oninput()},end=()=>{clearTimeout(t);clearInterval(iv)};b.onpointerdown=e=>{e.preventDefault();go();t=setTimeout(()=>{iv=setInterval(go,90)},380)};b.onpointerup=b.onpointerleave=b.onpointercancel=end})}
  el.querySelector('[data-x]').onclick=()=>{open=null;infB=null;render()};
  el.querySelectorAll('[data-oab]').forEach(b=>b.onclick=()=>{oaSel.b=+b.dataset.oab;oaSel.pr=OAB[oaSel.b].fair;render()});el.querySelectorAll('[data-oaa]').forEach(b=>b.onclick=()=>{oaSel.a=+b.dataset.oaa;render()});{const r=$('oapr');if(r){r.oninput=()=>{oaSel.pr=+r.value;$('oaprv').textContent=fmt(oaSel.pr)};r.onchange=()=>{const sc=$('sheet').scrollTop;render();$('sheet').scrollTop=sc}}}el.querySelectorAll('[data-oap]').forEach(b=>b.onclick=()=>{oaSel.pr=cl(oaSel.pr+ +b.dataset.oap,10,150);const sc=$('sheet').scrollTop;render();$('sheet').scrollTop=sc});{const g=el.querySelector('[data-oago]');if(g)g.onclick=()=>{oaBook();render()}}{const x=el.querySelector('[data-oacx]');if(x)x.onclick=()=>{if(!G.oaCx){G.oaCx=1;render();setTimeout(()=>{G.oaCx=0;if(open==='ev')render()},4000);return}G.oaCx=0;oaCancel();render()}}
- el.querySelectorAll('[data-ev]').forEach(b=>b.onclick=()=>{const a=b.dataset.ev;if(a==='skip'){evSkip();return}if(a==='rep')repair();else if(G.evN){G.evN.acc=a==='acc';if(G.evN.acc)toast(EV[G.evN.k].ic+' Zugesagt: '+EV[G.evN.k].t+' morgen')}render();save()});
+ el.querySelectorAll('[data-ev]').forEach(b=>b.onclick=()=>{const a=b.dataset.ev;if(a==='skip'){if(isRace(G.ev)&&!rcQ(G.ev.k))rcSkip(G.ev.k);evSkip();return}if(a==='rep')repair();else if(G.evN){G.evN.acc=a==='acc';if(G.evN.acc)toast(EV[G.evN.k].ic+' Zugesagt: '+EV[G.evN.k].t+' morgen')}render();save()});
  const bpb=el.querySelector('[data-pb]');if(bpb)bpb.onclick=()=>{if(!G.pb&&G.areas>=2&&G.money>=PBC){spend(PBC);G.pb=1;buildStatic();toast('Die blaue Abfahrt ist offen! 🟦');render();save()}};
  const bps=el.querySelector('[data-ps]');if(bps)bps.onclick=()=>{if(!G.ps&&G.areas>=2&&G.money>=PSC){spend(PSC);G.ps=1;buildStatic();toast('Die schwarze Abfahrt ist offen! ⬛ +4 Ruf');render();save()}};
  const bap=el.querySelector('[data-ap]');if(bap)bap.onclick=()=>{if(!G.ap&&G.areas>=2&&G.money>=APC){spend(APC);G.ap=1;buildStatic();toast('Die Après-Ski-Hütte ist fertig! 🎶 Ab 15 Uhr wird gefeiert');render();save()}};
@@ -3954,7 +4023,7 @@ document.querySelectorAll('#rail button').forEach(b=>b.onclick=()=>{sfx('click')
  window.chMark=()=>{const o=chOn();for(const id in CH){const e=$(id);if(e)e.classList.toggle('on',!!o[id])}}}
 $('pz').onclick=()=>{paused=!paused;$('pz').textContent=paused?'▶':'⏸'};
 $('hxs').onclick=()=>{sfx('click');hxEnd(true)};
-$('ff').onclick=()=>{if(RSQ)return;if(wcLive()){showEnd();return}if(evSlow()){evSkip();toast('⏭ Rennen übersprungen');return}speed=speed%5+1;$('ff').textContent='×'+speed};
+$('ff').onclick=()=>{if(RSQ&&!RSQ.q)return;if(wcLive()&&!rcQ('wc')){rcSkip('wc');showEnd();return}if(evSlow()){rcSkip(G.ev.k);evSkip();toast('⏭ Rennen übersprungen');return}speed=speed%5+1;$('ff').textContent='×'+speed};
 
 function tap(e){const r=cv.getBoundingClientRect(),wx=(e.clientX-r.left)/S-offX,wyD=(e.clientY-r.top)/S-cam,wy=uwY(wyD);
  if(open&&open!=='inf'&&open!=='gst'){open=null;infB=null;render();return}
@@ -4042,7 +4111,7 @@ function infUpd(){if(!infD)return;infD.rows.forEach((r,i)=>{const e=$('iv'+i);if
 function infDraw(c){if(open!=='inf'||!infB)return;const b=infB,a=.55+.4*Math.sin(T*5);c.save();c.strokeStyle='rgba(255,216,77,'+a.toFixed(2)+')';c.lineWidth=2;c.setLineDash([5,4]);c.lineDashOffset=-T*12;if(infK&&infK[0]==='P'){const B=PBODY[+infK[1]];for(const d of [-1,1]){c.beginPath();B.forEach((q,j)=>{const x=q[1]+d*(q[2]+5);j?c.lineTo(x,q[0]):c.moveTo(x,q[0])});c.stroke()}c.restore();return}c.beginPath();c.roundRect(b.x0-3,b.y0-3,b.x1-b.x0+6,b.y1-b.y0+6,6);c.stroke();c.restore()}
 const pts=new Map();let pan=null,pinch=null,moved=false;
 const rc=()=>cv.getBoundingClientRect();
-cv.addEventListener('pointerdown',e=>{camA=null;try{cv.setPointerCapture(e.pointerId)}catch(_){}pts.set(e.pointerId,{x:e.clientX,y:e.clientY});
+cv.addEventListener('pointerdown',e=>{camA=null;if(RSQ)RSQ.uc=1;try{cv.setPointerCapture(e.pointerId)}catch(_){}pts.set(e.pointerId,{x:e.clientX,y:e.clientY});
  if(pts.size===1){moved=false;pan={x:e.clientX,y:e.clientY,cx:camX,cy:camY}}else if(pts.size===2){const [p1,p2]=[...pts.values()],r0=rc();moved=true;pan=null;pinch={d:Math.hypot(p1.x-p2.x,p1.y-p2.y)||1,s:S,wx:camX+((p1.x+p2.x)/2-r0.left)/S,wy:camY+((p1.y+p2.y)/2-r0.top)/S}}});
 cv.addEventListener('pointermove',e=>{if(!pts.has(e.pointerId))return;pts.set(e.pointerId,{x:e.clientX,y:e.clientY});
  if(pinch&&pts.size>=2){const [p1,p2]=[...pts.values()],r0=rc(),d=Math.hypot(p1.x-p2.x,p1.y-p2.y)||1,mx=(p1.x+p2.x)/2-r0.left,my=(p1.y+p2.y)/2-r0.top;S=cl(pinch.s*d/pinch.d,minS(),maxS());camX=pinch.wx-mx/S;camY=pinch.wy-my/S;clampCam()}
@@ -4051,7 +4120,7 @@ const pend=e=>{if(!pts.has(e.pointerId))return;pts.delete(e.pointerId);
  if(pinch&&pts.size<2){pinch=null;resTimer();if(pts.size===1){const p=[...pts.values()][0];pan={x:p.x,y:p.y,cx:camX,cy:camY}}return}
  if(pts.size===0){if(!moved&&e.type==='pointerup')tap(e);pan=null}};
 cv.addEventListener('pointerup',pend);cv.addEventListener('pointercancel',pend);
-cv.addEventListener('wheel',e=>{e.preventDefault();camA=null;const r0=rc();zoomAt(e.clientX-r0.left,e.clientY-r0.top,S*Math.exp(-e.deltaY*.0015))},{passive:false});
+cv.addEventListener('wheel',e=>{e.preventDefault();camA=null;if(RSQ)RSQ.uc=1;const r0=rc();zoomAt(e.clientX-r0.left,e.clientY-r0.top,S*Math.exp(-e.deltaY*.0015))},{passive:false});
 $('zb').onclick=()=>{if(S>minS()*1.08)allView();else homeView(false)};
 let resetting=false;function save(){if(resetting||(!started&&!hasSave))return;G.sv=Date.now();try{localStorage.setItem(KEY,JSON.stringify(G))}catch(e){}}
 setInterval(save,4000);setInterval(()=>cloudPush(),20000);kidBind();setTimeout(flAnim,300);setInterval(()=>{hud();tutUpd();kidUpd();pbUpd();wakeUpd();if(open&&open!=='pre')upd();if(started&&!inTitle&&Math.random()<.25)achChk()},500);
