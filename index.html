@@ -195,11 +195,11 @@ const REQ={
  2:[{ic:'🅿️',t:'Mind. 32 Parkplätze',ok:()=>G.spots>=32,s:()=>G.spots+' von 32',go:'par|Parkplätze'},rL(1,4)],
  3:[rL(1,6),rL(2,4),{ic:'🚌',t:'Alle 6 Busparkplätze',ok:()=>(G.bus||0)>=6,s:()=>(G.bus||0)+' von 6',go:'par|Busparkplätze'},
   {ic:'⛷️',t:'Skischule',ok:()=>!!G.up.s,go:'wer|s'},{ic:'🚜',t:'Pistenraupe',ok:()=>G.raupen>0,go:'rau|Pistenraupe'},{ic:'❄️',t:'Schneekanonen',ok:()=>!!G.kan,go:'rau|Schneekanonen-Paket'}],
- 4:[rL(2,6),rL(3),{ic:'🅿️',t:'Alle 60 Parkplätze',ok:()=>G.spots>=60,s:()=>G.spots+' von 60',go:'par|Parkplätze'},{ic:'🚆',t:'Bahnhof',ok:()=>!!G.train,go:'par|Bahnhof'},
+ 4:[rL(2,6),rL(3,4),{ic:'🅿️',t:'Alle 60 Parkplätze',ok:()=>G.spots>=60,s:()=>G.spots+' von 60',go:'par|Parkplätze'},{ic:'🚆',t:'Bahnhof',ok:()=>!!G.train,go:'par|Bahnhof'},
   {ic:'🍽️',t:'Restaurant',ok:()=>!!G.rest,go:'gas|Restaurant'},{ic:'🏨',t:'1 Hotel',ok:()=>G.hotels>=1,go:'gas|Gasthof Alpenrose'}],
- 5:[rL(3,6),rL(4),{ic:'🏢',t:'2 Parkhäuser',ok:()=>pkCnt()>=2,s:()=>pkCnt()+' von 2',go:'par|Parkhaus mit Tiefgarage'},{ic:'🚑',t:'Bergwacht',ok:()=>stf().bw>0,go:'stf|Bergwacht'},
+ 5:[rL(3,6),rL(4,4),{ic:'🏢',t:'2 Parkhäuser',ok:()=>pkCnt()>=2,s:()=>pkCnt()+' von 2',go:'par|Parkhaus mit Tiefgarage'},{ic:'🚑',t:'Bergwacht',ok:()=>stf().bw>0,go:'stf|Bergwacht'},
   {ic:'🏨',t:'2 Hotels',ok:()=>G.hotels>=2,s:()=>G.hotels+' von 2',go:'gas|Sporthotel Gipfelblick'}],
- 6:[rL(4,6),rL(5),{ic:'🏢',t:'4 Parkhäuser, eins mit Zusatz-Etage',ok:()=>pkCnt()>=4&&pkEt(),s:()=>pkCnt()+' von 4'+(pkEt()?' · Etage ✓':''),go:'par|Parkhaus mit Tiefgarage'},
+ 6:[rL(4,6),rL(5,6),{ic:'🏢',t:'4 Parkhäuser, eins mit Zusatz-Etage',ok:()=>pkCnt()>=4&&pkEt(),s:()=>pkCnt()+' von 4'+(pkEt()?' · Etage ✓':''),go:'par|Parkhaus mit Tiefgarage'},
   {ic:'🏨',t:'3 Hotels',ok:()=>G.hotels>=3,s:()=>G.hotels+' von 3',go:'gas|Grandhotel Edelweiß'},{ic:'🛖',t:'Berghütte',ok:()=>!!G.up.h,go:'gas|Berghütte'}]};
 function reqL(k){const L=(REQ[k]||[]).slice(),n=STN[k];if(n)L.push({ic:'⭐',t:'★'.repeat(n)+' '+n+' Sterne',ok:()=>stars()>=n,s:()=>stars()+' von '+n,go:'pbw'});return L}
 const reqOpen=k=>reqL(k).filter(e=>!e.ok()),reqOK=k=>!reqOpen(k).length;
