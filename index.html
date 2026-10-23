@@ -4076,52 +4076,146 @@ function glacierOst(c){const y0=GLT(),y1=GLB(),xa=glR(y1)-10;
  // Séracs an der Gletscherstirn (nicht an der Zunge über dem Graben)
  for(let i=0;i<30;i++){const x=xa+20+hR(i,61)*(XR-xa-30);if(Math.abs(x-1050)<70)continue;const y=glOB(x)+6-hR(i,62)*8,w=7+hR(i,63)*9,h=8+hR(i,64)*10;
   c.fillStyle='#bfe2f5';c.beginPath();c.moveTo(x,y);c.lineTo(x+w*.15,y-h);c.lineTo(x+w*.7,y-h*1.1);c.lineTo(x+w,y);c.closePath();c.fill();c.fillStyle='#9fd0ec';c.beginPath();c.moveTo(x+w*.7,y-h*1.1);c.lineTo(x+w,y);c.lineTo(x+w*.55,y);c.closePath();c.fill();c.fillStyle='#fff';c.fillRect(x+w*.12,y-h-1,w*.6,2)}}
-// Verlauf des Wassers: Gletschertor -> Wasserfälle, Kaskaden, Bachstücke, Teiche (teils zugefroren) -> Rohr im Tal
+// Verlauf des Wassers (V205, neu): Gletschertor -> Bach als durchgehendes Band -> Wasserfälle über Felsstufen (Low-Poly wie die Felsen) -> Teiche mit natürlicher Uferform -> Rohr im Tal
 let OBWP=null,OBWK='';
+// sanft geschwungener Bachlauf im Graben und wechselnde Breite
+const obWX=y=>1047+11*Math.sin(y/97+.6)+6*Math.sin(y/41+1.3)+2*Math.sin(y/17),obBW=y=>4.6+1.4*Math.sin(y/53)+.8*Math.sin(y/19);
 function obWPlan(){const k=V+'_'+R;if(OBWP&&OBWK===k)return OBWP;OBWK=k;const ys=glOB(1050)-6;
- OBWP=[{t:'tor',y:ys},{t:'wf',y0:ys+4,y1:ys+150,w:11},{t:'pool',y:ys+164,rx:30,ry:12,ice:.62},{t:'bach',y0:ys+176,y1:-480},
-  {t:'casc',y0:-480,y1:-404,n:3},{t:'pool',y:-393,rx:18,ry:7,ice:1},{t:'bach',y0:-386,y1:-300},
-  {t:'wf',y0:-300,y1:-122,w:14},{t:'pool',y:-106,rx:40,ry:15,ice:0},{t:'bach',y0:-91,y1:130},
-  {t:'wf',y0:130,y1:196,w:8},{t:'pool',y:208,rx:24,ry:9,ice:.45},{t:'bach',y0:217,y1:440},
-  {t:'casc',y0:440,y1:506,n:2},{t:'pool',y:516,rx:26,ry:10,ice:1},{t:'bach',y0:526,y1:690},
-  {t:'casc',y0:690,y1:742,n:2},{t:'bach',y0:742,y1:R-112},{t:'rohr',y:R-100}];return OBWP}
-const obWX=y=>obBach(y);
+ OBWP=[{t:'tor',y:ys},
+  {t:'wf',y0:ys+56,y1:ys+138,w:10,s:2,fr:.75},{t:'pool',y:ys+156,rx:38,ry:15,ice:.55,sd:3},
+  {t:'casc',y0:-470,y1:-398,n:3},{t:'pool',y:-318,rx:22,ry:9,ice:1,sd:7},
+  {t:'wf',y0:-226,y1:-112,w:15,s:3,fr:.4},{t:'pool',y:-90,rx:50,ry:19,ice:0,sd:11},
+  {t:'wf',y0:146,y1:194,w:8,s:2,fr:.9},{t:'pool',y:212,rx:27,ry:11,ice:.4,sd:13},
+  {t:'casc',y0:440,y1:498,n:2},{t:'pool',y:520,rx:30,ry:12,ice:1,sd:17},
+  {t:'casc',y0:690,y1:740,n:2},{t:'rohr',y:R-100}];
+ OBWP.ys=ys;OBWP.ye=R-100;return OBWP}
+// Teich-Umriss: unregelmäßig, in Fließrichtung etwas länglich
+function obPoolPts(e,g){const x=obWX(e.y),P=[],sd=e.sd||1;for(let i=0;i<36;i++){const a=i/36*Math.PI*2,r=1+.13*Math.sin(2*a+sd)+.09*Math.sin(3*a+sd*1.7)+.05*Math.sin(5*a+sd*.6);P.push([x+Math.cos(a)*(e.rx+g)*r,e.y+Math.sin(a)*(e.ry+g*.55)*r])}return P}
+function obInPoly(P,x,y){let k=0;for(let i=0,j=P.length-1;i<P.length;j=i++){const a=P[i],b=P[j];if((a[1]>y)!==(b[1]>y)&&x<(b[0]-a[0])*(y-a[1])/(b[1]-a[1])+a[0])k^=1}return k}
 // Bäume nicht auf Wasser, Felsstufen, Teichen, Rohr und Gletscher
-function obWHit(x,y){if(y<glOB(x)+12)return 1;for(const e of obWPlan()){
- if(e.t==='pool'){const dx=(x-obWX(e.y))/(e.rx+16),dy=(y-e.y-(y>e.y?14:0))/(e.ry+14+(y>e.y?28:0));if(dx*dx+dy*dy<1)return 1}
- else if(e.t==='wf'){if(y>e.y0-14&&y<e.y1+40&&Math.abs(x-obWX(y))<e.w+52)return 1}
- else if(e.t==='casc'){if(y>e.y0-14&&y<e.y1+30&&Math.abs(x-obWX(y))<34)return 1}
- else if(e.t==='rohr'||e.t==='tor'){if(Math.abs(y-e.y)<26&&Math.abs(x-obWX(e.y))<34)return 1}}return 0}
-// Felswand unter einem Wasserfall (statisch)
-function obCliff(c,y0,y1,w,sd){const N=14,L=[],Rr=[],H=y1-y0;
- // breites Felsband quer zum Hang, unregelmäßige Ränder, nach unten etwas schmäler
- for(let i=0;i<=N;i++){const t=i/N,y=y0-6+(H+8)*t,x=obWX(y),hw=(w+26+18*Math.sin(t*Math.PI*.9))*(1-.25*t)+7*Math.sin(i*2.3+sd)+5*hR(i,sd);L.push([x-hw,y]);Rr.push([x+hw*.95+4*Math.sin(i*1.7+sd),y])}
- c.fillStyle='rgba(110,140,180,.22)';c.beginPath();c.ellipse(obWX(y1),y1+6,w+30,7,0,0,7);c.fill();
- const g=c.createLinearGradient(0,y0,0,y1);g.addColorStop(0,'#a3aab6');g.addColorStop(.5,'#8d94a1');g.addColorStop(1,'#757c8a');c.fillStyle=g;c.beginPath();L.forEach((q,i)=>i?c.lineTo(q[0],q[1]):c.moveTo(q[0],q[1]));Rr.slice().reverse().forEach(q=>c.lineTo(q[0],q[1]));c.closePath();c.fill();
- // Schattenseite rechts, Felsrippen
- c.fillStyle='rgba(55,60,78,.3)';c.beginPath();Rr.forEach((q,i)=>i?c.lineTo(q[0],q[1]):c.moveTo(q[0],q[1]));Rr.slice().reverse().forEach((q,i)=>c.lineTo(q[0]-9-3*Math.sin(i+sd),q[1]));c.closePath();c.fill();
- for(let k=0;k<6;k++){const f=(k+.5)/6,side=f<.5?-1:1;const xs=y=>obWX(y)+side*(w*.7+6+Math.abs(f-.5)*2*(w+18));c.strokeStyle=side>0?'rgba(50,55,70,.35)':'rgba(255,255,255,.22)';c.lineWidth=1.4;c.beginPath();for(let j=0;j<=6;j++){const y=y0+4+(H-6)*j/6;const x=xs(y)+3*Math.sin(j*1.9+k+sd);j?c.lineTo(x,y):c.moveTo(x,y)}c.stroke()}
- c.strokeStyle='rgba(50,55,70,.32)';c.lineWidth=.7;for(let i=0;i<10;i++){const y=y0+H*hR(i,sd+2),x=obWX(y)+(hR(i,sd+3)-.5)*(w+30)*1.8;if(Math.abs(x-obWX(y))<w*.7)continue;c.beginPath();c.moveTo(x-5,y);c.lineTo(x,y+2+hR(i,sd)*4);c.lineTo(x+4,y+1);c.stroke()}
- // Schnee: Wechte oben, Polster auf Absätzen, weicher Übergang an den Rändern
- c.fillStyle='#fff';c.beginPath();for(let i=0;i<=12;i++){const t=i/12,x=L[0][0]-4+(Rr[0][0]-L[0][0]+8)*t;c.lineTo(x,y0-6-3*Math.sin(t*Math.PI)-1.5*Math.sin(i*2.1+sd))}for(let i=12;i>=0;i--){const t=i/12,x=L[0][0]-4+(Rr[0][0]-L[0][0]+8)*t;c.lineTo(x,y0+2+3*Math.sin(i*1.3+sd))}c.closePath();c.fill();
- for(let i=1;i<4;i++){const y=y0+H*i/4,x=obWX(y);if(hR(i,sd)<.45)continue;const o=(w+14)*(.8+hR(i,sd+1)*.4);c.beginPath();c.ellipse(x-o,y,4+hR(i,sd+2)*3,1.4,0,0,7);c.fill()}
- // Eiszapfen-Vorhang neben dem Fall (gefrorene Gischt)
- c.fillStyle='rgba(225,244,253,.95)';for(const sdx of [-1,1])for(let i=0;i<10;i++){const y=y0+2+H*.8*i/10,x=obWX(y)+sdx*(w*.6+2+hR(i,sd+sdx)*6),h=6+hR(i,sd+5)*14;c.beginPath();c.moveTo(x-1.7,y);c.lineTo(x,y+h);c.lineTo(x+1.7,y);c.closePath();c.fill()}
- // Wasservorhang (Grundfarbe), unten breiter
- const wg=c.createLinearGradient(0,y0,0,y1);wg.addColorStop(0,'#a9d8f2');wg.addColorStop(1,'#d8f0fb');c.fillStyle=wg;c.beginPath();for(let i=0;i<=N;i++){const y=y0+H*i/N;c.lineTo(obWX(y)-w*.5-i*.2,y)}for(let i=N;i>=0;i--){const y=y0+H*i/N;c.lineTo(obWX(y)+w*.5+i*.2,y)}c.closePath();c.fill()}
-function obPool(c,e,sd){const x=obWX(e.y),y=e.y,rx=e.rx,ry=e.ry;
- c.fillStyle='rgba(110,140,180,.22)';c.beginPath();c.ellipse(x+3,y+3,rx+9,ry+6,0,0,7);c.fill();
- c.fillStyle='#fff';c.beginPath();for(let i=0;i<=24;i++){const a=i/24*Math.PI*2,r=1+.12*Math.sin(i*2.7+sd)+.06*hR(i,sd);c.lineTo(x+Math.cos(a)*(rx+7)*r,y+Math.sin(a)*(ry+5)*r)}c.closePath();c.fill();
- const g=c.createRadialGradient(x,y,1,x,y,rx);g.addColorStop(0,'#1f5f93');g.addColorStop(.7,'#3a86c0');g.addColorStop(1,'#77b9e0');c.fillStyle=g;c.beginPath();c.ellipse(x,y,rx,ry,0,0,7);c.fill();
- if(e.ice>0){c.save();c.beginPath();c.ellipse(x,y,rx,ry,0,0,7);c.clip();const top=y-ry+2*ry*(1-e.ice);c.fillStyle='#dff1fa';c.beginPath();c.moveTo(x-rx-2,y+ry+2);c.lineTo(x-rx-2,top+4);for(let i=0;i<=10;i++){const xx=x-rx+2*rx*i/10;c.lineTo(xx,top+3*Math.sin(i*1.9+sd))}c.lineTo(x+rx+2,y+ry+2);c.closePath();c.fill();
-  c.strokeStyle='rgba(120,175,215,.7)';c.lineWidth=.5;for(let i=0;i<5;i++){const a=x-rx*.7+rx*1.4*hR(i,sd),b=Math.max(top+3,y-ry*.4)+hR(i,sd+1)*ry;c.beginPath();c.moveTo(a,b);c.lineTo(a+4,b+1.5);c.lineTo(a+7,b-.5);c.stroke()}
-  c.fillStyle='rgba(255,255,255,.85)';for(let i=0;i<3;i++){c.beginPath();c.ellipse(x-rx*.5+rx*hR(i,sd+4),Math.max(top+4,y)+ry*.3*hR(i,sd+5),4+hR(i,sd)*4,1.4,0,0,7);c.fill()}c.restore()}
- c.fillStyle='#a5abb8';for(let i=0;i<4;i++){const a=hR(i,sd+7)*6.28;c.beginPath();c.ellipse(x+Math.cos(a)*(rx+5),y+Math.sin(a)*(ry+4),2.4,1.5,0,0,7);c.fill()}}
-function obBachSeg(c,y0,y1){const B=[];for(let y=y0;y<=y1;y+=6)B.push([obWX(y),y]);if(B.length<2)return;obPath(c,B,6,'#bfe2f4','#d5e6f2');c.save();c.lineJoin='round';c.lineCap='round';c.strokeStyle='#8fc7e6';c.lineWidth=2.2;c.beginPath();B.forEach((q,i)=>i?c.lineTo(q[0],q[1]):c.moveTo(q[0],q[1]));c.stroke();c.strokeStyle='rgba(255,255,255,.75)';c.lineWidth=.7;c.setLineDash([3,9]);c.stroke();c.setLineDash([]);c.restore();
- for(let y=y0+30;y<y1-10;y+=83){const x=obWX(y);c.fillStyle='#fff';c.beginPath();c.ellipse(x-3,y,3.2,1.6,.4,0,7);c.fill();c.fillStyle='#a3abb8';c.beginPath();c.ellipse(x+4,y+3,2.4,1.4,0,0,7);c.fill()}}
-function obCasc(c,e,sd){const n=e.n,h=(e.y1-e.y0)/n;for(let k=0;k<n;k++){const a=e.y0+k*h,b=a+h,x=obWX(a+h*.5);
- obBachSeg(c,a,a+h*.45);rock(c,x-16,a+h*.42,12,8);rock(c,x+5,a+h*.46,11,7);const ws=6;c.fillStyle='#d8f0fb';c.fillRect(obWX(a+h*.5)-ws/2,a+h*.45,ws,h*.4);
- c.fillStyle='#fff';c.beginPath();c.ellipse(x,b-h*.12,8,3,0,0,7);c.fill()}}
+function obWHit(x,y){if(y<glOB(x)+12)return 1;const P=obWPlan();if(y>P.ys-10&&y<P.ye+10&&Math.abs(x-obWX(y))<obBW(y)+12)return 1;for(const e of P){
+ if(e.t==='pool'){const dx=(x-obWX(e.y))/(e.rx+18),dy=(y-e.y-(y>e.y?12:0))/(e.ry+14+(y>e.y?26:0));if(dx*dx+dy*dy<1)return 1}
+ else if(e.t==='wf'){if(y>e.y0-16&&y<e.y1+40&&Math.abs(x-obWX(y))<e.w+58)return 1}
+ else if(e.t==='casc'){if(y>e.y0-14&&y<e.y1+30&&Math.abs(x-obWX(y))<38)return 1}
+ else if(e.t==='rohr'||e.t==='tor'){if(Math.abs(y-e.y)<28&&Math.abs(x-obWX(e.y))<36)return 1}}return 0}
+// Low-Poly-Felsbrocken in Grau (wie die Felsen am Berg, kühler Farbton)
+function obRk(c,x,y,w,h,sn){c.fillStyle='#c9c5bd';c.beginPath();c.moveTo(x,y);c.lineTo(x+w*.28,y-h);c.lineTo(x+w*.56,y-h*.72);c.lineTo(x+w*.48,y);c.closePath();c.fill();
+ c.fillStyle='#9a958c';c.beginPath();c.moveTo(x+w*.48,y);c.lineTo(x+w*.56,y-h*.72);c.lineTo(x+w*.82,y-h*.42);c.lineTo(x+w,y);c.closePath();c.fill();
+ if(sn){c.fillStyle='#fff';c.beginPath();c.moveTo(x+w*.28,y-h);c.lineTo(x+w*.14,y-h*.62);c.lineTo(x+w*.36,y-h*.74);c.lineTo(x+w*.56,y-h*.72);c.closePath();c.fill()}}
+// Eissäule (gefrorener Wasserstrang) in Low-Poly: zwei Flächen, oben breit, unten spitz
+function obIce(c,x,y,L,w){c.fillStyle='#eef9fe';c.beginPath();c.moveTo(x-w,y);c.lineTo(x-w*1.25,y+L*.35);c.lineTo(x-w*.5,y+L*.78);c.lineTo(x,y+L);c.lineTo(x,y);c.closePath();c.fill();
+ c.fillStyle='#bfe2f4';c.beginPath();c.moveTo(x,y);c.lineTo(x,y+L);c.lineTo(x+w*.55,y+L*.72);c.lineTo(x+w*1.1,y+L*.3);c.lineTo(x+w*.9,y);c.closePath();c.fill();
+ c.fillStyle='rgba(255,255,255,.9)';c.fillRect(x-w*.7,y+L*.12,w*.35,L*.3)}
+// Natürliche Felsstufe (Low-Poly): oben breiter Bogen, unten schmäler, Facetten in kühlem Grau, Ränder unter Schnee
+function obRockStep(c,y0,y1,hwT,hwB,sd,bk=1,mid=null){const H=y1-y0,cols=Math.max(4,Math.round(hwT/7)),rows=Math.max(2,Math.round(H/26)),V2=[];
+ for(let r=0;r<=rows;r++){const t=r/rows,row=[];for(let k=0;k<=cols;k++){const f=k/cols*2-1,hw=hwT+(hwB-hwT)*t,yy=y0+H*t,edge=(k===0||k===cols);
+  const jx=edge||r===0||r===rows?0:(hR(r*31+k,sd)-.5)*hw*2/cols*.8,jy=r===0||r===rows?0:(hR(k*17+r,sd+1)-.5)*H/rows*.7;
+  row.push([obWX(yy)+f*hw+jx,yy+jy+(r===0?Math.pow(Math.abs(f),1.6)*Math.min(20,H*.25)+(hR(k,sd+2)-.5)*5:0)+(r===rows?-Math.pow(Math.abs(f),1.4)*Math.min(12,H*.15)+(hR(k,sd+3)-.5)*4:0)])}V2.push(row)}
+ c.fillStyle='rgba(90,110,150,.2)';c.beginPath();c.ellipse(obWX(y1)+3,y1+4,hwB+10,7,0,0,7);c.fill();
+ const PAL=['#cfd2d8','#bcc0c8','#a8adb6','#959aa5','#848995','#747985'];
+ for(let r=0;r<rows;r++)for(let k=0;k<cols;k++){const A=V2[r][k],B=V2[r][k+1],C=V2[r+1][k+1],D=V2[r+1][k],f=(k+.5)/cols*2-1,d=r/rows;
+  const sh=(i)=>PAL[Math.max(0,Math.min(5,Math.round(1+d*2.2+f*1.2+(hR(r*7+k,sd+4+i)-.5)*1.6+i*.8)))];
+  const flip=hR(k*5+r,sd+6)<.5;
+  c.lineWidth=.7;c.lineJoin='round';{const c0=sh(0);c.fillStyle=c0;c.strokeStyle=c0}c.beginPath();if(flip){c.moveTo(...A);c.lineTo(...B);c.lineTo(...D)}else{c.moveTo(...A);c.lineTo(...B);c.lineTo(...C)}c.closePath();c.fill();c.stroke();
+  {const c1=sh(1);c.fillStyle=c1;c.strokeStyle=c1}c.beginPath();if(flip){c.moveTo(...B);c.lineTo(...C);c.lineTo(...D)}else{c.moveTo(...A);c.lineTo(...C);c.lineTo(...D)}c.closePath();c.fill();c.stroke();
+  // Schneereste auf Absätzen
+  if(r>0&&hR(k*3+r,sd+7)<.32){c.fillStyle='#fff';c.beginPath();c.moveTo(A[0]+1,A[1]+.5);c.lineTo((A[0]+B[0])/2,(A[1]+B[1])/2-2);c.lineTo(B[0]-1,B[1]+.5);c.lineTo((A[0]+B[0])/2+1,(A[1]+B[1])/2+1.4);c.closePath();c.fill()}}
+ if(mid)mid(V2);
+ // Schneewechte oben: überhängend, weich gewellt, mit blauem Schatten darunter
+ const T0=V2[0];c.fillStyle='rgba(140,180,220,.5)';c.beginPath();T0.forEach((q,i)=>i?c.lineTo(q[0],q[1]+2):c.moveTo(q[0]-4,q[1]+1));for(let i=T0.length-1;i>=0;i--)c.lineTo(T0[i][0],T0[i][1]+5+hR(i,sd+8)*3);c.closePath();c.fill();
+ c.fillStyle='#fff';c.beginPath();c.moveTo(T0[0][0]-12,T0[0][1]+4);T0.forEach((q,i)=>c.lineTo(q[0],q[1]-4-hR(i,sd+9)*3));c.lineTo(T0[T0.length-1][0]+12,T0[T0.length-1][1]+4);for(let i=T0.length-1;i>=0;i--)c.lineTo(T0[i][0]+(hR(i,sd+10)-.5)*3,T0[i][1]+2+hR(i,sd+8)*3);c.closePath();c.fill();
+ // Schneebänke an den Seiten überdecken die Felskante -> Fels wächst aus dem Hang
+ for(const sg of [-1,1]){c.fillStyle='#fff';c.beginPath();for(let r=0;r<=rows;r++){const q=V2[r][sg<0?0:cols];c.lineTo(q[0]+sg*9,q[1])}for(let r=rows;r>=0;r--){const q=V2[r][sg<0?1:cols-1],e2=V2[r][sg<0?0:cols];const m=(.35+.4*hR(r,sd+11+sg))*bk;c.lineTo(e2[0]+(q[0]-e2[0])*m,q[1]+(hR(r,sd+12)-.5)*3)}c.closePath();c.fill();
+  c.fillStyle='rgba(150,190,225,.35)';c.beginPath();for(let r=0;r<=rows;r++){const q=V2[r][sg<0?1:cols-1],e2=V2[r][sg<0?0:cols],m=(.35+.4*hR(r,sd+11+sg))*bk;c.lineTo(e2[0]+(q[0]-e2[0])*m,q[1]+(hR(r,sd+12)-.5)*3)}for(let r=rows;r>=0;r--){const q=V2[r][sg<0?1:cols-1],e2=V2[r][sg<0?0:cols],m=(.35+.4*hR(r,sd+11+sg))*bk;c.lineTo(e2[0]+(q[0]-e2[0])*m-sg*1.8,q[1]+(hR(r,sd+12)-.5)*3)}c.closePath();c.fill()}
+ return V2}
+// Felsstufe mit Wasserfall: Stufe, Eissäulen, Wasserstränge
+function obCliff(c,e,sd){const y0=e.y0,y1=e.y1,H=y1-y0,w=e.w,n=11,hw0=w+44;
+ // gefrorene Säulen links und rechts vom Fall (Anteil fr) – unter der Schneewechte, damit sie aus dem Schnee wachsen
+ const V2=obRockStep(c,y0,y1,w+64,w+44,sd,1,V3=>{const top=V3[0],cx0=obWX(y0);for(let k=0;k<7;k++){if(hR(k,sd+8)>e.fr)continue;const sdx=k%2?1:-1,ox=sdx*(w*.55+5+k*2.2),L=H*(.35+hR(k,sd+10)*.5),yy=top.reduce((m2,q)=>Math.abs(q[0]-(cx0+ox))<Math.abs(m2[0]-(cx0+ox))?q:m2)[1]-1;obIce(c,cx0+ox,yy,L,2.2+hR(k,sd+11)*1.4)}}),top=V2[0];
+ // Wasserstränge: oben schmal, unten breiter, durchscheinend
+ for(let s=0;s<e.s;s++){const off=(s-(e.s-1)/2)*w*.62,wt=w*(.38+.1*hR(s,sd)),wb=wt*1.7;
+  const g=c.createLinearGradient(0,y0,0,y1);g.addColorStop(0,'rgba(170,215,240,.95)');g.addColorStop(.5,'rgba(205,234,248,.93)');g.addColorStop(1,'rgba(240,250,255,.95)');c.fillStyle=g;
+  c.beginPath();for(let i=0;i<=12;i++){const y=y0+H*i/12,f=i/12;c.lineTo(obWX(y)+off*(1+f*.25)-(wt+(wb-wt)*f)/2+Math.sin(f*6+s)*.8,y)}for(let i=12;i>=0;i--){const y=y0+H*i/12,f=i/12;c.lineTo(obWX(y)+off*(1+f*.25)+(wt+(wb-wt)*f)/2+Math.sin(f*6+s+1)*.8,y)}c.closePath();c.fill();
+  c.fillStyle='rgba(120,185,225,.35)';c.beginPath();for(let i=0;i<=12;i++){const y=y0+H*i/12,f=i/12;c.lineTo(obWX(y)+off*(1+f*.25)+(wt+(wb-wt)*f)*.18,y)}for(let i=12;i>=0;i--){const y=y0+H*i/12,f=i/12;c.lineTo(obWX(y)+off*(1+f*.25)+(wt+(wb-wt)*f)/2,y)}c.closePath();c.fill()}
+ // Felsbrocken am Fuß links und rechts
+ obRk(c,obWX(y1)-hw0+2,y1+6,18,12,1);obRk(c,obWX(y1)+hw0-20,y1+8,16,11,1)}
+// Teich: Schneeufer mit Schattenkante, Wasser mit Tiefe, Eisschollen in Low-Poly
+// Bachband in einem y-Bereich (für Ein- und Auslauf der Teiche)
+function obStreamPart(c,ya,yb){const L=[],Rr=[];for(let y=ya;y<=yb;y+=3){const x=obWX(y),w=obBW(y);L.push([x-w,y]);Rr.push([x+w,y])}if(L.length<2)return;
+ const band=o=>{c.beginPath();L.forEach((q,i)=>i?c.lineTo(q[0]-o,q[1]):c.moveTo(q[0]-o,q[1]));Rr.slice().reverse().forEach(q=>c.lineTo(q[0]+o,q[1]));c.closePath()};
+ c.fillStyle='#c4dbec';band(2.6);c.fill();c.fillStyle='#4f9bd1';band(0);c.fill();
+ c.fillStyle='#78b8e3';c.beginPath();L.forEach((q,i)=>i?c.lineTo(q[0],q[1]):c.moveTo(q[0],q[1]));for(let i=L.length-1;i>=0;i--){const y=L[i][1];c.lineTo(obWX(y)-obBW(y)*.1,y)}c.closePath();c.fill()}
+function obPool(c,e){const sd=e.sd||1,x=obWX(e.y),y=e.y,S=obPoolPts(e,11),W=obPoolPts(e,0),poly=(P)=>{c.beginPath();P.forEach((q,i)=>i?c.lineTo(q[0],q[1]):c.moveTo(q[0],q[1]));c.closePath()};
+ c.fillStyle='rgba(90,110,150,.18)';poly(S.map(q=>[q[0]+3,q[1]+4]));c.fill();
+ c.fillStyle='#fff';poly(S);c.fill();
+ // Uferböschung innen (blauer Schatten oben, heller Rand unten)
+ c.fillStyle='#bcd6ea';poly(obPoolPts(e,4.5));c.fill();
+ c.fillStyle='#dfeef8';poly(obPoolPts(e,4.5).map(q=>[q[0],q[1]+2.2]));c.fill();
+ // Schneerand dort offen, wo der Bach hinein- und hinausfließt: Bachband nur im Uferring zeichnen
+ c.save();c.beginPath();S.forEach((q,i)=>i?c.lineTo(q[0],q[1]):c.moveTo(q[0],q[1]));c.closePath();W.forEach((q,i)=>i?c.lineTo(q[0],q[1]):c.moveTo(q[0],q[1]));c.closePath();c.clip('evenodd');obStreamPart(c,y-e.ry-22,y+e.ry+22);c.restore();
+ const g=c.createRadialGradient(x,y+e.ry*.15,2,x,y,e.rx);g.addColorStop(0,'#1d5f96');g.addColorStop(.6,'#2f7cb8');g.addColorStop(1,'#5aa6d8');c.fillStyle=g;poly(W);c.fill();
+ c.save();poly(W);c.clip();
+ // Lichtreflexe (flache Bänder)
+ c.fillStyle='rgba(255,255,255,.16)';c.beginPath();c.moveTo(x-e.rx*.7,y-e.ry*.2);c.lineTo(x+e.rx*.1,y-e.ry*.55);c.lineTo(x+e.rx*.25,y-e.ry*.4);c.lineTo(x-e.rx*.55,y-e.ry*.05);c.closePath();c.fill();
+ // Eis: Schollen von unten (Abfluss) her, Fall bleibt offen
+ if(e.ice>0){const lim=y+e.ry-2*e.ry*e.ice,cols=Math.max(3,Math.round(e.rx/9)),rows=3;for(let r=0;r<rows;r++)for(let k=0;k<cols;k++){const x0=x-e.rx-2+(2*e.rx+4)*k/cols,x1=x-e.rx-2+(2*e.rx+4)*(k+1)/cols,ya=lim+(y+e.ry+2-lim)*r/rows,yb=lim+(y+e.ry+2-lim)*(r+1)/rows,j=(a,b)=>(hR(a*7+b,sd)-.5)*3,
+   pa=[x0+j(k,r),ya+j(r,k)+(r?0:3*Math.sin(k*1.7+sd))],pb=[x1+j(k+1,r),ya+j(r,k+1)+(r?0:3*Math.sin((k+1)*1.7+sd))],pc=[x1+j(k+1,r+1),yb+j(r+1,k+1)],pd=[x0+j(k,r+1),yb+j(r+1,k)];
+   c.fillStyle=(k+r)%2?'#e4f4fb':'#d2ebf7';c.beginPath();c.moveTo(...pa);c.lineTo(...pb);c.lineTo(...pc);c.lineTo(...pd);c.closePath();c.fill();
+   c.fillStyle='rgba(255,255,255,.55)';c.beginPath();c.moveTo(...pa);c.lineTo(...pb);c.lineTo((pb[0]+pc[0])/2,(pb[1]+pc[1])/2);c.closePath();c.fill();
+   c.strokeStyle='rgba(140,195,228,.8)';c.lineWidth=.45;c.beginPath();c.moveTo(...pa);c.lineTo(...pb);c.lineTo(...pc);c.stroke()}
+  // Eiskante zum offenen Wasser
+  c.strokeStyle='rgba(255,255,255,.9)';c.lineWidth=1.1;c.beginPath();for(let k=0;k<=cols;k++){const xx=x-e.rx-2+(2*e.rx+4)*k/cols;c.lineTo(xx,lim+3*Math.sin(k*1.7+sd)+(hR(k*7,sd)-.5)*3)}c.stroke();
+  // Schneeverwehungen auf dem Eis
+  c.fillStyle='#fff';for(let i=0;i<3;i++){const sx=x-e.rx*.6+e.rx*1.2*hR(i,sd+3),sy=Math.max(lim+4,y)+e.ry*.5*hR(i,sd+4);c.beginPath();c.moveTo(sx-6,sy+1);c.lineTo(sx-2,sy-2);c.lineTo(sx+5,sy-1);c.lineTo(sx+7,sy+1.5);c.closePath();c.fill()}}
+ c.restore();
+ // Steine am Ufer, teils mit Schneehaube
+ for(let i=0;i<4;i++){const a=hR(i,sd+5)*6.28,px=x+Math.cos(a)*(e.rx+8),py=y+Math.sin(a)*(e.ry+6);obRk(c,px-5,py+3,10,6,hR(i,sd+6)<.6)}}
+// Bach als durchgehendes Band: Schattenufer, Wasser mit heller Seite, Schneelippen, Eisränder, Steine
+function obStream(c){const P=obWPlan(),y0=P.ys,y1=P.ye,L=[],Rr=[];for(let y=y0;y<=y1;y+=4){const x=obWX(y),w=obBW(y);L.push([x-w,y]);Rr.push([x+w,y])}
+ const band=(o,dx,dy)=>{c.beginPath();L.forEach((q,i)=>i?c.lineTo(q[0]-o+dx,q[1]+dy):c.moveTo(q[0]-o+dx,q[1]+dy));Rr.slice().reverse().forEach(q=>c.lineTo(q[0]+o+dx,q[1]+dy));c.closePath()};
+ c.fillStyle='rgba(90,110,150,.16)';band(5,2,2);c.fill();
+ c.fillStyle='#c4dbec';band(2.6,0,0);c.fill();
+ c.fillStyle='#4f9bd1';band(0,0,0);c.fill();
+ // helle Wasserseite links, dunklere Rinne rechts
+ c.fillStyle='#78b8e3';c.beginPath();L.forEach((q,i)=>i?c.lineTo(q[0],q[1]):c.moveTo(q[0],q[1]));for(let i=L.length-1;i>=0;i--){const y=L[i][1];c.lineTo(obWX(y)-obBW(y)*.1,y)}c.closePath();c.fill();
+ // Schneelippen (überhängende Schneekante, unregelmäßig)
+ c.fillStyle='#fff';for(const [Pts,sg] of [[L,-1],[Rr,1]]){c.beginPath();Pts.forEach((q,i)=>{const o=.6+1.2*(.5+.5*Math.sin(q[1]/7+sg*2));i?c.lineTo(q[0]-sg*o,q[1]):c.moveTo(q[0]-sg*o,q[1])});for(let i=Pts.length-1;i>=0;i--)c.lineTo(Pts[i][0]+sg*2.2,Pts[i][1]);c.closePath();c.fill()}
+ // Eisränder an ruhigen Stellen
+ for(let k=0;k<14;k++){const y=y0+60+(y1-y0-120)*hR(k,41),sg=hR(k,42)<.5?-1:1,len=16+hR(k,43)*26;c.fillStyle='#e6f5fc';c.beginPath();for(let j=0;j<=6;j++){const yy=y+len*j/6,x=obWX(yy)+sg*obBW(yy);c.lineTo(x,yy)}for(let j=6;j>=0;j--){const yy=y+len*j/6,x=obWX(yy)+sg*obBW(yy)*(.25+.35*Math.sin(j/6*Math.PI)*(1-.5*hR(k*j,44)));c.lineTo(x,yy)}c.closePath();c.fill();
+  c.strokeStyle='rgba(150,200,230,.8)';c.lineWidth=.5;c.beginPath();for(let j=0;j<=6;j++){const yy=y+len*j/6;c.lineTo(obWX(yy)+sg*obBW(yy)*(.25+.35*Math.sin(j/6*Math.PI)*(1-.5*hR(k*j,44))),yy)}c.stroke()}
+ // Steine im und am Bach mit weißem Schwall davor
+ for(let k=0;k<22;k++){const y=y0+40+(y1-y0-80)*hR(k,51),sg=hR(k,52)-.5,x=obWX(y)+sg*obBW(y)*1.6;c.fillStyle='rgba(255,255,255,.85)';c.beginPath();c.ellipse(x+1,y-2.5,3.2,1.2,0,0,7);c.fill();obRk(c,x-3.5,y+1.5,7,4.5,hR(k,53)<.7)}}
+function obCasc(c,e,sd){const n=e.n,h=(e.y1-e.y0)/n;for(let k=0;k<n;k++){const a=e.y0+k*h+h*.45,x=obWX(a),bw=obBW(a),d=7+hR(k,sd)*3;
+ // Felsbrocken links und rechts engen den Bach ein
+ obRk(c,x-bw-17,a+d+2,17,12,1);obRk(c,x+bw-1,a+d+3,16,11,1);obRk(c,x-bw-8,a-1,9,6,1);
+ // Felslippe quer über den Bach
+ c.fillStyle='#b1b5bd';c.beginPath();c.moveTo(x-bw-3,a);c.lineTo(x+bw+3,a+.6);c.lineTo(x+bw+2,a+3);c.lineTo(x-bw-2,a+2.6);c.closePath();c.fill();
+ c.fillStyle='#8b909a';c.beginPath();c.moveTo(x-bw-2,a+2.6);c.lineTo(x+bw+2,a+3);c.lineTo(x+bw,a+d);c.lineTo(x-bw,a+d);c.closePath();c.fill();
+ // Wasser fällt über die Lippe
+ const g=c.createLinearGradient(0,a,0,a+d);g.addColorStop(0,'rgba(165,214,240,.96)');g.addColorStop(1,'rgba(240,250,255,.96)');c.fillStyle=g;c.beginPath();c.moveTo(x-bw*.85,a+.5);c.lineTo(x+bw*.85,a+.8);c.lineTo(x+bw*1.05,a+d+1);c.lineTo(x-bw*1.05,a+d+1);c.closePath();c.fill();
+ c.fillStyle='#fff';c.beginPath();c.ellipse(x,a+d+1.5,bw*1.2,2.2,0,0,7);c.fill();
+ {const ix=k%2===0?x+bw+2.6:x-bw-2.6;obIce(c,ix,a,d*(k%2?.8:.9),1.3);c.fillStyle='#fff';c.beginPath();c.moveTo(ix-4.5,a+1.2);c.quadraticCurveTo(ix-2,a-2.6,ix+1,a-2);c.quadraticCurveTo(ix+4,a-1.6,ix+4.5,a+1.2);c.quadraticCurveTo(ix,a+2.6,ix-4.5,a+1.2);c.fill()}}}
+function obTor(c,e){const x=obWX(e.y),y=e.y;
+ // Eisgewölbe in Facetten, dunkle Höhle, Eiszapfen
+ const F=[[[-22,4],[-17,-10],[-6,-17],[-2,4]],[[-2,4],[-6,-17],[8,-18],[6,4]],[[6,4],[8,-18],[18,-9],[23,4]]];F.forEach((p,i)=>{c.fillStyle=['#cde9f7','#b4def3','#9fd0ec'][i];c.beginPath();p.forEach((q,j)=>j?c.lineTo(x+q[0],y+q[1]):c.moveTo(x+q[0],y+q[1]));c.closePath();c.fill()});
+ const g=c.createLinearGradient(0,y-12,0,y+4);g.addColorStop(0,'#0c2340');g.addColorStop(1,'#2d6a9c');c.fillStyle=g;c.beginPath();c.moveTo(x-12,y+4);c.lineTo(x-10,y-5);c.lineTo(x-4,y-10);c.lineTo(x+5,y-10);c.lineTo(x+11,y-4);c.lineTo(x+12,y+4);c.closePath();c.fill();
+ for(let i=0;i<5;i++)obIce(c,x-8+i*4,y-9.5+Math.abs(i-2)*1.6,3+hR(i,91)*3,.9);
+ c.fillStyle='#fff';c.beginPath();c.moveTo(x-24,y-6);c.lineTo(x-14,y-14);c.lineTo(x-4,y-20);c.lineTo(x+10,y-21);c.lineTo(x+20,y-12);c.lineTo(x+26,y-5);c.lineTo(x+16,y-9);c.lineTo(x+4,y-15);c.lineTo(x-8,y-14);c.closePath();c.fill()}
+function obWaterStatic(c){obStream(c);const P=obWPlan();let sd=1;for(const e of P)if(e.t==='pool')obPool(c,e);for(const e of P){sd+=3;if(e.t==='wf')obCliff(c,e,sd);else if(e.t==='casc')obCasc(c,e,sd);else if(e.t==='rohr')obRohr(c,e);else if(e.t==='tor')obTor(c,e)}}
+// bewegtes Wasser (jedes Bild): Fallstreifen in jedem Strang, Gischt, Wellenringe, Strömung im Bach
+function obWater(c,T){c.save();c.lineCap='round';const P=obWPlan();
+ {const y0=Math.max(P.ys,VW.y0-20),y1=Math.min(P.ye,VW.y1+20);if(y1>y0&&inVR(1000,y0,1100,y1)){c.strokeStyle='rgba(255,255,255,.55)';c.lineWidth=.8;const L=P.ye-P.ys;for(let i=0;i<Math.ceil(L/26);i++){const y=P.ys+((T*24+i*26)%L);if(y<y0||y>y1)continue;const x=obWX(y)+(hR(i,61)-.5)*obBW(y);c.beginPath();c.moveTo(x,y);c.lineTo(obWX(y+5)+(hR(i,61)-.5)*obBW(y),y+5);c.stroke()}}}
+ for(const e of P){
+ if(e.t==='wf'){if(!inVR(obWX(e.y0)-40,e.y0-10,obWX(e.y1)+40,e.y1+24))continue;const H=e.y1-e.y0;c.strokeStyle='rgba(255,255,255,.9)';c.lineWidth=.9;
+  for(let s=0;s<e.s;s++){const off=(s-(e.s-1)/2)*e.w*.62,wt=e.w*.42;for(let i=0;i<5;i++){const f0=hR(i,s+e.y0),sp=80+f0*50;for(let r=0;r<2;r++){const y=e.y0+((T*sp+i*29+r*H*.5)%H),f=(y-e.y0)/H,x=obWX(y)+off*(1+f*.25)+(f0-.5)*wt*(1+f*.7);c.globalAlpha=.5+.45*Math.sin(i*2+r+s);c.beginPath();c.moveTo(x,y);c.lineTo(x,Math.min(e.y1,y+6+f0*9));c.stroke()}}}
+  c.globalAlpha=1;const x=obWX(e.y1);for(let k=0;k<7;k++){const ph=(T*.8+k/7)%1;c.fillStyle='rgba(255,255,255,'+(.7*(1-ph))+')';c.beginPath();c.arc(x+(k-3)*e.w*.28+Math.sin(T*2.3+k)*1.5,e.y1+3-ph*9,2+ph*(3+e.w*.35),0,7);c.fill()}
+  c.fillStyle='rgba(255,255,255,.35)';c.beginPath();c.ellipse(x,e.y1+4,e.w*1.4,4,0,0,7);c.fill()}
+ else if(e.t==='casc'){if(!inVR(obWX(e.y0)-20,e.y0,obWX(e.y1)+20,e.y1+10))continue;const h=(e.y1-e.y0)/e.n;c.strokeStyle='rgba(255,255,255,.9)';c.lineWidth=.8;
+  for(let k=0;k<e.n;k++){const a=e.y0+k*h+h*.45,b=a+7+hR(k,e.y0>0?1:1)*0+3,x=obWX(a),bw=obBW(a);for(let i=0;i<5;i++){const y=a+((T*55+i*13)%(b-a));c.beginPath();c.moveTo(x-bw*.7+i*bw*.35,y);c.lineTo(x-bw*.7+i*bw*.35,Math.min(b,y+3.5));c.stroke()}
+   for(let j=0;j<3;j++){const ph=(T*1.2+j/3+k*.3)%1;c.fillStyle='rgba(255,255,255,'+(.6*(1-ph))+')';c.beginPath();c.arc(x+(j-1)*bw*.6,b+2-ph*5,1.6+ph*3,0,7);c.fill()}}}
+ else if(e.t==='pool'&&e.ice<1){const x=obWX(e.y);if(!inV(x,e.y,e.rx+10))continue;const lim=e.y+e.ry-2*e.ry*e.ice,top=e.y-e.ry;c.strokeStyle='rgba(255,255,255,.5)';c.lineWidth=.6;
+  for(let k=0;k<3;k++){const ph=(T*.4+k/3)%1,cy=top+(Math.min(lim,e.y+e.ry)-top)*.35;c.globalAlpha=1-ph;c.beginPath();c.ellipse(x+(k-1)*e.rx*.22,cy,2+ph*e.rx*.38,.8+ph*e.ry*.32,0,0,7);c.stroke()}c.globalAlpha=1}}
+ c.restore()}
 function obRohr(c,e){const x=obWX(e.y),y=e.y;
  // Beton-Stirnwand mit Flügelmauern im Hang, großes Rohr
  c.fillStyle='rgba(110,140,180,.25)';c.beginPath();c.ellipse(x+2,y+14,30,5,0,0,7);c.fill();
@@ -4132,22 +4226,6 @@ function obRohr(c,e){const x=obWX(e.y),y=e.y;
  c.strokeStyle='rgba(255,255,255,.35)';c.lineWidth=.6;c.beginPath();c.arc(x,y,12.5,Math.PI*1.1,Math.PI*1.9);c.stroke();
  c.fillStyle='rgba(225,244,253,.95)';for(let i=0;i<6;i++){const xx=x-9+i*3.6,h=2.5+hR(i,77)*4;c.beginPath();c.moveTo(xx-1,y-11+Math.abs(xx-x)*.25);c.lineTo(xx,y-11+h+Math.abs(xx-x)*.25);c.lineTo(xx+1,y-11+Math.abs(xx-x)*.25);c.fill()}
  c.fillStyle='#a5abb8';for(const [dx,dy] of [[-26,8],[24,9],[-14,13]]){c.beginPath();c.ellipse(x+dx,y+dy,3,1.8,0,0,7);c.fill()}}
-function obTor(c,e){const x=obWX(e.y),y=e.y;c.fillStyle='#9fd0ec';c.beginPath();c.ellipse(x,y-2,17,13,0,Math.PI,0);c.lineTo(x+17,y+3);c.lineTo(x-17,y+3);c.closePath();c.fill();
- const g=c.createRadialGradient(x,y,1,x,y-4,13);g.addColorStop(0,'#0f2a4a');g.addColorStop(1,'#3d7fb5');c.fillStyle=g;c.beginPath();c.ellipse(x,y+1,11,9,0,Math.PI,0);c.lineTo(x+11,y+3);c.lineTo(x-11,y+3);c.closePath();c.fill();
- c.fillStyle='#e6f6fd';for(let i=0;i<5;i++){const xx=x-8+i*4;c.beginPath();c.moveTo(xx-1,y-8+Math.abs(xx-x)*.6);c.lineTo(xx,y-3+Math.abs(xx-x)*.4);c.lineTo(xx+1,y-8+Math.abs(xx-x)*.6);c.fill()}}
-function obWaterStatic(c){let sd=1;for(const e of obWPlan()){sd+=3;if(e.t==='bach')obBachSeg(c,e.y0,e.y1);else if(e.t==='wf')obCliff(c,e.y0,e.y1,e.w,sd);else if(e.t==='pool')obPool(c,e,sd);else if(e.t==='casc')obCasc(c,e,sd);else if(e.t==='rohr')obRohr(c,e);else if(e.t==='tor')obTor(c,e)}}
-// bewegtes Wasser (jedes Bild): Fallstreifen, Gischt, Wellenringe in offenen Teichen, Glitzern im Bach
-function obWater(c,T){c.save();c.lineCap='round';for(const e of obWPlan()){
- if(e.t==='wf'){if(!inVR(obWX(e.y0)-30,e.y0-10,obWX(e.y1)+30,e.y1+20))continue;const L=e.y1-e.y0,n=Math.round(e.w*1.1);c.strokeStyle='rgba(255,255,255,.85)';c.lineWidth=1.1;
-  for(let i=0;i<n;i++){const f=hR(i,e.y0),o=(f-.5)*e.w*.95,sp=70+f*40;for(let r=0;r<2;r++){const y=e.y0+((T*sp+i*37+r*L*.5)%L),x=obWX(y)+o+(y-e.y0)/L*o*.15,l=7+f*8;c.globalAlpha=.55+.4*Math.sin(i+r);c.beginPath();c.moveTo(x,y);c.lineTo(x,Math.min(e.y1,y+l));c.stroke()}}
-  c.globalAlpha=1;const x=obWX(e.y1);for(let k=0;k<5;k++){const ph=(T*.9+k/5)%1;c.fillStyle='rgba(255,255,255,'+(.55*(1-ph))+')';c.beginPath();c.arc(x+(k-2)*e.w*.3+Math.sin(T*2+k)*2,e.y1+2-ph*10,3+ph*e.w*.45,0,7);c.fill()}}
- else if(e.t==='casc'){if(!inVR(obWX(e.y0)-20,e.y0,obWX(e.y1)+20,e.y1))continue;const h=(e.y1-e.y0)/e.n;c.strokeStyle='rgba(255,255,255,.9)';c.lineWidth=1;
-  for(let k=0;k<e.n;k++){const a=e.y0+k*h+h*.45,b=a+h*.4,x=obWX(a);for(let i=0;i<4;i++){const y=a+((T*60+i*17)%(b-a));c.beginPath();c.moveTo(x-2.4+i*1.6,y);c.lineTo(x-2.4+i*1.6,Math.min(b,y+4));c.stroke()}
-   const ph=(T*1.3+k*.3)%1;c.fillStyle='rgba(255,255,255,'+(.5*(1-ph))+')';c.beginPath();c.arc(x,b+1-ph*5,2+ph*4,0,7);c.fill()}}
- else if(e.t==='pool'&&e.ice<1){const x=obWX(e.y);if(!inV(x,e.y,e.rx+10))continue;c.strokeStyle='rgba(255,255,255,.5)';c.lineWidth=.6;
-  for(let k=0;k<3;k++){const ph=(T*.45+k/3)%1,oy=e.ice>0?-e.ry*(1-e.ice)*.5:0;c.globalAlpha=1-ph;c.beginPath();c.ellipse(x+(k-1)*e.rx*.25,e.y+oy-e.ry*.35,2+ph*e.rx*.45*(1-e.ice*.6),.8+ph*e.ry*.4*(1-e.ice*.6),0,0,7);c.stroke()}c.globalAlpha=1}
- else if(e.t==='bach'){if(!inVR(obWX(e.y0)-10,e.y0,obWX(e.y1)+10,e.y1))continue;c.fillStyle='rgba(255,255,255,.9)';const L=e.y1-e.y0;for(let i=0;i<Math.ceil(L/40);i++){const y=e.y0+((T*28+i*40)%L);if(!inV(obWX(y),y,6))continue;c.fillRect(obWX(y)-.8,y,1.6,2.6)}}}
- c.restore()}
 // Piste, Wege, Plätze (Stufe 7)
 function obStatic(c){if(!ost())return;const P=obPiste();
  for(let p=0;p<2;p++){c.fillStyle=p?'#fff':'#e1ecf7';const o=p?0:1.1;for(let i=0;i<P.length;i+=2){const q=P[i];c.beginPath();c.arc(q.x,q.y,q.w+o,0,7);c.fill()}}
