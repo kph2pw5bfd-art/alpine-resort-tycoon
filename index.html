@@ -3248,8 +3248,7 @@ function lotDraw(c){const nc=Math.ceil(G.spots/2),nd=Math.floor(G.spots/2),as=ta
   for(const x of xs){const a=x-13;
    if(as){c.strokeStyle='#fff';c.lineWidth=1.2;c.beginPath();c.moveTo(a,y0+1);c.lineTo(a,y0+38);c.moveTo(a+26,y0+1);c.lineTo(a+26,y0+38);c.stroke()}
    else{const py=N?y0+1:y0+33;c.fillStyle='#6f4c2c';c.fillRect(a-1.2,py,2.4,5);c.fillRect(a+24.8,py,2.4,5);c.fillStyle='#8f6a44';c.fillRect(a-1.2,py,2.4,1.2);c.fillRect(a+24.8,py,2.4,1.2)}
-   // Schneehaufen an den Enden einer Reihe (geräumt)
-   for(const d of [-1,1])if(!has(x+26*d)){const sx=x+d*22,sy=y0+(N?14:24);c.fillStyle='rgba(120,145,170,.25)';c.beginPath();c.ellipse(sx+1,sy+5,8,3,0,0,7);c.fill();c.fillStyle='#fff';c.beginPath();c.ellipse(sx,sy,7.5,5.5,0,0,7);c.fill();c.beginPath();c.ellipse(sx-1.5,sy-3,4.5,3.5,0,0,7);c.fill();c.strokeStyle='rgba(150,170,195,.6)';c.lineWidth=.6;c.beginPath();c.ellipse(sx,sy,7.5,5.5,0,0,7);c.stroke()}}}}
+  }}}
 function talDeko(c){if(talS()<2)return;
  // Bänke an den Zebrastreifen
  for(const [bx,by] of [[ZC[0]-24,R-74-RD],[ZC[0]+24,R-74-RD],[ZC[0]-24,R+78+RD],[ZC[0]+24,R+78+RD]]){c.fillStyle='rgba(30,50,80,.2)';c.fillRect(bx-8,by+3,17,2);c.fillStyle='#8a5a3a';c.fillRect(bx-8,by-3,16,3.5);c.fillStyle='#6b4428';c.fillRect(bx-8,by-6,16,1.6);c.fillRect(bx-7,by,1.4,3);c.fillRect(bx+5.6,by,1.4,3)}
