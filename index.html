@@ -2135,7 +2135,7 @@ function nightFx(c){const p=phase(),nt=1-bright();c.save();c.setTransform(1,0,0,
   const soft=(x,y,rx,ry,rgb,al,st)=>{if(!inV(x,y,Math.max(rx,ry)))return;c.save();c.translate(x,y);c.scale(1,ry/rx);const g=c.createRadialGradient(0,0,0,0,0,rx);for(const [o,m] of st||[[0,1],[.2,.72],[.45,.34],[.7,.1],[1,0]])g.addColorStop(o,'rgba('+rgb+','+(al*m).toFixed(3)+')');c.fillStyle=g;c.beginPath();c.arc(0,0,rx,0,7);c.fill();c.restore()};
   for(const [x,y] of lampPts()){soft(x,y+7,60,34,'255,214,130',.34*la);soft(x,y-25,18,18,'255,232,170',.3*la)}soft(WAX,WAY-38,30,14,'255,214,140',.3*la);soft(WAX,WAY-4,34,12,'255,214,130',.18*la);for(const [x,y] of WAYS.L){soft(x,y+1,34,19,'255,214,130',.34*la);soft(x,y-15,11,11,'255,232,170',.3*la)}
   const cone=(r,la)=>{c.save();c.translate(r.x,r.y);c.rotate(r.th||0);const y0=11,L=78;for(const [w0,w1,al] of [[7,34,.10],[5.5,26,.14],[4,18,.18]]){const g=c.createLinearGradient(0,y0,0,y0+L);g.addColorStop(0,'rgba(255,240,175,'+(al*la).toFixed(3)+')');g.addColorStop(.55,'rgba(255,236,165,'+(al*.55*la).toFixed(3)+')');g.addColorStop(1,'rgba(255,232,160,0)');c.fillStyle=g;c.beginPath();c.moveTo(-w0,y0);c.lineTo(w0,y0);c.lineTo(w1,y0+L);c.quadraticCurveTo(0,y0+L+w1*.35,-w1,y0+L);c.closePath();c.fill()}c.restore();soft(r.x-Math.sin(r.th||0)*11,r.y+Math.cos(r.th||0)*11,10,10,'255,245,200',.35*la)};
-  for(const r of rps)if(r.st==='run'){cone(r,la)}
+  for(const r of rps)if(r.st==='run'){cone(r,la)}if(typeof OXRP!=='undefined'&&OXRP.st==='run'&&G.ork&&ost())cone(OXRP,la);
   if(floodOn()||(G.flL||0)>.01){const fa=Math.min(1,la*1.25)*(G.flL||0),vx=cw/S,vy=ch/S,vis=FL.filter(m=>!(m[0]<camX-20||m[0]>camX+vx+20||m[1]<camY-10||m[1]>camY+vy+50));for(const [x,y] of vis)soft(x,y-35,13,13,'255,252,230',.85*fa);for(const r of racers)soft(r.x,r.y-5,6,6,'255,250,210',.55*la)}
   c.globalCompositeOperation='source-over';
   const WD=[];
@@ -4222,14 +4222,14 @@ function obxRoute(){const g=OQGD(),Z=obZ(),B=obPK('b'),P=[[g.x,g.y+6],[g.x+30,g.
  const C=[0];for(let i=1;i<P.length;i++)C.push(C[i-1]+Math.hypot(P[i][0]-P[i-1][0],P[i][1]-P[i-1][1]));return {P,C,L:C[C.length-1]}}
 function obxAt(R2,s){const {P,C}=R2;let i=1;while(i<C.length-1&&C[i]<s)i++;const u=cl((s-C[i-1])/Math.max(1e-6,C[i]-C[i-1]),0,1);return [P[i-1][0]+(P[i][0]-P[i-1][0])*u,P[i-1][1]+(P[i][1]-P[i-1][1])*u,P[i][0]-P[i-1][0],P[i][1]-P[i-1][1]]}
 function obxOnP(){for(const f of folks)if(f.ost&&!f.dead&&(f.st==='ski'||f.st==='oq'||f.st==='olift'||f.st==='ocq'||f.st==='oclift'||f.st==='oq2'||f.st==='olift2'))return 1;return 0}
-function obxRaupe(){const r=OXRP,p=phase();if(!G.ork||!ost()){r.st='park';return}
- if(r.st==='park'){if(r.dd!==G.day&&p>=.62&&p<.9&&(!obxOnP()||p>=.8)){r.st='run';r.dd=G.day;r.p0=p;r.q0=G.pqO;r.R=obxRoute();lg('🚜','lif','Pistenraupe Ost fährt los, Piste Ost '+Math.round(G.pqO)+' %')}return}
- const R2=r.R,u=cl((p-r.p0)/Math.max(.05,.935-r.p0),0,1);if(p<r.p0-.01)return void(r.st='park');const q=obxAt(R2,u*R2.L);r.x=q[0];r.y=q[1];if(Math.hypot(q[2],q[3])>.01)r.th=Math.atan2(-q[2],q[3]);
+function obxRaupe(dt){const r=OXRP,p=phase();if(!G.ork||!ost()){r.st='park';return}
+ if(r.st==='park'){if(r.dd!==G.day&&p>=.62&&p<.9&&(!obxOnP()||p>=.8)){r.st='run';r.dd=G.day;r.p0=p;r.q0=G.pqO;r.R=obxRoute();r.s=0;{const q=obxAt(r.R,0);r.th=Math.atan2(-q[2],q[3])||0};lg('🚜','lif','Pistenraupe Ost fährt los, Piste Ost '+Math.round(G.pqO)+' %')}return}
+ const R2=r.R;if(p<r.p0-.01)return void(r.st='park');{const q0=obxAt(R2,r.s||0),tu=Math.hypot(q0[2],q0[3])>.01?Math.atan2(-q0[2],q0[3]):r.th,dd=Math.abs(Math.atan2(Math.sin(tu-r.th),Math.cos(tu-r.th)));r.s=(r.s||0)+90*cl(1-dd/1.8,.35,1)*dt}const u=p>=.965?1:cl((r.s||0)/R2.L,0,1),q=obxAt(R2,u*R2.L);r.x=q[0];r.y=q[1];if(Math.hypot(q[2],q[3])>.01){const tt=Math.atan2(-q[2],q[3]),df=Math.atan2(Math.sin(tt-r.th),Math.cos(tt-r.th));r.th+=df*Math.min(1,dt*6)}
  G.pqO=Math.max(G.pqO,Math.min(100,r.q0+(100-r.q0)*u));if(u>=1){G.pqO=100;r.st='park';lg('🚜','lif','Pistenraupe Ost ist fertig, Piste Ost 100 %')}}
 // --- Schritt
 function obxStep(dt){if(!ost())return;if(G.pqO==null)G.pqO=G.pq;if(G.snO==null)G.snO=G.snow;
  oxShT-=dt;if(oxShT<=0){oxShT=.5;let o=0,n=0;OAPN=0;for(const f of folks){if(f.dead||f.oa)continue;n++;if(f.ost)o++;if(f.st==='oapi'||(f.st==='ort'&&f.nx==='oapi'))OAPN++}OSH=n>8?cl(o/n,.1,.6):.3}
- obxRaupe();
+ obxRaupe(dt);
  // Schnee Ost: Wetter wie im Westen, eigene Kanonen
  if(wxOn()){const ds=(({sonne:-.12,schnee:2.2,tau:-1.4,sturm:.3})[G.wx]||0)*((SC()&&SC().mod&&SC().mod[G.wx])||1)*.35;let na=0;
   if(G.okan)for(const n of obxCans()){if(n.on>0){na++;n.on-=dt;const m=sn.length<(SET.perf?220:700)?Math.round(dt*70*(G.kup?1.5:1)+Math.random()*.6):0;for(let i=0;i<m;i++)sn.push({x:n.x+(n.tx<n.x?-9:9),y:n.y-9,vx:(n.tx-n.x)*(.5+Math.random()*.6)+(Math.random()-.5)*14,vy:-30-Math.random()*26,t:1,r:.6+Math.random()*.9,ph:Math.random()*6})}
@@ -4745,7 +4745,16 @@ function obNearS(id,x,y){const P=obPK(id);let bs=0,bd=1e9;for(const q of P){cons
 const obPL=()=>ost()>=2?['b','r','s','z']:ost()?['b']:[];
 // --- Seilbahn-Linien und ihre Stützen; Stützen, die auf einer Piste stehen, bekommen Zaun und Polster
 function obLines(){const L=[];if(!ost())return L;L.push({id:'g1',b:obB(),t:obT(),ps:120});if(ost()>=2)L.push({id:'g2',b:obB2(),t:obT2(),ps:120},{id:'c',b:OCB(),t:OCT(),ps:110});return L}
-function obPylPts(l){if(l.id==='g1')return obG1().py.map(q=>({x:q.x,y:q.y,key:q.key}));const len=Math.hypot(l.t.x-l.b.x,l.t.y-l.b.y),ns=Math.max(1,Math.ceil(len/l.ps)),A=[];for(let i=1;i<ns;i++){const f=i/ns;A.push({x:l.b.x+(l.t.x-l.b.x)*f,y:l.b.y+(l.t.y-l.b.y)*f,key:l.id+i})}return A}
+// V237: Stützen des 6er-Sessels Ost nie auf einer Piste – auf der Linie zur Seite schieben, sonst weglassen
+let OCSP=null,OCSK='';
+function ocOnP(x,y){for(const id of obPL()){const P=obPK(id);for(let j=0;j<P.length;j++){const q=P[j];if(Math.hypot(q.x-x,q.y-y)<q.w+12)return 1}}return 0}
+function ocSup(){const b=OCB(),t=OCT(),k=V+'_'+R+'_'+ost()+'_'+b.x+'_'+b.y+'_'+t.x+'_'+t.y;if(OCSP&&OCSK===k)return OCSP;OCSK=k;const len=Math.hypot(t.x-b.x,t.y-b.y),ns=Math.max(1,Math.ceil(len/110)),A=[];
+ const at=f=>({x:b.x+(t.x-b.x)*f,y:b.y+(t.y-b.y)*f}),ok=f=>{if(f<45/len||f>1-45/len)return 0;const q=at(f);return !ocOnP(q.x,q.y+17)};
+ for(let i=1;i<ns;i++){let f=i/ns,mv=0;if(!ok(f)){const pf=A.length?A[A.length-1].f:0,nf=(i+1)/ns,C=[];for(const sg of [1,-1])for(let d=5;d<=90;d+=5){const g=f+sg*d/len;if(ok(g)){C.push(g);break}}if(!C.length)continue;f=C.sort((x,y)=>Math.min(y-pf,nf-y)-Math.min(x-pf,nf-x))[0];mv=1}
+  if(A.length&&Math.abs(f-A[A.length-1].f)*len<40)continue;const q=at(f);A.push({f,x:q.x,y:q.y,key:'c'+i,mv})}
+ for(let j=0;j<A.length;j++){if(A[j].mv)continue;const a0=j?A[j-1].f:0,a1=j<A.length-1?A[j+1].f:1;if(!j||j===A.length-1)continue;const g=(a0+a1)/2;if(ok(g)){const q=at(g);A[j].f=g;A[j].x=q.x;A[j].y=q.y}}
+ OCSP=A;return A}
+function obPylPts(l){if(l.id==='g1')return obG1().py.map(q=>({x:q.x,y:q.y,key:q.key}));if(l.id==='c')return ocSup().map(q=>({x:q.x,y:q.y,key:q.key}));const len=Math.hypot(l.t.x-l.b.x,l.t.y-l.b.y),ns=Math.max(1,Math.ceil(len/l.ps)),A=[];for(let i=1;i<ns;i++){const f=i/ns;A.push({x:l.b.x+(l.t.x-l.b.x)*f,y:l.b.y+(l.t.y-l.b.y)*f,key:l.id+i})}return A}
 let OBPYA=null,OBPYAK='';
 function obPylAll(){const k=V+'_'+R+'_'+ost();if(OBPYA&&OBPYAK===k)return OBPYA;OBPYAK=k;const M={},F=new Set();
  for(const id of obPL()){const P=obPK(id),L=[];for(const l of obLines())for(const p of obPylPts(l)){const gx=p.x,gy=p.y+17;let bi=0,bd=1e9;for(let j=0;j<P.length;j++){const d=Math.hypot(P[j].x-gx,P[j].y-gy);if(d<bd){bd=d;bi=j}}
@@ -4854,12 +4863,13 @@ function obPistesStatic(c){const L=obPL();
   for(let i=6;i<z.length-4;i+=10){const q=z[i];c.fillStyle=PCO[2];c.fillRect(q.x-.6,q.y+q.w+1,1.2,6)}
   c.fillStyle='#8a5a3c';c.fillRect(1324.3,-834,1.4,16);c.fillStyle='#262a36';c.beginPath();c.roundRect(1311,-842,29,8,1.5);c.fill();c.fillStyle='#fff';c.font='600 3.6px Fredoka,sans-serif';c.textAlign='center';c.fillText('⬛ ZIEHWEG →',1325.5,-836.6,27)}}
 // --- Zeichnen: Seilbahn (Seil, Stützen, Seilscheiben, Kabinen/Sessel) für Sektion 2 und den Sessel
-function obRope(c,T,o){const b=o.b,t=o.t,len=Math.hypot(t.x-b.x,t.y-b.y),co=o.co,dx=(t.x-b.x)/len,dy=(t.y-b.y)/len,ns=Math.max(1,Math.ceil(len/o.ps)),FE=obPylAll().F;
- const rope=c=>{for(const s of [-co,co]){c.beginPath();c.moveTo(b.x+s,b.y);for(let i=1;i<=ns;i++){const f0=(i-.5)/ns,f1=i/ns;c.quadraticCurveTo(b.x+(t.x-b.x)*f0+s,b.y+(t.y-b.y)*f0+4,b.x+(t.x-b.x)*f1+s,b.y+(t.y-b.y)*f1)}c.stroke()}};
+function obRope(c,T,o){const b=o.b,t=o.t,len=Math.hypot(t.x-b.x,t.y-b.y),co=o.co,dx=(t.x-b.x)/len,dy=(t.y-b.y)/len,ns0=Math.max(1,Math.ceil(len/o.ps)),FE=obPylAll().F;
+ const SP=o.id==='c'?ocSup().map(q=>({f:q.f,key:q.key})):Array.from({length:ns0-1},(_,i)=>({f:(i+1)/ns0,key:o.id+(i+1)})),FF=[0,...SP.map(q=>q.f),1],ns=FF.length-1,bob=f=>{let i=1;while(i<ns&&FF[i]<f)i++;return 2*Math.sin(Math.PI*cl((f-FF[i-1])/Math.max(1e-6,FF[i]-FF[i-1]),0,1))};
+ const rope=c=>{for(const s of [-co,co]){c.beginPath();c.moveTo(b.x+s,b.y);for(let i=1;i<=ns;i++){const f0=(FF[i-1]+FF[i])/2,f1=FF[i];c.quadraticCurveTo(b.x+(t.x-b.x)*f0+s,b.y+(t.y-b.y)*f0+4,b.x+(t.x-b.x)*f1+s,b.y+(t.y-b.y)*f1)}c.stroke()}};
  if(inVR(Math.min(b.x,t.x)-30,t.y-30,Math.max(b.x,t.x)+30,b.y+30)){c.strokeStyle='#161a28';c.lineWidth=1.3;rope(c)}
- for(let i=1;i<ns;i++){const f=i/ns,px=b.x+(t.x-b.x)*f,py=b.y+(t.y-b.y)*f;if(inV(px,py,60)){const fe=FE.has(o.id+i);OBAQ.push({k:py+19,d:c=>{if(fe)obFence(c,px,py+17,0);pylon(c,px,py,co+3);if(fe)obFence(c,px,py+17,1)}})}}
+ for(const sq of SP){const f=sq.f,px=b.x+(t.x-b.x)*f,py=b.y+(t.y-b.y)*f;if(inV(px,py,60)){const fe=FE.has(sq.key);OBAQ.push({k:py+19,d:c=>{if(fe)obFence(c,px,py+17,0);pylon(c,px,py,co+3);if(fe)obFence(c,px,py+17,1)}})}}
  for(const [wx,wy] of [[b.x,b.y],[t.x,t.y]])if(inV(wx,wy,40))sheave(c,wx,wy,co,-o.wa/co);
- const eu=Math.min(.2,Math.PI*co/(2*len)),cp=u=>{let a,l,f=-1;if(u<eu||u>2-eu){const g=u<eu?u:u-2,th=(g+eu)/(2*eu)*Math.PI;l=-co*Math.cos(th);a=-co*Math.sin(th)}else if(Math.abs(u-1)<eu){const th=(u-(1-eu))/(2*eu)*Math.PI;l=co*Math.cos(th);a=len+co*Math.sin(th)}else if(u<1){f=(u-eu)/(1-2*eu);a=f*len;l=co}else{f=1-(u-1-eu)/(1-2*eu);a=f*len;l=-co}return {x:b.x+dx*a+l,y:b.y+dy*a+(f>=0?2*Math.sin(Math.PI*((f*ns)%1)):0)}};
+ const eu=Math.min(.2,Math.PI*co/(2*len)),cp=u=>{let a,l,f=-1;if(u<eu||u>2-eu){const g=u<eu?u:u-2,th=(g+eu)/(2*eu)*Math.PI;l=-co*Math.cos(th);a=-co*Math.sin(th)}else if(Math.abs(u-1)<eu){const th=(u-(1-eu))/(2*eu)*Math.PI;l=co*Math.cos(th);a=len+co*Math.sin(th)}else if(u<1){f=(u-eu)/(1-2*eu);a=f*len;l=co}else{f=1-(u-1-eu)/(1-2*eu);a=f*len;l=-co}return {x:b.x+dx*a+l,y:b.y+dy*a+(f>=0?bob(f):0)}};
  const cr=[];for(const k of o.CB){const gd=gDisp(k.u,len),q=cp(gd.u);if(!inV(q.x,q.y,40))continue;const dc=c=>{c.save();c.translate(q.x,q.y-gd.lift);c.rotate(gd.open?0:Math.sin(T*(stormOn()?3.4:o.sw||1.6)+k.u*9)*(stormOn()?.16:o.sa||.05));o.cab(c,k,gd.open);c.restore()};
   if(q.y>o.zT&&q.y<o.zB){OBAQ.push({k:q.y-gd.lift+o.kd,d:dc});cr.push([q.x-o.cw/2,q.y-gd.lift+o.cy,o.cw,o.ch])}else dc(c);if(o.nw&&1-bright()>.3&&k.r.length)NWIN.push([q.x-10,q.y+10-gd.lift,20,7.6])}
  const prev=OBAC;OBAC=c=>{if(prev)prev(c);c.save();c.beginPath();c.rect(XL-50,o.zT,XR-XL+100,o.zB-o.zT);for(const r of cr)c.rect(...r);c.clip('evenodd');c.strokeStyle='#161a28';c.lineWidth=1.3;rope(c);c.restore()}}
