@@ -1,7 +1,7 @@
 // Alpine Resort Tycoon – Service Worker
 // Spiel (index.html): erst aus dem Netz holen (immer die neueste Version), ohne Netz die zuletzt gespeicherte.
 // Symbole, Manifest, Schrift: aus dem Speicher, sonst aus dem Netz (und merken).
-const V='art-v222';
+const V='art-v223';
 const CORE = ['./', 'index.html', 'manifest.webmanifest', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/icon-maskable-512.png', 'icons/apple-touch-icon.png'];
 
 self.addEventListener('install', e => {
