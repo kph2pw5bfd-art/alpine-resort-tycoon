@@ -3243,7 +3243,7 @@ const RACE={rennen:{h:10,org:800,sg:50,ent:10,gas:8,rb:6,f:1},nacht:{h:19,org:12
 const schulOn=()=>!!(G.ev&&G.ev.k==='schul'),isRace=e=>!!(e&&(e.k==='rennen'||e.k==='nacht')),evSlow=()=>(isRace(G.ev)&&G.ev.st==='run'&&!rcQ(G.ev.k))||(wcLive()&&!rcQ('wc'))||wrSlow(),
  stoerL=L=>!!(G.ev&&G.ev.k==='stoer'&&G.ev.st==='run'&&(G.ev.L===L||L===0))||!!(L&&G.brk&&G.brk.L===L),kidP=()=>Math.max(5,Math.round(G.ticket*.5)),repC=()=>Math.max(500,Math.round(cost()*.35/50)*50),
  specN=k=>Math.round(cl(30+rufE()*.6,20,90)*RACE[k].f),
- evHoldGroom=()=>{const e=G.ev;if(wrDay()&&(G.wrR.st!=='done'||wrFill(1)>.05))return true;return !!(e&&e.k==='nacht'&&(e.st!=='done'||(e.sa||0)>0))},
+ evHoldGroom=()=>{const e=G.ev;if(wrDay()&&!wrGone())return true;return !!(e&&e.k==='nacht'&&(e.st!=='done'||(e.sa||0)>0))},
  floodOn=()=>!!(G.flut&&((G.ev&&G.ev.k==='nacht'&&(G.ev.st==='pre'||G.ev.st==='run'||(G.ev.sa||0)>0))||G.flE)),
  onPiste=()=>folks.some(f=>f.st==='qu'||f.st==='lift'||f.st==='ski'||f.st==='bnk'||(f.st==='brk'&&f.y<V-60)),
  FLH=.45*CF,FLS=[[0,1],[.35,.88],[.6,.55],[.82,.2],[1,0]],hpp=p=>{for(let i=1;i<CP.length;i++)if(p<=CP[i][0])return (CP[i][1]-CP[i-1][1])/(CP[i][0]-CP[i-1][0]);return 16},
@@ -5269,7 +5269,7 @@ function wrHeli(ds,X){const R=G.wrR,p=phase();if(!X.he)X.he={x:WRHP.x,y:WRHP.y,h
  else{const mv=Math.min(dd,sp*ds);if(dd>.5){H.x+=dx/dd*mv;H.y+=dy/dd*mv}}
  H.vx=(H.x-x0)/Math.max(ds,.001);H.vs=(H.vs||0)*.92+H.vx*.08;
  const tgH=dd>60&&!fol?Math.max(th,dd>300?100:th):th;H.h+=(tgH-H.h)*Math.min(1,ds*(th===0&&dd<4?1.4:1.1));if(th===0&&dd<4&&H.h<1.5)H.h=Math.max(0,H.h-ds*6);
- if(Math.abs(H.vs)>35)H.fx=H.vs>0?1:-1;H.on=H.h>.4||dd>3||(run&&air);H.rot+=ds*(H.on?40:0)}
+ if(fol&&X.r){const d=X.r.x-H.x;if(Math.abs(d)>6)H.fx=d>0?1:-1}else if(Math.abs(H.vs)>35)H.fx=H.vs>0?1:-1;H.on=H.h>.4||dd>3||(run&&air);H.rot+=ds*(H.on?40:0)}
 
 // ---------- Kamera ----------
 function wrCamStep(X){const R=G.wrR;if(rcQ('wr'))return;
@@ -5277,7 +5277,7 @@ function wrCamStep(X){const R=G.wrR;if(rcQ('wr'))return;
  if(R.st==='cer'){if(!X.cc){X.cc=1;const s=cl(2.1,minS(),maxS());camA={s,x:(WRL+128)/2-cw/s/2,y:WRYB-6-ch*.5/s}}return}
  if(wrRun()&&X.ph==='crash'&&X.r){const s=cl(2.7,minS(),maxS()),r=X.r;camA={s,x:r.x-cw/s/2,y:r.y-ch*.45/s};return}
  if(!X.fol||!wrRun())return;const s=cl(1.55,minS(),maxS());let tx,ty;
- if(X.ph==='go'||X.ph==='crash'){tx=X.r.x;ty=X.r.y+40}else if(X.ph==='fin'){tx=WRL;ty=WRYF+40}else{tx=slopeX(wrYS()+60);ty=wrYS()+120}
+ if(X.ph==='go'||X.ph==='crash'){let a=0;for(let d=-160;d<=160;d+=40)a+=slopeX(X.r.y+d);tx=a/9;ty=X.r.y+40}else if(X.ph==='fin'){tx=WRL;ty=WRYF+40}else{tx=slopeX(wrYS()+60);ty=wrYS()+120}
  camA={s,x:tx-cw/s/2,y:ty-ch*.42/s}}
 
 // ---------- Siegerehrung & Abrechnung ----------
@@ -5299,7 +5299,10 @@ const WRTR=[{k:'up',x0:-516,L:58},{k:'ob',x0:-440,L:80,col:'#2f80ed',lab:'ALPINE
 // Füllstand Zuschauer: g=0 Strecke, g=1 Zielstadion
 function wrFill(g){const R=G.wrR,p=phase();let f=sm((p-pAt(8.4))/(pAt(10.2)-pAt(8.4)));
  if(g===0&&['end','cer','sum','done'].includes(R.st))f*=1-sm((p-pAt(15.3))/(pAt(16.3)-pAt(15.3)));
- if(g===1&&R.st==='done'){if(R.dp==null)R.dp=p;f*=1-sm((p-R.dp)/.035)}return f}
+ if(g===1&&R.st==='done'){if(R.dp==null)R.dp=p;f*=1-sm((p-R.dp)/.02)}return f}
+// nach der Abrechnung: erst gehen die Zuschauer, dann wird alles abgebaut (danach darf die Pistenraupe fahren)
+function wrAb(){const R=G.wrR;if(!R||R.st!=='done')return 1;if(R.dp==null)R.dp=phase();return 1-sm((phase()-R.dp-.015)/.025)}
+function wrGone(){return wrAb()<=0}
 // Plätze für Zuschauer und Kameras: nie unter Bäumen, nicht auf Gebäuden, Masten, Kanonen oder Liften
 function wrBlk(){const X=wrX();if(X.blk)return X.blk;const ys=wrYS()-40,TB=trees.filter(t=>t[0]>-160&&t[0]<560&&t[1]>ys-20&&t[1]<WRYF+60),A=G.areas;
  const segD=(px,py,a,b)=>{const dx=b.x-a.x,dy=b.y-a.y,t=cl(((px-a.x)*dx+(py-a.y)*dy)/(dx*dx+dy*dy),0,1);return Math.hypot(px-a.x-t*dx,py-a.y-t*dy)};
@@ -5409,7 +5412,7 @@ function wrZiel(c,t,ff,ch){const R=G.wrR;
  const X=wrX(),r=X.r;let tm='0:00,00';if(r&&X.ph==='go')tm=ft(cl(r.t/r.D,0,1)*r.tm);else if(R.fin&&R.fin.length&&['end','cer','sum','done'].includes(R.st)){const w=R.rs[R.fin[0]];tm=ft((w.t1||0)+(w.t2||0))}else if(R.last&&R.last.t)tm=ft(R.last.t);c.fillStyle='#1c2030';c.beginPath();c.roundRect((ax0+ax1)/2-14,ay-41,28,10,2);c.fill();c.fillStyle='#ffd84d';c.font='800 6.4px Fredoka,sans-serif';c.fillText(tm,(ax0+ax1)/2,ay-33.6);
  for(const x of [ax0+8,ax1-8]){c.fillStyle='#3a3f47';c.fillRect(x-.6,ay-8,1.2,8);c.fillStyle=X.ph==='fin'&&X.w>1.9?'#6cff9a':'#ff6b5e';c.fillRect(x-1,ay-9,2,2)}}
 // Übertragungswagen und Landeplatz
-function wrTruckPos(i){const p=phase(),q=WRTR[i],h=x=>pAt(x),a0=h(6.6+.35*i),a1=h(7.05+.35*i),a2=h(7.25+.35*i),u0=h(7.6+.35*i),u1=h(8.3+.35*i),f0=h(19.3),f1=h(19.8),l0=h(20+.25*i),l1=h(20.25+.25*i),l2=h(20.7+.25*i),xs=XL-120;
+function wrTruckPos(i){const p=phase(),q=WRTR[i],h=x=>pAt(x),a0=h(6.6+.35*i),a1=h(7.05+.35*i),a2=h(7.25+.35*i),u0=h(7.6+.35*i),u1=h(8.3+.35*i),R=G.wrR,dp=R&&R.st==='done'?(R.dp==null?(R.dp=p):R.dp):null,f0=dp!=null?dp+.004:h(19.3),f1=f0+.014,l0=f1+.003+.006*i,l1=l0+.006,l2=l1+.02,xs=XL-120;
  if(p<a0||p>=l2)return null;let x=q.x0,y=WRTY,u=0,fx=1;
  if(p<a1){x=xs+(q.x0-xs)*sm((p-a0)/(a1-a0));y=WRLY}else if(p<a2){y=WRLY+(WRTY-WRLY)*sm((p-a1)/(a2-a1))}
  else if(p<l0){u=sm((p-u0)/(u1-u0))*(1-sm((p-f0)/(f1-f0)))}
@@ -5453,18 +5456,17 @@ function wrValley(c,t,nt){const p=phase();
   c.fillStyle='#2f80ed';c.fillRect(hx-46,hy+6,16,8);c.fillStyle='#fff';c.font='800 2.8px Fredoka,sans-serif';c.fillText('HELI',hx-38,hy+9.6);c.fillText('TV',hx-38,hy+12.6);c.fillStyle='#5d667a';c.fillRect(hx-38.4,hy+14,.8,5)}
  // Übertragungswagen, Kabel, Pylonen
  if(!inVR(-560,960,-220,1090,60))return;const P=WRTR.map((q,i)=>wrTruckPos(i));if(P.every(q=>!q))return;
- const set=p>=pAt(7.9)&&p<pAt(19.9);if(set){c.strokeStyle='#2b303d';c.lineWidth=.9;c.beginPath();c.moveTo(-486,WRTY-4);c.bezierCurveTo(-470,WRTY-30,-420,WRTY-36,-380,WRTY-30);c.bezierCurveTo(-330,WRTY-24,-300,WRTY-40,-250,WRTY-46);c.stroke();
-  for(const [x,y] of [[-470,WRTY-28],[-262,WRTY-44]]){c.fillStyle='#b9764a';c.beginPath();c.ellipse(x,y,4,5,0,0,7);c.fill();c.fillStyle='#2b303d';c.beginPath();c.ellipse(x,y,2,2.6,0,0,7);c.fill()}
-  for(let k=0;k<9;k++){const x=-528+k*35,y=WRTY+9;c.fillStyle='#f28c28';c.beginPath();c.moveTo(x-2.4,y);c.lineTo(x+2.4,y);c.lineTo(x,y-6);c.closePath();c.fill();c.fillStyle='#fff';c.fillRect(x-1.2,y-3.4,2.4,1)}}
+ const set=p>=pAt(7.9)&&p<pAt(19.9);if(set){for(let k=0;k<9;k++){const x=-528+k*35,y=WRTY+9;c.fillStyle='#f28c28';c.beginPath();c.moveTo(x-2.4,y);c.lineTo(x+2.4,y);c.lineTo(x,y-6);c.closePath();c.fill();c.fillStyle='#fff';c.fillRect(x-1.2,y-3.4,2.4,1)}}
  P.forEach((q,i)=>{if(q)wrTruck(c,i,q,nt)})}
-function wrDrawG(c,t){if(wrHold()&&!open){open='wrs';render()}wrOv();if(!wrDay())return;const R=G.wrR,X=wrX(),nt=NIGHT(),dt=Math.min(.1,Math.max(0,t-(X.lt||t)));X.lt=t;if(X.cheer>0)X.cheer-=dt;
- wrValley(c,t,nt);if(!inVR(-140,wrYS()-90,560,WRYB+140,40))return;
  // Renntag: eigene Abfahrt vom Ende der schwarzen Piste zur Talstation (statt über die Rennstrecke)
- if(G.ps&&inVR(300,540,520,V+10,30)){const L=[],Rr=[];for(let y=548;y<=V+6;y+=4){const b=sm((y-560)/110),cx=pX(2,y)+(352-pX(2,y))*b,w=pW(2,y)*(1-b)+15*b;L.push([cx-w,y]);Rr.push([cx+w,y])}
+function wrBand(c){if(!wrDay()||!G.ps||wrGone()||!inVR(300,540,520,V+10,30))return;c.save();c.globalAlpha=wrAb();{const L=[],Rr=[];for(let y=548;y<=V+6;y+=4){const b=sm((y-560)/110),cx=pX(2,y)+(352-pX(2,y))*b,w=pW(2,y)*(1-b)+15*b;L.push([cx-w,y]);Rr.push([cx+w,y])}
   c.fillStyle='#fdfeff';c.beginPath();L.forEach((q,i)=>i?c.lineTo(q[0],q[1]):c.moveTo(q[0],q[1]));for(let i=Rr.length-1;i>=0;i--)c.lineTo(Rr[i][0],Rr[i][1]);c.closePath();c.fill();
   c.strokeStyle='rgba(160,190,225,.55)';c.lineWidth=1;for(const P of [L,Rr]){c.beginPath();P.forEach((q,i)=>i?c.lineTo(q[0],q[1]):c.moveTo(q[0],q[1]));c.stroke()}
   c.strokeStyle='rgba(185,205,230,.45)';c.lineWidth=.6;for(const o of [-.45,0,.45]){c.beginPath();for(let i=0;i<L.length;i++){const x=(L[i][0]+Rr[i][0])/2+o*(Rr[i][0]-L[i][0])/2;i?c.lineTo(x,L[i][1]):c.moveTo(x,L[i][1])}c.stroke()}
-  for(const [y,d] of [[600,1],[690,-1]]){const b=sm((y-560)/110),cx=pX(2,y)+(352-pX(2,y))*b,w=pW(2,y)*(1-b)+15*b;pSign(c,cx+d*(w+6),y,2)}}
+  for(const [y,d] of [[600,1],[690,-1]]){const b=sm((y-560)/110),cx=pX(2,y)+(352-pX(2,y))*b,w=pW(2,y)*(1-b)+15*b;pSign(c,cx+d*(w+6),y,2)}}c.restore()}
+function wrDrawG(c,t){if(wrHold()&&!open){open='wrs';render()}wrOv();if(!wrDay())return;const R=G.wrR,X=wrX(),nt=NIGHT(),dt=Math.min(.1,Math.max(0,t-(X.lt||t)));X.lt=t;if(X.cheer>0)X.cheer-=dt;
+ wrValley(c,t,nt);if(wrGone()||!inVR(-140,wrYS()-90,560,WRYB+140,40))return;c.save();c.globalAlpha=wrAb();try{wrCourse(c,t,R,X)}finally{c.restore()}}
+function wrCourse(c,t,R,X){
  // Fahrspur auf der Piste
  const ys=wrYS();{const y0=Math.max(ys,VW.y0-20),y1=Math.min(WRYF,VW.y1+20);if(y1>y0){c.strokeStyle='rgba(150,180,215,.32)';c.lineWidth=3;c.beginPath();for(let y=y0;y<=y1;y+=5){const x=wrLineX(y);y===y0?c.moveTo(x,y):c.lineTo(x,y)}c.stroke()}}
  for(const g of wrGates())if(inV(g.c,g.y,60))wrGateD(c,g);
@@ -5538,7 +5540,7 @@ function wrBind(el){const a=$('wrok');if(a)a.onclick=()=>{sfx('click');wrConfirm
 // Läufer, Bergwacht, Siegerehrung (über den Gästen)
 function wrRacerD(c,x,y,cc,sv,lok,t){personN(c,{x,y,st:'ski',col:WRSU[cc]||'#4a6fd1',board:false,sv},t);c.fillStyle=lok?'#ffd84d':'#fff';c.fillRect(x-1.7,y-6.2,3.4,2.8);c.fillStyle='#2b3a55';c.fillRect(x-.6,y-5.6,1.2,1.4)}
 function wrBwD(c,b,i){const x=b.x,y=b.y;personN(c,{x,y,st:'qu',col:'#d8433d',board:false},T*2+i);c.fillStyle='#fff';c.fillRect(x-.4,y-8.4,.8,2.6);c.fillRect(x-1.3,y-7.5,2.6,.8)}
-function wrDrawR(c,t){if(!wrDay())return;const R=G.wrR,X=wrX(),r=X.r;
+function wrDrawR(c,t){if(!wrDay()||wrGone())return;const R=G.wrR,X=wrX(),r=X.r;
  if(r&&inV(r.x,r.y,30)){const rc=R.rs[r.ri];
   if(r.st==='cr'){if(r.ct<1.1){c.save();c.translate(r.x,r.y-3);c.rotate(r.ct*9*r.cs);hxLie(c,0,0,1,{hel:WRSU[rc.cc]});c.restore()}else hxLie(c,r.x,r.y,r.cs,{hel:WRSU[rc.cc]})}
   else if(r.st==='ak'){hxAkja(c,r.x+3,r.y+1);hxLie(c,r.x+2,r.y-1,1,{bl:1,hel:WRSU[rc.cc]})}
@@ -5548,7 +5550,7 @@ function wrDrawR(c,t){if(!wrDay())return;const R=G.wrR,X=wrX(),r=X.r;
  if(wrRun()&&X.ph==='wait'&&R.ord[R.i]!=null){const ys=wrYS(),x=slopeX(ys),rc=R.rs[R.ord[R.i]];if(rc&&inV(x,ys,30)){const sw=Math.sin(T*2.4)*.8;personN(c,{x:x+sw,y:ys-3,st:'qu',col:WRSU[rc.cc]||'#4a6fd1',board:false},0);c.fillStyle=rc.lok?'#ffd84d':'#fff';c.fillRect(x+sw-1.7,ys-9.2,3.4,2.8)}}
  if(X.bw.length&&X.bwT<4.4&&!(r&&r.st==='ak')){const b=X.bw[0];hxAkja(c,b.x+(X.bwP.d>0?5:-5),b.y+2)}
  // Siegerehrung: die Besten auf dem Podest
- if(['cer','sum','done'].includes(R.st)&&R.fin&&inVR(WRL-40,WRYB-80,WRL+40,WRYB+10,20)){const px=WRL,py=WRYB-14,on=R.st!=='cer'||X.cs>2.2;
+ if(['cer','sum'].includes(R.st)&&R.fin&&inVR(WRL-40,WRYB-80,WRL+40,WRYB+10,20)){const px=WRL,py=WRYB-14,on=R.st!=='cer'||X.cs>2.2;
   // Fahnen hinter dem Podest
   [[-17,1],[0,0],[17,2]].forEach(([o,k])=>{const ri=R.fin[k];if(ri==null)return;const up=R.st==='cer'?cl((X.cs-3-k*.4)/4,0,1):1;wrFlag(c,px+o+.4,py-46+(1-up)*20,10,6.4,R.rs[ri].cc,Math.sin(T*3+k)*.6)});
   if(on)[[-17,8,1],[0,12,0],[17,6,2]].forEach(([o,h,k])=>{const ri=R.fin[k];if(ri==null)return;const rc=R.rs[ri],jb=k===0?Math.abs(Math.sin(T*4))*1.4:Math.abs(Math.sin(T*3+k))*.6;c.save();c.translate(0,-jb);personN(c,{x:px+o,y:py-h,st:'qu',col:WRSU[rc.cc]||'#4a6fd1',board:false},0);c.restore();
@@ -5573,7 +5575,7 @@ function wrHeliD(c,H,t){if(!H||H.away)return;const x=H.x,y=H.y,h=H.h;if(!inV(x,y
  c.fillStyle='#e8504a';if(Math.sin(T*6)>.3)c.fillRect(-44,-13,1.6,1.6);c.restore()}
 function wrDrawA(c,t){if(!wrDay())return;wrHeliD(c,wrX().he,t)}
 // Nacht: Licht im Zielstadion
-function wrNight(c,la,soft){if(!wrDay())return;const R=G.wrR;if(R.st==='done'&&wrFill(1)<.05)return;
+function wrNight(c,la,soft){if(!wrDay()||wrGone())return;la*=wrAb();const R=G.wrR;if(R.st==='done'&&wrFill(1)<.05)return;
  for(const [x,y] of [[WRXL-40,WRYF+40],[WRXR+40,WRYF+40],[WRL,WRYF+10],[WRL,WRYB-20]])soft(x,y,70,40,'255,244,210',.42*la);
  soft(WRL,WRYB+65,70,32,'120,170,255',.3*la);
  for(const [x,y] of [[-440,WRTY-14],[-340,WRTY-14],[-490,WRTY-16]])soft(x,y,22,12,'255,214,140',.3*la)}
@@ -5609,7 +5611,7 @@ function wrOv(){const R=G.wrR,show=!!(wrDay()&&['r1','p','r2','end'].includes(R.
 
 // ===== V239: Versteckter Testbereich (Optionen › 5× auf die Versionszeile tippen) =====
 // Jeder Test sichert vorher den Spielstand; „Test beenden“ holt ihn zurück. Neue Tests einfach in TESTS eintragen.
-const TVER='V240',TBAK='art-test-bak';
+const TVER='V241',TBAK='art-test-bak';
 const TESTS=[
  {id:'wr1',ic:'🏁',t:'Weltcuprennen – ganzer Renntag',
   was:['Übertragungswagen stehen aufgebaut, Landeplatz und Hubschrauber im Tal','Zuschauer an der Strecke, Tribünen und LED-Wand im Ziel','Westpiste gesperrt: Gäste fahren über die schwarze Piste','1. Durchgang (10:30) mit Kamerafahrt, Zeitlupe und Hubschrauber, der dem Läufer folgt','Mögliche Stürze mit Bergwacht, Pause mit Landung im Tal, 2. Durchgang (13:00)','Siegerehrung 18:15 mit Feuerwerk, danach die Abrechnung zum Bestätigen'],
@@ -5705,7 +5707,7 @@ function draw0(dt){
  for(const k of clouds){k.x+=k.v*dt;if(k.x>XR+20)k.x=XL-60;cloud(c,k.x,k.y-EXT,k.k)}plotDraw(c,T);if(prjV('teich'))teichDraw(c,T);if(prjV('schanze'))schanzeDraw(c,T);if(prjV('park'))parkDraw(c,T);if(prjV('arena'))arenaDraw(c,T);if(prjV('kind'))kindDraw(c,T);if(prjV('therme'))thermeDraw(c,T);g2Draw(c,T);if(prjV('gipf'))gipfDraw(c,T);
  for(const [hx,hy] of CHL().slice(1).map(q=>[q[0]+q[2]*.25+.2,q[1]-q[3]-16])){c.fillStyle='#8a5a3c';c.fillRect(hx-2.5,hy,5,9);
   for(let q=0;q<3;q++){const ph=(T*.35+q/3)%1;c.fillStyle='rgba(235,240,248,'+(.7*(1-ph))+')';c.beginPath();c.arc(hx+ph*9+Math.sin(T*2+q)*1.5,hy-ph*24,2+ph*4.5,0,7);c.fill()}}
- lotDraw(c);talDeko(c);obWater(c,T);obDraw(c,T);
+ lotDraw(c);talDeko(c);wrBand(c);obWater(c,T);obDraw(c,T);
  for(let j=0;j<(G.bus||0);j++){const x=spotX(200+j),sd=0,y0=R-62-RD;c.fillStyle='#7b8497';c.fillRect(x-12,y0,24,50);c.strokeStyle='#ffd84d';c.lineWidth=1.4;c.beginPath();c.moveTo(x-12,y0);c.lineTo(x-12,y0+50);c.moveTo(x+12,y0);c.lineTo(x+12,y0+50);c.stroke();c.fillStyle='rgba(255,216,77,.85)';c.font='700 6.5px Fredoka,sans-serif';c.textAlign='center';c.fillText('BUS',x,sd?y0+46:y0+9)}
  drawLamps(c);wayLamps(c,0);
  const stQ=[];for(let L=1;L<=G.areas;L++){if(wcIn(L))continue;const e=ends(L),co=ropeCo(L),cw=carW(L),op=co+cw/2+4;stQ.push([e.b.x,e.b.y,op,L===1,isG(L)],[e.t.x,e.t.y,op,false,isG(L)])}
