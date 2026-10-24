@@ -3997,7 +3997,7 @@ const OBTW=()=>R-172,OBKY=()=>R-100,OBMY=()=>Yk(2)-46,OBPY=()=>Yk(5)+30,obZ=()=>
 // Parkplätze Ost: [x, Seite 0 = Nord / 1 = Süd]; Platz-Nummern 800+i
 const OBPK=[...[0,1,2,3,4,5,6].map(j=>[1072+26*j,0]),...[0,1,2,3,4].map(j=>[1072+26*j,1]),...[0,1,2,3,4,5].map(j=>[1364+26*j,1])];
 const obSX=i=>OBPK[i-800][0],obSd=i=>OBPK[i-800][1],obSY=i=>obSd(i)?R+32+RD:R-32-RD,obFY=i=>obSd(i)?R+46+RD:R-46-RD;
-const obB=()=>({x:OBTX,y:OBTW()}),obT=()=>({x:OBMX,y:OBMY()}),obLen=()=>{const b=obB(),t=obT();return Math.hypot(t.x-b.x,t.y-b.y)};
+const obB=()=>({x:OBTX,y:OBTW()}),obT=()=>({x:OBMX,y:OBMY()}),obLen=()=>obG1().L;
 const obBach=y=>1047+9*Math.sin(y/88+.6)+5*Math.sin(y/31+1.7);
 let OBQ=[],OBCB=[],obWasC=false,obLcU=0,obWA=0,obLastGone=0;
 function obInit(){if(OBCB.length===OBGN)return;OBCB=[];for(let i=0;i<OBGN;i++)OBCB.push({u:i*2/OBGN,r:[]})}
@@ -4025,7 +4025,7 @@ function obOnP(x,y,m){if(!OBGR||OBGR.k!==ost()){const S2=new Set();S2.k=ost();fo
 function obTree(x,y){if(x<OBX0-40)return 0;if(y<R-90&&Math.abs(x-obBach(y))<10)return 1;if(obWHit(x,y))return 1;
  {const py=OBPY();if(x>1290&&x<1540&&y>py-90&&y<py+52)return 1}
  if(!ost())return 0;if(ob8Tree(x,y))return 1;const box=(a,b,c2,d)=>x>a&&x<b&&y>c2&&y<d;if(OXL()&&box(1056,1156,R-205,R-60))return 1;
- if(obOnP(x,y)||obOnP(x,y-16)||obOnP(x,y-32))return 1;const b=obB(),t=obT();if(y>t.y-40&&y<b.y+30){const lx=b.x+(t.x-b.x)*(b.y-y)/(b.y-t.y);if(Math.abs(x-lx)<34)return 1}
+ if(obOnP(x,y)||obOnP(x,y-16)||obOnP(x,y-32))return 1;const b=obB(),t=obT();if(y>t.y-40&&y<b.y+30){const lx=obG1X(y);if(Math.abs(x-lx)<34)return 1}
  if(box(OBMX-70,OBMX+64,OBMY()-56,OBMY()+58))return 1;if(box(1180,1432,R-214,R-60))return 1;
  if(box(1216,1246,R-160,R-60))return 1;if(box(1176,OBBX+92,R+44,TY()+6))return 1;return 0}
 // --- Gondel: Schritt, Einsteigen unten, Aussteigen oben
@@ -4398,18 +4398,38 @@ function obFence(c,x,y,fr){const rx=15,ry=6.5,h=6,n=10;
  c.strokeStyle='rgba(255,236,210,.6)';c.lineWidth=.4;c.beginPath();P.forEach(([px,py],i)=>i?c.lineTo(px,py-h*.5):c.moveTo(px,py-h*.5));c.stroke();
  c.fillStyle='#5a4a3a';for(let i=0;i<=n;i+=2){const [px,py]=P[i];c.fillRect(px-.5,py-h-1.2,1,h+1.4)}
  if(fr){c.fillStyle='#2f6fd0';c.beginPath();c.roundRect(x-2.6,y-9,5.2,8.5,1.4);c.fill();c.fillStyle='#fff';c.fillRect(x-2.6,y-6,5.2,1.1);c.fillStyle='rgba(0,0,0,.15)';c.fillRect(x+.6,y-9,2,8.5)}}
-function obDraw(c,T){OBAQ=[];OBAC=null;if(!ost())return;obInit();const b=obB(),t=obT(),len=obLen(),co=OBCO,dx=(t.x-b.x)/len,dy=(t.y-b.y)/len,ns=Math.max(1,Math.ceil(len/120));
+// ===== V212: Gondel Ost Sektion 1 nach Skizze des Spielers – Seillinie mit Knick nach Westen, Richtungswechsel abgerundet, 4 Stützen =====
+// Eckpunkte: Talstation (gerade hinaus) → Knick-Stütze im Wald → gerade hinauf → senkrecht in die Mittelstation. Rundung über quadratische Bögen.
+let OBG1=null,OBG1K='';
+function obG1(){const b=obB(),t=obT(),key=b.x+'_'+b.y+'_'+t.x+'_'+t.y;if(OBG1&&OBG1K===key)return OBG1;OBG1K=key;
+ const W=[[b.x,b.y],[b.x,b.y-48],[b.x-124,b.y-358],[t.x,t.y+70],[t.x,t.y]],RA=[0,140,260,140,0],Q=[],KA=[];
+ const add=(x,y)=>{const l=Q[Q.length-1];if(l&&Math.hypot(x-l.x,y-l.y)<.01)return;Q.push({x,y})};add(W[0][0],W[0][1]);
+ for(let i=1;i<W.length-1;i++){const p=W[i-1],q=W[i],n=W[i+1];let ax=q[0]-p[0],ay=q[1]-p[1],bx=n[0]-q[0],by=n[1]-q[1];const la=Math.hypot(ax,ay),lb=Math.hypot(bx,by);ax/=la;ay/=la;bx/=lb;by/=lb;
+  const th=Math.acos(Math.max(-1,Math.min(1,ax*bx+ay*by)));const L=Math.min(RA[i]*Math.tan(th/2),la*.45,lb*.45),sx=q[0]-ax*L,sy=q[1]-ay*L,ex=q[0]+bx*L,ey=q[1]+by*L;
+  for(let k=0;k<=32;k++){const u=k/32,v=1-u;add(v*v*sx+2*u*v*q[0]+u*u*ex,v*v*sy+2*u*v*q[1]+u*u*ey);if(k===16)KA[i]=Q.length-1}}
+ add(W[4][0],W[4][1]);let s0=0;Q[0].s=0;for(let i=1;i<Q.length;i++){s0+=Math.hypot(Q[i].x-Q[i-1].x,Q[i].y-Q[i-1].y);Q[i].s=s0}
+ const G={Q,L:s0},sy=y=>{let lo=0,hi=Q.length-1;while(hi-lo>1){const m=(lo+hi)>>1;if(Q[m].y>y)lo=m;else hi=m}const a=Q[lo],c=Q[hi],u=(a.y-y)/Math.max(1e-6,a.y-c.y);return a.s+(c.s-a.s)*u};
+ // Stützen wie in der Skizze: knapp über der Talstation, am Knick, zwei auf dem Weg zur Mittelstation
+ const S=[sy(b.y-108),Q[KA[2]].s,sy(t.y+232),sy(t.y+106)];G.sp=[0,...S,s0];OBG1=G;
+ G.py=S.map((s,i)=>{const p=obG1At(s);return {x:p.x,y:p.y,s,key:'g1'+(i+1)}});return G}
+function obG1At(a){const G=obG1(),Q=G.Q;if(a<=0)return {x:Q[0].x,y:Q[0].y-a};if(a>=G.L){const e=Q[Q.length-1];return {x:e.x,y:e.y-(a-G.L)}}
+ let lo=0,hi=Q.length-1;while(hi-lo>1){const m=(lo+hi)>>1;if(Q[m].s<a)lo=m;else hi=m}const p=Q[lo],q=Q[hi],u=(a-p.s)/Math.max(1e-6,q.s-p.s);return {x:p.x+(q.x-p.x)*u,y:p.y+(q.y-p.y)*u}}
+// Seil hängt zwischen den Stützen durch (längere Felder etwas mehr)
+function obG1Sag(a){const sp=obG1().sp;if(a<=0||a>=sp[sp.length-1])return 0;let j=0;while(j<sp.length-2&&a>sp[j+1])j++;const w=sp[j+1]-sp[j],f=(a-sp[j])/w;return Math.min(4.5,Math.max(2,2*w/120))*Math.sin(Math.PI*f)}
+function obG1X(y){const Q=obG1().Q;if(y>=Q[0].y)return Q[0].x;if(y<=Q[Q.length-1].y)return Q[Q.length-1].x;let lo=0,hi=Q.length-1;while(hi-lo>1){const m=(lo+hi)>>1;if(Q[m].y>y)lo=m;else hi=m}const a=Q[lo],c=Q[hi];return a.x+(c.x-a.x)*(a.y-y)/Math.max(1e-6,a.y-c.y)}
+function obG1Rope(c,co){const L=obG1().L,n=Math.ceil(L/5);for(const o of [-co,co]){c.beginPath();for(let i=0;i<=n;i++){const a=L*i/n,p=obG1At(a);i?c.lineTo(p.x+o,p.y+obG1Sag(a)):c.moveTo(p.x+o,p.y)}c.stroke()}}
+function obDraw(c,T){OBAQ=[];OBAC=null;if(!ost())return;obInit();const b=obB(),t=obT(),len=obLen(),co=OBCO,G1=obG1();
  obDeko(c,T);obKassa(c);obQFence(c);
  obStBack(c,b.x,b.y,56);obStBack(c,t.x,t.y,44);
- c.strokeStyle='#161a28';c.lineWidth=1.3;for(const o of [-co,co]){c.beginPath();c.moveTo(b.x+o,b.y);for(let i=1;i<=ns;i++){const f0=(i-.5)/ns,f1=i/ns;c.quadraticCurveTo(b.x+(t.x-b.x)*f0+o,b.y+(t.y-b.y)*f0+4,b.x+(t.x-b.x)*f1+o,b.y+(t.y-b.y)*f1)}c.stroke()}
- for(let i=1;i<ns;i++){const f=i/ns,px=b.x+(t.x-b.x)*f,py=b.y+(t.y-b.y)*f;if(inV(px,py,60)){const fe=obPyl().some(y=>Math.abs(y.x-px)<1&&Math.abs(y.y-py)<1);OBAQ.push({k:py+19,d:c=>{if(fe)obFence(c,px,py+17,0);pylon(c,px,py,co+3);if(fe)obFence(c,px,py+17,1)}})}}
+ c.strokeStyle='#161a28';c.lineWidth=1.3;obG1Rope(c,co);
+ for(const q of G1.py){const px=q.x,py=q.y;if(inV(px,py,60)){const fe=obPylAll().F.has(q.key);OBAQ.push({k:py+19,d:c=>{if(fe)obFence(c,px,py+17,0);pylon(c,px,py,co+3);if(fe)obFence(c,px,py+17,1)}})}}
  for(const [wx,wy] of [[b.x,b.y],[t.x,t.y]])sheave(c,wx,wy,co,-obWA/co);
  const zT=t.y+34,zB=b.y-78; // zwischen den Stationen: Kabinen und Seil später nach Tiefe
- const eu=Math.min(.2,Math.PI*co/(2*len)),cp=u=>{let a,l,f=-1;if(u<eu||u>2-eu){const g=u<eu?u:u-2,th=(g+eu)/(2*eu)*Math.PI;l=-co*Math.cos(th);a=-co*Math.sin(th)}else if(Math.abs(u-1)<eu){const th=(u-(1-eu))/(2*eu)*Math.PI;l=co*Math.cos(th);a=len+co*Math.sin(th)}else if(u<1){f=(u-eu)/(1-2*eu);a=f*len;l=co}else{f=1-(u-1-eu)/(1-2*eu);a=f*len;l=-co}return {x:b.x+dx*a+l,y:b.y+dy*a+(f>=0?2*Math.sin(Math.PI*((f*ns)%1)):0)}};
+ const eu=Math.min(.2,Math.PI*co/(2*len)),cp=u=>{let a,l,f=-1;if(u<eu||u>2-eu){const g=u<eu?u:u-2,th=(g+eu)/(2*eu)*Math.PI;l=-co*Math.cos(th);a=-co*Math.sin(th)}else if(Math.abs(u-1)<eu){const th=(u-(1-eu))/(2*eu)*Math.PI;l=co*Math.cos(th);a=len+co*Math.sin(th)}else if(u<1){f=(u-eu)/(1-2*eu);a=f*len;l=co}else{f=1-(u-1-eu)/(1-2*eu);a=f*len;l=-co}const p=obG1At(a);return {x:p.x+l,y:p.y+(f>=0?obG1Sag(a):0)}};
  const cr=[];for(const k of OBCB){const gd=gDisp(k.u,len),q=cp(gd.u),dc=c=>{c.save();c.translate(q.x,q.y-gd.lift);c.rotate(gd.open?0:Math.sin(T*(stormOn()?3.4:1.6)+k.u*9)*(stormOn()?.16:.05));gondelO(c,k,gd.open);c.restore()};
   if(q.y>zT&&q.y<zB){if(inV(q.x,q.y,40)){OBAQ.push({k:q.y-gd.lift+20,d:dc});cr.push([q.x-13,q.y-gd.lift+2.5,26,23])}}else dc(c);if(1-bright()>.3&&k.r.length)NWIN.push([q.x-10,q.y+10-gd.lift,20,7.6])}
  OBAQ.sort((a,b2)=>a.k-b2.k);
- OBAC=c=>{c.save();c.beginPath();c.rect(XL-50,zT,XR-XL+100,zB-zT);for(const r of cr)c.rect(...r);c.clip('evenodd');c.strokeStyle='#161a28';c.lineWidth=1.3;for(const o of [-co,co]){c.beginPath();c.moveTo(b.x+o,b.y);for(let i=1;i<=ns;i++){const f0=(i-.5)/ns,f1=i/ns;c.quadraticCurveTo(b.x+(t.x-b.x)*f0+o,b.y+(t.y-b.y)*f0+4,b.x+(t.x-b.x)*f1+o,b.y+(t.y-b.y)*f1)}c.stroke()}c.restore()};
+ OBAC=c=>{c.save();c.beginPath();c.rect(XL-50,zT,XR-XL+100,zB-zT);for(const r of cr)c.rect(...r);c.clip('evenodd');c.strokeStyle='#161a28';c.lineWidth=1.3;obG1Rope(c,co);c.restore()};
  ob8Draw(c,T);obStFront(c,t.x,t.y,44,false,T,ost()>=2?['MITTELSTATION','2.050 m · Treffpunkt 🟦🟥⬛','#2f6fb5']:null);obStFront(c,b.x,b.y,56,true,T);obBahnhof(c)}
 // Gesperrter Ostberg: leicht vereist mit Schloss und Schild
 function obLock(c){if(ost())return;const y1=R-96,x0=OBX0+14;c.save();c.fillStyle='rgba(206,230,247,.55)';c.fillRect(x0,-EXT-20,XR-x0+20,y1+EXT+20);c.fillStyle='rgba(206,230,247,.55)';for(let y=-EXT;y<y1;y+=24){c.beginPath();c.arc(x0,y,12,0,7);c.fill()}
@@ -4446,7 +4466,7 @@ function obNearS(id,x,y){const P=obPK(id);let bs=0,bd=1e9;for(const q of P){cons
 const obPL=()=>ost()>=2?['b','r','s','z']:ost()?['b']:[];
 // --- Seilbahn-Linien und ihre Stützen; Stützen, die auf einer Piste stehen, bekommen Zaun und Polster
 function obLines(){const L=[];if(!ost())return L;L.push({id:'g1',b:obB(),t:obT(),ps:120});if(ost()>=2)L.push({id:'g2',b:obB2(),t:obT2(),ps:120},{id:'c',b:OCB(),t:OCT(),ps:110});return L}
-function obPylPts(l){const len=Math.hypot(l.t.x-l.b.x,l.t.y-l.b.y),ns=Math.max(1,Math.ceil(len/l.ps)),A=[];for(let i=1;i<ns;i++){const f=i/ns;A.push({x:l.b.x+(l.t.x-l.b.x)*f,y:l.b.y+(l.t.y-l.b.y)*f,key:l.id+i})}return A}
+function obPylPts(l){if(l.id==='g1')return obG1().py.map(q=>({x:q.x,y:q.y,key:q.key}));const len=Math.hypot(l.t.x-l.b.x,l.t.y-l.b.y),ns=Math.max(1,Math.ceil(len/l.ps)),A=[];for(let i=1;i<ns;i++){const f=i/ns;A.push({x:l.b.x+(l.t.x-l.b.x)*f,y:l.b.y+(l.t.y-l.b.y)*f,key:l.id+i})}return A}
 let OBPYA=null,OBPYAK='';
 function obPylAll(){const k=V+'_'+R+'_'+ost();if(OBPYA&&OBPYAK===k)return OBPYA;OBPYAK=k;const M={},F=new Set();
  for(const id of obPL()){const P=obPK(id),L=[];for(const l of obLines())for(const p of obPylPts(l)){const gx=p.x,gy=p.y+17;let bi=0,bd=1e9;for(let j=0;j<P.length;j++){const d=Math.hypot(P[j].x-gx,P[j].y-gy);if(d<bd){bd=d;bi=j}}
