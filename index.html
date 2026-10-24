@@ -5214,12 +5214,12 @@ function wrRace(ds,X){const R=G.wrR;
  const r=X.r;if(!r)return;
  if(X.ph==='go'){r.t+=ds;const L=WRYF-wrYS(),y=wrYS()+L*wrEase(r.t/r.D);const nx=wrLineX(y);r.vx=(nx-r.x)/Math.max(ds,.001);r.sv+=(r.vx-r.sv)*Math.min(1,ds*6);r.x=nx;r.vy=(y-r.y)/Math.max(ds,.001);r.y=y;
   if(fx.length<160&&Math.random()<ds*(16+Math.abs(r.vx)*.5))fx.push({x:r.x,y:r.y,vx:(Math.random()-.5)*12-r.vx*.2,vy:-8-Math.random()*6,t:.6});
-  if(r.cy!=null&&r.y>=r.cy){X.ph='crash';r.st='cr';r.ct=0;const c=slopeX(r.y),w=slopeW(r.y);r.cs=r.x>=c?1:-1;r.cx0=r.x;r.cy0=r.y;r.cx1=c+r.cs*(w+1);r.cy1=r.y+34;R.rs[r.ri]['d'+R.run]=1;R.last={ri:r.ri,dnf:1};
+  if(r.cy!=null&&r.y>=r.cy){X.ph='crash';r.st='cr';r.ct=0;const c=slopeX(r.y),w=slopeW(r.y);r.cs=r.x>=c?1:-1;r.cx0=r.x;r.cy0=r.y;r.cx1=c+r.cs*Math.max(4,w-9);r.cy1=r.y+34;R.rs[r.ri]['d'+R.run]=1;R.last={ri:r.ri,dnf:1};
    lg('🚑','ev','Sturz! '+R.rs[r.ri].nm+' ist im '+R.run+'. Durchgang ausgeschieden.');if(!rcQ('wr')&&SET.hint)toast('😱 Sturz! Die Bergwacht ist schon unterwegs.',3000);return}
-  if(r.y>=WRYF){const tm=r.tm;R.rs[r.ri]['t'+R.run]=Math.round(tm*100)/100;R.last={ri:r.ri,t:tm};X.ph='fin';X.w=2.3;r.st='fin';r.v=r.vy;X.cheer=2.2;wrRank();
+  if(r.y>=WRYF){const tm=r.tm;R.rs[r.ri]['t'+R.run]=Math.round(tm*100)/100;R.last={ri:r.ri,t:tm};X.ph='fin';X.w=3.6;r.st='fin';r.v=Math.max(r.vy||0,(WRYF-wrYS())/r.D*.85);X.cheer=2.2;wrRank();
    const pl=R.rk.findIndex(q=>q.ri===r.ri)+1;if(pl===1&&R.i>0&&!rcQ('wr'))sfx('chime')}
   return}
- if(X.ph==='fin'){r.t+=ds;r.v=Math.max(0,(r.v||0)-260*ds);r.y=Math.min(WRYF+74,r.y+r.v*ds);r.x+=(WRL-12-r.x)*Math.min(1,ds*1.6);r.sv*=.9;
+ if(X.ph==='fin'){r.t+=ds;r.v=Math.max(0,(r.v||0)-(r.v>60?85:40)*ds);r.y=Math.min(WRYF+112,r.y+r.v*ds);const tx=WRL-8+34*Math.sin((r.y-WRYF)/22)*Math.min(1,r.v/60),x0=r.x;r.x+=(tx-r.x)*Math.min(1,ds*3);r.sv+=((r.x-x0)/Math.max(ds,.001)-r.sv)*Math.min(1,ds*6);
   if(r.v>20&&fx.length<160&&Math.random()<ds*30)fx.push({x:r.x,y:r.y,vx:-14+(Math.random()-.5)*8,vy:-7-Math.random()*5,t:.6});
   X.w-=ds;if(X.w<=0)wrNext(X);return}
  if(X.ph==='crash'){r.ct+=ds;const u=cl(r.ct/1.1,0,1),e=1-(1-u)*(1-u);r.x=r.cx0+(r.cx1-r.cx0)*e;r.y=r.cy0+(r.cy1-r.cy0)*e;
@@ -5611,7 +5611,7 @@ function wrOv(){const R=G.wrR,show=!!(wrDay()&&['r1','p','r2','end'].includes(R.
 
 // ===== V239: Versteckter Testbereich (Optionen › 5× auf die Versionszeile tippen) =====
 // Jeder Test sichert vorher den Spielstand; „Test beenden“ holt ihn zurück. Neue Tests einfach in TESTS eintragen.
-const TVER='V241',TBAK='art-test-bak';
+const TVER='V242',TBAK='art-test-bak';
 const TESTS=[
  {id:'wr1',ic:'🏁',t:'Weltcuprennen – ganzer Renntag',
   was:['Übertragungswagen stehen aufgebaut, Landeplatz und Hubschrauber im Tal','Zuschauer an der Strecke, Tribünen und LED-Wand im Ziel','Westpiste gesperrt: Gäste fahren über die schwarze Piste','1. Durchgang (10:30) mit Kamerafahrt, Zeitlupe und Hubschrauber, der dem Läufer folgt','Mögliche Stürze mit Bergwacht, Pause mit Landung im Tal, 2. Durchgang (13:00)','Siegerehrung 18:15 mit Feuerwerk, danach die Abrechnung zum Bestätigen'],
