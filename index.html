@@ -3090,32 +3090,38 @@ function apRGB(i,t){const h=(((t*40+i*55)%360+360)%360)/60,x=1-Math.abs(h%2-1),c
 function apSign(c){const x=AX0,y=AY0(),H=30,ry=11;c.save();
  c.fillStyle='#fff';c.strokeStyle='#e8507a';c.lineWidth=.8;c.beginPath();c.roundRect(x-23,y-H+ry+3,46,10,2);c.fill();c.stroke();c.fillStyle='#e8507a';c.font='700 6.4px Fredoka,sans-serif';c.textAlign='center';c.fillText('APRÈS-SKI',x,y-H+ry+10.4,42);
  c.restore()}
-function apres(c,t){const x=AX0,y=AY0(),rx=36,ry=11,H=30,op=apOpen(),n=apIn();c.save();c.lineWidth=1.2;c.strokeStyle=OL;
+function apSignAt(c,x,y,lab){const H=30,ry=11;c.save();
+ c.fillStyle='#fff';c.strokeStyle='#e8507a';c.lineWidth=.8;c.beginPath();c.roundRect(x-23,y-H+ry+3,46,10,2);c.fill();c.stroke();c.fillStyle='#e8507a';c.font='700 6.4px Fredoka,sans-serif';c.textAlign='center';c.fillText(lab,x,y-H+ry+10.4,42);
+ c.restore()}
+function apWinPtsAt(x,y){const rx=36,ry=11,H=30,P=[];[-1.2,-.82,.82,1.2].forEach((a,i)=>{const w=6.5*Math.cos(a)+1.6;P.push([x+rx*Math.sin(a)-w/2,y-H+6+ry*Math.cos(a),w,10,i])});return P}
+function apresAt(c,t,x,y,op,n,CAP,dx,dy,lab){const rx=36,ry=11,H=30;c.save();c.lineWidth=1.2;c.strokeStyle=OL;
  // Terrasse links mit Stehtischen und Heizpilzen
- c.fillStyle='rgba(110,140,180,.22)';c.beginPath();c.ellipse(x+8,y+4,rx+12,ry+2,0,0,7);c.fill();
+ c.fillStyle='rgba(110,140,180,.22)';c.beginPath();c.ellipse(x+8,y+4,rx+12,ry+2,0,0,7);c.fill();c.save();c.translate(dx,dy);
  c.fillStyle='#b98b5e';c.beginPath();c.moveTo(x-90,y-14);c.lineTo(x-38,y-14);c.lineTo(x-36,y+12);c.lineTo(x-92,y+12);c.closePath();c.fill();
  c.strokeStyle='rgba(120,80,45,.5)';c.lineWidth=.6;for(let k=1;k<6;k++){const yy=y-14+k*4.4;c.beginPath();c.moveTo(x-91,yy);c.lineTo(x-37,yy);c.stroke()}
  for(const [tx,ty] of [[-78,-6],[-60,4],[-50,-8]]){c.fillStyle='#5d667a';c.fillRect(x+tx-.6,y+ty-7,1.2,7);c.fillStyle='#8f5a34';c.beginPath();c.ellipse(x+tx,y+ty-7,4,1.6,0,0,7);c.fill()}
  for(const [hx,hy] of [[-86,-10],[-42,8]]){c.fillStyle='#4b5468';c.fillRect(x+hx-.6,y+hy-16,1.2,16);c.fillStyle='#6b7488';c.beginPath();c.moveTo(x+hx-5,y+hy-14);c.lineTo(x+hx,y+hy-18);c.lineTo(x+hx+5,y+hy-14);c.fill();if(op){c.fillStyle='rgba(255,140,60,'+(.6+.2*Math.sin(t*6+hx)).toFixed(2)+')';c.fillRect(x+hx-2,y+hy-14,4,2)}}
+ c.restore();
  // Wand
  c.strokeStyle=OL;c.lineWidth=1.2;c.fillStyle='#b5753f';c.beginPath();c.moveTo(x-rx,y-H);c.lineTo(x-rx,y);c.ellipse(x,y,rx,ry,0,Math.PI,0,true);c.lineTo(x+rx,y-H);c.ellipse(x,y-H,rx,ry,0,0,Math.PI,false);c.closePath();c.fill();c.stroke();
  c.save();c.clip();c.fillStyle='rgba(80,45,20,.22)';c.fillRect(x+rx*.45,y-H-ry,rx,H+2*ry);c.strokeStyle='rgba(90,55,25,.35)';c.lineWidth=.7;for(let k=-4;k<=4;k++){const px=x+k*8;c.beginPath();c.moveTo(px,y-H);c.lineTo(px,y+ry);c.stroke()}c.restore();
  // Fenster
- for(const [wx,wy,ww,wh,i] of apWinPts()){c.fillStyle=op?apCol(i,t,52):'#cfe3f2';c.fillRect(wx,wy,ww,wh);c.strokeStyle='#6e4422';c.lineWidth=.8;c.strokeRect(wx,wy,ww,wh)}
+ for(const [wx,wy,ww,wh,i] of apWinPtsAt(x,y)){c.fillStyle=op?apCol(i,t,52):'#cfe3f2';c.fillRect(wx,wy,ww,wh);c.strokeStyle='#6e4422';c.lineWidth=.8;c.strokeRect(wx,wy,ww,wh)}
  // Tür + Schild
  c.fillStyle='#6e4422';c.beginPath();c.roundRect(x-6,y+ry-17,12,17,2);c.fill();if(op){c.fillStyle=apCol(9,t,58);c.fillRect(x-4,y+ry-14,8,5)}
   // Kegeldach mit Schnee
  c.strokeStyle=OL;c.lineWidth=1.2;c.fillStyle='#8a4b2c';c.beginPath();c.moveTo(x-rx-5,y-H);c.lineTo(x,y-H-36);c.lineTo(x+rx+5,y-H);c.ellipse(x,y-H,rx+5,ry+2,0,0,Math.PI,false);c.closePath();c.fill();c.stroke();
  c.fillStyle='#fff';c.beginPath();c.moveTo(x,y-H-36);c.lineTo(x-rx*.72,y-H-9);c.quadraticCurveTo(x-rx*.35,y-H-4,x-rx*.1,y-H-9);c.quadraticCurveTo(x+rx*.25,y-H-3,x+rx*.72,y-H-9);c.closePath();c.fill();
  c.fillStyle='#5d667a';c.fillRect(x+12,y-H-30,4,9);c.fillStyle='#fff';c.fillRect(x+11,y-H-31,6,2);
- apSign(c);
+ apSignAt(c,x,y,lab);
  // Skiständer rechts neben der Tür (zeigt, wie voll es ist)
- {const sx=x+14,sy=y+ry+3;c.fillStyle='#8f5a34';c.fillRect(sx,sy-12,28,2);c.fillRect(sx,sy-12,1.6,12);c.fillRect(sx+26.4,sy-12,1.6,12);const k=Math.min(13,Math.ceil(n*13/APCAP));for(let q=0;q<k;q++){c.fillStyle=['#e8504a','#2f80ed','#f2c53b','#6cc07a','#b177e0','#ff8fb1','#34c0b8'][q%7];c.fillRect(sx+2.4+q*1.85,sy-20,1.3,20)}}
+ {const sx=x+14,sy=y+ry+3;c.fillStyle='#8f5a34';c.fillRect(sx,sy-12,28,2);c.fillRect(sx,sy-12,1.6,12);c.fillRect(sx+26.4,sy-12,1.6,12);const k=Math.min(13,Math.ceil(n*13/CAP));for(let q=0;q<k;q++){c.fillStyle=['#e8504a','#2f80ed','#f2c53b','#6cc07a','#b177e0','#ff8fb1','#34c0b8'][q%7];c.fillRect(sx+2.4+q*1.85,sy-20,1.3,20)}}
  // Gäste feiern draußen, wenn es voll wird
- if(op&&n>APCAP*.65){const m=Math.min(9,Math.round((n-APCAP*.65)/2)+1);for(let q=0;q<m;q++){const px=x-86+((q*13)%48),py=y-6+((q*7)%16),b=Math.abs(Math.sin(t*7+q*1.7))*2.2;c.fillStyle=['#e8504a','#2f80ed','#f2a63b','#6cc07a','#b177e0'][q%5];c.beginPath();c.roundRect(px-2,py-8-b,4,6,1.5);c.fill();c.fillStyle='#f6d3b3';c.beginPath();c.arc(px,py-10.5-b,1.8,0,7);c.fill();if(q%2){c.strokeStyle='#f6d3b3';c.lineWidth=.8;c.beginPath();c.moveTo(px-1.5,py-7-b);c.lineTo(px-3.5,py-12-b);c.moveTo(px+1.5,py-7-b);c.lineTo(px+3.5,py-12-b);c.stroke()}}}
+ if(op&&n>CAP*.65){c.save();c.translate(dx,dy);const m=Math.min(9,Math.round((n-CAP*.65)/2)+1);for(let q=0;q<m;q++){const px=x-86+((q*13)%48),py=y-6+((q*7)%16),b=Math.abs(Math.sin(t*7+q*1.7))*2.2;c.fillStyle=['#e8504a','#2f80ed','#f2a63b','#6cc07a','#b177e0'][q%5];c.beginPath();c.roundRect(px-2,py-8-b,4,6,1.5);c.fill();c.fillStyle='#f6d3b3';c.beginPath();c.arc(px,py-10.5-b,1.8,0,7);c.fill();if(q%2){c.strokeStyle='#f6d3b3';c.lineWidth=.8;c.beginPath();c.moveTo(px-1.5,py-7-b);c.lineTo(px-3.5,py-12-b);c.moveTo(px+1.5,py-7-b);c.lineTo(px+3.5,py-12-b);c.stroke()}}c.restore()}
  // Musiknoten
  if(op){c.textAlign='center';for(let k=0;k<4;k++){const u=((t*.32+k/4)%1),a=1-u;c.globalAlpha=a*.9;c.fillStyle=apCol(k*2,t,50);c.font='700 '+(7+3*(k%2))+'px Fredoka,sans-serif';c.fillText(k%2?'♫':'♪',x-14+k*9+5*Math.sin(u*6+k),y-H-36-u*34)}c.globalAlpha=1}
  c.restore()}
+function apres(c,t){apresAt(c,t,AX0,AY0(),apOpen(),apIn(),APCAP,0,0,'APRÈS-SKI')}
 const NSP=pAt(18.5),NEP=pAt(22),NA0=pAt(17.75),NLC=4*CF,
  nToday=()=>!!(!oaDay()&&G.night&&G.day>=(G.nD||0)&&G.flut&&G.areas>=2&&!(G.ev&&G.ev.k==='nacht'&&G.ev.d===G.day)),
  nPending=()=>nToday()&&phase()>=.60&&phase()<NSP,nOpen=()=>nToday()&&phase()>=NSP&&phase()<NEP,
@@ -4120,7 +4126,7 @@ function obInf0(k,pre){{const r8=ob8Inf(k,pre)||ob9Inf(k,pre)||obxInf(k,pre);if(
 // ===== Ostberg-Ausbau V233: Pistenraupe Ost, Schneekanonen Ost, Après-Ski-Bar Ost, Bergrestaurant Ost, Pannen der Ostbahnen =====
 const OXP={rp:150000,kn:200000,ap:300000,rs:450000},OXUN={rp:120,kn:90,ap:70,rs:90},OXCAP={ap:50,rs:60};
 // Lage (Welt): Garage links vom Pistenende, Bar rechts der Talstation, Restaurant westlich der 6er-Schlange
-const OQG={x0:1110,x1:1166,y1:925},OXA={x0:1458,x1:1512,y:926},OXR={x0:1064,x1:1128,y:16};
+const OQG={x0:1110,x1:1166,y1:925},OXA={x0:1446,x1:1530,y:918,cx:1488},OXR={x0:1064,x1:1128,y:16};
 const OQGD=()=>({x:(OQG.x0+OQG.x1)/2,y:OQG.y1+15});
 let OSH=.3,OAPN=0,OXRP={st:'park',s:0,dd:-1,P:null,L:0,x:0,y:0,th:0},OXCN=null,OXCK='',oxShT=0;
 const obxU=()=>!ost()?0:(G.ork?OXUN.rp:0)+(G.okan?OXUN.kn:0)+(G.oap?OXUN.ap:0)+(G.ores?OXUN.rs:0);
@@ -4146,10 +4152,10 @@ function obxRau(cd,dn,m){if(!ost())return '';return '<div class="bgh">🏔️ Os
  +obxCard(cd,dn,m,'kn','🌨️','Schneekanonen Ost',['Alle Kanonen an den Ost-Pisten auf einmal, halten die Schneehöhe am Ostberg','Kanonen an allen Ost-Pisten · Schnee Ost '+Math.round(G.snO??100)+' %'],G.okan)
  +'<div class="hint">Am Ostberg werden Piste und Schnee getrennt gezählt. Ohne eigene Raupe hilft die Raupe aus dem Westen nur ein wenig aus.</div>'}
 // --- Wege und Bäume
-function obxWays(S){if(!ost())return;if(G.oap)S.push({k:'f',p:[[1431,946],[1458,946],[1466,936]]});if(G.ores)S.push({k:'f',p:[[1252,64],[1110,64],[1098,44]]})}
+function obxWays(S){if(!ost())return;if(G.oap)S.push({k:'f',p:[[1431,946],[1446,946]]});if(G.ores)S.push({k:'f',p:[[1252,64],[1110,64],[1098,44]]})}
 function obxTree(x,y){const box=(a,b,c2,d)=>x>a&&x<b&&y>c2&&y<d;
  if(G.ork&&(box(OQG.x0-12,OQG.x1+10,OQG.y1-62,OQG.y1+24)||box(OQG.x1-4,1222,OQG.y1-10,OQG.y1+34)))return 1;
- if(G.oap&&box(OXA.x0-24,1536,OXA.y-80,OXA.y+54))return 1;
+ if(G.oap&&box(OXA.x0-12,1536,OXA.y-84,OXA.y+50))return 1;
  if(G.ores&&(box(OXR.x0-14,OXR.x1+12,OXR.y-62,OXR.y+34)||box(1090,1262,48,80)))return 1;
  if(G.okan&&obxCans().some(q=>Math.abs(x-q.x)<12&&y>q.y-22&&y<q.y+10))return 1;return 0}
 // --- Schneekanonen-Plätze entlang der Ost-Pisten
@@ -4205,7 +4211,7 @@ function orTry(f,t){if(!G.ores||!ost()||f.lunched||!lunchT()||f.kid&&Math.random
  f.lunched=1;f.hid=0;f.ost=1;f.sv=0;f.pi=0;if(t){f.x=t.x-44;f.y=t.y+34}f.st='ort';f.cw=null;f.rt=[[1252,64],[1110,64],[1098+Math.random()*8-4,44]];f.nx='orin';return 1}
 function oapTry(f){if(!oapOpen()||f.oa||f.oap||f.kid||f.byT||(f.car&&f.car.bus)||obxIn('oapi')>=OXCAP.ap)return 0;
  const pr=(f.hx!=null&&!f.car?.75:.55)*cl(1.4-.6*fpm(),.3,1.2);if(Math.random()>pr)return 0;
- f.oap=1;f.st='ort';f.cw=null;f.pi=0;f.rt=[[1250,R-152],[1300,R-146],[1430,R-140],[1458,R-134],[1466+Math.random()*6-3,R-144]];f.nx='oapi';return 1}
+ f.oap=1;f.st='ort';f.cw=null;f.pi=0;f.rt=[[1250,R-152],[1300,R-146],[1430,R-140],[1446,R-134],[1478,R-138],[OXA.cx+Math.random()*6-3,OXA.y+10]];f.nx='oapi';return 1}
 function obxNext(f,n){if(n==='orin'){if(obxIn('orin')>OXCAP.rs){obxAfterLunch(f);return 1}f.st='orin';f.hid=1;f.at='rest';f.bt=18+Math.random()*16;f.ate=0;G.inc.orN=(G.inc.orN||0)+1;return 1}
  if(n==='oapi'){if(!oapOpen()){obHome(f);return 1}f.st='oapi';f.hid=1;f.at='aps';f.bt=(1+Math.random()*1.5)*32;f.dk=4+Math.random()*8;G.inc.oaN=(G.inc.oaN||0)+1;return 1}
  if(n==='orout'){obxAfterLunch2(f);return 1}
@@ -4215,10 +4221,10 @@ function obxAfterLunch2(f){f.at=null;if(obCl()||phase()>=f.home){obHome(f);retur
 function obxFolk(f,dt){
  if(f.st==='orin'){f.bt-=dt;if(!f.ate){const m0=G.money;eat(f,22);const d=G.money-m0;if(d>0){G.inc.orM=(G.inc.orM||0)+d}f.ate=1}if(f.bt<=0){f.x=1098;f.y=46;obxAfterLunch(f)}return true}
  if(f.st==='oapi'){f.bt-=dt;f.dk-=dt;if(f.dk<=0){f.dk=12+Math.random()*10;const m0=G.money;eat(f,6);const d=G.money-m0;if(d>0)G.inc.oaM=(G.inc.oaM||0)+d}
-  if(f.bt<=0||!oapOpen()){f.hid=0;f.oap=2;f.x=1466;f.y=R-142;f.at=null;f.st='ort';const Z=obZ();f.rt=[[1458,R-134],[1430,R-140],[1300,R-146],[1250,R-152],[Z.x+10,Z.y+6]];f.nx='ohome'}return true}
+  if(f.bt<=0||!oapOpen()){f.hid=0;f.oap=2;f.x=OXA.cx;f.y=OXA.y+12;f.at=null;f.st='ort';const Z=obZ();f.rt=[[1478,R-138],[1446,R-134],[1430,R-140],[1300,R-146],[1250,R-152],[Z.x+10,Z.y+6]];f.nx='ohome'}return true}
  return false}
 // --- Info-Fenster
-function obxBoxes(P){if(G.ork)P('obxg',OQG.x0-4,OQG.y1-56,OQG.x1+4,OQG.y1+16);if(G.oap)P('obxa',OXA.x0-8,OXA.y-50,OXA.x1+10,OXA.y+22);if(G.ores)P('obxr',OXR.x0-6,OXR.y-50,OXR.x1+6,OXR.y+26);
+function obxBoxes(P){if(G.ork)P('obxg',OQG.x0-4,OQG.y1-56,OQG.x1+4,OQG.y1+16);if(G.oap)P('obxa',OXA.x0-6,OXA.y-70,OXA.x1,OXA.y+42);if(G.ores)P('obxr',OXR.x0-6,OXR.y-50,OXR.x1+6,OXR.y+26);
  if(G.okan)for(const n of obxCans())P('obxk',n.x-10,n.y-22,n.x+12,n.y+4)}
 function obxInf(k,pre){
  if(k==='obxg')return {ic:'🚜',t:'Pistenraupe Ost',sub:'Garage am Pistenende Ost',rows:[['Piste Ost',()=>Math.round(G.pqO??100)+' %'],['Piste West',()=>Math.round(G.pq)+' %'],['Gerade',()=>OXRP.st==='run'?'unterwegs auf den Ost-Pisten':'in der Garage'],['Unterhalt',()=>fmt(Math.round(OXUN.rp*CF))+'/Tag']],btns:[],hint:'Sie fährt los, sobald niemand mehr auf den Ost-Pisten ist, und präpariert bis zum Morgen blau, rot und schwarz.'};
@@ -4240,26 +4246,7 @@ function obxGarage(c){if(!G.ork||!inV((OQG.x0+OQG.x1)/2,OQG.y1-20,90))return;con
  c.fillStyle='#f2c53b';c.fillRect(cx-17,y1+4,1.5,11);c.fillRect(cx+15.5,y1+4,1.5,11);
  c.fillStyle='#4a5164';c.font='600 5.6px Fredoka,sans-serif';c.textAlign='center';c.fillText('PISTENRAUPE OST',cx,ry+rh*.3,w-6);
  if(1-bright()>.3)NWIN.push([xl+2,ry+rh*.58,6,5],[xr-8,ry+rh*.58,6,5]);c.fillStyle='#bfe3f5';c.fillRect(xl+2,ry+rh*.58,6,5);c.fillRect(xr-8,ry+rh*.58,6,5);c.restore()}
-function obxBar(c,t){if(!G.oap||!inV((OXA.x0+OXA.x1)/2,OXA.y-20,90))return;const x0=OXA.x0,x1=OXA.x1,y=OXA.y,cx=(x0+x1)/2,op=oapOpen(),n=folks.filter(f=>f.st==='oapi').length;c.save();
- // Terrasse (Holzdeck)
- c.fillStyle='rgba(110,140,180,.22)';c.beginPath();c.roundRect(x0-8,y+1,x1-x0+18,22,4);c.fill();
- c.fillStyle='#b98a5a';c.beginPath();c.roundRect(x0-6,y-1,x1-x0+14,20,3);c.fill();c.strokeStyle='rgba(90,55,25,.35)';c.lineWidth=.5;for(let q=y+3;q<y+19;q+=3){c.beginPath();c.moveTo(x0-5,q);c.lineTo(x1+7,q);c.stroke()}
- // Hütte
- c.fillStyle='#8a5a3c';c.fillRect(x0,y-26,x1-x0,26);c.fillStyle='#74492f';c.fillRect(cx+6,y-26,x1-cx-6,26);c.fillStyle='rgba(60,35,15,.3)';for(let q=y-23;q<y;q+=3.2)c.fillRect(x0,q,x1-x0,.6);
- c.fillStyle='#5b3a26';c.beginPath();c.moveTo(x0-6,y-24);c.lineTo(cx,y-44);c.lineTo(x1+6,y-24);c.closePath();c.fill();c.fillStyle='#fff';c.beginPath();c.moveTo(x0-6,y-25);c.lineTo(cx,y-45);c.lineTo(x1+6,y-25);c.lineTo(x1+2,y-28);c.lineTo(cx,y-41);c.lineTo(x0-2,y-28);c.closePath();c.fill();
- // Fenster (bunt, wenn offen) und Tür
- const W=[[x0+4,y-19],[x0+15,y-19],[x1-24,y-19],[x1-13,y-19]];W.forEach(([wx,wy],i)=>{c.fillStyle=op?apCol(i,t,52):'#bfe3f5';c.fillRect(wx,wy,8,8);if(1-bright()>.3)NWIN.push([wx,wy,8,8]);c.fillStyle='#fff';c.fillRect(wx-.6,wy-.8,9.2,.8)});
- c.fillStyle='#4a2c18';c.fillRect(x0+6+(x1-x0)/2-12,y-15,9,15);c.fillStyle='#f2c53b';c.fillRect(x0+6+(x1-x0)/2-5,y-8,1.2,1.2);
- // Schild
- c.fillStyle='#fff';c.strokeStyle='#e8507a';c.lineWidth=.8;c.beginPath();c.roundRect(cx-24,y-37,48,9,2);c.fill();c.stroke();c.fillStyle='#e8507a';c.font='700 5.8px Fredoka,sans-serif';c.textAlign='center';c.fillText('APRÈS-SKI OST',cx,y-30.6,44);
- // Stehtische, Heizpilze, Skiständer
- for(const [tx,ty] of [[x0+2,y+8],[cx,y+12],[x1-2,y+7]]){c.fillStyle='#5a3418';c.fillRect(tx-.6,ty-6,1.2,6);c.fillStyle='#d9b07a';c.beginPath();c.ellipse(tx,ty-6,4,1.6,0,0,7);c.fill()}
- for(const hx of [x0-3,x1+5]){c.fillStyle='#9aa3b4';c.fillRect(hx-.6,y-2,1.2,14);c.fillStyle=op?'#ff8a3c':'#c8cfdb';c.beginPath();c.ellipse(hx,y-3,3.6,1.4,0,0,7);c.fill()}
- c.fillStyle='#6b7385';c.fillRect(x1+8,y-8,1,9);const nk=Math.min(10,Math.ceil(n/4));for(let k=0;k<nk;k++){c.fillStyle=['#e8504a','#2f80ed','#f2c53b','#34c0b8'][k%4];c.fillRect(x1+9+(k%5)*1.6,y-12+Math.floor(k/5)*1.2,1,10)}
- // Gäste auf der Terrasse (ab ca. 40 % Füllung tanzen sie)
- const dn=Math.min(9,Math.round(n/4));for(let k=0;k<dn;k++){const gx=x0+(k*11.3)%(x1-x0+4),gy=y+6+(k%3)*4,j=n>OXCAP.ap*.4?Math.abs(Math.sin(t*4+k))*1.6:0;c.fillStyle=['#e8504a','#2f80ed','#8a5ae0','#34c0b8','#ff7a45'][k%5];c.fillRect(gx-1.6,gy-8-j,3.2,5);c.fillStyle='#f3c9a6';c.beginPath();c.arc(gx,gy-9.6-j,1.5,0,7);c.fill()}
- if(op)for(let q=0;q<3;q++){const ph=(t*.5+q/3)%1;c.globalAlpha=1-ph;c.fillStyle=apCol(q,t,50);c.font='7px sans-serif';c.fillText('♪',cx-10+q*10+Math.sin(t*2+q)*3,y-46-ph*16);c.globalAlpha=1}
- c.restore()}
+function obxBar(c,t){if(!G.oap||!inV(OXA.cx,OXA.y-10,110))return;let n=0;for(const f of folks)if(f.st==='oapi')n++;const op=oapOpen();apresAt(c,t,OXA.cx,OXA.y,op,n,OXCAP.ap,42,28,'APRÈS-SKI OST');if(1-bright()>.3&&!op)for(const w of apWinPtsAt(OXA.cx,OXA.y))NWIN.push(w.slice(0,4))}
 function obxRest(c,t){if(!G.ores||!inV((OXR.x0+OXR.x1)/2,OXR.y-20,90))return;const x0=OXR.x0,x1=OXR.x1,y=OXR.y,cx=(x0+x1)/2,nt=1-bright(),n=folks.filter(f=>f.st==='orin').length;c.save();
  c.fillStyle='rgba(110,140,180,.25)';c.beginPath();c.roundRect(x0-6,y+2,x1-x0+12,24,4);c.fill();
  // Terrasse
@@ -4282,7 +4269,7 @@ function obxRest(c,t){if(!G.ores||!inV((OXR.x0+OXR.x1)/2,OXR.y-20,90))return;con
 function obxDraw(c,t){if(!ost())return;obxGarage(c);obxBar(c,t);obxRest(c,t);
  if(G.okan)for(const n of obxCans()){if(!inV(n.x,n.y,40))continue;cannon(c,n.x,n.y,n.on,t)}
  if(OXRP.st==='run'&&inV(OXRP.x,OXRP.y,60))groomer(c,OXRP.x,OXRP.y,OXRP.th||0,t,true)}
-function obxNight(soft,la){if(!ost())return;if(G.oap){const op=oapOpen();soft((OXA.x0+OXA.x1)/2,OXA.y+6,46,16,op?'255,120,200':'255,214,140',(op?.4:.18)*la)}if(G.ores)soft((OXR.x0+OXR.x1)/2,OXR.y+8,44,14,'255,214,140',.2*la);if(OXRP.st==='run')soft(OXRP.x,OXRP.y-4,40,18,'255,236,180',.35*la)}
+function obxNight(soft,la){if(!ost())return;if(G.oap){const op=oapOpen();soft(OXA.cx-6,OXA.y+14,56,20,op?'255,120,200':'255,214,140',(op?.4:.18)*la)}if(G.ores)soft((OXR.x0+OXR.x1)/2,OXR.y+8,44,14,'255,214,140',.2*la);if(OXRP.st==='run')soft(OXRP.x,OXRP.y-4,40,18,'255,236,180',.35*la)}
 
 OBACT.orin='Isst im Bergrestaurant Ost';OBACT.oapi='Feiert in der Après-Ski-Bar Ost';
 
