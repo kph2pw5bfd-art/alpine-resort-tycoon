@@ -4402,15 +4402,15 @@ function obFence(c,x,y,fr){const rx=15,ry=6.5,h=6,n=10;
 // Eckpunkte: Talstation (gerade hinaus) → Knick-Stütze im Wald → gerade hinauf → senkrecht in die Mittelstation. Rundung über quadratische Bögen.
 let OBG1=null,OBG1K='';
 function obG1(){const b=obB(),t=obT(),key=b.x+'_'+b.y+'_'+t.x+'_'+t.y;if(OBG1&&OBG1K===key)return OBG1;OBG1K=key;
- const W=[[b.x,b.y],[b.x,b.y-48],[b.x-112,b.y-358],[t.x,t.y+70],[t.x,t.y]],RA=[0,40,60,40,0],Q=[],KA=[];
+ const W=[[b.x,b.y],[b.x,b.y-48],[b.x-49,b.y-322],[b.x-53,b.y-385],[t.x,t.y+70],[t.x,t.y]],RA=[0,40,40,40,40,0],Q=[],KA=[];
  const add=(x,y)=>{const l=Q[Q.length-1];if(l&&Math.hypot(x-l.x,y-l.y)<.01)return;Q.push({x,y})};add(W[0][0],W[0][1]);
  for(let i=1;i<W.length-1;i++){const p=W[i-1],q=W[i],n=W[i+1];let ax=q[0]-p[0],ay=q[1]-p[1],bx=n[0]-q[0],by=n[1]-q[1];const la=Math.hypot(ax,ay),lb=Math.hypot(bx,by);ax/=la;ay/=la;bx/=lb;by/=lb;
   const th=Math.acos(Math.max(-1,Math.min(1,ax*bx+ay*by)));const L=Math.min(RA[i]*Math.tan(th/2),la*.45,lb*.45),sx=q[0]-ax*L,sy=q[1]-ay*L,ex=q[0]+bx*L,ey=q[1]+by*L;
   for(let k=0;k<=32;k++){const u=k/32,v=1-u;add(v*v*sx+2*u*v*q[0]+u*u*ex,v*v*sy+2*u*v*q[1]+u*u*ey);if(k===16)KA[i]=Q.length-1}}
- add(W[4][0],W[4][1]);let s0=0;Q[0].s=0;for(let i=1;i<Q.length;i++){s0+=Math.hypot(Q[i].x-Q[i-1].x,Q[i].y-Q[i-1].y);Q[i].s=s0}
+ add(W[W.length-1][0],W[W.length-1][1]);let s0=0;Q[0].s=0;for(let i=1;i<Q.length;i++){s0+=Math.hypot(Q[i].x-Q[i-1].x,Q[i].y-Q[i-1].y);Q[i].s=s0}
  const G={Q,L:s0},sy=y=>{let lo=0,hi=Q.length-1;while(hi-lo>1){const m=(lo+hi)>>1;if(Q[m].y>y)lo=m;else hi=m}const a=Q[lo],c=Q[hi],u=(a.y-y)/Math.max(1e-6,a.y-c.y);return a.s+(c.s-a.s)*u};
- // Stützen wie in der Skizze: knapp über der Talstation, am Knick, zwei auf dem Weg zur Mittelstation
- const S=[sy(b.y-108),Q[KA[2]].s,sy(t.y+232),sy(t.y+106)];G.sp=[0,...S,s0];OBG1=G;
+ // Stützen wie in den Skizzen: knapp über der Talstation, zwei am Knick (V214), zwei auf dem Weg zur Mittelstation
+ const S=[sy(b.y-108),Q[KA[2]].s,Q[KA[3]].s,sy(t.y+232),sy(t.y+106)];G.sp=[0,...S,s0];OBG1=G;
  G.py=S.map((s,i)=>{const p=obG1At(s);return {x:p.x,y:p.y,s,key:'g1'+(i+1)}});return G}
 function obG1At(a){const G=obG1(),Q=G.Q;if(a<=0)return {x:Q[0].x,y:Q[0].y-a};if(a>=G.L){const e=Q[Q.length-1];return {x:e.x,y:e.y-(a-G.L)}}
  let lo=0,hi=Q.length-1;while(hi-lo>1){const m=(lo+hi)>>1;if(Q[m].s<a)lo=m;else hi=m}const p=Q[lo],q=Q[hi],u=(a-p.s)/Math.max(1e-6,q.s-p.s);return {x:p.x+(q.x-p.x)*u,y:p.y+(q.y-p.y)*u}}
