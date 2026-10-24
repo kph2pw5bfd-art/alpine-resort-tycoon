@@ -596,7 +596,7 @@ function setHTML(){const sg=(k,opts)=>`<div class="seg">${opts.map(([v,l])=>`<bu
  <p class="hint">Popups: Bei „Nur Logbuch“ kommen Tagesabschluss und Ereignis-Anfragen nicht als Popup, und das Ereignis-Fenster öffnet sich nicht von selbst. Der gelbe Punkt bei 🎪 bleibt.</p>
  <p class="hint">Ton: Kassenklingeln, Bau-Fanfare, Wind und Sturm, Glocke bei Anfragen und eine kleine Melodie am Tagesende. Am iPhone muss der Lautlos-Schalter aus sein.</p>
  <p class="hint">Leistungsmodus: für ältere Handys. Etwas geringere Auflösung, 30 statt 60 Bilder pro Sekunde, weniger Schneepartikel. Das Spiel läuft gleich schnell. „Auto“ bei Fenster folgt der Einstellung deines Handys.</p>
- <p class="hint">Die Schwierigkeit wählst du bei „Neues Spiel“ im Startbildschirm.</p>`}
+ <p class="hint">Die Schwierigkeit wählst du bei „Neues Spiel“ im Startbildschirm.</p>${tstLine()}`}
 async function setFile(){if(!dlCap){try{dlCap=await window.claude.use('downloads')}catch(e){}}save();const o=Object.assign({},G);o.sv=G.sv||Date.now();
  const dd=new Date(),p=n=>String(n).padStart(2,'0'),fn='Alpine-Resort-Tycoon_Tag'+G.day+'_'+dd.getFullYear()+'-'+p(dd.getMonth()+1)+'-'+p(dd.getDate())+'.json',data=JSON.stringify({spiel:'Alpine Resort Tycoon',version:90,gesichert:dd.toISOString(),stand:o});
  if(!dlCap){const r=await webSave(fn,data);toast(r?'💾 Spielstand gesichert ('+sTg(G.day)+')':'Sichern abgebrochen.');return}try{await dlCap.save({filename:fn,data});toast('💾 Spielstand gesichert ('+sTg(G.day)+')')}catch(e){const c=e&&e.code;toast(c==='declined'?'Sichern abgebrochen.':c==='rate_limited'?'Bitte kurz warten und nochmal tippen.':'Sichern hat nicht geklappt.')}}
@@ -5579,6 +5579,31 @@ function wrPost(c,dt){if(!wrDay())return;const R=G.wrR,X=wrX(),p=phase();const o
  for(const q of X.fw)if(!q.up&&q.t>q.t0-.25){const a=(q.t-(q.t0-.25))/.25;c.fillStyle='rgba('+q.col+','+(a*.05).toFixed(3)+')';c.beginPath();c.arc(q.x,q.y,26,0,7);c.fill();break}
  c.globalCompositeOperation='source-over';c.restore()}
 
+// ===== V239: Versteckter Testbereich (Optionen › 5× auf die Versionszeile tippen) =====
+// Jeder Test sichert vorher den Spielstand; „Test beenden“ holt ihn zurück. Neue Tests einfach in TESTS eintragen.
+const TVER='V239',TBAK='art-test-bak';
+const TESTS=[
+ {id:'wr1',ic:'🏁',t:'Weltcuprennen – ganzer Renntag',
+  was:['Übertragungswagen stehen aufgebaut, Landeplatz und Hubschrauber im Tal','Zuschauer an der Strecke, Tribünen und LED-Wand im Ziel','Westpiste gesperrt: Gäste fahren über die schwarze Piste','1. Durchgang (10:30) mit Kamerafahrt, Zeitlupe und Hubschrauber, der dem Läufer folgt','Mögliche Stürze mit Bergwacht, Pause mit Landung im Tal, 2. Durchgang (13:00)','Siegerehrung 18:15 mit Feuerwerk, danach die Abrechnung zum Bestätigen'],
+  can:()=>G.areas<6?'Geht erst ab Ausbau Stufe 6.':'',run:()=>{tstWr();G.t=pAt(10.15)*DAY}},
+ {id:'wr2',ic:'🎆',t:'Weltcuprennen – nur Siegerehrung',
+  was:['Das Rennergebnis wird ausgewürfelt, die Uhr springt auf 18:10 Uhr','Siegerehrung auf dem Podest mit Fahnen und Sekt','Großes Feuerwerk mit Ton','Abrechnung mit allen Einnahmen und Ausgaben zum Bestätigen'],
+  can:()=>G.areas<6?'Geht erst ab Ausbau Stufe 6.':'',run:()=>{tstWr();wrSkip();G.t=pAt(18.1)*DAY}}];
+function tstBak(){try{return JSON.parse(localStorage.getItem(TBAK)||'null')}catch(e){return null}}
+function tstWr(){G.wrOK=1;G.wrS=null;WRX=null;G.wrR=wrMake();if(G.rcSk)G.rcSk.wr=0;if(G.wx==='sturm')G.wx='sonne';if(G.wxN==='sturm')G.wxN='sonne'}
+function tstStart(id){const d=TESTS.find(x=>x.id===id);if(!d||d.can())return;save();if(!tstBak()){try{localStorage.setItem(TBAK,JSON.stringify({g:JSON.stringify(G),at:Date.now(),t:d.t}))}catch(e){toast('Sichern hat nicht geklappt – Test abgebrochen.');return}}
+ d.run();open=null;if(paused){paused=false;$('pz').textContent='⏸'}render();save();toast('🧪 Test läuft: '+d.t+'. Beenden unter ⚙️ Optionen ganz unten.',5000)}
+function tstEnd(){const b=tstBak();if(!b)return;localStorage.removeItem(TBAK);const o=JSON.parse(b.g);o.sv=Date.now();applyState(o)}
+function tstLine(){const b=tstBak();return b?`<div class="row" id="tstv" style="justify-content:center;border:0;margin-top:10px"><button class="btn ghost">🧪 Test läuft – hier beenden</button></div>`:`<p id="tstv" style="text-align:center;color:var(--mut);font-size:11px;opacity:.55;margin:14px 0 2px;user-select:none">Alpine Resort Tycoon · ${TVER}</p>`}
+function tstHTML(){const b=tstBak();let h='<h3>🧪 Testbereich<a data-x>✕</a></h3>';
+ if(b)h+=`<div class="bgh">Gerade läuft: ${b.t}</div><p class="hint" style="margin:6px 0">Dein Spielstand von vorher ist gesichert (${new Date(b.at).toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'})} Uhr).</p><div class="row"><span>Alles zurück wie vor dem Test</span><button class="btn" data-tst="end">Test beenden</button></div>`;
+ else h+='<p class="hint" style="margin:4px 0 8px">Hier kannst du neue Teile des Spiels sofort ausprobieren. Vorher wird dein Spielstand gesichert, mit „Test beenden“ ist alles wieder wie vorher.</p>';
+ for(const d of TESTS){const w=d.can();h+=`<div class="bgh">${d.ic} ${d.t}</div><div class="hint" style="margin:6px 0 4px"><b>Das wird getestet:</b></div><ul class="hint" style="margin:0 0 6px;padding-left:18px">${d.was.map(x=>'<li>'+x+'</li>').join('')}</ul>`
+  +`<div class="row"><span>${w||(b?'Läuft schon ein Test – erst beenden.':'Startet sofort')}</span><button class="btn" data-tst="${d.id}" ${w||b?'disabled':''}>Starten</button></div>`}
+ return h}
+function tstBind(el){const v=$('tstv');if(v){if(tstBak())v.onclick=()=>{open='tst';render()};else{let n=0,t0=0;v.onclick=()=>{const now=performance.now();if(now-t0>3000)n=0;t0=now;n++;if(n>=5){n=0;sfx('chime');open='tst';render()}}}}
+ el.querySelectorAll('[data-tst]').forEach(q=>q.onclick=()=>{sfx('click');const k=q.dataset.tst;if(k==='end')tstEnd();else tstStart(k)})}
+
 function step(dt){if(wrHold())return;
  hxStep(dt);G.t+=dt*timeScale();flStep(dt);groomStep(dt);wxStep(dt);evStep(dt);if(G.ct>5)G.ct/=45;if(G.ct>0)G.ct-=dt*timeScale()/DAY;const af=arrF(phase())*(evSlow()?.2:1)*(oaDay()&&phase()>=pAt(13.5)?0:1);if(af>0){if(Math.random()<rate()*ARS*af*dt)wrSpawn();if(G.hotels&&Math.random()<G.hotels*20*occ()*.6/(DAY*.724)*ARS*af*dt)spawnHG()}
  {const an=nArr(phase());if(an>0){const sl=pkSlow();if(Math.random()<nRate()*an*dt*sl)spawnCar(1);if(G.hotels&&Math.random()<G.hotels*20*occ()*.25/(DAY*.724)*an*dt*sl)spawnHG(1)}}
@@ -5729,7 +5754,7 @@ function render(){
  const el=$('sheet');{const lb=$('lbar');if(lb)lb.classList.toggle('off',!!open)}document.querySelectorAll('#rail button').forEach(b=>b.classList.toggle('on',b.dataset.p===open||(open==='log'&&b.dataset.p==='sta')));if(window.chMark)chMark();
  if(!open){el.classList.remove('on');return}
  let h='';
- if(open==='ov'){h=zielHTML()}else if(open==='scn'){h=scnHTML()}else if(open==='sea'){h=sumHTML()}else if(open==='neu'){h=neuHTML()}else if(open==='wrs'){h=wrSumHTML()}else if(open==='wra'){h=wrAnnHTML()}
+ if(open==='ov'){h=zielHTML()}else if(open==='scn'){h=scnHTML()}else if(open==='sea'){h=sumHTML()}else if(open==='neu'){h=neuHTML()}else if(open==='wrs'){h=wrSumHTML()}else if(open==='wra'){h=wrAnnHTML()}else if(open==='tst'){h=tstHTML()}
  else if(open==='pre'){h=`<h3>Preise<a data-x>✕</a></h3>
  <div class="pgh">🎟️ Liftkarten</div>
  <div class="pc"><div class="ph"><span class="pi">☀️</span><div class="pt"><b>Tageskarte</b><small id="ft"></small></div><span class="pg" id="gt"></span><b class="pv" id="vt"></b></div><div class="stp"><button class="pm" data-d="rt" data-s="-1">−</button><input type="range" id="rt" min="10" max="120" value="${G.ticket}"><button class="pm" data-d="rt" data-s="1">+</button></div></div>
@@ -5815,7 +5840,7 @@ function render(){
  el.querySelectorAll('[data-ft]').forEach(b=>b.onclick=()=>{fTab=b.dataset.ft;render();el.scrollTop=0});
  el.querySelectorAll('[data-ln]').forEach(b=>b.onclick=()=>{const v=b.dataset.ln,L=G.loan||0;if(v==='-all'){if(G.money>=L&&L>0){G.money-=L;G.loan=0;G.achL=1;lg('🏦','geld','Kredit ganz zurückgezahlt: '+fmt(L))}}else{const n=+v;if(n>0&&L+n<=lMax()){G.loan=L+n;G.money+=n;lg('🏦','geld','Kredit aufgenommen: +'+fmt(n)+', jetzt '+fmt(G.loan));sfx('coin')}else if(n<0&&L>=-n&&G.money>=-n){G.loan=L+n;G.money+=n;if(!G.loan)G.achL=1;lg('🏦','geld','Kredit zurückgezahlt: '+fmt(-n)+', noch '+fmt(G.loan))}}render();hud();save()});
  el.querySelectorAll('[data-au]').forEach(b=>b.onclick=()=>{const O=G.ctrO;if(!O)return;if(b.dataset.au==='ok'&&(G.ctr||[]).length<2){const d=AUF[O.k];(G.ctr=G.ctr||[]).push({k:O.k,p:0,until:G.day+d.days,a:G.areas,d0:G.day,tx:d.txt()});lg('📋','anr','Auftrag angenommen: '+d.t);toast('📋 Angenommen: '+d.t)}else if(b.dataset.au==='no'){lg('📋','anr','Auftrag abgelehnt: '+AUF[O.k].t);if(O.k==='wc')G.wrFS=seaN()}G.ctrO=null;render();save()});
- el.querySelectorAll('[data-go]').forEach(b=>b.onclick=e=>{e.stopPropagation();sfx('click');if(open==='neu'&&neuP){paused=false;$('pz').textContent='⏸'}neuP=false;goBuild(b.dataset.go)});{const nk=$('neuok');if(nk)nk.onclick=()=>{sfx('click');neuClose()}}wrBind(el);
+ el.querySelectorAll('[data-go]').forEach(b=>b.onclick=e=>{e.stopPropagation();sfx('click');if(open==='neu'&&neuP){paused=false;$('pz').textContent='⏸'}neuP=false;goBuild(b.dataset.go)});{const nk=$('neuok');if(nk)nk.onclick=()=>{sfx('click');neuClose()}}wrBind(el);tstBind(el);
  el.querySelectorAll('[data-zt]').forEach(b=>b.onclick=()=>{zTab=b.dataset.zt;render();el.scrollTop=0});{const sg=$('sgo');if(sg)sg.onclick=()=>{paused=false;$('pz').textContent='⏸';open=null;render();save();toast('❄️ Saison '+seaN()+' beginnt!')}}
  el.querySelectorAll('[data-set]').forEach(b=>b.onclick=()=>{const [k,v]=b.dataset.set.split(':');SET[k]=k==='th'?v:+v;setSave();if(k==='th')setTheme();if(k==='sp'){speed=SET.sp}if(k==='bub'&&!SET.bub)bub=null;if(k==='perf'){resize();buildStatic()}if(k==='sfx'){if(SET.sfx){au();auAmb();sfx('click')}}if(k==='mus'){if(SET.mus)musOn();else musOff()}if(k==='kid'){FK.key='';lbLast=undefined;lbUpd()}const sc=el.scrollTop;render();el.scrollTop=sc;hud()});
  {const sv=$('svol');if(sv){sv.oninput=()=>{SET.vol=+sv.value;$('vvol').textContent=SET.vol+' %';auVol();setSave()};sv.onchange=()=>sfx('coin');el.querySelectorAll('[data-d=svol]').forEach(b=>b.onclick=()=>{sv.value=cl(+sv.value+ +b.dataset.s,0,100);sv.oninput();sfx('click')})}}
