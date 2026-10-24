@@ -4402,7 +4402,7 @@ function obFence(c,x,y,fr){const rx=15,ry=6.5,h=6,n=10;
 // Eckpunkte: Talstation (gerade hinaus) → Knick-Stütze im Wald → gerade hinauf → senkrecht in die Mittelstation. Rundung über quadratische Bögen.
 let OBG1=null,OBG1K='';
 function obG1(){const b=obB(),t=obT(),key=b.x+'_'+b.y+'_'+t.x+'_'+t.y;if(OBG1&&OBG1K===key)return OBG1;OBG1K=key;
- const W=[[b.x,b.y],[b.x,b.y-48],[b.x-124,b.y-358],[t.x,t.y+70],[t.x,t.y]],RA=[0,140,260,140,0],Q=[],KA=[];
+ const W=[[b.x,b.y],[b.x,b.y-48],[b.x-112,b.y-358],[t.x,t.y+70],[t.x,t.y]],RA=[0,40,60,40,0],Q=[],KA=[];
  const add=(x,y)=>{const l=Q[Q.length-1];if(l&&Math.hypot(x-l.x,y-l.y)<.01)return;Q.push({x,y})};add(W[0][0],W[0][1]);
  for(let i=1;i<W.length-1;i++){const p=W[i-1],q=W[i],n=W[i+1];let ax=q[0]-p[0],ay=q[1]-p[1],bx=n[0]-q[0],by=n[1]-q[1];const la=Math.hypot(ax,ay),lb=Math.hypot(bx,by);ax/=la;ay/=la;bx/=lb;by/=lb;
   const th=Math.acos(Math.max(-1,Math.min(1,ax*bx+ay*by)));const L=Math.min(RA[i]*Math.tan(th/2),la*.45,lb*.45),sx=q[0]-ax*L,sy=q[1]-ay*L,ex=q[0]+bx*L,ey=q[1]+by*L;
