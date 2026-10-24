@@ -3243,7 +3243,7 @@ const RACE={rennen:{h:10,org:800,sg:50,ent:10,gas:8,rb:6,f:1},nacht:{h:19,org:12
 const schulOn=()=>!!(G.ev&&G.ev.k==='schul'),isRace=e=>!!(e&&(e.k==='rennen'||e.k==='nacht')),evSlow=()=>(isRace(G.ev)&&G.ev.st==='run'&&!rcQ(G.ev.k))||(wcLive()&&!rcQ('wc'))||wrSlow(),
  stoerL=L=>!!(G.ev&&G.ev.k==='stoer'&&G.ev.st==='run'&&(G.ev.L===L||L===0))||!!(L&&G.brk&&G.brk.L===L),kidP=()=>Math.max(5,Math.round(G.ticket*.5)),repC=()=>Math.max(500,Math.round(cost()*.35/50)*50),
  specN=k=>Math.round(cl(30+rufE()*.6,20,90)*RACE[k].f),
- evHoldGroom=()=>{const e=G.ev;return !!(e&&e.k==='nacht'&&(e.st!=='done'||(e.sa||0)>0))},
+ evHoldGroom=()=>{const e=G.ev;if(wrDay()&&(G.wrR.st!=='done'||wrFill(1)>.05))return true;return !!(e&&e.k==='nacht'&&(e.st!=='done'||(e.sa||0)>0))},
  floodOn=()=>!!(G.flut&&((G.ev&&G.ev.k==='nacht'&&(G.ev.st==='pre'||G.ev.st==='run'||(G.ev.sa||0)>0))||G.flE)),
  onPiste=()=>folks.some(f=>f.st==='qu'||f.st==='lift'||f.st==='ski'||f.st==='bnk'||(f.st==='brk'&&f.y<V-60)),
  FLH=.45*CF,FLS=[[0,1],[.35,.88],[.6,.55],[.82,.2],[1,0]],hpp=p=>{for(let i=1;i<CP.length;i++)if(p<=CP[i][0])return (CP[i][1]-CP[i-1][1])/(CP[i][0]-CP[i-1][0]);return 16},
@@ -5257,18 +5257,25 @@ function wrHeli(ds,X){const R=G.wrR,p=phase();if(!X.he)X.he={x:WRHP.x,y:WRHP.y,h
  if(p<pAt(9.75)){const u=(p-pAt(9.3))/(pAt(9.75)-pAt(9.3)),e=sm(u);H.away=0;H.x=ox+(WRHP.x-ox)*e;H.y=oy+(WRHP.y-oy)*e;H.h=120*(1-sm((u-.55)/.45));H.fx=1;H.on=1;H.rot+=ds*40;return}
  if(p>=pAt(15.9)){const u=cl((p-pAt(15.9))/(pAt(16.4)-pAt(15.9)),0,1);if(u>=1){H.away=1;return}const e=sm(u);H.away=0;H.x=WRHP.x+(ox-WRHP.x)*e;H.y=WRHP.y+(oy-WRHP.y)*e;H.h=120*sm(u/.45);H.fx=-1;H.on=1;H.rot+=ds*40;return}
  H.away=0;const air=p>=pAt(10.25)&&p<pAt(15.6),run=R.st==='r1'||R.st==='r2';let tx=WRHP.x,ty=WRHP.y,th=0,sp=260;
- if(run&&air){const r=X.r;if(r&&(X.ph==='go'||X.ph==='crash')){const w=Math.sin(r.t*.55+r.ri);tx=r.x+(r.x>slopeX(r.y)?-1:1)*62;ty=r.y+w*70;th=58;sp=X.ph==='go'?Math.max(360,(r.vy||0)*1.15):220}
-  else if(X.ph==='fin'&&X.w>.6){tx=WRL+70;ty=WRYF+20;th=60;sp=260}
-  else{tx=slopeX(wrYS()+120)+70;ty=wrYS()+170;th=62;sp=420}}
- else if(air&&R.st==='auf'&&p>=pAt(10.25)){tx=slopeX(wrYS()+120)+70;ty=wrYS()+170;th=62;sp=300}
- const dx=tx-H.x,dy=ty-H.y,dd=Math.hypot(dx,dy),mv=Math.min(dd,sp*ds);if(dd>.5){H.x+=dx/dd*mv;H.y+=dy/dd*mv}H.vx=dd>2?dx/dd*mv/Math.max(ds,.001):0;
- const tgH=dd>40?Math.max(th,dd>300?110:th):th;H.h+=(tgH-H.h)*Math.min(1,ds*(th===0&&dd<4?1.4:1.1));if(th===0&&dd<4&&H.h<1.5)H.h=Math.max(0,H.h-ds*6);
- if(Math.abs(H.vx)>8)H.fx=H.vx>0?1:-1;H.on=H.h>.4||dd>3||(run&&air);H.rot+=ds*(H.on?40:0)}
+ let fol=0;if(run&&air){const r=X.r;if(r&&(X.ph==='go'||X.ph==='crash')){
+   // ruhiger Flug neben der Strecke, Seite nur hin und wieder wechseln
+   if(X.hs==null)X.hs=1;X.hsT=(X.hsT||6)-ds;if(X.hsT<=0){X.hsT=6+Math.random()*6;if(Math.random()<.45)X.hs=-X.hs}
+   tx=slopeX(r.y)+X.hs*(slopeW(r.y)+34);ty=r.y+Math.sin(r.t*.32+r.ri)*50;th=52;sp=X.ph==='go'?Math.max(360,(r.vy||0)*1.2):220;fol=1}
+  else if(X.ph==='fin'&&X.w>.6){tx=WRL+(X.hs||1)*90;ty=WRYF+10;th=55;sp=260}
+  else{tx=slopeX(wrYS()+120)+(X.hs||1)*70;ty=wrYS()+170;th=58;sp=420}}
+ else if(air&&R.st==='auf'&&p>=pAt(10.25)){tx=slopeX(wrYS()+120)+70;ty=wrYS()+170;th=58;sp=300}
+ const x0=H.x,dx=tx-H.x,dy=ty-H.y,dd=Math.hypot(dx,dy);
+ if(fol&&dd<260){const kx=Math.min(1,ds*1.6),ky=Math.min(1,ds*3.2);H.x+=dx*kx;H.y+=dy*ky}
+ else{const mv=Math.min(dd,sp*ds);if(dd>.5){H.x+=dx/dd*mv;H.y+=dy/dd*mv}}
+ H.vx=(H.x-x0)/Math.max(ds,.001);H.vs=(H.vs||0)*.92+H.vx*.08;
+ const tgH=dd>60&&!fol?Math.max(th,dd>300?100:th):th;H.h+=(tgH-H.h)*Math.min(1,ds*(th===0&&dd<4?1.4:1.1));if(th===0&&dd<4&&H.h<1.5)H.h=Math.max(0,H.h-ds*6);
+ if(Math.abs(H.vs)>35)H.fx=H.vs>0?1:-1;H.on=H.h>.4||dd>3||(run&&air);H.rot+=ds*(H.on?40:0)}
 
 // ---------- Kamera ----------
 function wrCamStep(X){const R=G.wrR;if(rcQ('wr'))return;
- if(X.fol&&camA===null&&performance.now()-lastIn<400&&performance.now()-X.folT>300){X.fol=false;return}
+ if(X.fol&&X.ph!=='crash'&&camA===null&&performance.now()-lastIn<400&&performance.now()-X.folT>300){X.fol=false;return}
  if(R.st==='cer'){if(!X.cc){X.cc=1;const s=cl(2.1,minS(),maxS());camA={s,x:(WRL+128)/2-cw/s/2,y:WRYB-6-ch*.5/s}}return}
+ if(wrRun()&&X.ph==='crash'&&X.r){const s=cl(2.7,minS(),maxS()),r=X.r;camA={s,x:r.x-cw/s/2,y:r.y-ch*.45/s};return}
  if(!X.fol||!wrRun())return;const s=cl(1.55,minS(),maxS());let tx,ty;
  if(X.ph==='go'||X.ph==='crash'){tx=X.r.x;ty=X.r.y+40}else if(X.ph==='fin'){tx=WRL;ty=WRYF+40}else{tx=slopeX(wrYS()+60);ty=wrYS()+120}
  camA={s,x:tx-cw/s/2,y:ty-ch*.42/s}}
@@ -5450,8 +5457,14 @@ function wrValley(c,t,nt){const p=phase();
   for(const [x,y] of [[-470,WRTY-28],[-262,WRTY-44]]){c.fillStyle='#b9764a';c.beginPath();c.ellipse(x,y,4,5,0,0,7);c.fill();c.fillStyle='#2b303d';c.beginPath();c.ellipse(x,y,2,2.6,0,0,7);c.fill()}
   for(let k=0;k<9;k++){const x=-528+k*35,y=WRTY+9;c.fillStyle='#f28c28';c.beginPath();c.moveTo(x-2.4,y);c.lineTo(x+2.4,y);c.lineTo(x,y-6);c.closePath();c.fill();c.fillStyle='#fff';c.fillRect(x-1.2,y-3.4,2.4,1)}}
  P.forEach((q,i)=>{if(q)wrTruck(c,i,q,nt)})}
-function wrDrawG(c,t){if(wrHold()&&!open){open='wrs';render()}if(!wrDay())return;const R=G.wrR,X=wrX(),nt=NIGHT(),dt=Math.min(.1,Math.max(0,t-(X.lt||t)));X.lt=t;if(X.cheer>0)X.cheer-=dt;
+function wrDrawG(c,t){if(wrHold()&&!open){open='wrs';render()}wrOv();if(!wrDay())return;const R=G.wrR,X=wrX(),nt=NIGHT(),dt=Math.min(.1,Math.max(0,t-(X.lt||t)));X.lt=t;if(X.cheer>0)X.cheer-=dt;
  wrValley(c,t,nt);if(!inVR(-140,wrYS()-90,560,WRYB+140,40))return;
+ // Renntag: eigene Abfahrt vom Ende der schwarzen Piste zur Talstation (statt über die Rennstrecke)
+ if(G.ps&&inVR(300,540,520,V+10,30)){const L=[],Rr=[];for(let y=548;y<=V+6;y+=4){const b=sm((y-560)/110),cx=pX(2,y)+(352-pX(2,y))*b,w=pW(2,y)*(1-b)+15*b;L.push([cx-w,y]);Rr.push([cx+w,y])}
+  c.fillStyle='#fdfeff';c.beginPath();L.forEach((q,i)=>i?c.lineTo(q[0],q[1]):c.moveTo(q[0],q[1]));for(let i=Rr.length-1;i>=0;i--)c.lineTo(Rr[i][0],Rr[i][1]);c.closePath();c.fill();
+  c.strokeStyle='rgba(160,190,225,.55)';c.lineWidth=1;for(const P of [L,Rr]){c.beginPath();P.forEach((q,i)=>i?c.lineTo(q[0],q[1]):c.moveTo(q[0],q[1]));c.stroke()}
+  c.strokeStyle='rgba(185,205,230,.45)';c.lineWidth=.6;for(const o of [-.45,0,.45]){c.beginPath();for(let i=0;i<L.length;i++){const x=(L[i][0]+Rr[i][0])/2+o*(Rr[i][0]-L[i][0])/2;i?c.lineTo(x,L[i][1]):c.moveTo(x,L[i][1])}c.stroke()}
+  for(const [y,d] of [[600,1],[690,-1]]){const b=sm((y-560)/110),cx=pX(2,y)+(352-pX(2,y))*b,w=pW(2,y)*(1-b)+15*b;pSign(c,cx+d*(w+6),y,2)}}
  // Fahrspur auf der Piste
  const ys=wrYS();{const y0=Math.max(ys,VW.y0-20),y1=Math.min(WRYF,VW.y1+20);if(y1>y0){c.strokeStyle='rgba(150,180,215,.32)';c.lineWidth=3;c.beginPath();for(let y=y0;y<=y1;y+=5){const x=wrLineX(y);y===y0?c.moveTo(x,y):c.lineTo(x,y)}c.stroke()}}
  for(const g of wrGates())if(inV(g.c,g.y,60))wrGateD(c,g);
@@ -5544,15 +5557,15 @@ function wrDrawR(c,t){if(!wrDay())return;const R=G.wrR,X=wrX(),r=X.r;
   if(R.st==='cer'&&X.cs>8&&X.cs<13&&fx.length<200)for(let k=0;k<3;k++)fx.push({x:px+3,y:py-26,vx:(Math.random()-.5)*30,vy:-26-Math.random()*20,t:.7})}}
 // Hubschrauber mit Kamera (ca. 70 lang)
 function wrHeliD(c,H,t){if(!H||H.away)return;const x=H.x,y=H.y,h=H.h;if(!inV(x,y-h,90)&&!inV(x,y,60))return;
- c.fillStyle='rgba(50,70,100,'+(.28*Math.max(.12,1-h/150)).toFixed(3)+')';c.beginPath();c.ellipse(x,y+1,26-h*.05,5.5,0,0,7);c.fill();
- c.save();c.translate(x,y-h);c.scale(H.fx,1);const tl=Math.sin(T*1.4)*.02;c.rotate(H.vx?cl(H.vx*H.fx/1600,-.12,.12)+tl:tl);
+ c.fillStyle='rgba(50,70,100,'+(.28*Math.max(.12,1-h/150)).toFixed(3)+')';c.beginPath();c.ellipse(x,y+1,19-h*.04,4.2,0,0,7);c.fill();
+ c.save();c.translate(x,y-h);c.scale(H.fx*.72,.72);const tl=Math.sin(T*1.4)*.02;c.rotate(H.vx?cl(H.vx*H.fx/1600,-.12,.12)+tl:tl);
  c.strokeStyle='#3a3f47';c.lineWidth=1;c.beginPath();c.moveTo(-15,7);c.lineTo(17,7);c.quadraticCurveTo(20,7,21,5);c.moveTo(-9,7);c.lineTo(-7,3);c.moveTo(9,7);c.lineTo(8,3);c.stroke();
  c.fillStyle='#1f3b73';c.beginPath();c.moveTo(-40,-3.6);c.lineTo(-12,-6);c.lineTo(-12,-1);c.lineTo(-40,-1.4);c.closePath();c.fill();
  c.beginPath();c.moveTo(-41,-1);c.lineTo(-44,-12);c.lineTo(-39,-12);c.lineTo(-36,-2);c.closePath();c.fill();
  const tr=H.rot*3;c.strokeStyle='rgba(60,70,90,.7)';c.lineWidth=.9;c.beginPath();c.moveTo(-41.5-4.5*Math.cos(tr),-6-4.5*Math.sin(tr));c.lineTo(-41.5+4.5*Math.cos(tr),-6+4.5*Math.sin(tr));c.stroke();
  c.fillStyle='#1f3b73';c.beginPath();c.moveTo(-16,-8);c.quadraticCurveTo(-4,-15,12,-12);c.quadraticCurveTo(24,-9,25,-1);c.quadraticCurveTo(24,4,14,4);c.lineTo(-12,4);c.quadraticCurveTo(-18,2,-16,-8);c.closePath();c.fill();
  c.fillStyle='#fff';c.fillRect(-15,-2,30,2);c.fillStyle='#8fd0ff';c.beginPath();c.moveTo(12,-11);c.quadraticCurveTo(22,-8,23,-2);c.lineTo(14,-2);c.closePath();c.fill();c.fillStyle='#bfe6ff';c.fillRect(-1,-9,7,5);
- c.fillStyle='#ffd84d';c.font='800 4.6px Fredoka,sans-serif';c.textAlign='center';c.fillText('TV',-8,-3.8);
+ c.fillStyle='#ffd84d';c.font='800 4.6px Fredoka,sans-serif';c.textAlign='center';c.save();c.translate(-8,-3.8);c.scale(H.fx,1);c.fillText('TV',0,0);c.restore();
  c.fillStyle='#2b303d';c.beginPath();c.arc(16,6,3,0,7);c.fill();c.fillStyle='#8fd0ff';c.beginPath();c.arc(17.6,5.6,1.1,0,7);c.fill();
  c.fillStyle='#3a3f47';c.fillRect(-1.2,-17,2.4,4);
  if(H.on){c.fillStyle='rgba(60,70,90,.18)';c.beginPath();c.ellipse(0,-17,38,2.4,0,0,7);c.fill();const L=38*Math.cos(H.rot);c.strokeStyle='#2b303d';c.lineWidth=1.2;c.beginPath();c.moveTo(-L,-17);c.lineTo(L,-17);c.stroke()}
@@ -5578,10 +5591,25 @@ function wrPost(c,dt){if(!wrDay())return;const R=G.wrR,X=wrX(),p=phase();const o
   c.fillStyle='rgba('+q.col+','+a.toFixed(3)+')';c.beginPath();c.arc(q.x,q.y,1.4,0,7);c.fill();c.fillStyle='rgba('+q.col+','+(a*.13).toFixed(3)+')';c.beginPath();c.arc(q.x,q.y,3.2,0,7);c.fill()}
  for(const q of X.fw)if(!q.up&&q.t>q.t0-.25){const a=(q.t-(q.t0-.25))/.25;c.fillStyle='rgba('+q.col+','+(a*.05).toFixed(3)+')';c.beginPath();c.arc(q.x,q.y,26,0,7);c.fill();break}
  c.globalCompositeOperation='source-over';c.restore()}
+// Übersicht am unteren Bildschirmrand während des Rennens (Platzierungen, aktueller Läufer)
+let WROV=null,WROT=0;
+function wrOv(){const R=G.wrR,show=!!(wrDay()&&['r1','p','r2','end'].includes(R.st)&&!open&&!inTitle);
+ if(!WROV){if(!show)return;WROV=document.createElement('div');WROV.id='wrov';WROV.style.cssText='position:fixed;left:6px;right:6px;bottom:calc(54px + env(safe-area-inset-bottom,0px) - var(--vgap,0px));margin:0 auto;max-width:620px;background:rgba(22,28,46,.9);color:#fff;border-radius:12px;padding:6px 10px 7px;font:500 12.5px Fredoka,sans-serif;line-height:1.4;z-index:4;pointer-events:none;box-shadow:0 2px 0 rgba(0,0,0,.25)';document.body.appendChild(WROV)}
+ WROV.style.display=show?'block':'none';if(!show)return;const now=performance.now();if(now-WROT<120)return;WROT=now;
+ const X=wrX(),st=R.st,n=R.ord.length,F=r=>(WRFE[r.cc]||'')+' '+r.nm,Y='#ffd84d',G2='#8fa3c4';let hd,live='';
+ if(st==='r1'||st==='r2')hd='🏁 '+R.run+'. Durchgang · Läufer '+Math.min(R.i+1,n)+'/'+n;else if(st==='p')hd='🏁 Pause · 2. Durchgang um 13:00';else hd='🏆 Endergebnis · Siegerehrung um 18:15';
+ const rw=(a,b,c)=>`<div style="display:flex;gap:8px"><span style="flex:1;overflow:hidden;white-space:nowrap;text-overflow:ellipsis${c?';color:'+c:''}">${a}</span><b style="white-space:nowrap${c?';color:'+c:''}">${b}</b></div>`;
+ if(st==='r1'||st==='r2'){const r=X.r;if(r&&(X.ph==='go'||X.ph==='crash')){const rc=R.rs[r.ri];live=rw('▶ Nr. '+rc.nr+' '+F(rc)+(rc.lok?' ★':''),r.st==='go'?ft(cl(r.t/r.D,0,1)*r.tm):'😱 Sturz','#6cff9a')}
+  else if(X.ph==='fin'&&R.last){const rc=R.rs[R.last.ri],pl=R.rk.findIndex(q=>q.ri===R.last.ri)+1;live=rw('✔ Im Ziel: '+F(rc),(pl?'Platz '+pl+' · ':'')+ft(R.last.t),Y)}
+  else if(R.ord[R.i]!=null){const rc=R.rs[R.ord[R.i]];live=rw('⏱ Am Start: Nr. '+rc.nr+' '+F(rc)+(rc.lok?' ★':''),'','#cfe8ff')}}
+ let L=R.rk||[],lab='';if((st==='r2')&&!L.length){L=R.rs.map((r,i)=>({ri:i,t:r.t1})).filter(q=>q.t!=null).sort((a,b)=>a.t-b.t);lab='nach dem 1. Durchgang'}
+ const cur=X.r?X.r.ri:R.last?R.last.ri:-1;let tb='';L.slice(0,5).forEach((q,i)=>{const r=R.rs[q.ri];tb+=rw((i+1)+'. '+F(r)+(r.lok?' ★':''),ft(q.t)+(i?' <span style="color:'+G2+';font-weight:500">+'+(q.t-L[0].t).toFixed(2).replace('.',',')+'</span>':''),q.ri===cur?Y:'')});
+ if(!tb)tb=`<div style="color:${G2}">Noch niemand im Ziel</div>`;
+ WROV.innerHTML=`<div style="font-weight:700;color:${Y};margin-bottom:2px">${hd}</div>${live}<div style="border-top:1px solid rgba(255,255,255,.15);margin:3px 0 2px"></div>${lab?`<div style="color:${G2};font-size:11px">${lab}</div>`:''}${tb}`}
 
 // ===== V239: Versteckter Testbereich (Optionen › 5× auf die Versionszeile tippen) =====
 // Jeder Test sichert vorher den Spielstand; „Test beenden“ holt ihn zurück. Neue Tests einfach in TESTS eintragen.
-const TVER='V239',TBAK='art-test-bak';
+const TVER='V240',TBAK='art-test-bak';
 const TESTS=[
  {id:'wr1',ic:'🏁',t:'Weltcuprennen – ganzer Renntag',
   was:['Übertragungswagen stehen aufgebaut, Landeplatz und Hubschrauber im Tal','Zuschauer an der Strecke, Tribünen und LED-Wand im Ziel','Westpiste gesperrt: Gäste fahren über die schwarze Piste','1. Durchgang (10:30) mit Kamerafahrt, Zeitlupe und Hubschrauber, der dem Läufer folgt','Mögliche Stürze mit Bergwacht, Pause mit Landung im Tal, 2. Durchgang (13:00)','Siegerehrung 18:15 mit Feuerwerk, danach die Abrechnung zum Bestätigen'],
