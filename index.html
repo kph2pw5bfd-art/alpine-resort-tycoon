@@ -3799,7 +3799,7 @@ function evStep(dt){evPlan();const e=G.ev,p=phase();
   evEnd(EV[e.k].ic+' '+EV[e.k].t+' vorbei! Sieger: Nr. '+b.nr+' in '+ft(b.t)+' · '+(e.inc>=0?'+':'')+fmt(e.inc)+' · Ruf '+(dr>0?'+':'')+dr+(good?'':' (die Piste war in schlechtem Zustand)'),e.inc,dr)}}
 function FMs(){return FL}
 // V253: Punkte der Verbindungsbahn West (Seil alle 6 Einheiten, Stationen markiert) – dort keine Lichtmasten
-function flWc(){const Q=[];try{const P=wcP();for(let a=0;a<=P.L;a+=6){const p=rpAt(P,a);Q.push([p.x,p.y,0])}for(const t of P.ST)Q.push([t.x,t.y,1])}catch(e){}zuFl(Q);return Q}
+function flWc(){const Q=[];if((G.wk||0)>=2)try{const P=wcP();for(let a=0;a<=P.L;a+=6){const p=rpAt(P,a);Q.push([p.x,p.y,0])}for(const t of P.ST)Q.push([t.x,t.y,1])}catch(e){}zuFl(Q);return Q}
 function flBuild(){const A=G.areas,L=[],yT=pTopY(A)-4;
  const segD=(px,py,a,b)=>{const dx=b.x-a.x,dy=b.y-a.y,t=cl(((px-a.x)*dx+(py-a.y)*dy)/(dx*dx+dy*dy),0,1);return Math.hypot(px-a.x-t*dx,py-a.y-t*dy)};
  const inP=(x,y,pd)=>{if(y>=yT-4&&y<=V+4&&Math.abs(x-slopeX(y))<slopeW(y)+pd)return 1;for(let k=1;k<=A;k++){const te=ends(k).t;if(y>=te.y-6&&y<=te.y+110){const t=cl((y-te.y)/110,0,1),e=t*t*(3-2*t);if(Math.abs(x-(te.x+(slopeX(y)-te.x)*e))<8+(slopeW(y)-8)*e+pd)return 1}}return onX(x,y,pd)};
@@ -3809,7 +3809,7 @@ function flBuild(){const A=G.areas,L=[],yT=pTopY(A)-4;
   for(const b of BEN)if(ov(b.x-4,b.x+b.w+4,b.y-12,b.y+5))return 1;
   for(let k=1;k<=A;k++)for(const fr of [.3,.72]){const p=cpos({k,fr});if(ov(p.x-14,p.x+18,p.y-24,p.y+6))return 1}
   {const hy=Yk(1)+20,hx=Math.max(40,slopeX(hy)-slopeW(hy)-40);if(ov(hx-30,hx+30,hy-52,hy+34))return 1}if(A>=6){const P2=gipP();if(ov(P2.x0-10,P2.x1+70,P2.y0-70,P2.y1+30))return 1}for(const sp of GSP)if(ov(sp.x-sp.L*.6-6,sp.x+sp.L*.6+6,sp.y-10,sp.y+10))return 1;
-  if((G.wk||0)>=2){const WQ=flWc();for(const q of WQ){if(Math.abs(q[0]-x)<(q[2]?36:20)&&y>q[1]-(q[2]?16:10)&&y-42<q[1]+(q[2]?50:6))return 1}}
+  if((G.wk||0)>=2||G.zu){const WQ=flWc();for(const q of WQ){if(Math.abs(q[0]-x)<(q[2]?36:20)&&y>q[1]-(q[2]?16:10)&&y-42<q[1]+(q[2]?50:6))return 1}}
   for(const m of L)if(Math.hypot(x-m[0],y-m[1])<44)return 1;return 0};
  const put=(f,y,d,wide)=>{for(const o of (wide?[10,15,20,26,34,42]:[10,15,20,26]))for(const dy of [0,6,-6,12,-12,18,-18,24,-24]){const yy=y+dy,q=f(yy);if(!q)continue;const [cx,w]=q,x=cx+d*(w+o);if(bad(x,yy))continue;const ds=w+o;
    if(wide){const rx=ds*.9+40;L.push([x,yy,d,x-d*ds*.55,yy+6,rx,Math.max(62,rx*.66)])}else{const rx=w+28;L.push([x,yy,d,cx,yy+6,rx,Math.max(60,rx)])}return 1}return 0};
@@ -4549,7 +4549,7 @@ function waysB(){const S=[],L=[],g=(k,...p)=>S.push({k,p}),PN=sideP(1),PS=sideP(
  if(G.garage2)g('g',[HWX,gY2()],[GX2,gY2()]);
  g('f',[HWX,zN()+4],[HWX,V+100],[484,V+72],[470,V+66],[EXX,EXY()]);
  if(G.hotels){g('f',[HX[0],hY()],[HWX,hY()]);if(G.hotels>1)g('f',[HX[1],hY()],[HX[0],hY()]);if(G.hotels>2)g('f',[HWX,hY()],[HX[2],hY()]);for(let i=0;i<G.hotels;i++)g('f',[HX[i],HDY(i)],[HX[i],hY()])}
- const lam=(P,dy)=>{for(let i=1;i<P.length;i++){const a=P[i-1],b=P[i];if(a[1]!==b[1])continue;const x0=Math.min(a[0],b[0]),x1=Math.max(a[0],b[0]);for(let x=-24-62*4;x<=980;x+=62)if(x>x0+3&&x<x1-3&&ZC.every(z=>Math.abs(x-z)>14)&&!(G.zu&&dy<0&&x>-115&&x<-20))L.push([x,a[1]+dy])}};
+ const lam=(P,dy)=>{for(let i=1;i<P.length;i++){const a=P[i-1],b=P[i];if(a[1]!==b[1])continue;const x0=Math.min(a[0],b[0]),x1=Math.max(a[0],b[0]);for(let x=-24-62*4;x<=980;x+=62)if(x>x0+3&&x<x1-3&&ZC.every(z=>Math.abs(x-z)>14)&&!(G.zu&&dy<0&&x>-240&&x<-40))L.push([x,a[1]+dy])}};
  lam(PN,-9);lam(PS,9);if(G.ph){g('g',[-43,yAt(PS,-43)],[-43,R+133],[-53,R+133]);L.push([-34,R+112])}
  L.push([392,V+75]);
  {const C=CHL().slice(1);g('f',[HWX,zS()-4],[HWX,R+100],[C[C.length-1][0]+16,R+100]);for(const q of C)g('f',[q[0],q[1]],[q[0],R+100]);L.push([700,R+109],[860,R+109])}
@@ -4557,7 +4557,6 @@ function waysB(){const S=[],L=[],g=(k,...p)=>S.push({k,p}),PN=sideP(1),PS=sideP(
  if(G.sz){const xs=SZX0.slice(0,G.sz),xa=Math.min(...xs),xb=Math.max(...xs.map(x=>x+312),SZPX,G.fb?FBX+8:0);g('g',[xa,SZNY()],[xb,SZNY()]);g('f',[SZPX,SZNY()],[SZPX,TY()-14],[560,TY()-14]);if(!G.train)g('f',[HWX,R+100],[HWX,TY()-14],[560,TY()-14]);for(let k=0;k<G.sz;k++)for(let x=SZX0[k]+39;x<SZX0[k]+312;x+=78)L.push([x,SZY()+64]);L.push([SZW+20,R+70],[SZW+20,TY()+60],[SZE-20,R+70],[SZE-20,TY()+60])}
  if(G.fb){g('f',[FBXN+5,FBN()],[FBXN+5,FBP()],[HWX,FBP()]);g('f',[FBX+2,SZNY()],[FBX+2,FBS()]);L.push([668,FBP()-9],[564,FBP()-9])}
  if(G.hotels&&G.ap)for(const x of G.hotels>1?[150,376]:[150,270,376])L.push([x,hY()+9]);if(G.hotels)L.push([484,hY()+9]);if(G.hotels>2)L.push([597,hY()-9]);
- if(G.zu){g('f',[ZUEX,yAt(PN,ZUEX)],[ZUEX,ZUQY]);g('f',[20,V+124],[20,ZUQY],[ZUEX,ZUQY])}
  pkWays(S,L,g,PS);if(ost())obWays(S);return {S,L,PN,PS}}
 function lotFree(x,y){const nc=Math.ceil(G.spots/2),nd=Math.floor(G.spots/2),N=y>R-64-RD&&y<R-12-RD,Sd=y>R+12+RD&&y<R+50+RD;if(!N&&!Sd)return 0;if(N&&LX.some(l=>Math.abs(x-l)<8))return 0;
  if(N?y>R-52-RD:y<R+50+RD)for(let j=0;j<30;j++)if(Math.abs(x-cX(j))<12&&(N?j>=nc:j>=nd))return 1;
@@ -5156,16 +5155,19 @@ function gondelO(c,k,open,lab){const R2=k.r,n=R2.length;
  c.fillStyle='#f5a524';c.fillRect(-11,19.2,22,1.4);c.fillStyle='rgba(255,255,255,.9)';c.font='700 2.8px Fredoka,sans-serif';c.textAlign='center';c.fillText(lab||'OST',7,23.3,6);c.fillStyle='#2a2e44';c.fillRect(-8,24,16,1)}
 // ===== V261: Zubringer West – 10er-Gondel von der Talstation West (neben den Busparkplätzen) hinauf zu Lift 3 (ab Ausbau Stufe 6) =====
 // G.zu = gebaut, G.zug = zusätzliche Gondeln. Gäste wählen nach geschätzter Zeit (Weg + Warten + Fahrt) zwischen Lift 1+2 und dem Zubringer.
-const ZUT={x:-50,y:935},ZUB={x:378,y:205},ZUEX=-14,ZUQY=966,ZUC=350000,ZUU=150,ZUCAP=10,ZUL=Math.hypot(ZUB.x-ZUT.x,ZUB.y-ZUT.y),ZUDX=(ZUB.x-ZUT.x)/ZUL,ZUDY=(ZUB.y-ZUT.y)/ZUL,ZUPY=[.12,.25,.8,.92];
+const ZUP=[[-205,975],[-238,550],[325,207]],ZUT={x:ZUP[0][0],y:ZUP[0][1]},ZUB={x:ZUP[2][0],y:ZUP[2][1]},ZUEX=-62,ZUQY=990,ZUC=350000,ZUU=150,ZUCAP=10,ZUS=ZUP.map((q,i)=>0),ZUPS=[135,285,426,596,716];for(let i=1;i<ZUP.length;i++)ZUS[i]=ZUS[i-1]+Math.hypot(ZUP[i][0]-ZUP[i-1][0],ZUP[i][1]-ZUP[i-1][1]);const ZUL=ZUS[ZUS.length-1];
+// Seil-Versatz je Seite (Gehrung am Knick): ZUO[1] = Bergfahrt, ZUO[-1] = Talfahrt
+const ZUO=(()=>{const N=[];for(let i=1;i<ZUP.length;i++){const dx=ZUP[i][0]-ZUP[i-1][0],dy=ZUP[i][1]-ZUP[i-1][1],l=Math.hypot(dx,dy);N.push([-dy/l,dx/l])}const O={};for(const sd of [1,-1])O[sd]=ZUP.map((q,i)=>{const a=N[Math.max(0,i-1)],b=N[Math.min(N.length-1,i)];let nx=a[0]+b[0],ny=a[1]+b[1];const l=Math.hypot(nx,ny);nx/=l;ny/=l;const k=OBCO/(nx*a[0]+ny*a[1]);return [q[0]+nx*k*sd,q[1]+ny*k*sd]});return O})();
+function zuAt(s,sd){let j=0;while(j<ZUS.length-2&&s>ZUS[j+1])j++;const t=cl((s-ZUS[j])/(ZUS[j+1]-ZUS[j]),0,1),P=sd?ZUO[sd]:ZUP;return {x:P[j][0]+(P[j+1][0]-P[j][0])*t,y:P[j][1]+(P[j+1][1]-P[j][1])*t}}
 let ZUK=null,ZUQ=[];
 function zuN(){return 24+(G.zug||0)}
-function zuV(){return stormOn()?18:38}
+function zuV(){return stormOn()?20:44}
 function zuThr(){return zuN()*ZUCAP*zuV()/(2*ZUL)}
 function zuWaitMin(){return ZUQ.length/Math.max(.05,zuThr())/(DAY*.056/TSD)*60}
 function zuGC(){const g=G.zug||0;return g>=16?0:20000+5000*(g/2)}
 function zuFit(){const n=zuN();if(!ZUK){ZUK=Array.from({length:n},(_,i)=>({u:i*2/n,r:[]}));return}
  while(ZUK.length<n){ZUK.sort((a,b)=>a.u-b.u);let bi=0,bg=-1;for(let i=0;i<ZUK.length;i++){const a=ZUK[i].u,b=i+1<ZUK.length?ZUK[i+1].u:ZUK[0].u+2,g=b-a;if(g>bg){bg=g;bi=i}}ZUK.push({u:(ZUK[bi].u+bg/2)%2,r:[]})}}
-function zuPos(u){const up=u<1,s=(up?u:2-u)*ZUL,sd=up?1:-1,co=OBCO;return {x:ZUT.x+ZUDX*s-ZUDY*co*sd,y:ZUT.y+ZUDY*s+ZUDX*co*sd,s}}
+function zuPos(u){const up=u<1,s=(up?u:2-u)*ZUL,p=zuAt(s,up?1:-1);p.s=s;return p}
 function zuLen(L){const e=ends(L);return Math.hypot(e.t.x-e.b.x,e.t.y-e.b.y)}
 // geschätzte Sekunden von der Talstation Lift 1 (Schlange) bis zur Talstation Lift 3
 function zuL12(){const w1=queues[0].length/Math.max(.05,thr(1));if(wcIn(2))return w1+(zuLen(1)+zuLen(2))/spd(1)+1;return w1+zuLen(1)/spd(1)+2.5+queues[1].length/Math.max(.05,thr(2))+zuLen(2)/spd(2)+2.5}
@@ -5177,26 +5179,26 @@ function zuArr(f,r){if(!zuOK(f))return null;const PN=WAYS.PN;let i=-1;for(let j=
  const a=r[i],A=along(PN,a[0],ZUEX),zr=[...r.slice(0,i+1),...A.slice(1),[ZUEX,ZUQY]];
  return zuPick(zuZ(plen(f,zr),36),plen(f,r)/36+3.2+zuL12())?zr:null}
 // Abfahrt bis ins Tal: auf Skiern über den Weg hinunter zur Talstation West
-function zuSki(f){if(!zuOK(f))return 0;const zr=[[124,V+46],[64,V+84],[20,V+124],[20,ZUQY],[ZUEX,ZUQY]];
+function zuSki(f){if(!zuOK(f))return 0;const PN=WAYS.PN,zr=[[124,V+46],[64,V+84],[20,V+124],[44,V+150],...along(PN,44,ZUEX),[ZUEX,ZUQY]];
  if(!zuPick(zuZ(plen(f,zr),62),2+zuL12()))return 0;f.st='rt';f.rt=zr;f.nx='zuK';f.cw=null;f.zc=null;f.zuS=1;return 1}
 function zuJoin(f){f.zuS=0;if(closed()||!G.zu){leave(f);return}gi(f);f.st='zuq';f.arr=0;ZUQ.push(f)}
-function zuSlot(i){if(i>=60)return {x:-107-(i-60)*4,y:984};const r=Math.floor(i/15),j=i%15;return {x:r%2?-102+j*5:-32-j*5,y:963+r*7}}
+function zuSlot(i){if(i>=90)return {x:-52+(i-90)*4,y:994};const r=Math.floor(i/18),j=i%18;return {x:r%2?-60-j*5:-145+j*5,y:958+r*8}}
 function zuQStep(f,dt){const i=ZUQ.indexOf(f);if(i<0){f.st='zuK';return}const p=zuSlot(i),dq=Math.hypot(p.x-f.x,p.y-f.y);mv(f,p.x,p.y,dq>30?32:70,dt);f.arr=dq<6;if(f.arr)f.wt=(f.wt||0)+dt}
 function zuOut(f){f.zu=0;f.x=ZUB.x;f.y=ZUB.y+16;const w3=waitMin(3);if(3<=Math.min(wrMx(f),G.areas)&&!closed()&&!(stormOn()&&!isG(3))&&!(w3>Math.max(6,waitMin(2)+3)&&Math.random()<.6)){f.st='qu';f.l=3;f.arr=0;queues[2].push(f)}else{f.st='ski';f.x0=f.x;f.y0=f.y;f.ph=0;f.sv=0;pChoose(f,2,{x:f.x,y:f.y})}}
 function zuStep(dt){if(!G.zu){ZUQ=[];return}zuFit();ZUQ=ZUQ.filter(f=>!f.dead&&f.st==='zuq');
  if(closed()&&ZUQ.length){for(const f of ZUQ.splice(0))leave(f)}
  const v=zuV();for(const k of ZUK){const pv=k.u;k.u+=v*dt/ZUL;if(pv<1&&k.u>=1){for(const f of k.r)zuOut(f);k.r=[]}
-  if(k.u>=2){k.u-=2;if(closed())continue;for(let qi=0;k.r.length<ZUCAP&&qi<ZUQ.length&&qi<16;){const f=ZUQ[qi];if(!f.arr){qi++;continue}ZUQ.splice(qi,1);f.st='lift';f.zu=1;f.rides=(f.rides||0)+1;f.bd=(f.bd||0)+1;G.inc.zu=(G.inc.zu||0)+1;k.r.push(f);gi(f);if(!f.paid){const m0=G.money;buyT(f);if(G.money>m0)pop(ZUT.x+8,ZUQY-10,G.money-m0)}}}}}
-function zuTree(x,y){if(!G.zu)return 0;const b=(a,b2,c2,d)=>x>a&&x<b2&&y>c2&&y<d;return b(-125,35,850,1000)||b(-270,-100,950,1000)||b(312,444,138,238)?1:0}
-function zuFl(Q){if(!G.zu)return;for(let a=0;a<=ZUL;a+=6)Q.push([ZUT.x+ZUDX*a,ZUT.y+ZUDY*a,0]);Q.push([ZUT.x,ZUT.y,1],[ZUB.x,ZUB.y,1])}
-function zuStQ(stQ){if(!G.zu)return;for(const [p,hw,big,lab] of [[ZUT,56,true,['TALSTATION WEST','🚠 10er-ZUBRINGER · direkt zu Lift 3','#b26a00']],[ZUB,44,false,['BERGSTATION','Zubringer West · Umstieg Lift 3','#2f6fb5']]]){
+  if(k.u>=2){k.u-=2;if(closed())continue;for(let qi=0;k.r.length<ZUCAP&&qi<ZUQ.length&&qi<16;){const f=ZUQ[qi];if(!f.arr){qi++;continue}ZUQ.splice(qi,1);f.st='lift';f.zu=1;f.rides=(f.rides||0)+1;f.bd=(f.bd||0)+1;G.inc.zu=(G.inc.zu||0)+1;k.r.push(f);gi(f);if(!f.paid){const m0=G.money;buyT(f);if(G.money>m0)pop(-140,950,G.money-m0)}}}}}
+function zuTree(x,y){if(!G.zu)return 0;const b=(a,b2,c2,d)=>x>a&&x<b2&&y>c2&&y<d;if(b(-262,-40,905,1005)||b(265,385,140,240))return 1;for(const a of ZUPS){const p=zuAt(a,0);if(Math.abs(x-p.x)<26&&y>p.y-8&&y<p.y+40)return 1}for(let a=40;a<ZUS[1];a+=20){const p=zuAt(a,0);if(Math.abs(x-p.x)<20&&Math.abs(y-p.y)<12)return 1}return 0}
+function zuFl(Q){if(!G.zu)return;for(let a=0;a<=ZUL;a+=6){const p=zuAt(a,0);Q.push([p.x,p.y,0],[p.x,p.y+26,0])}for(const [p,h] of [[ZUT,44],[ZUB,44]])for(const d of [-h,0,h])Q.push([p.x+d,p.y,1],[p.x+d,p.y-44,1])}
+function zuStQ(stQ){if(!G.zu)return;for(const [p,hw,big,lab] of [[ZUT,44,false,['TALSTATION WEST','🚠 10er-Zubringer · zu Lift 3','#b26a00']],[ZUB,44,false,['BERGSTATION','Zubringer West · Umstieg Lift 3','#2f6fb5']]]){
  const q=[p.x,p.y];q.b=c=>{if(inV(p.x,p.y,90))obStBack(c,p.x,p.y,hw)};q.f=c=>{if(inV(p.x,p.y,90))obStFront(c,p.x,p.y,hw,big,T,lab)};stQ.push(q)}}
 function zuDraw(c,T){if(!G.zu)return;zuFit();
- if(inVR(-280,950,0,1000,40)){c.strokeStyle='#8a94a8';c.lineWidth=.9;c.lineCap='round';const ln=(x0,x1,y)=>{c.beginPath();c.moveTo(x0,y);c.lineTo(x1,y);c.stroke()};
-  ln(-106,-28,959.5);ln(-98,-28,966.5);ln(-106,-36,973.5);ln(-98,-28,980.5);ln(-106,-28,987.5);c.fillStyle='#6b7488';for(const y of [959.5,987.5])for(let x=-106;x<=-28;x+=13)c.fillRect(x-.5,y-3,1,3)}
- const co=OBCO,nx=-ZUDY*co,ny=ZUDX*co;
- if(inVR(Math.min(ZUT.x,ZUB.x),ZUB.y,Math.max(ZUT.x,ZUB.x),ZUT.y,40)){c.strokeStyle='#161a28';c.lineWidth=1.3;for(const s of [-1,1]){c.beginPath();c.moveTo(ZUT.x+nx*s,ZUT.y+ny*s);c.lineTo(ZUB.x+nx*s,ZUB.y+ny*s);c.stroke()}}
- for(const f of ZUPY){const x=ZUT.x+(ZUB.x-ZUT.x)*f,y=ZUT.y+(ZUB.y-ZUT.y)*f;if(inV(x,y,60))pylon(c,x,y,co+3)}
+ if(inVR(-160,945,-55,1000,40)){c.strokeStyle='#8a94a8';c.lineWidth=.9;c.lineCap='round';const ln=(x0,x1,y)=>{c.beginPath();c.moveTo(x0,y);c.lineTo(x1,y);c.stroke()};
+  ln(-149,-54,953.5);for(let r=0;r<4;r++)r%2?ln(-139,-54,961.5+r*8):ln(-149,-64,961.5+r*8);c.fillStyle='#6b7488';for(let x=-149;x<=-54;x+=19)c.fillRect(x-.5,950.5,1,3)}
+ const co=OBCO;
+ if(inVR(-260,ZUB.y,ZUB.x,ZUT.y,40)){c.strokeStyle='#161a28';c.lineWidth=1.3;for(const sd of [-1,1]){c.beginPath();ZUO[sd].forEach((q,i)=>i?c.lineTo(q[0],q[1]):c.moveTo(q[0],q[1]));c.stroke()}}
+ for(const a of ZUPS){const p=zuAt(a,0);if(inV(p.x,p.y,60))pylon(c,p.x,p.y,co+(a===ZUS[1]?6:3))}
  const nt=1-bright();for(const k of ZUK){const p=zuPos(k.u);if(p.s<28||p.s>ZUL-28||!inV(p.x,p.y,40))continue;c.save();c.translate(p.x,p.y);c.rotate(Math.sin(T*(stormOn()?3.4:1.6)+k.u*9)*(stormOn()?.16:.05));gondelO(c,k,false,'WEST');c.restore();if(nt>.3&&k.r.length)NWIN.push([p.x-10,p.y+10,20,7.6])}}
 function zuBuy(k){if(k==='b'){if(G.areas<6||G.zu||G.money<ZUC)return;spend(ZUC);G.zu=1;G.zug=0;ZUK=null;ZUQ=[];buildStatic();lg('🚡','lif','Zubringer West eröffnet: 10er-Gondeln fahren von der Talstation West direkt hinauf zu Lift 3.',{s:1});toast('🚡 Zubringer West eröffnet!',4000);return}
  const p=zuGC();if(!G.zu||!p||G.money<p)return;spend(p);G.zug=(G.zug||0)+2;zuFit()}
@@ -6264,7 +6266,7 @@ function wrOv(){const R=G.wrR,show=!!(wrDay()&&['r1','p','r2','end'].includes(R.
 
 // ===== V239: Versteckter Testbereich (Optionen › 5× auf die Versionszeile tippen) =====
 // Jeder Test sichert vorher den Spielstand; „Test beenden“ holt ihn zurück. Neue Tests einfach in TESTS eintragen.
-const TVER='V261',TBAK='art-test-bak';
+const TVER='V262',TBAK='art-test-bak';
 const TESTS=[
  {id:'wr1',ic:'🏁',t:'Weltcuprennen – ganzer Renntag',
   was:['Übertragungswagen stehen aufgebaut, Landeplatz und Hubschrauber im Tal','Zuschauer an der Strecke, Tribünen und LED-Wand im Ziel','Westpiste gesperrt: Gäste fahren über die schwarze Piste','1. Durchgang (10:30) mit Kamerafahrt, Zeitlupe und Hubschrauber, der dem Läufer folgt','Mögliche Stürze mit Bergwacht, Pause mit Landung im Tal, 2. Durchgang (13:00)','Siegerehrung 18:15 mit Feuerwerk, danach die Abrechnung zum Bestätigen'],
