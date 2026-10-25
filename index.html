@@ -5168,7 +5168,7 @@ const ZUD=(()=>{const P=ZUP,D=[P[0]];for(let i=1;i<P.length-1;i++){const a=P[i-1
  const E=[D[0]];for(let i=1;i<D.length;i++){const a=E[E.length-1],b=D[i],l=Math.hypot(b[0]-a[0],b[1]-a[1]);if(l<.01)continue;const n=Math.ceil(l/8);for(let k=1;k<=n;k++)E.push([a[0]+(b[0]-a[0])*k/n,a[1]+(b[1]-a[1])*k/n])}return E})(),
  ZUS=(()=>{const S=[0];for(let i=1;i<ZUD.length;i++)S.push(S[i-1]+Math.hypot(ZUD[i][0]-ZUD[i-1][0],ZUD[i][1]-ZUD[i-1][1]));return S})(),ZUL=ZUS[ZUS.length-1];
 // Stützen: Länge entlang des Seils, Knick-Winkel (Grad) → Anzahl Führungsrollen
-const ZUPS=ZUPP.map(q=>{let bi=0,bd=1e9;ZUD.forEach((d,i)=>{const e=Math.hypot(d[0]-q[0],d[1]-q[1]);if(e<bd){bd=e;bi=i}});let ang=0;if(q[2]){const k=ZUP.findIndex(v=>v[0]===q[0]&&v[1]===q[1]),a=ZUP[k-1],b=ZUP[k],c2=ZUP[k+1],a1=Math.atan2(b[1]-a[1],b[0]-a[0]),a2=Math.atan2(c2[1]-b[1],c2[0]-b[0]);ang=Math.abs(((a2-a1+3*Math.PI)%(2*Math.PI))-Math.PI)*180/Math.PI}return {s:ZUS[bi],n:q[2]?cl(Math.round(ang/7)+2,3,8):0}});
+const ZUPS=ZUPP.map(q=>{let bi=0,bd=1e9;ZUD.forEach((d,i)=>{const e=Math.hypot(d[0]-q[0],d[1]-q[1]);if(e<bd){bd=e;bi=i}});let ang=0;if(q[2]){const k=ZUP.findIndex(v=>v[0]===q[0]&&v[1]===q[1]),a=ZUP[k-1],b=ZUP[k],c2=ZUP[k+1],a1=Math.atan2(b[1]-a[1],b[0]-a[0]),a2=Math.atan2(c2[1]-b[1],c2[0]-b[0]);ang=Math.abs(((a2-a1+3*Math.PI)%(2*Math.PI))-Math.PI)*180/Math.PI}return {s:ZUS[bi],n:q[2]?cl(Math.round(ang/7)+3,5,8):0}});
 // Seile im Abstand OBCO quer zur Fahrtrichtung (Normale je Punkt, an den runden Ecken weich): sd 1 = Bergfahrt rechts, -1 = Talfahrt links
 const ZUN=ZUD.map((d,i)=>{let nx=0,ny=0;for(const [a,b] of [[i-1,i],[i,i+1]]){if(a<0||b>=ZUD.length)continue;const dx=ZUD[b][0]-ZUD[a][0],dy=ZUD[b][1]-ZUD[a][1],l=Math.hypot(dx,dy);nx+=-dy/l;ny+=dx/l}const l=Math.hypot(nx,ny);return [nx/l,ny/l]});
 function zuAt(s,sd){let lo=0,hi=ZUS.length-1;s=cl(s,0,ZUL);while(hi-lo>1){const m=(lo+hi)>>1;if(ZUS[m]<=s)lo=m;else hi=m}const t=(s-ZUS[lo])/Math.max(1e-6,ZUS[hi]-ZUS[lo]),a=ZUD[lo],b=ZUD[hi],na=ZUN[lo],nb=ZUN[hi],o=(sd||0)*OBCO;let nx=na[0]+(nb[0]-na[0])*t,ny=na[1]+(nb[1]-na[1])*t;const l=Math.hypot(nx,ny)||1;nx/=l;ny/=l;return {x:a[0]+(b[0]-a[0])*t+nx*o,y:a[1]+(b[1]-a[1])*t+ny*o,nx,ny}}
@@ -5178,7 +5178,10 @@ function zuV(){return stormOn()?20:44}
 function zuThr(){return zuN()*ZUCAP*zuV()/(2*ZUL)}
 function zuWaitMin(){return ZUQ.length/Math.max(.05,zuThr())/(DAY*.056/TSD)*60}
 function zuGC(){const g=G.zug||0;return g>=16?0:20000+5000*(g/2)}
-function zuFit(){const n=zuN();if(!ZUK){ZUK=Array.from({length:n},(_,i)=>({u:i*2/n,r:[]}));return}
+function zuFit(){const n=zuN();if(!ZUK){ZUK=Array.from({length:n},(_,i)=>({u:i*2/n,r:[]}));return}if(ZUK.length!==n){zuAdd(n);zuSpace()}}
+// V265: alle Gondeln in gleichem Abstand – Reihenfolge bleibt, wer dabei über die Bergstation rutscht, steigt dort aus
+function zuSpace(){if(!ZUK||!ZUK.length)return;ZUK.sort((a,b)=>a.u-b.u);const n=ZUK.length,u0=ZUK[0].u%(2/n);ZUK.forEach((k,i)=>{const pv=k.u,nu=u0+i*2/n;if(k.r.length&&pv<1&&nu>=1){for(const f of k.r)zuOut(f);k.r=[]}k.u=nu})}
+function zuAdd(n){
  while(ZUK.length<n){ZUK.sort((a,b)=>a.u-b.u);let bi=0,bg=-1;for(let i=0;i<ZUK.length;i++){const a=ZUK[i].u,b=i+1<ZUK.length?ZUK[i+1].u:ZUK[0].u+2,g=b-a;if(g>bg){bg=g;bi=i}}ZUK.push({u:(ZUK[bi].u+bg/2)%2,r:[]})}}
 function zuPos(u){const up=u<1,s=(up?u:2-u)*ZUL,p=zuAt(s,up?1:-1);p.s=s;return p}
 function zuLen(L){const e=ends(L);return Math.hypot(e.t.x-e.b.x,e.t.y-e.b.y)}
@@ -5211,14 +5214,22 @@ function zuDraw(c,T){if(!G.zu)return;zuFit();
   ln(-149,-54,953.5);for(let r=0;r<4;r++)r%2?ln(-139,-54,961.5+r*8):ln(-149,-64,961.5+r*8);c.fillStyle='#6b7488';for(let x=-149;x<=-54;x+=19)c.fillRect(x-.5,950.5,1,3)}
  const co=OBCO;
  if(inVR(-260,ZUB.y,ZUB.x,ZUT.y,40)){c.strokeStyle='#161a28';c.lineWidth=1.3;for(const sd of [-1,1]){c.beginPath();ZUD.forEach((q,i)=>{const x=q[0]+ZUN[i][0]*sd*co,y=q[1]+ZUN[i][1]*sd*co;i?c.lineTo(x,y):c.moveTo(x,y)});c.stroke()}}
- for(const q of ZUPS){const p=zuAt(q.s,0);if(!inV(p.x,p.y,60))continue;pylon(c,p.x,p.y,3);const h=co+3;c.lineCap='round';c.strokeStyle='#4a4d78';c.lineWidth=3.4;c.beginPath();c.moveTo(p.x-p.nx*h,p.y-p.ny*h);c.lineTo(p.x+p.nx*h,p.y+p.ny*h);c.stroke();c.fillStyle='#9aa0c8';for(const d of [-co,0,co]){c.beginPath();c.arc(p.x+p.nx*d,p.y+p.ny*d,.9,0,7);c.fill()}if(q.n)zuRoll(c,q)}}
+ for(const q of ZUPS){const p=zuAt(q.s,0);if(!inV(p.x,p.y,60))continue;pylon(c,p.x,p.y,3);const h=co+3;c.lineCap='round';c.strokeStyle='#4a4d78';c.lineWidth=3.4;c.beginPath();c.moveTo(p.x-p.nx*h,p.y-p.ny*h);c.lineTo(p.x+p.nx*h,p.y+p.ny*h);c.stroke();c.fillStyle='#9aa0c8';for(const d of [-co,0,co]){c.beginPath();c.arc(p.x+p.nx*d,p.y+p.ny*d,.9,0,7);c.fill()}zuRoll(c,q.n?q:{s:q.s,n:4})}}
 // Führungsrollen an den Knick-Stützen: eine Reihe Rollen auf beiden Seilen, darunter der Rollenträger mit Laufsteg
+// V265: Rollenbatterien an den Stützen (wie am Foto des Spielers): pts = Punkte entlang des Seils (erster/letzter nur für den Träger), Rollen dazwischen
+function rollLine(c,pts,ox,oy){const n=pts.length-2;
+ c.lineCap='round';c.strokeStyle='#5d6478';c.lineWidth=3.4;c.beginPath();pts.forEach((p,i)=>i?c.lineTo(p.x,p.y+2.2):c.moveTo(p.x,p.y+2.2));c.stroke();
+ c.strokeStyle='#aab2c2';c.lineWidth=1.6;c.beginPath();pts.forEach((p,i)=>i?c.lineTo(p.x+ox,p.y+oy+4.4):c.moveTo(p.x+ox,p.y+oy+4.4));c.stroke();
+ c.strokeStyle='#161a28';c.lineWidth=1.3;c.beginPath();pts.forEach((p,i)=>i?c.lineTo(p.x,p.y):c.moveTo(p.x,p.y));c.stroke();
+ for(let i=1;i<=n;i++){const p=pts[i];c.fillStyle='#eef1f5';c.strokeStyle='#6b7488';c.lineWidth=.45;c.beginPath();c.arc(p.x,p.y+.6,1.55,0,7);c.fill();c.stroke();c.fillStyle='#8a92a6';c.fillRect(p.x-.35,p.y+.25,.7,.7)}}
+// Anzahl Rollen: gerade Stütze 4, an Knicken je nach Winkel mehr (bis 8)
+function rollN(at,s){const a=at(s-12),b=at(s),c2=at(s+12),a1=Math.atan2(b.y-a.y,b.x-a.x),a2=Math.atan2(c2.y-b.y,c2.x-b.x),ang=Math.abs(((a2-a1+3*Math.PI)%(2*Math.PI))-Math.PI)*180/Math.PI;return ang<4?4:cl(Math.round(ang/7)+3,5,8)}
+// Stütze auf einem Seilweg at(s) (Seile waagrecht um ±co versetzt, wie Gondel Ost und Verbindungsbahn West)
+function pylRP(c,at,s,co){const n=rollN(at,s),sp=3.8,s0=s-(n-1)*sp/2;for(const sd of [-1,1]){const P=[];for(let i=-1;i<=n;i++){const p=at(s0+i*sp);P.push({x:p.x+sd*co,y:p.y})}rollLine(c,P,sd*2.6,0)}}
+// gerade Stütze (Lifte 1–6, Ost-Sesselbahnen): Richtung dx/dy von Tal nach Berg
+function pylSt(c,x,y,co,dx,dy){const n=4,sp=3.8;for(const sd of [-1,1]){const P=[];for(let i=-1;i<=n;i++){const k=(i-(n-1)/2)*sp;P.push({x:x+sd*co+dx*k,y:y+dy*k})}rollLine(c,P,sd*2.6,0)}}
 function zuRoll(c,q){const n=q.n,sp=3.8,s0=q.s-(n-1)*sp/2;
- for(const sd of [-1,1]){const P=[];for(let i=-1;i<=n;i++)P.push(zuAt(s0+i*sp,sd));
-  c.lineCap='round';c.strokeStyle='#5d6478';c.lineWidth=3.4;c.beginPath();P.forEach((p,i)=>i?c.lineTo(p.x,p.y+2.2):c.moveTo(p.x,p.y+2.2));c.stroke();
-  c.strokeStyle='#aab2c2';c.lineWidth=1.6;c.beginPath();P.forEach((p,i)=>i?c.lineTo(p.x+p.nx*sd*2.6,p.y+p.ny*sd*2.6+4.4):c.moveTo(p.x+p.nx*sd*2.6,p.y+p.ny*sd*2.6+4.4));c.stroke();
-  c.strokeStyle='#161a28';c.lineWidth=1.3;c.beginPath();P.forEach((p,i)=>i?c.lineTo(p.x,p.y):c.moveTo(p.x,p.y));c.stroke();
-  for(let i=1;i<=n;i++){const p=P[i];c.fillStyle='#eef1f5';c.strokeStyle='#6b7488';c.lineWidth=.45;c.beginPath();c.arc(p.x,p.y+.6,1.55,0,7);c.fill();c.stroke();c.fillStyle='#8a92a6';c.fillRect(p.x-.35,p.y+.25,.7,.7)}}
+ for(const sd of [-1,1]){const P=[];for(let i=-1;i<=n;i++)P.push(zuAt(s0+i*sp,sd));const m=P[1+(n>>1)];rollLine(c,P,m.nx*sd*2.6,m.ny*sd*2.6)}
  const m=zuAt(q.s,0);c.strokeStyle='#5d6478';c.lineWidth=1.8;c.beginPath();c.moveTo(m.x-m.nx*OBCO,m.y-m.ny*OBCO+2.3);c.lineTo(m.x+m.nx*OBCO,m.y+m.ny*OBCO+2.3);c.stroke()}
 function zuCab(c,T){if(!G.zu)return;
  const nt=1-bright();for(const k of ZUK){const p=zuPos(k.u);if(p.s<28||p.s>ZUL-28||!inV(p.x,p.y,40))continue;c.save();c.translate(p.x,p.y);c.rotate(Math.sin(T*(stormOn()?3.4:1.6)+k.u*9)*(stormOn()?.16:.05));gondelO(c,k,false,'WEST');c.restore();if(nt>.3&&k.r.length)NWIN.push([p.x-10,p.y+10,20,7.6])}}
@@ -5287,7 +5298,7 @@ function wcStQ(stQ){if(!((G.wk||0)>=2))return;const P=wcP(),n=G.wk,nm=liftName(1
   const q=[s.x,s.y];q.b=c=>{if(inV(s.x,s.y,90))obStBack(c,s.x,s.y,hw)};q.f=c=>{if(inV(s.x,s.y,90))obStFront(c,s.x,s.y,hw,big,T,lab)};stQ.push(q)}}
 function wcDraw(c,T){if(!((G.wk||0)>=2))return;const P=wcP(),len=P.L,co=wcCo(),GZ=isG(1),cap=G.cap[0],B=P.ST[0],E=P.ST[P.ST.length-1];
  c.strokeStyle='#161a28';c.lineWidth=1.3;rpRope(c,P,co);
- for(const q of P.py)if(inV(q.x,q.y,60))pylon(c,q.x,q.y,co+3);
+ for(const q of P.py)if(inV(q.x,q.y,60)){pylon(c,q.x,q.y,co+3);pylRP(c,a=>rpAt(P,a),q.s,co)}
  for(const s of [B,E])if(inV(s.x,s.y,40))sheave(c,s.x,s.y,co,-wheelA[0]/co);
  const eu=Math.min(.2,Math.PI*co/(2*len)),cp=u=>{let a,l,f=-1;if(u<eu||u>2-eu){const g=u<eu?u:u-2,th=(g+eu)/(2*eu)*Math.PI;l=-co*Math.cos(th);a=-co*Math.sin(th)}else if(Math.abs(u-1)<eu){const th=(u-(1-eu))/(2*eu)*Math.PI;l=co*Math.cos(th);a=len+co*Math.sin(th)}else if(u<1){f=(u-eu)/(1-2*eu);a=f*len;l=co}else{f=1-(u-1-eu)/(1-2*eu);a=f*len;l=-co}const p=rpAt(P,a);return {x:p.x+l,y:p.y+(f>=0?rpSag(P,a):0)}};
  for(const k of lifts[0]){const gd=GZ?gDisp(k.u,len):null,q=cp(GZ?gd.u:k.u);if(!inV(q.x,q.y,40))continue;c.save();c.translate(q.x,q.y-(GZ?gd.lift:0));
@@ -5377,7 +5388,7 @@ function obDraw(c,T){OBAQ=[];OBAC=null;if(!ost())return;obInit();const b=obB(),t
  obDeko(c,T);obKassa(c);obQFence(c);
  obStBack(c,b.x,b.y,56);obStBack(c,t.x,t.y,44);
  c.strokeStyle='#161a28';c.lineWidth=1.3;obG1Rope(c,co);
- for(const q of G1.py){const px=q.x,py=q.y;if(inV(px,py,60)){const fe=obPylAll().F.has(q.key);OBAQ.push({k:py+19,d:c=>{if(fe)obFence(c,px,py+17,0);pylon(c,px,py,co+3);if(fe)obFence(c,px,py+17,1)}})}}
+ for(const q of G1.py){const px=q.x,py=q.y;if(inV(px,py,60)){const fe=obPylAll().F.has(q.key);OBAQ.push({k:py+19,d:c=>{if(fe)obFence(c,px,py+17,0);pylon(c,px,py,co+3);if(q.s!=null)pylRP(c,obG1At,q.s,co);else pylSt(c,px,py,co,0,-1);if(fe)obFence(c,px,py+17,1)}})}}
  for(const [wx,wy] of [[b.x,b.y],[t.x,t.y]])sheave(c,wx,wy,co,-obWA/co);
  const zT=t.y+34,zB=b.y-78; // zwischen den Stationen: Kabinen und Seil später nach Tiefe
  const eu=Math.min(.2,Math.PI*co/(2*len)),cp=u=>{let a,l,f=-1;if(u<eu||u>2-eu){const g=u<eu?u:u-2,th=(g+eu)/(2*eu)*Math.PI;l=-co*Math.cos(th);a=-co*Math.sin(th)}else if(Math.abs(u-1)<eu){const th=(u-(1-eu))/(2*eu)*Math.PI;l=co*Math.cos(th);a=len+co*Math.sin(th)}else if(u<1){f=(u-eu)/(1-2*eu);a=f*len;l=co}else{f=1-(u-1-eu)/(1-2*eu);a=f*len;l=-co}const p=obG1At(a);return {x:p.x+l,y:p.y+(f>=0?obG1Sag(a):0)}};
@@ -5544,7 +5555,7 @@ function obRope(c,T,o){const b=o.b,t=o.t,len=Math.hypot(t.x-b.x,t.y-b.y),co=o.co
  const SP=o.id==='c'?ocSup().map(q=>({f:q.f,key:q.key})):Array.from({length:ns0-1},(_,i)=>({f:(i+1)/ns0,key:o.id+(i+1)})),FF=[0,...SP.map(q=>q.f),1],ns=FF.length-1,bob=f=>{let i=1;while(i<ns&&FF[i]<f)i++;return 2*Math.sin(Math.PI*cl((f-FF[i-1])/Math.max(1e-6,FF[i]-FF[i-1]),0,1))};
  const rope=c=>{for(const s of [-co,co]){c.beginPath();c.moveTo(b.x+s,b.y);for(let i=1;i<=ns;i++){const f0=(FF[i-1]+FF[i])/2,f1=FF[i];c.quadraticCurveTo(b.x+(t.x-b.x)*f0+s,b.y+(t.y-b.y)*f0+4,b.x+(t.x-b.x)*f1+s,b.y+(t.y-b.y)*f1)}c.stroke()}};
  if(inVR(Math.min(b.x,t.x)-30,t.y-30,Math.max(b.x,t.x)+30,b.y+30)){c.strokeStyle='#161a28';c.lineWidth=1.3;rope(c)}
- for(const sq of SP){const f=sq.f,px=b.x+(t.x-b.x)*f,py=b.y+(t.y-b.y)*f;if(inV(px,py,60)){const fe=FE.has(sq.key);OBAQ.push({k:py+19,d:c=>{if(fe)obFence(c,px,py+17,0);pylon(c,px,py,co+3);if(fe)obFence(c,px,py+17,1)}})}}
+ for(const sq of SP){const f=sq.f,px=b.x+(t.x-b.x)*f,py=b.y+(t.y-b.y)*f;if(inV(px,py,60)){const fe=FE.has(sq.key);OBAQ.push({k:py+19,d:c=>{if(fe)obFence(c,px,py+17,0);pylon(c,px,py,co+3);{const L2=Math.hypot(t.x-b.x,t.y-b.y)||1;pylSt(c,px,py,co,(t.x-b.x)/L2,(t.y-b.y)/L2)}if(fe)obFence(c,px,py+17,1)}})}}
  for(const [wx,wy] of [[b.x,b.y],[t.x,t.y]])if(inV(wx,wy,40))sheave(c,wx,wy,co,-o.wa/co);
  const eu=Math.min(.2,Math.PI*co/(2*len)),cp=u=>{let a,l,f=-1;if(u<eu||u>2-eu){const g=u<eu?u:u-2,th=(g+eu)/(2*eu)*Math.PI;l=-co*Math.cos(th);a=-co*Math.sin(th)}else if(Math.abs(u-1)<eu){const th=(u-(1-eu))/(2*eu)*Math.PI;l=co*Math.cos(th);a=len+co*Math.sin(th)}else if(u<1){f=(u-eu)/(1-2*eu);a=f*len;l=co}else{f=1-(u-1-eu)/(1-2*eu);a=f*len;l=-co}return {x:b.x+dx*a+l,y:b.y+dy*a+(f>=0?bob(f):0)}};
  const cr=[];for(const k of o.CB){const gd=gDisp(k.u,len),q=cp(gd.u);if(!inV(q.x,q.y,40))continue;const dc=c=>{c.save();c.translate(q.x,q.y-gd.lift);c.rotate(gd.open?0:Math.sin(T*(stormOn()?3.4:o.sw||1.6)+k.u*9)*(stormOn()?.16:o.sa||.05));o.cab(c,k,gd.open);c.restore();if(o.nw&&1-bright()>.3&&k.r.length)nlLit(q.x-10,q.y+10-gd.lift,20,7.6)};
@@ -6288,7 +6299,7 @@ function wrOv(){const R=G.wrR,show=!!(wrDay()&&['r1','p','r2','end'].includes(R.
 
 // ===== V239: Versteckter Testbereich (Optionen › 5× auf die Versionszeile tippen) =====
 // Jeder Test sichert vorher den Spielstand; „Test beenden“ holt ihn zurück. Neue Tests einfach in TESTS eintragen.
-const TVER='V264',TBAK='art-test-bak';
+const TVER='V265',TBAK='art-test-bak';
 // V263: Test „Alles ausgebaut“ – kauft über das Baumenü alles, was es gibt (Voraussetzungen und Sterne werden dabei übersprungen), und stellt Baustellen sofort fertig. wc = mit Verbindungsbahn West.
 var TALL=0;
 function tstAll(wc){const m0=G.money,st0=G.stN;let n=0;TALL=1;G.stN=5;
@@ -6424,7 +6435,7 @@ function draw0(dt){
  for(let L=1;L<=G.areas;L++){if(wcIn(L))continue;const e=ends(L),b=e.b,t=e.t,len=Math.hypot(t.x-b.x,t.y-b.y);
   const ns=Math.max(1,Math.ceil(len/110));
   c.strokeStyle=G.look==='neu'?'#161a28':INK;c.lineWidth=G.look==='neu'?1.3:1;const co=ropeCo(L);for(const o of [-co,co]){c.beginPath();c.moveTo(b.x+o,b.y);for(let i=1;i<=ns;i++){const f0=(i-.5)/ns,f1=i/ns;c.quadraticCurveTo(b.x+(t.x-b.x)*f0+o,b.y+(t.y-b.y)*f0+4,b.x+(t.x-b.x)*f1+o,b.y+(t.y-b.y)*f1)}c.stroke()}
-  for(let i=1;i<ns;i++){const f=i/ns,px=b.x+(t.x-b.x)*f,py=b.y+(t.y-b.y)*f;if(inV(px,py,60))pylon(c,px,py,co+3)}
+  for(let i=1;i<ns;i++){const f=i/ns,px=b.x+(t.x-b.x)*f,py=b.y+(t.y-b.y)*f;if(inV(px,py,60)){pylon(c,px,py,co+3);pylSt(c,px,py,co,(t.x-b.x)/len,(t.y-b.y)/len)}}
   const eu=Math.min(.2,Math.PI*co/(2*len)),dx=(t.x-b.x)/len,dy=(t.y-b.y)/len,
    cpos2=u=>{let a,l,f=-1;if(u<eu||u>2-eu){const g=u<eu?u:u-2,th=(g+eu)/(2*eu)*Math.PI;l=-co*Math.cos(th);a=-co*Math.sin(th)}else if(Math.abs(u-1)<eu){const th=(u-(1-eu))/(2*eu)*Math.PI;l=co*Math.cos(th);a=len+co*Math.sin(th)}else if(u<1){f=(u-eu)/(1-2*eu);a=f*len;l=co}else{f=1-(u-1-eu)/(1-2*eu);a=f*len;l=-co}return {x:b.x+dx*a+l,y:b.y+dy*a+(f>=0?2*Math.sin(Math.PI*((f*ns)%1)):0)}};
   for(const [wx,wy] of [[b.x,b.y],[t.x,t.y]])sheave(c,wx,wy,co,-wheelA[L-1]/co);
