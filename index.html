@@ -3216,10 +3216,13 @@ function toast(m,ms){if(spP){lg('🛠️','geld',m+' (−'+fmt(spP)+')');spP=0}c
 function buildLift(k){if(wcIn(k)){lifts[k-1]=k===1?wcChairs():[];return}const e=ends(k),n=Math.max(4,Math.floor(2*Math.hypot(e.t.x-e.b.x,e.t.y-e.b.y)/95))+(k===1&&G.l1b?2:0)+2*G.lg[k-1];lifts[k-1]=Array.from({length:n},(_,i)=>({u:i*2/n,r:[]}))}
 function addChairs(k){const q=lifts[k-1];for(let j=0;j<2;j++){const u=q.map(c=>c.u).sort((a,b)=>a-b);let bg=-1,at=0;u.forEach((v,i)=>{const nx=i<u.length-1?u[i+1]:u[0]+2,g=nx-v;if(g>bg){bg=g;at=v}});q.push({u:(at+bg/2)%2,r:[]})}evenChairs(k)}
 function evenChairs(k){const q=lifts[k-1].slice().sort((a,b)=>a.u-b.u),g=2/q.length;let b=-1e9;q.forEach((c,i)=>b=Math.max(b,c.u-i*g));q.forEach((c,i)=>c.du=b+i*g-c.u)}
+// V254: Ausgleich West ⇄ Ost – je länger die Schlange an Lift 1 West im Vergleich zur Ostberg-Gondel, desto mehr Gäste fahren zum Ostberg
+function owBal(){if(!ost())return 0;const qW=(queues[0]||[]).length,qO=OBQ.length,q=cl((qW-1.5*qO-10)/90,0,1);let tg=.35;try{const a=thr(1),b=obThr();tg=cl(b/Math.max(.01,a+b),.3,.6)}catch(e){}return Math.max(q,cl((tg-OSH)*4,0,1))}
 function spawnCar(nt,oa){
  const used=new Set(cars.filter(c=>c.sp>=0&&c.sp<100).map(c=>c.sp)),free=[];
  for(let i=0;i<G.spots;i++)if(!used.has(i))free.push(i);
- if(ost()&&!nt&&!oa&&(Math.random()<(ost()>=2?.4:.32)||!free.length)&&obCar())return 1;
+ if(ost()&&!nt&&!oa&&(Math.random()<(ost()>=2?.48:.38)+.3*owBal()||!free.length)&&obCar())return 1;
+ {const b=owBal();if(b>.15&&!nt&&!oa&&OXL()&&Math.random()<.55*b&&pkSpawn(nt,oa))return 1}// V254: bei Andrang West ins Parkhaus → Shuttle Ost
  const lp=phase()>=pAt(15),f1=lp&&gPend(1)?0:gFree(1),f2=lp&&gPend(2)?0:gFree(2),gf=f1+f2,gar=gf>0&&(!free.length||Math.random()<.4),gn=gar?(f2>0&&(f1<=0||Math.random()<f2/gf)?2:1):0,pf=G.ph?phCap()-phN():0,ph=!gar&&!free.length&&pf>0,zi=!gar&&!free.length&&!ph&&G.sz?szFree():-1;
  if(zi>=0&&szCap()-szN()===1&&G.szF!==G.day){G.szF=G.day;lg('🅿️','anr','Parkzone Süd voll, alle '+szCap()+' Plätze belegt')}
  if(ph&&pf===1&&G.phF!==G.day){G.phF=G.day;lg('🅿️','anr','Parkhaus voll, alle '+phCap()+' Plätze belegt')}
@@ -3522,7 +3525,7 @@ function gone(f){G.guests++;G.gT++;f.dead=1;if(!f.atx)rufUpd(f)}
 function trainStep(dt){if(!G.train)return;const p=phase();
  if(G.trd!==G.day){G.trd=G.day;lastGone=false;obLastGone=0;tsch=[8,10,12].map(h=>({t:hp(h),k:'arr',h})).concat([15,16.5,18].map(h=>({t:hp(h),k:'dep',h,last:h===18}))).concat([{t:hp(14),k:'pass'}]);if(oaToday()&&OA&&OA.trN.length)tsch.push({t:pAt(17.25),k:'oarr',oa:1,n:OA.trN[0]},{t:pAt(17.75),k:'oarr',oa:1,n:OA.trN[1]},{t:pAt(22),k:'odep',oa:1},{t:pAt(22.5),k:'odep',oa:1,ol:1})}
  for(const e of tsch)if(!e.done&&p>=e.t){e.done=1;if(e.oa){trains.push({x:XL-220,v:85,st:'in',k:e.k,oa:1,n:e.n||0,ol:e.ol,dw:0,u:0,ut:0,bn:0,col:'#7b4dd6'});continue}trains.push({x:XL-220,v:85,st:e.k==='pass'?'pass':'in',k:e.k,last:e.last,dw:0,n:e.k==='arr'?Math.round((6+Math.random()*6)*arrW()*(.6+rufE()/120)*(e.h<=9?1.15:e.h>=12?.6:1)):0,u:0,ut:0,col:pick(['#c8323a','#2f80ed','#34a37a'])})}
- for(const tr of trains)if(tr.n2==null&&!tr.oa&&!tr.g2){tr.n2=ost()&&tr.k==='arr'?Math.round((tr.n||0)*(ost()>=2?.5:.4)):0;tr.n-=tr.n2}
+ for(const tr of trains)if(tr.n2==null&&!tr.oa&&!tr.g2){tr.n2=ost()&&tr.k==='arr'?Math.round((tr.n||0)*((ost()>=2?.55:.45)+.2*owBal())):0;tr.n-=tr.n2}
  for(const tr of trains){if(tr.g2){tr.x-=tr.v*dt;continue}
   if(tr.st==='in'){const dist=TSX-tr.x;tr.v=Math.max(8,Math.min(85,Math.sqrt(2*40*Math.max(0,dist))));tr.x+=tr.v*dt;if(dist<1.5){tr.x=TSX;tr.st='stop';tr.dw=tr.k==='arr'?1.5+tr.n*.25:2.5;tr.bn=0;if(tr.k==='arr')lg('🚆','anr','Zug angekommen, '+(tr.n?gN(tr.n)+(tr.n===1?' steigt':' steigen')+' aus':'niemand steigt aus'));if(tr.k==='dep'){for(const f of folks)if(f.st==='plat'){gone(f);tr.bn++}}}}
   else if(tr.st==='stop'){if(tr.oa){oaTrain(tr,dt);continue}tr.dw-=dt;if(tr.k==='arr'){tr.ut-=dt;if(tr.ut<=0&&tr.u<tr.n){tr.ut=.25;tr.u++;const f={x:TSX-50+Math.random()*100,y:TY()-12,st:'kas',col:pick(COL),car:null,byT:1,dep:(q=>q<.2?15:q<.55?16.5:18)(Math.random()),rides:0,l:1,arr:0,board:Math.random()<bdP(),bc:pick(['#ff7a45','#34c0b8','#8a5ae0','#2f80ed'])};folks.push(f);G.inc.tr=(G.inc.tr||0)+1}}
@@ -4326,7 +4329,7 @@ function oxStep(dt){if(!OXL()){if(OXB.length){for(const b of OXB)for(const f of 
   const i=oxIx(b.s);for(const f of b.pax){f.x=P.X[i];f.y=P.Y[i]}}}
 // Ankunft: ein kleiner Teil der Parkhaus-Gäste fährt zum Ostberg
 function oxIn(f){if(!OXL()||f.nt||f.oa||!f.car||gSide(f.car.sp)!=='P'||obCl()||phase()>pAt(15))return null;
- const w=obWait(),p=.15*cl(1.35-w/10,.15,1);if(Math.random()>p)return null;
+ const w=obWait(),p=(.25+.5*owBal())*cl(1.35-w/10,.15,1);if(Math.random()>p)return null;
  const c=f.car,[dx]=pkDoor(c.pk),g=PGY(),pS=sxPlat('S'),pN=oxPlat('N');
  const B=[[dx,g],[506,g],[506,g+60],[pS[0],pS[1],'oxS'],pN,[1070,R-140],[1070,R-66],[1246,R-66],[1274,R-70],obKas()];B.ost=1;return B}
 function rtNx(f){if(f.nx==='oK'){f.nx=null;if(obCl()){obHome(f);return}f.st='okas';f.kt=.5+Math.random()*.7}else f.st=f.nx}
@@ -6095,7 +6098,7 @@ function wrOv(){const R=G.wrR,show=!!(wrDay()&&['r1','p','r2','end'].includes(R.
 
 // ===== V239: Versteckter Testbereich (Optionen › 5× auf die Versionszeile tippen) =====
 // Jeder Test sichert vorher den Spielstand; „Test beenden“ holt ihn zurück. Neue Tests einfach in TESTS eintragen.
-const TVER='V253',TBAK='art-test-bak';
+const TVER='V254',TBAK='art-test-bak';
 const TESTS=[
  {id:'wr1',ic:'🏁',t:'Weltcuprennen – ganzer Renntag',
   was:['Übertragungswagen stehen aufgebaut, Landeplatz und Hubschrauber im Tal','Zuschauer an der Strecke, Tribünen und LED-Wand im Ziel','Westpiste gesperrt: Gäste fahren über die schwarze Piste','1. Durchgang (10:30) mit Kamerafahrt, Zeitlupe und Hubschrauber, der dem Läufer folgt','Mögliche Stürze mit Bergwacht, Pause mit Landung im Tal, 2. Durchgang (13:00)','Siegerehrung 18:15 mit Feuerwerk, danach die Abrechnung zum Bestätigen'],
