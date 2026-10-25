@@ -2545,7 +2545,7 @@ function rntShop(c,x,y,o){const w=o?54:56,h=24,W=svK()==='w';c.save();
 // in die Tiefen-Warteschlange (OBAQ) einreihen, damit Gäste davor und dahinter richtig gezeichnet werden
 // ===== Personal sichtbar (V276): Liftwart-Häuschen, Pannen mit Motorschlitten/Leiter, Techniker-Auto, Bergwacht, Pistenhelfer =====
 // Präfix pe…/PE… (PEX ist etwas anderes!)
-const PEH=[{x:505,y:492,sx:527,sy:497,L:[1,2,10]},{x:448,y:-176,sx:470,sy:-171,L:[3,4]},{x:400,y:-822,sx:422,sy:-817,L:[5,6,9]},{x:1486,y:120,sx:1507,sy:124,L:[7,8],ost:1}];
+const PEH=[{x:505,y:492,sx:527,sy:497,L:[1,2,10]},{x:448,y:-176,sx:470,sy:-171,L:[3,4]},{x:400,y:-822,sx:422,sy:-817,L:[5,6,9]},{x:1484,y:812,sx:1512,sy:816,L:[7],ost:1},{x:1486,y:120,sx:1507,sy:124,L:[8],ost:1}];
 const PESPD=16000,PEWLK=8250,PERP=.015;
 function peBuilt(L){return L<=6?L<=G.areas:L<=9?(ost()&&obxBuilt(L)):!!G.zu}
 function peHutOf(L){return PEH.find(h=>h.L.includes(L))}
@@ -2553,7 +2553,7 @@ function peHutOn(h){return h.L.some(L=>lwCov(L)&&peBuilt(L))}
 // Station, an der repariert wird: x,y = Station, fx/fy = Fuß der Leiter, tx/ty = Leiter oben, sg = Schild-Höhe
 function peTgt(L){let x,y,hw,wb,sg=62;
  if(L<=6){const b=ends(L).b;x=b.x;y=b.y;hw=L===1?53:40;wb=y+18}
- else if(L===7){x=OBT_X();y=OBT_Y();hw=44;wb=y+20;sg=70}
+ else if(L===7){const o=obB();x=o.x;y=o.y;hw=56;wb=y+20;sg=74}
  else if(L===8){const o=OCB();x=o.x;y=o.y;hw=40;wb=y+20;sg=68}
  else if(L===9){x=520;y=-1282;hw=44;wb=y+20;sg=70}
  else{x=325;y=207;hw=44;wb=y+20;sg=70}
@@ -2575,7 +2575,7 @@ function peRoute(L){const h=peHutOf(L),s=[h.sx,h.sy];
   case 8:return [s,[1460,130],[1400,124],[1330,100],[1296,50],[1294,26]];}
  return [s,s]}
 // Fußweg vom Abstellplatz zum Leiterfuß (L3/L5 durch den Spalt, L7 vom Häuschen über die Piste)
-function peFoot(L,t){const r=peRoute(L),p=r[r.length-1];if(L===3||L===5)return [p,[t.fx,t.y-24],[t.fx,t.fy]];if(L===7){const h=peHutOf(7);return [[h.x-12,h.y+3],[1462,96],[t.fx,t.fy]]}return [p,[t.fx,t.fy]]}
+function peFoot(L,t){const r=peRoute(L),p=r[r.length-1];if(L===3||L===5)return [p,[t.fx,t.y-24],[t.fx,t.fy]];if(L===7){const h=peHutOf(7);return [[h.x-12,h.y+3],[1440,836],[t.fx+1,870],[t.fx,t.fy]]}return [p,[t.fx,t.fy]]}
 function peLen(P){let l=0;for(let i=1;i<P.length;i++)l+=Math.hypot(P[i][0]-P[i-1][0],P[i][1]-P[i-1][1]);return l}
 function peAt(P,u){u=cl(u,0,1);const L=peLen(P);let d=u*L;for(let i=1;i<P.length;i++){const a=P[i-1],b=P[i],l=Math.hypot(b[0]-a[0],b[1]-a[1]);if(d<=l||i===P.length-1){const k=l?Math.min(1,d/l):1;return {x:a[0]+(b[0]-a[0])*k,y:a[1]+(b[1]-a[1])*k,dx:b[0]-a[0],dy:b[1]-a[1]}}d-=l}return {x:P[0][0],y:P[0][1],dx:1,dy:0}}
 function peDrive(L){return L===7?0:peLen(peRoute(L))/PESPD}
@@ -2684,7 +2684,7 @@ function peDay(){const p=phase();return p>=pAt(7.7)&&!closed()}
 function stfQ(c,T){if(!started)return;const P=(k,d)=>OBAQ.push({k,d});peTrack();const S=stf(),day=peDay()&&!SWS,out=new Set(PEV.filter(e=>e.lw).map(e=>peHutOf(e.L)));
  for(const h of PEH){if(h.ost&&!ost())continue;if(!peHutOn(h)||!inV(h.x,h.y-10,70))continue;const away=out.has(h);
   P(h.y,c=>peHut(c,h.x,h.y,{label:'LIFTWART',sign:'#2d4a7a',lit:day&&!away}));
-  if(!SWS&&(!away||h.L.includes(7)&&!PEV.some(e=>e.lw&&e.L!==7&&peHutOf(e.L)===h)))P(h.sy,c=>peSled(c,h.sx,h.sy,-1,{col:'#f2b705'}));
+  if(!SWS&&(!away||h.L.includes(7)))P(h.sy,c=>peSled(c,h.sx,h.sy,-1,{col:'#f2b705'}));
   if(day&&!away)P(h.y+4,c=>peMan(c,h.x-10,h.y+4,'#f2b705',{vest:1,hel:'#fff'}))}
  if(!SWS)for(const e of PEV)peQJob(e,P);
  if(S.bw>0&&G.areas>=4&&inV(PEBW.x,PEBW.y-10,90)){const pt=pePatrol();P(PEBW.y,c=>peHut(c,PEBW.x,PEBW.y,{label:'BERGWACHT',sign:'#e0302a',cross:1,w:34,lit:day}));
@@ -2699,7 +2699,7 @@ function pePatrol(){if(RSQ||!peDay()||G.areas<4)return null;const p=phase(),per=
  const half=u<.5,q=peAt(half?PEPT:PEPT.slice().reverse(),half?u*2:u*2-1);return {x:q.x,y:q.y,d:half?1:-1}}
 // ---------- Pistenhelfer (orange) an der Westpiste
 function peHelpers(P){const n=Math.min(stf().ph,G.areas);if(!n)return;const p=phase(),y0=pTopY(G.areas)+50,y1=V-90,job=.075;
- for(let i=0;i<n;i++){const k=Math.floor((p+i*.031)/job),u=((p+i*.031)/job)-k,spot=kk=>{const r=peR(i*97+kk*13+G.day*7),yy=y0+(y1-y0)*((i+.15+.7*r())/n),side=(i+kk)%2?1:-1;return {y:yy,side,r:r()}};
+ for(let i=0;i<n;i++){const k=Math.floor((p+i*.031)/job),u=((p+i*.031)/job)-k,spot=kk=>{const r=peR(i*97+kk*13+G.day*7);let yy=0,side=1;for(let t=0;t<8;t++){yy=y0+(y1-y0)*((i+.15+.7*r())/n);side=(i+kk+t)%2?1:-1;if(!peBad(slopeX(yy)+side*(slopeW(yy)+6),yy))break}return {y:yy,side,r:r()}};
   const A=spot(k-1),B=spot(k),ty=(k+i)%3,mv=u<.14,uu=mv?u/.14:1,yy=A.y+(B.y-A.y)*uu;
   const ex=(y,s,inn)=>slopeX(y)+s*(slopeW(y)-inn);
   const x=mv?ex(yy,uu<.5?A.side:B.side,-6):ex(B.y,B.side,ty===2?16:-6),y=mv?yy:B.y;if(!inV(x,y,40))continue;
@@ -2714,6 +2714,9 @@ function peHelpers(P){const n=Math.min(stf().ph,G.areas);if(!n)return;const p=ph
    const r=6.5*(1-w*.85),bx=x-s*6;P(B.y-2,c=>{if(r>1)peBump(c,bx,B.y-6,r);pePile(c,x+s*8,B.y+2,Math.min(1,w*1.4));peX(c,bx-s*12,B.y-10)});
    P(y+3,c=>{peMan(c,x,y+3,'#ff7a1a',{vest:1,hel:'#ff7a1a'});peShovel(c,x,y+3,Math.sin(T*5))})}}}
 function peR(sd){let a=(sd*2654435761>>>0)||1;return ()=>{a^=a<<13;a>>>=0;a^=a>>>17;a^=a<<5;a>>>=0;return a/4294967296}}
+// Pistenhelfer nicht an Stationen, Hütten oder dem Zubringer arbeiten lassen
+function peBad(x,y){const P=[];for(let L=1;L<=G.areas;L++){const e=ends(L);P.push([e.b.x,e.b.y],[e.t.x,e.t.y])}if(G.zu)P.push([325,207],[-205,975]);if(G.up.h){const h=hutPos();P.push([h.x,h.y])}
+ for(const q of P)if(Math.abs(q[0]-x)<75&&y>q[1]-80&&y<q[1]+60)return 1;return 0}
 function peNet(c,x0,y0,x1,y1){c.save();c.strokeStyle='#f2701f';c.lineWidth=2.2;c.globalAlpha=.85;c.beginPath();c.moveTo(x0,y0-3.5);c.lineTo(x1,y1-3.5);c.stroke();c.globalAlpha=1;c.strokeStyle='rgba(255,255,255,.6)';c.lineWidth=.3;const n=Math.max(1,Math.round(Math.hypot(x1-x0,y1-y0)/1.6));for(let i=0;i<=n;i++){const u=i/n;c.beginPath();c.moveTo(x0+(x1-x0)*u,y0+(y1-y0)*u-4.6);c.lineTo(x0+(x1-x0)*u,y0+(y1-y0)*u-2.4);c.stroke()}c.strokeStyle='#5d667a';c.lineWidth=.6;for(const [x,y] of [[x0,y0],[(x0+x1)/2,(y0+y1)/2],[x1,y1]]){c.beginPath();c.moveTo(x,y);c.lineTo(x,y-6);c.stroke()}c.restore()}
 function pePole(c,x,y,col){c.strokeStyle=col;c.lineWidth=.9;c.beginPath();c.moveTo(x,y);c.lineTo(x,y-9);c.stroke();c.fillStyle='#2b303d';c.fillRect(x-.5,y-.3,1,.6)}
 function peShovel(c,x,y,a){c.save();c.translate(x+3,y-6);c.rotate(-.5+a*.35);c.strokeStyle='#7a4a2a';c.lineWidth=.6;c.beginPath();c.moveTo(0,-2);c.lineTo(4,6);c.stroke();c.fillStyle='#5d667a';c.beginPath();c.moveTo(3,5.5);c.lineTo(6,6.5);c.lineTo(5,8);c.lineTo(2.4,7);c.closePath();c.fill();c.restore()}
