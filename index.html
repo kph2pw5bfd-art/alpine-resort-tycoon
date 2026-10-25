@@ -3783,6 +3783,8 @@ function evStep(dt){evPlan();const e=G.ev,p=phase();
   const dr=good?R0.rb:-6;evRuf(dr);e.sa=1;
   evEnd(EV[e.k].ic+' '+EV[e.k].t+' vorbei! Sieger: Nr. '+b.nr+' in '+ft(b.t)+' · '+(e.inc>=0?'+':'')+fmt(e.inc)+' · Ruf '+(dr>0?'+':'')+dr+(good?'':' (die Piste war in schlechtem Zustand)'),e.inc,dr)}}
 function FMs(){return FL}
+// V253: Punkte der Verbindungsbahn West (Seil alle 6 Einheiten, Stationen markiert) – dort keine Lichtmasten
+function flWc(){const Q=[];try{const P=wcP();for(let a=0;a<=P.L;a+=6){const p=rpAt(P,a);Q.push([p.x,p.y,0])}for(const t of P.ST)Q.push([t.x,t.y,1])}catch(e){}return Q}
 function flBuild(){const A=G.areas,L=[],yT=pTopY(A)-4;
  const segD=(px,py,a,b)=>{const dx=b.x-a.x,dy=b.y-a.y,t=cl(((px-a.x)*dx+(py-a.y)*dy)/(dx*dx+dy*dy),0,1);return Math.hypot(px-a.x-t*dx,py-a.y-t*dy)};
  const inP=(x,y,pd)=>{if(y>=yT-4&&y<=V+4&&Math.abs(x-slopeX(y))<slopeW(y)+pd)return 1;for(let k=1;k<=A;k++){const te=ends(k).t;if(y>=te.y-6&&y<=te.y+110){const t=cl((y-te.y)/110,0,1),e=t*t*(3-2*t);if(Math.abs(x-(te.x+(slopeX(y)-te.x)*e))<8+(slopeW(y)-8)*e+pd)return 1}}return onX(x,y,pd)};
@@ -3792,6 +3794,7 @@ function flBuild(){const A=G.areas,L=[],yT=pTopY(A)-4;
   for(const b of BEN)if(ov(b.x-4,b.x+b.w+4,b.y-12,b.y+5))return 1;
   for(let k=1;k<=A;k++)for(const fr of [.3,.72]){const p=cpos({k,fr});if(ov(p.x-14,p.x+18,p.y-24,p.y+6))return 1}
   {const hy=Yk(1)+20,hx=Math.max(40,slopeX(hy)-slopeW(hy)-40);if(ov(hx-30,hx+30,hy-52,hy+34))return 1}if(A>=6){const P2=gipP();if(ov(P2.x0-10,P2.x1+70,P2.y0-70,P2.y1+30))return 1}for(const sp of GSP)if(ov(sp.x-sp.L*.6-6,sp.x+sp.L*.6+6,sp.y-10,sp.y+10))return 1;
+  if((G.wk||0)>=2){const WQ=flWc();for(const q of WQ){if(Math.abs(q[0]-x)<(q[2]?36:20)&&y>q[1]-(q[2]?16:10)&&y-42<q[1]+(q[2]?50:6))return 1}}
   for(const m of L)if(Math.hypot(x-m[0],y-m[1])<44)return 1;return 0};
  const put=(f,y,d,wide)=>{for(const o of (wide?[10,15,20,26,34,42]:[10,15,20,26]))for(const dy of [0,6,-6,12,-12,18,-18,24,-24]){const yy=y+dy,q=f(yy);if(!q)continue;const [cx,w]=q,x=cx+d*(w+o);if(bad(x,yy))continue;const ds=w+o;
    if(wide){const rx=ds*.9+40;L.push([x,yy,d,x-d*ds*.55,yy+6,rx,Math.max(62,rx*.66)])}else{const rx=w+28;L.push([x,yy,d,cx,yy+6,rx,Math.max(60,rx)])}return 1}return 0};
@@ -6092,7 +6095,7 @@ function wrOv(){const R=G.wrR,show=!!(wrDay()&&['r1','p','r2','end'].includes(R.
 
 // ===== V239: Versteckter Testbereich (Optionen › 5× auf die Versionszeile tippen) =====
 // Jeder Test sichert vorher den Spielstand; „Test beenden“ holt ihn zurück. Neue Tests einfach in TESTS eintragen.
-const TVER='V252',TBAK='art-test-bak';
+const TVER='V253',TBAK='art-test-bak';
 const TESTS=[
  {id:'wr1',ic:'🏁',t:'Weltcuprennen – ganzer Renntag',
   was:['Übertragungswagen stehen aufgebaut, Landeplatz und Hubschrauber im Tal','Zuschauer an der Strecke, Tribünen und LED-Wand im Ziel','Westpiste gesperrt: Gäste fahren über die schwarze Piste','1. Durchgang (10:30) mit Kamerafahrt, Zeitlupe und Hubschrauber, der dem Läufer folgt','Mögliche Stürze mit Bergwacht, Pause mit Landung im Tal, 2. Durchgang (13:00)','Siegerehrung 18:15 mit Feuerwerk, danach die Abrechnung zum Bestätigen'],
@@ -6187,7 +6190,7 @@ function step(dt){if(wrHold())return;
 }
 
 let T=0,yeti=null,yt=20,plane=null,pt=50,pops=[],fx=[],cann=[],sn=[];
-let LK='';const lkey=()=>[ost(),G.sxl||0,G.sxo||0,G.areas,G.pb,G.ps,G.flut,G.hotels,G.up.s,G.up.h,G.rest,G.raupen,G.train,G.kan,G.spots,G.bus,G.garage,G.garage2||0,G.ph||0,G.sz||0,G.sst||0,G.fb||0,G.ap,oaK()>0?1:0,JSON.stringify(G.land||{}),prj('gipf')?1:0,prj('therme')?1:0,JSON.stringify(G.pk||0)].join();
+let LK='';const lkey=()=>[G.wk||0,G.w10||0,ost(),G.sxl||0,G.sxo||0,G.areas,G.pb,G.ps,G.flut,G.hotels,G.up.s,G.up.h,G.rest,G.raupen,G.train,G.kan,G.spots,G.bus,G.garage,G.garage2||0,G.ph||0,G.sz||0,G.sst||0,G.fb||0,G.ap,oaK()>0?1:0,JSON.stringify(G.land||{}),prj('gipf')?1:0,prj('therme')?1:0,JSON.stringify(G.pk||0)].join();
 function draw(dt){const w=ssW();let m=0;if(w&&camY>=R){camY-=w;cam=-camY;m=1}try{draw0(dt)}finally{if(m){camY+=w;cam=-camY}}ssPost(m)}
 // ===== Leistung (V202): nur Sichtbares zeichnen =====
 const VW={x0:-1e9,y0:-1e9,x1:1e9,y1:1e9};
