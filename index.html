@@ -205,7 +205,7 @@ const REQ={
  6:[rL(4,6),rL(5,6),{ic:'🏢',t:'4 Parkhäuser, eins mit Zusatz-Etage',ok:()=>pkCnt()>=4&&pkEt(),s:()=>pkCnt()+' von 4'+(pkEt()?' · Etage ✓':''),go:'par|Parkhaus mit Tiefgarage'},
   {ic:'🏨',t:'3 Hotels',ok:()=>G.hotels>=3,s:()=>G.hotels+' von 3',go:'gas|Grandhotel Edelweiß'},{ic:'🛖',t:'Berghütte',ok:()=>!!G.up.h,go:'gas|Berghütte'}]};
 function reqL(k){const L=(REQ[k]||[]).slice(),n=STN[k];if(n)L.push({ic:'⭐',t:'★'.repeat(n)+' '+n+' Sterne',ok:()=>stars()>=n,s:()=>stars()+' von '+n,go:'pbw'});return L}
-const reqOpen=k=>reqL(k).filter(e=>!e.ok()),reqOK=k=>!reqOpen(k).length;
+const reqOpen=k=>TALL?[]:reqL(k).filter(e=>!e.ok()),reqOK=k=>!reqOpen(k).length;
 // Inhalt je Stufe: Kurztext, Untertitel, was neu ist, das Wichtigste
 const STG={
  1:{sh:'Startgebiet mit Lift 1'},
@@ -6266,8 +6266,24 @@ function wrOv(){const R=G.wrR,show=!!(wrDay()&&['r1','p','r2','end'].includes(R.
 
 // ===== V239: Versteckter Testbereich (Optionen › 5× auf die Versionszeile tippen) =====
 // Jeder Test sichert vorher den Spielstand; „Test beenden“ holt ihn zurück. Neue Tests einfach in TESTS eintragen.
-const TVER='V262',TBAK='art-test-bak';
+const TVER='V263',TBAK='art-test-bak';
+// V263: Test „Alles ausgebaut“ – kauft über das Baumenü alles, was es gibt (Voraussetzungen und Sterne werden dabei übersprungen), und stellt Baustellen sofort fertig. wc = mit Verbindungsbahn West.
+var TALL=0;
+function tstAll(wc){const m0=G.money,st0=G.stN;let n=0;TALL=1;G.stN=5;
+ try{for(let it=0;it<900;it++){let hit=0;for(const t of ['ber','lif','par','gas','ruf','prj','stf']){G.money=1e10;open='bau';bTab=t;render();const sh=$('sheet');if(!sh)continue;
+   for(const x of sh.querySelectorAll('button.btn:not([disabled])')){if(x.classList.contains('ghost'))continue;const a=[...x.attributes].map(q=>q.name).filter(q=>q.startsWith('data-'));
+    if(!a.length||a.some(q=>/^data-(go|bt|x|bm|ns|tab)$/.test(q)))continue;if(!wc&&a.some(q=>q==='data-wk'||q==='data-wka'))continue;G.money=1e10;x.click();n++;hit=1;break}if(hit)break}if(!hit)break}}
+ finally{TALL=0}
+ for(const k in (G.prj||{})){const q=G.prj[k];if(q&&q.st!=='ok'){q.st='ok';q.d1=G.day}}
+ tstAllFin();G.stN=st0;G.money=Math.max(m0,2e6);open=null;buildStatic();try{WAYS=waysB()}catch(e){}lg('🧪','anr','Test: alles ausgebaut ('+n+' Käufe)'+(wc?' mit Verbindungsbahn West':'')+'.',{s:1})}
+function tstAllFin(){if(prjOk('gipf'))G.gz2={st:'ok',d0:G.day-GZ2T};G.p9Tour=0;for(const k in UPG)G.up[k]=1;const S=stf();S.lw=Math.ceil((G.areas+ost())/2);S.bw=1;S.ph=G.areas}
 const TESTS=[
+ {id:'all1',ic:'🏗️',t:'Alles ausgebaut',
+  was:['Kauft über das Baumenü alles, was es im Spiel gibt: alle Ausbau Stufen bis zum Ostberg, Lifte, Anreise, Gastro, Piste, Personal und Projekte','Voraussetzungen und Sterne werden dafür übersprungen, Baustellen sind sofort fertig','Die Verbindungsbahn West wird nicht gebaut (dafür gibt es den nächsten Test)','Zum Anschauen, ob sich irgendwo Gebäude, Seile oder Wege in die Quere kommen'],
+  can:()=>'',run:()=>tstAll(0)},
+ {id:'all2',ic:'🚡',t:'Alles ausgebaut mit Verbindungsbahn West',
+  was:['Wie oben, zusätzlich werden alle Westlifte zur Verbindungsbahn verbunden und die 10er-Gondel gekauft'],
+  can:()=>'',run:()=>tstAll(1)},
  {id:'wr1',ic:'🏁',t:'Weltcuprennen – ganzer Renntag',
   was:['Übertragungswagen stehen aufgebaut, Landeplatz und Hubschrauber im Tal','Zuschauer an der Strecke, Tribünen und LED-Wand im Ziel','Westpiste gesperrt: Gäste fahren über die schwarze Piste','1. Durchgang (10:30) mit Kamerafahrt, Zeitlupe und Hubschrauber, der dem Läufer folgt','Mögliche Stürze mit Bergwacht, Pause mit Landung im Tal, 2. Durchgang (13:00)','Siegerehrung 18:15 mit Feuerwerk, danach die Abrechnung zum Bestätigen'],
   can:()=>G.areas<6?'Geht erst ab Ausbau Stufe 6.':'',run:()=>{tstWr();G.t=pAt(10.15)*DAY}},
