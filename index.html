@@ -3820,7 +3820,7 @@ const schulOn=()=>!!(G.ev&&G.ev.k==='schul'),isRace=e=>!!(e&&(e.k==='rennen'||e.
  evHoldGroom=()=>{const e=G.ev;if(wrDay()&&!wrGone())return true;return !!(e&&e.k==='nacht'&&(e.st!=='done'||(e.sa||0)>0))},
  floodOn=()=>!!(G.flut&&((G.ev&&G.ev.k==='nacht'&&(G.ev.st==='pre'||G.ev.st==='run'||(G.ev.sa||0)>0))||G.flE)),
  onPiste=()=>folks.some(f=>f.st==='qu'||f.st==='lift'||f.st==='ski'||f.st==='bnk'||(f.st==='brk'&&f.y<V-60)),
- FLH=.45*CF,FLS=[[0,1],[.35,.88],[.6,.55],[.82,.2],[1,0]],hpp=p=>{for(let i=1;i<CP.length;i++)if(p<=CP[i][0])return (CP[i][1]-CP[i-1][1])/(CP[i][0]-CP[i-1][0]);return 16},
+ FLH=.32*CF,FLS=[[0,1],[.35,.88],[.6,.55],[.82,.2],[1,0]],hpp=p=>{for(let i=1;i<CP.length;i++)if(p<=CP[i][0])return (CP[i][1]-CP[i-1][1])/(CP[i][0]-CP[i-1][0]);return 16},
  flStep=dt=>{if(!G.flut){G.flE=0;G.flL=0;return}const p=phase(),dk=p>=.585&&p<.95;const no=nToday()&&p>=.585&&p<NEP;if(!dk||G.flX===G.day)G.flE=0;else if(onPiste()||no){if(!G.flE)lg('💡','lif',no?'Flutlicht an für den Nachtskilauf':'Flutlicht an');G.flE=1}else if(G.flE){G.flE=0;const pd=nToday()&&p<NSP;if(!pd)G.flX=G.day;lg('💡','lif',pd?'Flutlicht aus, Pause bis zum Nachtskilauf':'Flutlicht aus, der letzte Gast ist von der Piste')}
   G.flL=cl((G.flL||0)+(floodOn()?1:-1)*dt/4,0,1);if(G.flL>0)G.inc.fl=(G.inc.fl||0)+G.flL*FL.length*FLH*dt*timeScale()/DAY*hpp(p);if(nOpen()||(nToday()&&p>=NEP&&queues.some(q=>q.some(f=>f.lc))))G.inc.nl=(G.inc.nl||0)+G.areas*NLC*dt*timeScale()/DAY*hpp(p)},
  ft=s=>{const m=Math.floor(s/60),r=s-m*60;return m+':'+r.toFixed(2).padStart(5,'0').replace('.',',')},
@@ -3891,7 +3891,7 @@ function flBuild(){const A=G.areas,L=[],yT=pTopY(A)-4;
   {const hy=Yk(1)+20,hx=Math.max(40,slopeX(hy)-slopeW(hy)-40);if(ov(hx-30,hx+30,hy-52,hy+34))return 1}if(A>=6){const P2=gipP();if(ov(P2.x0-10,P2.x1+70,P2.y0-70,P2.y1+30))return 1}for(const sp of GSP)if(ov(sp.x-sp.L*.6-6,sp.x+sp.L*.6+6,sp.y-10,sp.y+10))return 1;
   if((G.wk||0)>=2||G.zu){const WQ=flWc();for(const q of WQ){if(Math.abs(q[0]-x)<(q[2]?36:20)&&y>q[1]-(q[2]?16:10)&&y-42<q[1]+(q[2]?50:6))return 1}}
   if(G.raupen){const n=Math.max(1,G.raupen),xl=parkX(n-1)-23,xr=parkX(0)+23,y0=parkY()-27,y1=parkY()+27;if(ov(xl-8,xr+8,y0-46,y1+14))return 1}
-  for(const m of L)if(Math.hypot(x-m[0],y-m[1])<44)return 1;return 0};
+  for(const m of L)if(Math.hypot(x-m[0],y-m[1])<md)return 1;return 0};let md=44;
  const put=(f,y,d,wide)=>{for(const o of (wide?[10,15,20,26,34,42]:[10,15,20,26]))for(const dy of [0,6,-6,12,-12,18,-18,24,-24]){const yy=y+dy,q=f(yy);if(!q)continue;const [cx,w]=q,x=cx+d*(w+o);if(bad(x,yy))continue;const ds=w+o;
    if(wide){const rx=ds*.9+40;L.push([x,yy,d,x-d*ds*.55,yy+6,rx,Math.max(62,rx*.66)])}else{const rx=w+28;L.push([x,yy,d,cx,yy+6,rx,Math.max(60,rx)])}return 1}return 0};
  const mainF=y=>[slopeX(y),slopeW(y)];
@@ -3900,6 +3900,17 @@ function flBuild(){const A=G.areas,L=[],yT=pTopY(A)-4;
  for(const b of XS){const P=b.pts;if(!P.length)continue;const y0=P[0][0],f=y=>{const i=Math.round((y-y0)/2);if(i<0||i>=P.length)return null;return [P[i][1],P[i][2]]},D=b.body?92:100;
   let acc=D*.5,d=b.pi===1?-1:1;for(let i=1;i<P.length;i++){acc+=Math.hypot(P[i][1]-P[i-1][1],P[i][0]-P[i-1][0]);if(acc<D)continue;const y=P[i][0];if(b.body&&pU(b.pi,y)>.4)continue;
    if(put(f,y,d,0)||put(f,y,-d,0)){acc=0;d=-d}}}
+ for(const m of L){m[5]*=1.22;m[6]*=1.4}
+ // V268: Lücken schließen – ganze Westpiste, Nebenpisten und Zufahrten von den Liften abtasten, an jeder dunklen Stelle einen Mast am Rand dazustellen
+ {const kf=r=>{if(r>=1)return 0;for(let i=1;i<FLS.length;i++)if(r<=FLS[i][0]){const a=FLS[i-1],b=FLS[i];return a[1]+(r-a[0])/(b[0]-a[0])*(b[1]-a[1])}return 0},lt=(m,x,y)=>kf(Math.hypot((x-m[3])/m[5],(y-m[4])/m[6]));
+  const P=[],add=(x,y,cx,w)=>P.push({x,y,cx,w,v:0});
+  for(let y=yT;y<=V-6;y+=6){const cx=slopeX(y),w=slopeW(y);for(let x=cx-w+4;x<=cx+w-4;x+=8)add(x,y,cx,w)}
+  for(const b of XS)for(let i=0;i<b.pts.length;i+=3){const [y,cx,w]=b.pts[i];for(let x=cx-w+3;x<=cx+w-3;x+=7)add(x,y,cx,w)}
+  for(let k=1;k<=A;k++){if(wcIn(k)&&k>1)continue;const te=ends(k).t;for(let y=te.y+4;y<=te.y+110;y+=6){const t=cl((y-te.y)/110,0,1),e=t*t*(3-2*t),cx=te.x+(slopeX(y)-te.x)*e,w=8+(slopeW(y)-8)*e;for(let x=cx-w+2;x<=cx+w-2;x+=6)add(x,y,cx,w)}}
+  for(const q of P)for(const m of L)q.v=Math.max(q.v,lt(m,q.x,q.y));
+  md=30;for(let it=0;it<300;it++){let q=null;for(const o of P)if(o.v<.42&&(!q||o.y<q.y))q=o;if(!q)break;let hit=null;
+   const sides=q.x<q.cx?[-1,1]:[1,-1];for(const d of sides){for(let o=10;o<=70&&!hit;o+=6)for(const dy of [0,8,-8,16,-16,26,-26,40]){const x=q.cx+d*(q.w+o),y=q.y+dy;if(!bad(x,y)){hit=[x,y,d];break}}if(hit)break}
+   if(!hit){for(const o of P)if(Math.hypot(o.x-q.x,o.y-q.y)<24)o.v=Math.max(o.v,.5);continue}const [x,y,d]=hit,ds=Math.hypot(x-q.x,y-q.y),rx=Math.max(72,ds+48),m=[x,y,d,x+(q.x-x)*.8,q.y+4,rx,Math.max(64,rx*.8)];L.push(m);for(const o of P)o.v=Math.max(o.v,lt(m,o.x,o.y))}}
  return L}
 function drawMasts(c){if(!G.flut)return;const fo=G.flL||0,vx=cw/S,vy=ch/S;for(const [x,y,s] of FL){if(x<camX-20||x>camX+vx+20||y<camY-10||y>camY+vy+50)continue;c.fillStyle='rgba(110,140,180,.25)';c.beginPath();c.ellipse(x+4,y+1,6,2,0,0,7);c.fill();c.fillStyle='#6a7286';c.fillRect(x-1,y-34,2,35);c.fillStyle='#8a92a6';c.fillRect(x-1,y-34,.8,35);
  c.save();c.translate(x,y-35);c.rotate(-s*.35);c.fillStyle='#3b4354';c.beginPath();c.roundRect(-8,-3.5,16,7,1.8);c.fill();c.fillStyle='#cfd6e2';c.fillRect(-7,.4,14,2.6);if(fo>0){c.globalAlpha=fo;c.fillStyle='#fffbe0';c.fillRect(-7,.4,14,2.6);c.globalAlpha=1}c.restore()}}
@@ -6378,7 +6389,7 @@ function wrOv(){const R=G.wrR,show=!!(wrDay()&&['r1','p','r2','end'].includes(R.
 
 // ===== V239: Versteckter Testbereich (Optionen › 5× auf die Versionszeile tippen) =====
 // Jeder Test sichert vorher den Spielstand; „Test beenden“ holt ihn zurück. Neue Tests einfach in TESTS eintragen.
-const TVER='V267',TBAK='art-test-bak';
+const TVER='V268',TBAK='art-test-bak';
 // V263: Test „Alles ausgebaut“ – kauft über das Baumenü alles, was es gibt (Voraussetzungen und Sterne werden dabei übersprungen), und stellt Baustellen sofort fertig. wc = mit Verbindungsbahn West.
 var TALL=0;
 function tstAll(wc){const m0=G.money,st0=G.stN;let n=0;TALL=1;G.stN=5;
