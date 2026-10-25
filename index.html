@@ -5740,8 +5740,8 @@ function staUpd(){const T=(i,v)=>{const e=$(i);if(e)e.textContent=v};
 const WRD=27,WRA=20,WRYF=640,WRXL=118,WRXR=268,WRYB=772,WRN1=8,WRN2=6,WRL=193;
 const WRNM=[['Sepp Mayrhofer','AUT',1],['Jonas Steiner','SUI'],['Matteo Bruni','ITA'],['Lars Eriksen','NOR'],['Max Wagner','GER'],['Pierre Lambert','FRA'],['Erik Lindqvist','SWE'],['Ryan Cole','USA'],['Simon Kofler','AUT'],['Nils Haugland','NOR'],['Luca Moretti','ITA'],['Fabio Keller','SUI']];
 const WRSU={AUT:'#e8504a',SUI:'#c8323a',ITA:'#2e9e5b',NOR:'#2f4fa8',GER:'#3a3f47',FRA:'#2f80ed',SWE:'#f2c53b',USA:'#1e3a8a'};
-const WRCO=[['🏗️','Aufbau Strecke, Netze & Tribünen',65000],['🦺','Sicherheit, Bergwacht & Streckenposten',25000],['⏱️','Organisation & Zeitnehmung',15000],['🎆','Feuerwerk',15000]];
-const WRTV=200000,WRVZ=6;
+const WRCO=[['🏗️','Aufbau Strecke, Netze & Tribünen',45000],['🦺','Sicherheit, Bergwacht & Streckenposten',20000],['⏱️','Organisation & Zeitnehmung',10000],['🎆','Feuerwerk',10000]];
+const WRTV=60000,WRVZ=5;
 let WRX=null;
 // Hilfsfunktionen als function-Deklarationen: sie werden auch aus älterem Code aufgerufen (kein TDZ-Problem beim Laden)
 function wrYS(){return Yk(6)+60}function wrTk(){return G.wrP||25}
@@ -5754,8 +5754,8 @@ function wrSlow(){return wrDay()&&!rcQ('wr')&&(wrRun()||G.wrR.st==='cer')}
 function wrNum(v){return Math.round(v).toLocaleString('de-DE')}
 function wrCan(){return !!G.wrOK&&G.areas>=6&&!!G.ps&&stars()>=4}
 function wrOn(d){if(G.wrS&&G.wrS.d===d)return true;if(G.wrR&&G.wrR.d===d)return true;return !G.wrS&&d>G.day&&(d-1)%SL+1===WRD&&wrCan()}
-function wrSpec(pr){return Math.max(800,Math.round(5500*(.45+rufE()/180)*(.6+.1*stars())*cl(1.65-pr/40,.25,1.3)))}
-function wrSpo(){return Math.round(cl(50000+100000*cl((rufE()-60)/40,0,1)+10000*(stars()-4),50000,150000)/5000)*5000}
+function wrSpec(pr){return Math.max(500,Math.round(2800*(.45+rufE()/180)*(.6+.1*stars())*cl(1.65-pr/40,.25,1.3)))}
+function wrSpo(){return Math.round(cl(15000+35000*cl((rufE()-60)/40,0,1)+5000*(stars()-4),15000,50000)/5000)*5000}
 function wrEst(){const pr=wrTk(),n=wrSpec(pr),sp=wrSpo(),tk=n*pr,vz=n*WRVZ,co=WRCO.reduce((a,b)=>a+b[2],0);return {pr,n,sp,tk,vz,co,net:WRTV+sp+tk+vz-co}}
 // Auftrag erfüllt → Zuschlag
 function wrWin(){G.wrOK=1;lg('🏁','anr','Zuschlag vom Skiverband: Ab jetzt gibt es jede Saison an Tag '+WRD+' ein Weltcuprennen auf der Westpiste (ab 4 Sternen).',{s:1});setTimeout(()=>toast('🏁 Zuschlag! Jede Saison an Tag '+WRD+' kommt der Weltcup auf deine Westpiste (ab 4 Sternen).',6000),1800)}
@@ -6213,7 +6213,7 @@ function wrOv(){const R=G.wrR,show=!!(wrDay()&&['r1','p','r2','end'].includes(R.
 
 // ===== V239: Versteckter Testbereich (Optionen › 5× auf die Versionszeile tippen) =====
 // Jeder Test sichert vorher den Spielstand; „Test beenden“ holt ihn zurück. Neue Tests einfach in TESTS eintragen.
-const TVER='V259',TBAK='art-test-bak';
+const TVER='V260',TBAK='art-test-bak';
 const TESTS=[
  {id:'wr1',ic:'🏁',t:'Weltcuprennen – ganzer Renntag',
   was:['Übertragungswagen stehen aufgebaut, Landeplatz und Hubschrauber im Tal','Zuschauer an der Strecke, Tribünen und LED-Wand im Ziel','Westpiste gesperrt: Gäste fahren über die schwarze Piste','1. Durchgang (10:30) mit Kamerafahrt, Zeitlupe und Hubschrauber, der dem Läufer folgt','Mögliche Stürze mit Bergwacht, Pause mit Landung im Tal, 2. Durchgang (13:00)','Siegerehrung 18:15 mit Feuerwerk, danach die Abrechnung zum Bestätigen'],
