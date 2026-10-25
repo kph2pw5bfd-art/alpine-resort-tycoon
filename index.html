@@ -4523,7 +4523,14 @@ function oxIn(f){if(!OXL()||f.nt||f.oa||!f.car||gSide(f.car.sp)!=='P'||obCl()||p
  const w=obWait(),p=(.25+.5*owBal())*cl(1.35-w/10,.15,1);if(Math.random()>p)return null;
  const c=f.car,[dx]=pkDoor(c.pk),g=PGY(),pS=sxPlat('S'),pN=oxPlat('N');
  const B=[[dx,g],[506,g],[506,g+60],[pS[0],pS[1],'oxS'],pN,[1070,R-140],[1070,R-66],[1246,R-66],[1274,R-70],obKas()];B.ost=1;return B}
-function rtNx(f){if(f.nx==='oK'){f.nx=null;if(obCl()){obHome(f);return}f.st='okas';f.kt=.5+Math.random()*.7}else f.st=f.nx}
+// V270: Skibus für ankommende Gäste (ab Stufe 9) – ist Lift 1 West voller als die Gondel Ost, geht ein Teil der ankommenden Gäste
+// ohne Umweg über die Kassa West vom Gehsteig zur Skibus-Haltestelle West, fährt nach Ost und kauft die Karte an der Kassa Ost.
+function sbIn(f){if(ost()<3||f.nt||f.oa||f.kid||f.sh||f.atx||obCl()||stormOn())return null;const ph=phase();if(ph<pAt(7.8)||ph>pAt(13.5))return null;
+  if(f.car&&gSide(f.car.sp)==='P')return null;if(SBQ.W.length>=2*SBCAP)return null;const b=owBal();if(b<.05)return null;
+  if(Math.random()>.5*b*cl(1.35-obWait()/10,.15,1))return null;
+  const r=rIn(f);if(!r||r.length<3)return null;const a=r[r.length-2],z=r[r.length-1];if(a[0]!==HWX||a[1]!==V+100||z[0]!==484||z[1]!==V+72)return null;
+  const B=r.slice(0,-2);B.push([HWX,yAt(WAYS.PN,HWX)],[SBW+14+Math.random()*36,R-70]);B.ost=1;B.sb=1;return B}
+function rtNx(f){if(f.nx==='sbw0'){f.nx=null;f.ost=1;f.st='sbw';f.sbW=0;f.sbH='W';if(SBQ.W.indexOf(f)<0)SBQ.W.push(f);return}if(f.nx==='oK'){f.nx=null;if(obCl()){obHome(f);return}f.st='okas';f.kt=.5+Math.random()*.7}else f.st=f.nx}
 function oxCard(cd,dn,m){if(!SXL())return '';if(!ost())return cd('🚌','Shuttle Ost','Ab Ausbau Stufe 7: zweite Buslinie von den Parkhäusern durch den Tunnel zum Ostberg.',dn('🔒 Stufe 7'));
  return cd('🚌','Shuttle Ost',G.sxo?'2 Busse pendeln zwischen dem Halt zwischen P3 und P4 und dem Halt Ostberg. Heute '+(G.inc.sxo||0)+' Fahrten. +'+fmt(Math.round(OXU*CF))+'/Tag':'Zweite Buslinie mit 2 Bussen: vom Halt zwischen P3 und P4 durch den Tunnel nach Osten, unter Gleisen und Talstraße durch, Wendeschleife mit Halt Ostberg neben der Piste Ost. Ein Teil der Parkhaus-Gäste fährt dann zum Ostberg. +'+fmt(Math.round(OXU*CF))+'/Tag',G.sxo?dn('✓ In Betrieb'):`<button class="btn" data-sxo ${m<OXC?'disabled':''}>${fmt(OXC)}</button>`)}
 function oxInf(pre){const n=k=>{let a=0;for(const f of folks)if(!f.dead&&f.cw===k)a++;return a};return {ic:'🚌',t:'Shuttle Ost',sub:'Parkhäuser ↔ Ostberg · 2 Busse',rows:[['Fahrten heute',()=>String(G.inc.sxo||0)],['Warten bei den Parkhäusern',()=>String(n('oxS'))],['Warten am Ostberg',()=>String(n('oxN'))],['Im Bus',()=>String(OXB.reduce((a,b)=>a+b.pax.length,0))],['Unterhalt',()=>fmt(Math.round(OXU*CF))+'/Tag']],btns:[pre],hint:'Ein Teil der Gäste aus den Parkhäusern fährt zum Ostberg und kauft die Karte an der Kassa Ost. Hat die Gondel Ost lange Wartezeit, fahren weniger. Abends bringen die Busse alle zurück.'}}
@@ -5745,7 +5752,7 @@ function sbStep(dt){if(ost()<3)return;ob9Init();const p=phase(),run=p>=pAt(8)&&p
    if(c.dw<=0&&go&&!near()&&vFree(c,'out',dt))c.st='out'}
   else if(c.st==='out'){const np=Math.max(0,c.p-dt/1.1);if(vGo(c,c.x,np,dt))c.p=np;if(c.p<=0){c.p=0;c.d=-c.d;c.sp=c.d<0?900:901;c.st='in'}}}}
 const sbDest=o=>o.st==='in'?(o.d<0?SBW:SBO):o.st==='out'?(o.x===SBW?SBO:SBW):o.x;
-function sbOff(f,H){f.hid=0;if(H==='O'){f.x=SBO-4+Math.random()*8;f.y=R-62;f.ost=1;f.hw=0;f.ho=0;f.st='ort';f.rt=[[1450,R-82],[1432,R-96]];f.nx='obH'}
+function sbOff(f,H){f.hid=0;if(H==='O'&&f.sbA){f.sbA=0;f.x=SBO-4+Math.random()*8;f.y=R-62;f.ost=1;f.hw=1;f.ho=0;f.cw=null;f.zc=null;f.rt=[[1440,R-66],[1300,R-66],[1274,R-70],obKas()];f.st='rt';f.nx='oK';return}if(H==='O'){f.x=SBO-4+Math.random()*8;f.y=R-62;f.ost=1;f.hw=0;f.ho=0;f.st='ort';f.rt=[[1450,R-82],[1432,R-96]];f.nx='obH'}
  else{f.x=SBW-4+Math.random()*8;f.y=R-62;f.ho=0;f.hw=0;const yP=yAt(WAYS.PN,HWX);f.ost=1;f.st='ort';f.rt=[[SBW+20,yP],[HWX-4,yP]];f.nx='wH'}}
 // Weg zum Skibus: Ost-Gast am Westberg (aus leave) bzw. West-Gast am Ostberg (aus obHome)
 function sbGoW(f){const yP=yAt(WAYS.PN,HWX),P=exP(f);f.ost=1;f.st='ort';f.cw=null;f.rt=[...P,[HWX,V+100],[HWX,yP],[SBW+14+Math.random()*28,R-70]];f.nx='sbw0';f.sbH='W'}
@@ -5802,7 +5809,10 @@ function sbStatic(c){if(ost()<3)return;for(const [x,t] of [[SBW,'SKIBUS → OST'
   c.fillStyle='rgba(255,216,77,.9)';c.font='700 5.6px Fredoka,sans-serif';c.textAlign='center';c.fillText('SKIBUS',x,y0+8,26);
   const sx=x+(x===SBW?26:-26),sy=R-72;c.fillStyle='#5d667a';c.fillRect(sx-.7,sy-18,1.4,18);c.fillStyle='#ffd84d';c.beginPath();c.arc(sx,sy-20,4,0,7);c.fill();c.fillStyle='#2b6a3a';c.font='700 5.4px Fredoka,sans-serif';c.fillText('H',sx,sy-18);
   c.fillStyle='#1fa3a0';c.beginPath();c.roundRect(sx-16,sy-31,32,7,1.5);c.fill();c.fillStyle='#fff';c.font='600 3.4px Fredoka,sans-serif';c.fillText(t,sx,sy-26.4,30);
-  const bx=x===SBW?x+42:x-44;c.fillStyle='#8a5a3a';c.fillRect(bx-8,R-76,16,3.2);c.fillStyle='#6b4428';c.fillRect(bx-8,R-79,16,1.5);c.fillRect(bx-7,R-73,1.4,3);c.fillRect(bx+5.6,R-73,1.4,3)}}
+  const bx=x===SBW?x+42:x-44;c.fillStyle='#8a5a3a';c.fillRect(bx-8,R-76,16,3.2);c.fillStyle='#6b4428';c.fillRect(bx-8,R-79,16,1.5);c.fillRect(bx-7,R-73,1.4,3);c.fillRect(bx+5.6,R-73,1.4,3)}
+  {const x=SBW-58,y=R-48;c.fillStyle='rgba(110,140,180,.25)';c.beginPath();c.ellipse(x+2,y+1,7,2,0,0,7);c.fill();c.fillStyle='#5b6b80';c.fillRect(x-1.2,y-30,2.4,30);
+   c.fillStyle='#16857f';c.beginPath();c.roundRect(x-21,y-45,44,18,3);c.fill();c.fillStyle='#1fa3a0';c.beginPath();c.roundRect(x-22,y-46,44,18,3);c.fill();
+   c.fillStyle='#fff';c.textAlign='center';c.font='700 6px Fredoka,sans-serif';c.fillText('🚌 SKIBUS OSTBERG',x,y-39.3,41);c.font='600 5.2px Fredoka,sans-serif';c.fillStyle='#e6fffb';c.fillText('gratis',x,y-31.8,41)}}
 // --- Kamerafahrt nach der Eröffnung (Echtzeit)
 function ob9Open(){G.ssOD=G.day;if(G.ssk==null)G.ssk=sskF();lg('🎉','anr','Die Skischaukel ist eröffnet! Mit dem Skischaukel-Ticket fahren die Gäste mit der Pendelbahn zwischen Westgipfel und Gipfel Ost. Der Skibus verbindet die Talstationen.',{s:1});G.p9Tour=1;try{achChk()}catch(e){}}
 function ob9Cam(dt){if(!ob9CT){if(G.p9Tour&&open!=='neu'&&!inTitle){G.p9Tour=0;const w=P9W(),e=P9E(),t=P9T(),s1=cl(Math.min(cw/360,ch/560),minS(),maxS()),s0=cl(Math.min(cw/900,ch/700),minS(),maxS());
@@ -6402,7 +6412,7 @@ function wrOv(){const R=G.wrR,show=!!(wrDay()&&['r1','p','r2','end'].includes(R.
 
 // ===== V239: Versteckter Testbereich (Optionen › 5× auf die Versionszeile tippen) =====
 // Jeder Test sichert vorher den Spielstand; „Test beenden“ holt ihn zurück. Neue Tests einfach in TESTS eintragen.
-const TVER='V269',TBAK='art-test-bak';
+const TVER='V270',TBAK='art-test-bak';
 // V263: Test „Alles ausgebaut“ – kauft über das Baumenü alles, was es gibt (Voraussetzungen und Sterne werden dabei übersprungen), und stellt Baustellen sofort fertig. wc = mit Verbindungsbahn West.
 var TALL=0;
 function tstAll(wc){const m0=G.money,st0=G.stN;let n=0;TALL=1;G.stN=5;
@@ -6489,7 +6499,7 @@ function step(dt){if(wrHold())return;
   else if(f.st==='rt'){const w=f.rt[0];if(!w){rtNx(f)}else if(f.cw!=null){if(f.cw==='sxD')f.cw=null;else if(f.cw==='oxS'||f.cw==='oxN'||f.cw==='oxR'){f.sxW=(f.sxW||0)+dt;if(f.sxW>150||!OXL()){f.sxW=0;oxDrop(f,f.cw==='oxS'?'N':f.cw==='oxN'?'S':f.sxTo||'N',null)}}else if(f.cw==='sxS'||f.cw==='sxN'||f.cw==='sxR'){f.sxW=(f.sxW||0)+dt;if(f.sxW>150||!SXL()){f.sxW=0;sxDrop(f,f.cw==='sxS'?'N':f.cw==='sxN'?'S':f.sxTo||'N',null);for(const b of SXB)b.pax=b.pax.filter(q=>q!==f)}}else if(typeof f.cw==='string'&&f.cw[0]==='B'){if(fbStep(f,dt))f.cw=null}else if(f.cw==='b'?szPedOK():f.cw==='q'?pzRailOK():f.cw==='a'?paZebOK():zFree(f.cw)){if(f.cw==='a')f.pza=1;else if(f.cw!=='b'&&f.cw!=='q')f.zc=f.cw;f.cw=null}else f.cwt=(f.cwt||0)+dt}else if(mv(f,w[0],w[1],closed()?50:(f.zuS?62:36),dt)){f.rt.shift();f.zc=null;f.pza=0;if(w[2]==='U'||w[2]==='u')f.tun=w[2]==='U'?1:0;else if(w[2]!=null)f.cw=w[2];if(!f.rt.length&&f.cw==null)rtNx(f)}}
   else if(f.st==='aps'){if(!f.in){if(mv(f,f.x<AX0-30||f.x>AX0+30?AX0:f.x,AY0()+11,30,dt)){if(apIn()>=apCap()||!apOpen()){f.ap=2;if(f.oa){f.rt=[[20,V+124],[44,V+150],...along(WAYS.PN,44,HWX)];f.st='rt';f.nx='oaJ';f.cw=null;f.zc=null}else leave(f)}else{f.in=1;f.hid=1}}}else{f.bt-=dt;f.dk-=dt;if(f.dk<=0){f.dk=12+Math.random()*10;eat(f,6)}if((f.apL?phase()>=f.apL:f.bt<=0)||!apOpen()){f.in=0;f.hid=0;f.ap=2;f.y=AY0()+12;f.x=AX0+Math.random()*8-4;if(f.oa){f.rt=[[20,V+124],[44,V+150],...along(WAYS.PN,44,HWX)];f.st='rt';f.nx='oaJ';f.cw=null;f.zc=null}else leave(f)}}}
   else if(f.st==='plat'){if(lastGone)gone(f)}
-  else if(f.st==='kas'){if(!f.rd&&atTry(f))continue;if(!f.rd){f.rd=1;const r=oxIn(f)||rIn(f);if(r){const zr=!r.ost&&zuArr(f,r);f.rt=zr||r;f.st='rt';f.nx=zr?'zuK':r.ost?'oK':'kas';if(r.ost){f.ost=1;f.osx=1}f.cw=null;f.zc=null;continue}}if(closed()&&!(f.nt&&nPending())){leave(f)}else if(!f.kb){if(f.kx==null)f.kx=KX-10+Math.random()*20;if(mv(f,f.kx,ky()+9,32,dt)){f.kb=1;f.kt=.5+Math.random()*.7}}else{f.kt-=dt;if(f.kt<=0){gi(f);buyT(f);f.st='qu';f.l=1;f.arr=0;queues[0].push(f)}}}
+  else if(f.st==='kas'){if(!f.rd&&atTry(f))continue;if(!f.rd){f.rd=1;const r=oxIn(f)||sbIn(f)||rIn(f);if(r){const zr=!r.ost&&zuArr(f,r);f.rt=zr||r;f.st='rt';f.nx=zr?'zuK':r.sb?'sbw0':r.ost?'oK':'kas';if(r.ost){f.ost=1;if(r.sb){f.sbH='W';f.hw=1;f.sbA=1;G.inc.sba=(G.inc.sba||0)+1}else f.osx=1}f.cw=null;f.zc=null;continue}}if(closed()&&!(f.nt&&nPending())){leave(f)}else if(!f.kb){if(f.kx==null)f.kx=KX-10+Math.random()*20;if(mv(f,f.kx,ky()+9,32,dt)){f.kb=1;f.kt=.5+Math.random()*.7}}else{f.kt-=dt;if(f.kt<=0){gi(f);buyT(f);f.st='qu';f.l=1;f.arr=0;queues[0].push(f)}}}
   else if(f.st==='tohotel'){if(mv(f,f.hx,f.hy,closed()?55:34,dt)){if(!f.oa&&!f.ape){G.guests++;G.gT++}if(apEve(f))continue;f.dead=1}}
   else if(f.st==='hev'){if(phase()>=f.evp)apGo(f)}
    else if(f.st==='tocar'&&f.car.pk!=null){const d=pkDoor(f.car.pk);if(mv(f,d[0],d[1],closed()?55:34,dt)){f.car.back++;if(!f.oa){G.guests++;G.gT++;if(!f.atx)rufUpd(f)}f.dead=1}}
