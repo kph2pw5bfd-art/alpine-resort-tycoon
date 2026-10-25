@@ -665,7 +665,7 @@ function rufBind(){document.querySelectorAll('[data-rt]').forEach(b=>b.onclick=(
 // Jede Jahreszeit ist ein eigenes statisches Bild (buildStatic mit SEAV 'w'/'s'/'h', feste Auflösung RSF); statDraw mischt zwei davon
 // entlang einer welligen Schneegrenze (seaYL) oder blendet über. Nach dem 3. Überspringen (G.seSk) nur noch die Kurzfassung (~4 s).
 // Instandhaltung im Sommer: einmalig 3 Tage Unterhalt ohne Personal (seaIH), Lifte +20 % Zustand (seaLift), Baustellen werden fertig (seaFinish).
-const SEAS0=[{k:'A',d:3.6},{k:'B',d:6},{k:'C',d:4.6},{k:'D1',d:1.8},{k:'D2',d:3.8},{k:'E',d:5.2}],SEAS1=[{k:'B',d:1.1},{k:'C',d:.5},{k:'D1',d:.45},{k:'D2',d:.95},{k:'E',d:1}];
+const SEAS0=[{k:'A',d:3.6},{k:'B',d:14},{k:'C',d:7},{k:'D1',d:1.8},{k:'D2',d:3.8},{k:'E',d:5.2}],SEAS1=[{k:'B',d:1.6},{k:'C',d:.5},{k:'D1',d:.45},{k:'D2',d:.95},{k:'E',d:1}];
 const SVT={s:{G0:'#93cf68',G1:'#7fbf58',E:'rgba(40,100,30,.16)',P:'#a9dc80',PE:'#8dc765',TL:'#2c8a48',TR:'#55bb6c',TS:'rgba(30,70,20,.28)'},
  h:{G0:'#b9ad62',G1:'#a69a52',E:'rgba(120,80,20,.16)',P:'#cdbf7e',PE:'#ad9f5a',TL:'#277a40',TR:'#4aa262',TS:'rgba(60,50,20,.28)'}};
 function svK(){return SEAB?SEAV:SEAD}
@@ -693,9 +693,9 @@ function seaGo(sh){if(SWS)return;const v0={S,camX,camY};
 function seaAnim(){const C=SWS.C.s.c,g=C.getContext('2d');let D;try{D=g.getImageData(0,0,C.width,C.height).data}catch(e){return}
  const px=(x,y)=>{const i=Math.round((x-XL)*rs),j=Math.round((y+EXT)*rs);if(i<0||j<0||i>=C.width||j>=C.height)return 0;const k=(j*C.width+i)*4,r=D[k],gg=D[k+1],b=D[k+2];return gg>150&&gg-r>30&&gg-b>55&&r>95},
   free=(x,y,w,h)=>{if((G.areas<NA&&y<Yk(G.areas)+20)||(!ost()&&x>OBX0-30))return 0;for(let a=-w;a<=w;a+=3)for(let b=-h;b<=h;b+=3)if(!px(x+a,y+b))return 0;return 1};
- let s=5;const rn=()=>(s=(s*16807)%2147483647)/2147483647,v=SWS.v1,x0=v.camX,x1=v.camX+cw/v.S,y0=Math.max(v.camY,GLB()+60),y1=V+20,Cw=SWS.cow,Hk=SWS.hik;
- for(let t=0;t<15000&&Cw.length<16;t++){const x=x0+rn()*(x1-x0),y=y0+rn()*(y1-y0);if(!free(x,y,16,8)||Cw.some(q=>Math.hypot(q.x-x,q.y-y)<26))continue;const n=1+Math.floor(rn()*3);for(let i=0;i<n&&Cw.length<16;i++){const xx=x+(i?(rn()-.5)*40:0),yy=y+(i?(rn()-.5)*24:0);if(free(xx,yy,14,7))Cw.push({x:xx,y:yy,d:rn()<.5?1:-1,p:rn()*6})}}
- for(let t=0;t<15000&&Hk.length<22;t++){const x=x0+rn()*(x1-x0),y=y0+rn()*(y1-y0);if(!free(x,y,5,8))continue;const d=rn()<.5?1:-1;Hk.push({x,y,d,k:Math.floor(rn()*4),p:rn()*6});if(rn()<.6&&free(x+9*d,y+3,5,8))Hk.push({x:x-9*d,y:y+3,d,k:Math.floor(rn()*4),p:rn()*6})}}
+ let s=5;const rn=()=>(s=(s*16807)%2147483647)/2147483647,v=SWS.v1,x0=v.camX,x1=v.camX+cw/v.S,y0=GLB()+60,y1=V+20,Cw=SWS.cow,Hk=SWS.hik;
+ for(let t=0;t<30000&&Cw.length<30;t++){const x=x0+rn()*(x1-x0),y=y0+rn()*(y1-y0);if(!free(x,y,16,8)||Cw.some(q=>Math.hypot(q.x-x,q.y-y)<26))continue;const n=1+Math.floor(rn()*3);for(let i=0;i<n&&Cw.length<30;i++){const xx=x+(i?(rn()-.5)*40:0),yy=y+(i?(rn()-.5)*24:0);if(free(xx,yy,14,7))Cw.push({x:xx,y:yy,d:rn()<.5?1:-1,p:rn()*6})}}
+ for(let t=0;t<30000&&Hk.length<40;t++){const x=x0+rn()*(x1-x0),y=y0+rn()*(y1-y0);if(!free(x,y,5,8))continue;const d=rn()<.5?1:-1;Hk.push({x,y,d,k:Math.floor(rn()*4),p:rn()*6});if(rn()<.6&&free(x+9*d,y+3,5,8))Hk.push({x:x-9*d,y:y+3,d,k:Math.floor(rn()*4),p:rn()*6})}}
 function seaStage(i){const k=SWS.st[i].k,sh=SWS.sh,n=SWS.sea;
  if(k==='A'){seaBn('🏁 Saisonende','Saison '+n+' ist vorbei');sfx('day')}
  else if(k==='B')seaBn(sh?'☀️ Sommerpause':'',sh?'':0);
@@ -704,14 +704,36 @@ function seaStage(i){const k=SWS.st[i].k,sh=SWS.sh,n=SWS.sea;
  else if(k==='D2'){seaBn('❄️ Der erste Schnee')}
  else if(k==='E'){seaBn('🎆 Saison '+(n+1)+' eröffnet!');sfx('build')}}
 const seaE=u=>u*u*(3-2*u);
+// V272 Schneeschmelze fleckenweise: Schmelz-Zeitpunkt je Stelle (unten zuerst, zum Gletscher immer langsamer), Kamera fährt mit bis zum Gletscher
+const SMG=4,SMP0=-.08,SMP1=1.3;let SMF=null,SMK=null;
+// Schmelz-Zeitpunkt je Stelle (0 = ganz unten zuerst, ~1 = Gletscher zuletzt), kleine Flecken durch Rauschen
+function smVn(x,y,sc,o){const X=x/sc,Y=y/sc,i=Math.floor(X),j=Math.floor(Y),fx=X-i,fy=Y-j,ux=fx*fx*(3-2*fx),uy=fy*fy*(3-2*fy),
+ a=hR(i+o,j),b=hR(i+1+o,j),c=hR(i+o,j+1),d=hR(i+1+o,j+1);return a+(b-a)*ux+(c-a)*uy+(a-b-c+d)*ux*uy}
+function smBuild(){const nx=Math.ceil((XR-XL)/SMG)+1,ny=Math.ceil((H+EXT)/SMG)+1,F=new Float32Array(nx*ny),yT=GLB(),y0=GLT(),HB=H;
+ for(let j=0;j<ny;j++){const y=-EXT+j*SMG;let m0,sp;
+  if(y>=yT){const h=Math.max(0,(HB-y)/(HB-yT));m0=.86*Math.pow(h,1.6);sp=.06+.13*h}
+  else if(y>=y0-40){m0=.86+.14*Math.min(1,(yT-y)/(yT-y0));sp=.19*Math.min(1,(y-y0+40)/80)}
+  else{m0=1+.15*Math.min(1,(y0-40-y)/(y0-40+EXT));sp=0} // Himmel und Bergkette: ohne Flecken weich überblenden
+  for(let i=0;i<nx;i++){const x=XL+i*SMG,n=.5*smVn(x,y,7,0)+.32*smVn(x,y,19,57)+.18*smVn(x,y,48,131);F[j*nx+i]=m0+(n-.5)*2*sp}}
+ // Gletscherfläche merken: dort kein nasser Boden, nur Eis kommt hervor
+ const Gl=new Uint8Array(nx*ny),q=document.createElement('canvas').getContext('2d');q.beginPath();glPath(q,6);
+ for(let j=0;j<ny;j++){const y=-EXT+j*SMG;if(y>GLB()+90)break;for(let i=0;i<nx;i++)if(q.isPointInPath(XL+i*SMG,y))Gl[j*nx+i]=1}
+ SMF={F,nx,ny,Gl}}
+function smAt(x,y){if(!SMF)return 0;const i=Math.round((x-XL)/SMG),j=Math.round((y+EXT)/SMG);if(i<0||j<0||i>=SMF.nx||j>=SMF.ny)return 0;return SMF.F[j*SMF.nx+i]}
+function smP(u){return SMP0+(SMP1-SMP0)*u}
+// Kamera folgt der Schmelze nach oben bis zum Gletscher
+function smCamY(p){const v=SWS.v1,vh=ch/v.S,yT=GLB(),h=Math.pow(Math.max(0,Math.min(1,p/.86)),1/1.6),yf=H-h*(H-yT),top=GLT()-150;
+ return Math.max(top,Math.min(v.camY,yf-.5*vh))}
 function seaStep(dt){const W=SWS;if(!W)return;W.T+=dt;W.t+=dt;let s=W.st[W.i];
  if(W.t>=s.d){W.t-=s.d;W.i++;if(W.i>=W.st.length){seaEnd(0);return}seaStage(W.i);s=W.st[W.i]}
  const k=s.k,u=Math.min(1,W.t/s.d),C=W.C,v=W.v1,yT=GLB()-60,yB=H+80;
- if(!W.sh&&W.T<2.6){const e=seaE(W.T/2.6),a=W.v0;S=a.S+(v.S-a.S)*e;camX=a.camX+(v.camX-a.camX)*e;camY=a.camY+(v.camY-a.camY)*e}else{S=v.S;camX=v.camX;camY=v.camY}clampCam();
- if(k==='A'&&!C.s&&W.t>.3){seaBld('s');seaAnim()}if(k==='C'&&!C.h&&W.t>.25)seaBld('h');
+ let cy=v.camY;
+ if(!W.sh){if(k==='B')cy=smCamY(smP(u));else if(k==='C'){const a=smCamY(SMP1),q=seaE(Math.max(0,Math.min(1,(W.t-1.2)/(s.d-1.6))));cy=a+(v.camY-a)*q}}
+ if(!W.sh&&W.T<2.6){const e=seaE(W.T/2.6),a=W.v0;S=a.S+(v.S-a.S)*e;camX=a.camX+(v.camX-a.camX)*e;camY=a.camY+(cy-a.camY)*e}else{S=v.S;camX=v.camX;camY=cy}clampCam();
+ if(k==='A'&&!C.s&&W.t>.3){seaBld('s');seaAnim()}if(k==='A'&&!SMF&&W.t>1.2)smBuild();if(k==='C'&&!C.h&&W.t>.25)seaBld('h');
  let L=null,base='w',dy='w';
  if(k==='A'){G.t=pAt(17.3+2.9*u)*DAY}
- else if(k==='B'){G.t=pAt(11.5)*DAY;const y=yB+(yT-yB)*seaE(u);L={m:'line',a:C.w,b:C.s,y};base='s';dy=y<V-40?'s':'w'}
+ else if(k==='B'){G.t=pAt(11.5)*DAY;if(!SMF)smBuild();const p=smP(u);L={m:'melt',a:C.w,b:C.s,p};base='s';dy=p>.3?'s':'w'}
  else if(k==='C'){G.t=pAt(11.5)*DAY;L={m:'one',b:C.s};base='s';dy='s'}
  else if(k==='D1'){G.t=pAt(11.5)*DAY;L=C.h?{m:'fade',a:C.h,b:C.s,u:seaE(u)}:{m:'one',b:C.s};base=u>.5&&C.h?'h':'s';dy=base}
  else if(k==='D2'){G.t=pAt(11.5)*DAY;const y=yT+(yB-yT)*seaE(u);L={m:'line',a:C.w,b:C.h,y};base=y>V+60?'w':'h';dy=y>V+20?'w':'h'}
@@ -720,12 +742,27 @@ function seaStep(dt){const W=SWS;if(!W)return;W.T+=dt;W.t+=dt;let s=W.st[W.i];
  if(k==='E'&&!W.sh){W.fwT-=dt;if(W.fwT<=0&&W.t<s.d-1.4){W.fwT=.16+Math.random()*.22;const e=ends(1).b,CO=['255,90,90','255,215,80','90,170,255','120,230,140','255,140,230','255,160,60'];W.fw.push({x:e.x-230+Math.random()*460,y:e.y-100-Math.random()*230,r:60+Math.random()*40,c:CO[Math.random()*CO.length|0],a:-.55})}}
  for(const f of W.fw)f.a+=dt;W.fw=W.fw.filter(f=>f.a<2)}
 // Statisches Bild zeichnen: im Saisonwechsel zwei Jahreszeiten gemischt
-function statDraw(c){const L=SWS&&SWS.L,W=cv.width,Hh=cv.height,dI=(cn,r)=>c.drawImage(cn,(camX-XL)*r,(camY+EXT)*r,cw/S*r,ch/S*r,0,0,W,Hh);
- if(!L){dI(stat,rs);return}
- dI(L.b.c,L.b.rs);
- if(L.m==='fade'){c.globalAlpha=L.u;dI(L.a.c,L.a.rs);c.globalAlpha=1}
+// Masken für Schnee (wird dünner) und nassen Boden (trocknet ab)
+function smMask(p){const vw=cw/S,vh=ch/S,i0=Math.max(0,Math.floor((camX-XL)/SMG)-1),j0=Math.max(0,Math.floor((camY+EXT)/SMG)-1),
+  nx=Math.min(SMF.nx-i0,Math.ceil(vw/SMG)+3),ny=Math.min(SMF.ny-j0,Math.ceil(vh/SMG)+3);
+ if(!SMK||SMK.a.width!==nx||SMK.a.height!==ny){const mk=()=>{const q=document.createElement('canvas');q.width=nx;q.height=ny;return q};SMK={a:mk(),w:mk(),o:document.createElement('canvas')};SMK.da=SMK.a.getContext('2d').createImageData(nx,ny);SMK.dw=SMK.w.getContext('2d').createImageData(nx,ny)}
+ const A=SMK.da.data,Wd=SMK.dw.data,F=SMF.F,Gl=SMF.Gl,NX=SMF.nx;
+ for(let j=0;j<ny;j++){const r=(j0+j)*NX+i0;for(let i=0;i<nx;i++){const d=F[r+i]-p,q=(j*nx+i)*4;
+  const a=d>=.035?255:d<=0?0:(d/.035)*255;A[q+3]=a;Wd[q+3]=Gl[r+i]||d>.035?0:d>0?150:Math.max(0,150*(1+d/.16))}}
+ SMK.a.getContext('2d').putImageData(SMK.da,0,0);SMK.w.getContext('2d').putImageData(SMK.dw,0,0);
+ return {x:XL+(i0-.5)*SMG,y:-EXT+(j0-.5)*SMG,nx,ny}}
+function statDraw(c){const L=SWS&&SWS.L,W=cv.width,Hh=cv.height,dI=(g,cn,r)=>g.drawImage(cn,(camX-XL)*r,(camY+EXT)*r,cw/S*r,ch/S*r,0,0,W,Hh);
+ if(!L){dI(c,stat,rs);return}
+ dI(c,L.b.c,L.b.rs);
+ if(L.m==='fade'){c.globalAlpha=L.u;dI(c,L.a.c,L.a.rs);c.globalAlpha=1}
+ else if(L.m==='melt'){const M=smMask(L.p),k=S*dpr,o=SMK.o;if(o.width!==W||o.height!==Hh){o.width=W;o.height=Hh}const g=o.getContext('2d'),mx=(M.x-camX)*k,my=(M.y-camY)*k,mw=M.nx*SMG*k,mh=M.ny*SMG*k;
+  g.imageSmoothingEnabled=true;
+  // nasser, dunkler Boden, wo der Schnee gerade versickert ist
+  g.globalCompositeOperation='copy';g.drawImage(SMK.w,mx,my,mw,mh);g.globalCompositeOperation='source-in';g.fillStyle='rgb(74,58,36)';g.fillRect(0,0,W,Hh);c.globalAlpha=.42;c.drawImage(o,0,0);c.globalAlpha=1;
+  // Schnee, der fleckenweise dünner wird
+  g.globalCompositeOperation='copy';g.drawImage(SMK.a,mx,my,mw,mh);g.globalCompositeOperation='source-in';dI(g,L.a.c,L.a.rs);g.globalCompositeOperation='source-over';c.drawImage(o,0,0)}
  else if(L.m==='line'){const k=S*dpr,ln=()=>{for(let x=camX-30;x<=camX+cw/S+30;x+=10)c.lineTo((x-camX)*k,(seaYL(x,L.y)-camY)*k)};
-  c.save();c.beginPath();c.moveTo(-20,-20);ln();c.lineTo(W+20,-20);c.closePath();c.clip();dI(L.a.c,L.a.rs);c.restore();
+  c.save();c.beginPath();c.moveTo(-20,-20);ln();c.lineTo(W+20,-20);c.closePath();c.clip();dI(c,L.a.c,L.a.rs);c.restore();
   c.strokeStyle='rgba(255,255,255,.8)';c.lineWidth=2.6*k;c.lineJoin='round';c.beginPath();let f=1;for(let x=camX-30;x<=camX+cw/S+30;x+=10){const px=(x-camX)*k,py=(seaYL(x,L.y)-camY)*k;f?c.moveTo(px,py):c.lineTo(px,py);f=0}c.stroke()}}
 function seaCow(c,x,y,d,t){c.save();c.translate(x,y);c.scale(d,1);
  c.fillStyle='rgba(30,70,20,.25)';c.beginPath();c.ellipse(1,2,12,3,0,0,7);c.fill();
@@ -742,10 +779,10 @@ function seaHik(c,x,y,d,k,t){const co=['#e8504a','#2f80ed','#2e9e5b','#f2994a'][
  c.fillStyle='#f1c9a5';c.beginPath();c.arc(.5,-20,3,0,7);c.fill();c.fillStyle='#4a6b3a';c.fillRect(-3,-23.5,7,2);c.fillRect(-1.5,-25,4,2);
  c.strokeStyle='#8a5a3c';c.lineWidth=1;c.beginPath();c.moveTo(4,-12);c.lineTo(6+sw*.4,1);c.stroke();c.restore()}
 // Tiere und Wanderer (unter Liften und Gebäuden)
-function seaOv(c){const W=SWS;if(!W)return;const s=W.st[W.i],k=s.k,u=Math.min(1,W.t/s.d);let al=0,yl=-1e9;
- if(k==='B'){al=1;yl=W.L?W.L.y:1e9}else if(k==='C')al=1;else if(k==='D1')al=1-u;if(al<=0)return;
+function seaOv(c){const W=SWS;if(!W)return;const s=W.st[W.i],k=s.k,u=Math.min(1,W.t/s.d);let al=0,ok=()=>1;
+ if(k==='B'){al=1;const p=W.L?W.L.p:-1;ok=(x,y)=>smAt(x,y)<p-.06}else if(k==='C')al=1;else if(k==='D1')al=1-u;if(al<=0)return;
  const dt=1/30;for(const h of W.hik){if(k==='C'||k==='B'){h.x+=h.d*3.2*dt;h.p+=dt;if(h.p>7){h.p=0;h.d=-h.d}}}
- c.globalAlpha=al;const sh=[];for(const q of W.cow)if(q.y>seaYL(q.x,yl)+6)sh.push([q.y,()=>seaCow(c,q.x,q.y,q.d,T+q.p)]);for(const h of W.hik)if(h.y>seaYL(h.x,yl)+6)sh.push([h.y,()=>seaHik(c,h.x,h.y,h.d,h.k,T+h.p)]);
+ c.globalAlpha=al;const sh=[];for(const q of W.cow)if(inV(q.x,q.y,30)&&ok(q.x,q.y))sh.push([q.y,()=>seaCow(c,q.x,q.y,q.d,T+q.p)]);for(const h of W.hik)if(inV(h.x,h.y,30)&&ok(h.x,h.y))sh.push([h.y,()=>seaHik(c,h.x,h.y,h.d,h.k,T+h.p)]);
  sh.sort((a,b)=>a[0]-b[0]);for(const q of sh)q[1]();c.globalAlpha=1}
 // Feuerwerk und Schneeflocken ganz oben
 function seaTop(){const W=SWS;if(!W)return;const c=cx,s=W.st[W.i],k=s.k;c.save();c.setTransform(S*dpr,0,0,S*dpr,offX*S*dpr,cam*S*dpr);
@@ -757,7 +794,7 @@ function seaTop(){const W=SWS;if(!W)return;const c=cx,s=W.st[W.i],k=s.k;c.save()
  c.restore()}
 function seaEnd(sk){const W=SWS;if(sk)G.seSk=(G.seSk||0)+1;
  if(W){G.t=W.G0;G.wx=W.wx;S=W.v0.S;camX=W.v0.camX;camY=W.v0.camY}
- SWS=null;SEAV='w';SEAD='w';RSF=0;if(W){const w=W.C.w;if(w.rs===W.C.w.rs&&W.C.w.c){stat=w.c;rs=w.rs;window.TSP=w.tsp}clampCam();if(stat!==w.c||Math.abs(rs-Math.min(S*dpr,Math.sqrt((SET.perf?7.5e6:1.25e7)/((XR-XL)*(H+EXT)))))>.05)buildStatic()}
+ SWS=null;SMF=null;SMK=null;SEAV='w';SEAD='w';RSF=0;if(W){const w=W.C.w;if(w.rs===W.C.w.rs&&W.C.w.c){stat=w.c;rs=w.rs;window.TSP=w.tsp}clampCam();if(stat!==w.c||Math.abs(rs-Math.min(S*dpr,Math.sqrt((SET.perf?7.5e6:1.25e7)/((XR-XL)*(H+EXT)))))>.05)buildStatic()}
  document.body.classList.remove('sea');$('sea').classList.remove('on');seaBn();
  seaFinish();paused=false;$('pz').textContent='⏸';open=null;render();hud();save();toast('❄️ Saison '+seaN()+' beginnt!')}
 // ===== Saisons, Sterne, Rangliste (V149) =====
@@ -2014,6 +2051,13 @@ const GLT=()=>Yk(NA)-14,GLB=()=>Yk(5)+70,hR=(a,b)=>{const v=Math.sin(a*127.1+b*3
 const glL=y=>{const u=cl((y-GLT())/(GLB()-GLT()),0,1);return XL+8+u*150+10*Math.sin(y/37)+6*Math.sin(y/13)},
  glR=y=>{const u=cl((y-GLT())/(GLB()-GLT()),0,1);return OBX0-12-u*190+9*Math.sin(y/41+1)+5*Math.sin(y/11)};
 let GSP=[];
+// Gletscherfläche (West + Ost) als Pfad, um dy nach unten verschoben (V272)
+function glPath(c,dy){const y0=GLT(),y1=GLB(),xb0=glL(y1),xb1=glR(y1);c.moveTo(glL(y0),y0);for(let y=y0;y<=y1;y+=6)c.lineTo(glL(y),y+dy*(y-y0)/(y1-y0));
+ for(let x=xb0;x<=xb1;x+=8){const w=Math.sin(x/23)*6+Math.sin(x/9)*3;c.lineTo(x,y1+12+w+(x-xb0)*(xb1-x)/((xb1-xb0)*(xb1-xb0))*60+dy)}
+ for(let y=y1;y>=y0;y-=6)c.lineTo(glR(y),y+dy*(y-y0)/(y1-y0));c.closePath();
+ if(typeof glOB==='function'){const xa=glR(y1)-10;c.moveTo(glR(y0)-6,y0-30);c.lineTo(XR+20,y0-30);c.lineTo(XR+20,glOB(XR)+dy);for(let x=XR;x>=xa;x-=6)c.lineTo(x,glOB(x)+dy);for(let y=y1;y>=y0;y-=6)c.lineTo(glR(y)-6,y+dy*(y-y0)/(y1-y0));c.closePath()}}
+// Im Sommer/Herbst bleibt die Piste auf dem Gletscher weiß, am Gletscherrand weich auslaufend
+function glSnowP(c,dr){if(SEAV==='w')return;for(const [dy,a] of [[-4,1],[2,.35],[6,.3],[10,.25],[14,.2]]){c.save();c.beginPath();glPath(c,dy);c.clip();c.globalAlpha=a;dr(0);dr(1);c.restore()}}
 function glacierBg(c){const y0=GLT(),y1=GLB();GSP=[];
  // Eisfläche (Gletscherzunge)
  const g=c.createLinearGradient(0,y0,0,y1);g.addColorStop(0,'#eef7fd');g.addColorStop(.6,'#dceffa');g.addColorStop(1,'#c9e6f6');
@@ -2754,9 +2798,11 @@ function buildStatic0(){LK=lkey();WAYS=waysB();WAYS.L=WAYS.L.filter(q=>!(Math.ab
  c.fillStyle=svC('E',N?'rgba(150,190,225,.10)':'rgba(150,190,225,.22)');let s=7;const r=()=>(s=(s*16807)%2147483647)/2147483647;
  for(let i=0;i<Math.round(50*(H0+EXT)/H0);i++){c.beginPath();c.ellipse(XL+r()*(OBX0-XL),100-EXT+r()*(H0-100+EXT),16+r()*20,4+r()*5,0,0,7);c.fill()}
  for(let i=0;i<10;i++){c.beginPath();c.ellipse(XL+r()*(OBX0-XL),H0+r()*(H-H0),16+r()*20,4+r()*5,0,0,7);c.fill()}{let s2=11;const r2=()=>(s2=(s2*16807)%2147483647)/2147483647;for(let i=0;i<Math.round(16*(H0+EXT)/H0);i++){c.beginPath();c.ellipse(OBX0+r2()*(XR-OBX0),100-EXT+r2()*(H0-100+EXT),16+r2()*20,4+r2()*5,0,0,7);c.fill()}}
- glacierBg(c);glacierOst(c);glRidge(c);for(let p=0;p<2;p++){c.fillStyle=p?svC('P','#fff'):svC('PE',N?'#e1ecf7':'#a9cde8');const o=p?0:(N?1.1:1.6);
+ glacierBg(c);glacierOst(c);glRidge(c);const pDr=o=>{
  for(let y=ends(NA).t.y+92;y<=V;y+=2){c.beginPath();c.arc(slopeX(y),y,slopeW(y)+o,0,7);c.fill()}
- for(let k=1;k<=NA;k++){const te=ends(k).t,y0=te.y,tx=te.x;for(let y=y0;y<=y0+110;y+=2){const t=(y-y0)/110,e=t*t*(3-2*t),x=tx+(slopeX(y)-tx)*e,w=8+(slopeW(y)-8)*e;c.beginPath();c.arc(x,y,w+o,0,7);c.fill()}}for(const s of XS)for(const q of s.pts){c.beginPath();c.arc(q[1],q[0],q[2]+o,0,7);c.fill()}}
+ for(let k=1;k<=NA;k++){const te=ends(k).t,y0=te.y,tx=te.x;for(let y=y0;y<=y0+110;y+=2){const t=(y-y0)/110,e=t*t*(3-2*t),x=tx+(slopeX(y)-tx)*e,w=8+(slopeW(y)-8)*e;c.beginPath();c.arc(x,y,w+o,0,7);c.fill()}}for(const s of XS)for(const q of s.pts){c.beginPath();c.arc(q[1],q[0],q[2]+o,0,7);c.fill()}};
+ for(let p=0;p<2;p++){c.fillStyle=p?svC('P','#fff'):svC('PE',N?'#e1ecf7':'#a9cde8');pDr(p?0:(N?1.1:1.6))}
+ glSnowP(c,p=>{c.fillStyle=p?'#fff':(N?'#e1ecf7':'#a9cde8');pDr(p?0:(N?1.1:1.6))});
  svFlow(c);const PL=[];c.fillStyle='#e8504a';if(SEAV==='w')for(let y=ends(NA).t.y+120;y<V;y+=34)for(const d of [-1,1]){let sk=0;if(d>0)for(let k=1;k<=NA;k++){const y0=Yk(k);if(y>y0-6&&y<y0+125)sk=1}if(!sk&&onX(slopeX(y)+d*(slopeW(y)+4),y-4,1))sk=1;if(!sk){const px=slopeX(y)+d*(slopeW(y)+4);c.fillRect(px,y-8,1.6,9);PL.push([px,y-8,d])}}
  if(N)for(const d of [-1,1]){const ps=PL.filter(p=>p[2]===d).sort((a,b)=>a[1]-b[1]);for(let i=1;i<ps.length;i++){const a=ps[i-1],b=ps[i];if(b[1]-a[1]>40)continue;const mx=(a[0]+b[0])/2,my=(a[1]+b[1])/2+12;c.strokeStyle='rgba(40,50,70,.55)';c.lineWidth=.6;c.beginPath();c.moveTo(a[0],a[1]);c.quadraticCurveTo(mx,my,b[0],b[1]);c.stroke();for(let q=1;q<6;q++){const u=q/6,x=(1-u)*(1-u)*a[0]+2*u*(1-u)*mx+u*u*b[0],y=(1-u)*(1-u)*a[1]+2*u*(1-u)*my+u*u*b[1];c.fillStyle=['#e8504a','#f2c53b','#4fc3a1','#4fa3e0'][(q+i)%4];c.beginPath();c.arc(x,y,1.1,0,7);c.fill()}}}
  for(const s of SEAV==='w'?XS:[])if(s.body){const i=s.pi;s.pts.forEach((q,j)=>{if(j%15!==7||pU(i,q[0])>.85)return;for(const d of [-1,1]){const px=q[1]+d*(q[2]+4);if(pU(i,q[0])>.02&&(Math.abs(px-slopeX(q[0]))<slopeW(q[0])+6||Math.abs(px-lx(q[0]))<26||q[0]>V-120))continue;c.fillStyle=PCO[i];c.fillRect(px,q[0]-8,1.6,9);c.fillStyle=i===2?'#f2c53b':'#fff';c.fillRect(px,q[0]-5,1.6,1.4)}})}
@@ -5758,7 +5804,8 @@ function ob8Inf(k,pre){const n=(st,op)=>folks.reduce((a,f)=>a+(!f.dead&&f.ost&&f
  return null}
 // --- Zeichnen: Pisten (statisch, zusammen mit der blauen Piste)
 function obPistesStatic(c){const L=obPL();
- for(let p=0;p<2;p++){c.fillStyle=p?svC('P','#fff'):svC('PE','#e1ecf7');const o=p?0:1.1;for(const id of L){const P=obPK(id);for(let i=0;i<P.length;i+=2){const q=P[i];c.beginPath();c.arc(q.x,q.y,q.w+o,0,7);c.fill()}}}
+ const oDr=o=>{for(const id of L){const P=obPK(id);for(let i=0;i<P.length;i+=2){const q=P[i];c.beginPath();c.arc(q.x,q.y,q.w+o,0,7);c.fill()}}};
+ for(let p=0;p<2;p++){c.fillStyle=p?svC('P','#fff'):svC('PE','#e1ecf7');oDr(p?0:1.1)}glSnowP(c,p=>{c.fillStyle=p?'#fff':'#e1ecf7';oDr(p?0:1.1)});
  c.strokeStyle='rgba(196,214,236,.55)';c.lineWidth=.6;for(const id of SEAV==='w'?L:[]){if(id==='z')continue;const P=obPK(id);for(const f of id==='s'?[-.45,0,.45]:[-.62,-.3,0,.3,.62]){c.beginPath();P.forEach((q,i)=>{const x=q.x-q.dy*q.w*f,y=q.y+q.dx*q.w*f;i?c.lineTo(x,y):c.moveTo(x,y)});c.stroke()}}
  for(const id of SEAV==='w'?L:[]){if(id==='z')continue;const P=obPK(id),ci=id==='b'?1:id==='r'?0:2,st=id==='s'?10:12;for(let i=10;i<P.length-14;i+=st)for(const d of [-1,1]){const q=P[i],x=q.x-q.dy*(q.w+4)*d,y=q.y+q.dx*(q.w+4)*d;c.fillStyle=PCO[ci];c.fillRect(x-.8,y-8,1.6,9);c.fillStyle='#fff';c.fillRect(x-.8,y-5,1.6,1.4)}}
  if(ost()>=2){const r=obPK('r'),s=obPK('s'),z=obPK('z');pSign(c,r[8].x-r[8].w-9,r[8].y+4,0);pSign(c,s[8].x+s[8].w+9,s[8].y+4,2);
@@ -6517,7 +6564,7 @@ function wrOv(){const R=G.wrR,show=!!(wrDay()&&['r1','p','r2','end'].includes(R.
 
 // ===== V239: Versteckter Testbereich (Optionen › 5× auf die Versionszeile tippen) =====
 // Jeder Test sichert vorher den Spielstand; „Test beenden“ holt ihn zurück. Neue Tests einfach in TESTS eintragen.
-const TVER='V271',TBAK='art-test-bak';
+const TVER='V272',TBAK='art-test-bak';
 // V263: Test „Alles ausgebaut“ – kauft über das Baumenü alles, was es gibt (Voraussetzungen und Sterne werden dabei übersprungen), und stellt Baustellen sofort fertig. wc = mit Verbindungsbahn West.
 var TALL=0;
 function tstAll(wc){const m0=G.money,st0=G.stN;let n=0;TALL=1;G.stN=5;
