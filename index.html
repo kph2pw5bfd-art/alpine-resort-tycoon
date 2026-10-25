@@ -358,7 +358,7 @@ function hxPeople(c,T0){const H=RSQ;if(!H)return;const t=H.t,T=H.T,gx=H.x,gy=H.y
  // Bergretter (mit Bergwacht) kommen mit dem Akja herunter
  const crew=[];
  if(H.bw&&t>=T.rA){const u=hxS(T.rA,T.rB,t),ry=gy-150+150*u;
-  if(t<T.rB){hxAkja(c,gx+fx*4,ry-8);crew.push([gx-9,ry-4,'b'],[gx+9,ry-4,'b'])}else{hxAkja(c,gx+fx*4,gy-10)}}
+  if(t<T.rB){peSled(c,gx+fx*25,ry-8+2.3,fx,{col:'#e0302a',akja:1,mv:1,blink:'#3b8cff',rider:'#e0302a',cross:1})}else{peSled(c,gx+fx*25,gy-10+2.3,fx,{col:'#e0302a',akja:1})}}
  // Trage zeichnen (liegt bereit, getragen, in die Tür)
  const drawStr=()=>{if(!strOut())return;if(inside)return;
   if(t>=T.lM){const u=hxS(T.lM,T.lB,t),dw=4.9,yTop=H.hy-24.3,yBot=H.hy-6.6;c.save();c.beginPath();c.rect(dX-dw,yTop,dw*2,yBot-yTop);c.clip();c.globalAlpha=1-u*.85;hxStr(c,dX,dY-lift-u*5,{pat:1,hel,k:1-.35*u,air:1,d:fx>0?1:-1});c.fillStyle='rgba(30,25,15,'+(.5*u)+')';c.fillRect(dX-dw,yTop,dw*2,yBot-yTop);c.restore();return}
@@ -993,8 +993,8 @@ function lage(L){const B=G.lbd||(G.lbd=[1,0,0,0,0,0]);return Math.max(0,G.day-(B
 const lwCov=L=>L<=2*stf().lw;
 function ohC(L){return Math.max(500,Math.round((800+G.cap[L-1]*350)*(100-lrel(L))/100*2/100)*100)}
 function brkStep(dt){const B=G.brk;if(B){if(phase()>=B.u||phase()<B.s0){lg('🔧','lif','Lift '+B.L+' läuft wieder');G.brk=null}return}if(closed()||stormOn()||!started)return;if(stoerL(0))return;
- for(let L=1;L<=G.areas;L++){if(wcIn(L)&&L>1)continue;const r=lrel(L),P=Math.max(0,(90-r)/100)*.9;if(P<=0)continue;if(Math.random()<P*dt*timeScale()/(DAY*.45)){const d=lwCov(L)?.03:.085;G.brk={L,u:phase()+d,s0:phase()};G.brkN=(G.brkN||0)+1;
-  lg('🔧','lif',(wcIn(L)?'Die Verbindungsbahn':'Lift '+L)+' hat eine Panne (Zuverlässigkeit '+Math.round(r)+' %)'+(lwCov(L)?', der Liftwart ist schon unterwegs':''));if(SET.hint)toast('🔧 Panne an Lift '+L+'! '+(lwCov(L)?'Der Liftwart repariert ihn, etwa 30 Minuten.':'Ohne Liftwart dauert es etwa 1,5 Stunden.'),4500);sfx('bad');return}}}
+ for(let L=1;L<=G.areas;L++){if(wcIn(L)&&L>1)continue;const r=lrel(L),P=Math.max(0,(90-r)/100)*.9;if(P<=0)continue;if(Math.random()<P*dt*timeScale()/(DAY*.45)){const d=lwCov(L)?lwDur(L):.085;G.brk={L,u:phase()+d,s0:phase()};G.brkN=(G.brkN||0)+1;
+  lg('🔧','lif',(wcIn(L)?'Die Verbindungsbahn':'Lift '+L)+' hat eine Panne (Zuverlässigkeit '+Math.round(r)+' %)'+(lwCov(L)?', der Liftwart ist schon unterwegs':''));if(SET.hint)toast('🔧 Panne an Lift '+L+'! '+(lwCov(L)?'Der Liftwart fährt mit dem Motorschlitten hin und repariert ihn, etwa '+lwMin(L)+' Minuten.':'Ohne Liftwart dauert es etwa 1,5 Stunden.'),4500);sfx('bad');return}}}
 function ageDay(){G.brk=null;const R=G.lr||(G.lr=[100,100,100,100,100,100]),C=G.lcap||(G.lcap=G.cap.slice()),B=G.lbd||(G.lbd=[1,0,0,0,0,0]);
  for(let L=1;L<=6;L++){if(L>G.areas)continue;if(!B[L-1])B[L-1]=G.day;if(C[L-1]!==G.cap[L-1]){R[L-1]=100;B[L-1]=G.day;C[L-1]=G.cap[L-1]}
   if(wcIn(L)&&L>1){R[L-1]=R[0];B[L-1]=B[0];continue}
@@ -1003,8 +1003,8 @@ function ageDay(){G.brk=null;const R=G.lr||(G.lr=[100,100,100,100,100,100]),C=G.
  zuAge()}
 function stfCards(cd,dn,m){const S=stf(),P=(k,v)=>`<span style="display:flex;gap:5px;align-items:center"><button class="pm" data-stf="${k}:-1" ${v<=0?'disabled':''}>−</button><b style="min-width:16px;text-align:center">${v}</b><button class="pm" data-stf="${k}:1">+</button></span>`;
  return '<div class="bgh">👷 Personal · Lohn wird täglich abgebucht</div>'
- +cd('🔧','Liftwarte',`Je Liftwart sind 2 Lifte betreut (${Math.min(G.areas+ost()+(G.zu?1:0),2*S.lw)} von ${G.areas+ost()+(G.zu?1:0)}). Betreute Lifte altern halb so schnell, Pannen dauern 30 statt 90 Minuten. ${fmt(30*CF)}/Tag pro Person`,P('lw',S.lw)+(S.lw?'':'<small class="cst">'+fmt(30*CF)+'/Tag</small>'))
- +cd('🚑','Bergwacht',G.areas<4?'Ab Ausbau Stufe 4 erwarten die Gäste eine Bergwacht. Sie bringt +2 Ruf.':`Sicherheit auf dem Berg: +2 Ruf. Ohne Bergwacht sind die Gäste ab Ausbau Stufe 4 unzufriedener. ${fmt(40*CF)}/Tag`,P('bw',S.bw))
+ +cd('🔧','Liftwarte',`Je Liftwart sind 2 Lifte betreut (${Math.min(G.areas+ost()+(G.zu?1:0),2*S.lw)} von ${G.areas+ost()+(G.zu?1:0)}). Jeder Liftwart hat ein Häuschen bei seinen Liften und fährt bei einer Panne mit dem Motorschlitten hin: Pannen dauern etwa 20–45 statt 90 Minuten, betreute Lifte altern halb so schnell. Ohne Liftwart kommt ein Techniker mit dem Auto. ${fmt(30*CF)}/Tag pro Person`,P('lw',S.lw)+(S.lw?'':'<small class="cst">'+fmt(30*CF)+'/Tag</small>'))
+ +cd('🚑','Bergwacht',G.areas<4?'Ab Ausbau Stufe 4 erwarten die Gäste eine Bergwacht. Sie bringt +2 Ruf.':`Sicherheit auf dem Berg: +2 Ruf. Eigene Hütte am Berg (ab Ausbau Stufe 4), Kontrollfahrten mit dem Motorschlitten, bei Unfällen kommt sie mit dem Akja. Ohne Bergwacht sind die Gäste ab Ausbau Stufe 4 unzufriedener. ${fmt(40*CF)}/Tag`,P('bw',S.bw))
  +cd('🚩','Pistenhelfer',`Stecken ab, sperren Buckel, räumen auf: Pro Helfer nutzt sich die Piste 10 % langsamer ab (bis zu ${G.areas} Helfer). ${fmt(25*CF)}/Tag pro Person`,P('ph',S.ph))
  +'<p class="hint">Lifte altern mit jedem Tag, stark genutzte schneller. Unter etwa 90 % Zuverlässigkeit kommen Pannen vor, und je älter der Lift, desto öfter. Im Lift-Fenster (Lift antippen) kannst du ihn generalüberholen lassen. Ein Ausbau macht den Lift wieder neu.</p>'}
 
@@ -2464,6 +2464,11 @@ function choDoor(){const s=choS(),D=[[CHO.x,CHO.y+2]];for(const q of CHOC1)D.pus
 function choSpawn(){const [x,y]=choDoor(),f={x,y,st:'ort',ost:1,cho:1,hg:1,col:pick(COL),car:null,rides:0,l:1,arr:0,board:Math.random()<bdP(),bc:pick(['#ff7a45','#34c0b8','#8a5ae0','#2f80ed'])};
  f.rt=rntAdd(f,[[CHO.x,y<CHO.y?CHO.y-4:y+4],[CHO.x,R-66],[1246,R-66],[1274,R-70],obKas()]);if(y<CHO.y)f.rt.unshift([x<CHO.x?x+4:x-4,CHO.y-4]);f.nx='okas';folks.push(f)}
 function choStep(dt,af){if(!choS()||obCl())return;if(af>0&&Math.random()<choBeds()*choOcc()*.6/(DAY*.724)*ARS*af*dt)choSpawn()}
+// V276: Chalet-Gäste gehen am Abend (20–22:30) noch in die Après-Ski-Bar Ost und feiern bis etwa 23:30–1 Uhr (wie die Hotelgäste im Westen, V249)
+function choEve(f){if(!G.oap||!ost()||f.ape||f.oa||f.kid||!f.cho)return 0;const p=phase();if(p>pAt(22.3))return 0;
+ if(Math.random()>.45*cl(1.4-.6*fpr(),.3,1.2))return 0;f.ape=1;f.st='chev';f.hid=1;f.rt=null;f.evp=Math.max(p+.004,pAt(20+Math.random()*2.5));return 1}
+function choEvGo(f){if(!oapOpen()||obxIn('oapi')>=OXCAP.ap){f.dead=1;return}const [x,y]=choDoor();f.x=x;f.y=y;f.hid=0;f.oap=1;f.cw=null;f.pi=0;f.apL=pAt(23.4+Math.random()*1.5);f.st='ort';
+ f.rt=[[CHO.x,y<CHO.y?CHO.y-4:y+4],[CHO.x,R-66],[1226,R-66],[1226,R-120],[1250,R-152],[1300,R-146],[1430,R-140],[1446,R-134],[1478,R-138],[OXA.cx+Math.random()*6-3,OXA.y+10]];if(y<CHO.y)f.rt.unshift([x<CHO.x?x+4:x-4,CHO.y-4]);f.nx='oapi';G.inc.chE=(G.inc.chE||0)+1}
 function choHome(f,pre){if(!f.cho)return false;f.rt=[...pre,[1226,R-120],[1226,R-66],[CHO.x,R-66],[CHO.x,CHO.y+2]];f.st='ort';f.nx='choIn';return true}
 // --- Skiverleih: Gäste ohne Ski gehen hinein, kommen mit Ski heraus ---
 const RNT={t:0};
@@ -2538,6 +2543,184 @@ function rntShop(c,x,y,o){const w=o?54:56,h=24,W=svK()==='w';c.save();
  c.fillStyle='#2f6fb5';c.beginPath();c.roundRect(x-25,y-h-15,50,9.5,2);c.fill();c.fillStyle='#fff';c.font='700 6.4px Fredoka,sans-serif';c.textAlign='center';c.fillText('⛷ SKIVERLEIH'+(o?' OST':''),x,y-h-8,47);
  if(!o)choRack(c,x+w/2+2,y+1,5);c.restore()}
 // in die Tiefen-Warteschlange (OBAQ) einreihen, damit Gäste davor und dahinter richtig gezeichnet werden
+// ===== Personal sichtbar (V276): Liftwart-Häuschen, Pannen mit Motorschlitten/Leiter, Techniker-Auto, Bergwacht, Pistenhelfer =====
+// Präfix pe…/PE… (PEX ist etwas anderes!)
+const PEH=[{x:505,y:492,sx:527,sy:497,L:[1,2,10]},{x:448,y:-176,sx:470,sy:-171,L:[3,4]},{x:400,y:-822,sx:422,sy:-817,L:[5,6,9]},{x:1486,y:120,sx:1507,sy:124,L:[7,8],ost:1}];
+const PESPD=16000,PEWLK=8250,PERP=.015;
+function peBuilt(L){return L<=6?L<=G.areas:L<=9?(ost()&&obxBuilt(L)):!!G.zu}
+function peHutOf(L){return PEH.find(h=>h.L.includes(L))}
+function peHutOn(h){return h.L.some(L=>lwCov(L)&&peBuilt(L))}
+// Station, an der repariert wird: x,y = Station, fx/fy = Fuß der Leiter, tx/ty = Leiter oben, sg = Schild-Höhe
+function peTgt(L){let x,y,hw,wb,sg=62;
+ if(L<=6){const b=ends(L).b;x=b.x;y=b.y;hw=L===1?53:40;wb=y+18}
+ else if(L===7){x=OBT_X();y=OBT_Y();hw=44;wb=y+20;sg=70}
+ else if(L===8){const o=OCB();x=o.x;y=o.y;hw=40;wb=y+20;sg=68}
+ else if(L===9){x=520;y=-1282;hw=44;wb=y+20;sg=70}
+ else{x=325;y=207;hw=44;wb=y+20;sg=70}
+ // L3/L5: rechte Wand im schmalen Spalt zur Nachbarstation
+ const fx=x+hw+(L===3||L===5?4:3);return {x,y,hw,fx,fy:wb,tx:fx-3,ty:y-30,sg}}
+function OBT_X(){return obT().x}function OBT_Y(){return obT().y}
+// Fahrweg vom Häuschen (Schlitten) zum Abstellplatz; letzter Punkt = Abstellplatz. w = ab hier zu Fuß zur Leiter
+function peRoute(L){const h=peHutOf(L),s=[h.sx,h.sy];
+ switch(L){
+  case 1:return [s,[524,540],[512,590],[488,660],[476,712],[474,742]];
+  case 2:return [s,[514,478]];
+  case 10:return [s,[470,508],[400,503],[372,488],[350,440],[348,380],[356,310],[374,250],[384,236]];
+  case 3:return [s,[455,-120],[430,-50],[412,20],[409,52]];
+  case 4:return [s,[484,-196],[484,-214]];
+  case 5:return [s,[402,-760],[374,-700],[360,-654]];
+  case 6:return [s,[432,-870],[432,-912]];
+  case 9:return [s,[440,-900],[470,-1000],[505,-1120],[540,-1215],[578,-1250]];
+  case 7:return [s,[s[0]-2,s[1]-2]];
+  case 8:return [s,[1460,130],[1400,124],[1330,100],[1296,50],[1294,26]];}
+ return [s,s]}
+// Fußweg vom Abstellplatz zum Leiterfuß (L3/L5 durch den Spalt, L7 vom Häuschen über die Piste)
+function peFoot(L,t){const r=peRoute(L),p=r[r.length-1];if(L===3||L===5)return [p,[t.fx,t.y-24],[t.fx,t.fy]];if(L===7){const h=peHutOf(7);return [[h.x-12,h.y+3],[1462,96],[t.fx,t.fy]]}return [p,[t.fx,t.fy]]}
+function peLen(P){let l=0;for(let i=1;i<P.length;i++)l+=Math.hypot(P[i][0]-P[i-1][0],P[i][1]-P[i-1][1]);return l}
+function peAt(P,u){u=cl(u,0,1);const L=peLen(P);let d=u*L;for(let i=1;i<P.length;i++){const a=P[i-1],b=P[i],l=Math.hypot(b[0]-a[0],b[1]-a[1]);if(d<=l||i===P.length-1){const k=l?Math.min(1,d/l):1;return {x:a[0]+(b[0]-a[0])*k,y:a[1]+(b[1]-a[1])*k,dx:b[0]-a[0],dy:b[1]-a[1]}}d-=l}return {x:P[0][0],y:P[0][1],dx:1,dy:0}}
+function peDrive(L){return L===7?0:peLen(peRoute(L))/PESPD}
+function peWalk(L){return peLen(peFoot(L,peTgt(L)))/PEWLK}
+// Dauer einer betreuten Panne (Phasen-Einheiten) und in Minuten
+function lwDur(L){return peDrive(L)+peWalk(L)+PERP}
+function lwMin(L){return Math.max(15,Math.round(lwDur(L)*1071/5)*5)}
+// --- aktive Pannen (Lift-Nr, Beginn, Ende)
+function peJobs(){const J=[];if(G.brk)J.push({L:G.brk.L,s0:G.brk.s0,u:G.brk.u});if(G.obk)J.push({L:G.obk.L,s0:G.obk.s0,u:G.obk.u});if(G.zbk)J.push({L:10,s0:G.zbk.s0,u:G.zbk.u});return J}
+let PEV=[];// sichtbare Einsätze {L,s0,u,lw} (auch nach der Panne für die Rückfahrt)
+function peTrack(){const p=phase(),J=peJobs();
+ for(const j of J){let e=PEV.find(v=>v.L===j.L&&Math.abs(v.s0-j.s0)<1e-6);if(!e){e={L:j.L,s0:j.s0,u:j.u,lw:lwCov(j.L)?1:0};if(!e.lw)e.sl=peVanPick(j.L>=7&&j.L<=9);PEV.push(e)}else e.u=j.u}
+ for(const e of PEV)if(!J.some(j=>j.L===e.L&&Math.abs(j.s0-e.s0)<1e-6)&&p<e.u)e.u=p;// sofort repariert
+ PEV=PEV.filter(e=>p>=e.s0&&p<e.u+(e.lw?peDrive(e.L)+peWalk(e.L)+.004:.07))}
+// Techniker-Auto: freien Parkplatz (Nordseite, nah am Weg) reservieren – Autos parken dort nicht, solange der Techniker da ist
+function peVanSp(){return PEV.filter(e=>e.sl>=0).map(e=>e.sl)}
+function peVanPick(o){const used=new Set([...cars.filter(k=>k.sp>=0&&k.st!=='gone').map(k=>k.sp),...peVanSp()]);let best=-1,bd=1e9;
+ if(o){for(let i=0;i<OBPK.length;i++){const sp=800+i;if(used.has(sp))continue;const d=Math.abs(obSX(sp)-1290)+(obSd(sp)?60:0);if(d<bd){bd=d;best=sp}}}
+ else for(let i=0;i<G.spots;i++){if(used.has(i))continue;const d=Math.abs(spotX(i)-525)+(i&1?60:0);if(d<bd){bd=d;best=i}}return best}
+// Weg: Nordseite direkt, Südseite über die Straße; kein Platz frei: Auto hält am Straßenrand (Warnblinker)
+function peVd(e){const O=e.L>=7&&e.L<=9,sl=e.sl;let sx,sy,n;
+ if(O){sx=sl>=0?obSX(sl):1300;sy=sl>=0?obSY(sl):1069;n=sl<0||!obSd(sl)}else{sx=sl>=0?spotX(sl):541;sy=sl>=0?spotY(sl):1069;n=sl<0||!(sl&1)}
+ const w0=n?[[sx-18,sy+(sl<0?-8:6)],[sx-18,O?1024:1027]]:[[sx-18,sy-6],[sx-18,1100],[sx-18,O?1024:1027]];
+ if(O)return {road:[[1560,1069],[sx,1069],[sx,sy]],back:[[sx,sy],[sx,1089],[1560,1089]],walk:[...w0,[1240,1000],[1300,962],[1350,940]]};
+ return {road:[[-95,1140],[-95,1089],[sx,1089],[sx,sy]],back:[[sx,sy],[sx,1070],[-95,1070],[-95,1140]],walk:[...w0,[500,1027],[497,1000],[497,850],[440,846],[420,820],[415,800]]}}
+// ---------- Zeichnen: Grundformen
+function peShadow(c,x,y,w,h){c.fillStyle='rgba(110,140,180,.28)';c.beginPath();c.ellipse(x,y,w,h,0,0,7);c.fill()}
+function peHut(c,x,y,o){const w=o.w||24,h=o.h||13,d=o.d||10,sum=typeof SEAV!=='undefined'&&SEAV!=='w';
+ peShadow(c,x+3,y+1,w*.62,4.5);
+ c.fillStyle='#8a5a32';c.beginPath();c.moveTo(x+w/2,y);c.lineTo(x+w/2+5,y-d*.55);c.lineTo(x+w/2+5,y-d*.55-h);c.lineTo(x+w/2,y-h);c.closePath();c.fill();
+ c.fillStyle='#b9773f';c.fillRect(x-w/2,y-h,w,h);c.strokeStyle='rgba(90,50,20,.35)';c.lineWidth=.35;for(let i=1;i<5;i++){c.beginPath();c.moveTo(x-w/2,y-h+i*h/5);c.lineTo(x+w/2,y-h+i*h/5);c.stroke()}
+ c.fillStyle='#8f969f';c.fillRect(x-w/2,y-2,w,2);
+ const ry=y-h;c.fillStyle='#6b3b22';c.beginPath();c.moveTo(x-w/2-3,ry+1);c.lineTo(x+w/2+3,ry+1);c.lineTo(x+w/2+8,ry-d*.55-3);c.lineTo(x+w/2-1,ry-11);c.lineTo(x-w/2+1,ry-11);c.closePath();c.fill();
+ if(!sum){c.fillStyle='#fbfdff';c.beginPath();c.moveTo(x-w/2-2,ry-4.5);c.lineTo(x+w/2+5,ry-4.5);c.lineTo(x+w/2+7.5,ry-d*.55-3.4);c.lineTo(x+w/2-1,ry-11.4);c.lineTo(x-w/2+1,ry-11.4);c.closePath();c.fill();c.fillStyle='#e3ebf5';c.fillRect(x-w/2-2,ry-5,w+6,1.1)}
+ c.fillStyle='#7a4a2a';c.fillRect(x+w/2-7,ry-15,3.2,5);c.fillStyle=sum?'#7a4a2a':'#fff';c.fillRect(x+w/2-7.4,ry-15.6,4,1.2);
+ const dx=x-w/2+6;c.fillStyle='#5a3418';c.fillRect(dx-3,y-10,6,10);c.fillStyle='#e8c860';c.fillRect(dx+1.5,y-5.5,.9,.9);
+ const wx=x+4;c.fillStyle='#bfe3f7';c.fillRect(wx-4,y-11,8,6);c.strokeStyle='#5a3418';c.lineWidth=.6;c.strokeRect(wx-4,y-11,8,6);c.beginPath();c.moveTo(wx,y-11);c.lineTo(wx,y-5);c.stroke();
+ if(o.lit&&NL.on)nlLit(wx-4,y-11,8,6);
+ if(o.cross){const cx=x+w/2-5.5,cy=y-9;c.fillStyle='#fff';c.fillRect(cx-3.6,cy-3.6,7.2,7.2);c.fillStyle='#e0302a';c.fillRect(cx-1.1,cy-2.8,2.2,5.6);c.fillRect(cx-2.8,cy-1.1,5.6,2.2)}
+ c.font='700 3.6px Fredoka,sans-serif';const tw=c.measureText(o.label).width+4;c.fillStyle=o.sign;c.beginPath();c.roundRect(x-tw/2,ry-2.4,tw,4.8,1);c.fill();c.fillStyle='#fff';c.textAlign='center';c.fillText(o.label,x,ry+.9)}
+function peSled(c,x,y,dir,o){o=o||{};c.save();c.translate(x,y);c.scale(dir,1);
+ peShadow(c,0,.6,13,2.4);
+ if(o.akja){c.strokeStyle='#5d667a';c.lineWidth=.6;c.beginPath();c.moveTo(-9,-2);c.lineTo(-14,-1.6);c.stroke();
+  c.fillStyle='#f28c28';c.strokeStyle='#8a4510';c.lineWidth=.5;c.beginPath();c.moveTo(-30,-4.6);c.lineTo(-14,-4.6);c.quadraticCurveTo(-11.5,-4.4,-12.6,-1.6);c.quadraticCurveTo(-13.4,0,-16,0);c.lineTo(-28,0);c.quadraticCurveTo(-31,-.4,-30,-4.6);c.closePath();c.fill();c.stroke();
+  c.fillStyle='#fff';c.fillRect(-24.5,-3.8,5,2.6);c.fillStyle='#e0302a';c.fillRect(-22.6,-3.6,1.2,2.2);c.fillRect(-23.6,-2.9,3.2,.8)}
+ c.strokeStyle='#2b303d';c.lineWidth=1;c.beginPath();c.moveTo(1,0);c.lineTo(9,0);c.quadraticCurveTo(12,0,12,-2.2);c.stroke();c.lineWidth=.7;c.beginPath();c.moveTo(6,-.2);c.lineTo(5.4,-3);c.stroke();
+ c.fillStyle='#2b303d';c.beginPath();c.roundRect(-10,-3.6,11,3.6,1.8);c.fill();c.fillStyle='#4b5366';const ro=o.mv?(T*14)%1.8:0;for(let i=-9;i<0;i+=1.8){c.beginPath();c.arc(i+.6+ro*.3,-1.8,.55,0,7);c.fill()}
+ c.fillStyle=o.col||'#e8504a';c.beginPath();c.moveTo(-10,-3.6);c.lineTo(-10.5,-6);c.lineTo(-2,-6.4);c.lineTo(3,-8.2);c.lineTo(9.5,-5);c.quadraticCurveTo(11,-3.6,9,-2.6);c.lineTo(1,-2.4);c.lineTo(-10,-3.6);c.closePath();c.fill();
+ c.fillStyle='rgba(255,255,255,.3)';c.beginPath();c.moveTo(3,-7.6);c.lineTo(9,-5);c.lineTo(5,-4.8);c.closePath();c.fill();c.fillStyle='rgba(0,0,30,.18)';c.fillRect(-10,-4.4,19,1.2);
+ c.fillStyle='#2b303d';c.beginPath();c.roundRect(-9.6,-8,8.6,2.2,1.1);c.fill();
+ c.fillStyle='rgba(170,215,245,.85)';c.beginPath();c.moveTo(2.4,-8.2);c.lineTo(4.4,-11.6);c.lineTo(5.6,-11.2);c.lineTo(4.4,-7.6);c.closePath();c.fill();
+ c.strokeStyle='#2b303d';c.lineWidth=.8;c.beginPath();c.moveTo(1.6,-8.4);c.lineTo(.4,-10.2);c.stroke();
+ c.fillStyle=bright()<.6||o.mv?'#fff6c0':'#e9edf3';c.beginPath();c.arc(9.6,-4.6,.9,0,7);c.fill();
+ if(o.mv&&o.blink){c.fillStyle=Math.sin(T*12)>0?(o.blink):'#7a8aa0';c.beginPath();c.roundRect(-8.6,-10.2,2.4,1.8,.6);c.fill()}
+ c.restore();
+ if(o.rider)peMan(c,x-dir*4.2,y-5.6,o.rider,{hel:o.hel||'#fff',vest:o.vest,cross:o.cross})}
+function peMan(c,x,y,col,o){o=o||{};personN(c,{x,y,st:'qu',col,board:false,rnt:1,_pt:T,_ms:o.walk?1:0},o.walk?T*1.3+(o.ph||0):0);
+ c.fillStyle=o.hel||col;c.beginPath();c.arc(x,y-10.05,2.85,Math.PI,0);c.fill();c.fillRect(x-3.3,y-10.2,6.6,.7);
+ if(o.vest){c.fillStyle='rgba(255,255,255,.9)';c.fillRect(x-2.3,y-4.6,4.6,.65);c.fillRect(x-2.3,y-3.2,4.6,.45)}
+ if(o.cross){c.fillStyle='#fff';c.fillRect(x-1.4,y-6.6,2.8,2.8);c.fillStyle='#e0302a';c.fillRect(x-.35,y-6.3,.7,2.2);c.fillRect(x-1.1,y-5.55,2.2,.7)}}
+function peLadder(c,x0,y0,x1,y1){c.strokeStyle='#9aa3b0';c.lineWidth=.8;const nx=1.6;c.beginPath();c.moveTo(x0-nx,y0);c.lineTo(x1-nx,y1);c.moveTo(x0+nx,y0);c.lineTo(x1+nx,y1);c.stroke();c.lineWidth=.5;for(let i=1;i<9;i++){const u=i/9,x=x0+(x1-x0)*u,y=y0+(y1-y0)*u;c.beginPath();c.moveTo(x-nx,y);c.lineTo(x+nx,y);c.stroke()}}
+function peSparks(c,x,y){if(Math.sin(T*3.1)+Math.sin(T*7.7)<-.6)return;let s=(T*30|0)%997+7;const R=()=>(s=(s*9301+49297)%233280)/233280;c.save();c.fillStyle='#fff3a0';c.beginPath();c.arc(x,y,1.3+R()*.6,0,7);c.fill();c.strokeStyle='#ffd23d';c.lineWidth=.5;for(let i=0;i<10;i++){const a=R()*6.28,r=2+R()*5;c.beginPath();c.moveTo(x+Math.cos(a)*1.4,y+Math.sin(a)*1.4);c.lineTo(x+Math.cos(a)*r,y+Math.sin(a)*r+R()*2);c.stroke()}c.fillStyle='#ff9d2a';for(let i=0;i<6;i++){c.beginPath();c.arc(x+(R()-.5)*9,y+R()*8,.45,0,7);c.fill()}c.restore();if(NL.on)nlLit(x-3,y-3,6,6,'rgba(255,220,120,1)')}
+function peBox(c,x,y){c.fillStyle='#e0302a';c.fillRect(x-2,y-3,4,2.6);c.strokeStyle='#2b303d';c.lineWidth=.4;c.strokeRect(x-2,y-3,4,2.6)}
+function peSign(c,x,y){c.font='700 4.4px Fredoka,sans-serif';const t='⚠ PANNE',w=c.measureText(t).width+6,on=Math.sin(T*6)>-.2;c.fillStyle=on?'#e8504a':'#a83c3c';c.beginPath();c.roundRect(x-w/2,y,w,7,2);c.fill();c.fillStyle='#fff';c.textAlign='center';c.fillText(t,x,y+5.2)}
+function peVan(c,x,y,a){// Draufsicht, a = Fahrtrichtung (0 = nach Osten)
+ c.save();c.translate(x,y);c.rotate(a+Math.PI/2);peShadow(c,2,2,9,15);c.fillStyle='#f4f6f9';c.beginPath();c.roundRect(-8,-15,16,30,3);c.fill();c.strokeStyle='#b8c0cc';c.lineWidth=.5;c.stroke();
+ c.fillStyle='#9fd0f0';c.beginPath();c.roundRect(-6.5,-13,13,5,1.5);c.fill();c.fillStyle='#f2701f';c.fillRect(-8,-2,16,2.6);
+ c.fillStyle='#fff';c.font='700 2.6px Fredoka,sans-serif';c.textAlign='center';c.fillText('SERVICE',0,6);
+ const on=Math.sin(T*10)>0;c.fillStyle=on?'#ffb01f':'#c98a1a';c.beginPath();c.roundRect(-2.5,-7,5,2,1);c.fill();if(on){c.fillStyle='rgba(255,180,40,.35)';c.beginPath();c.arc(0,-6,4.5,0,7);c.fill()}c.restore()}
+// ---------- Einsatz zeichnen
+const PEVW={slot:[541,1041],road:[[-95,1140],[-95,1089],[541,1089],[541,1041]],back:[[541,1041],[541,1070],[-95,1070],[-95,1140]],walk:[[523,1047],[523,1027],[500,1027],[497,1000],[497,850],[440,846],[420,820],[415,800]],w1:[[440,846],[466,812],[471,776]],st:[415,800]};
+const PEVO={slot:[1215,1040],road:[[1560,1069],[1215,1069],[1215,1040]],back:[[1215,1040],[1215,1089],[1560,1089]],walk:[[1197,1047],[1197,1024],[1240,1000],[1300,962],[1350,940]],st:[1350,940]};
+function peQJob(e,P){const p=phase(),L=e.L,t=peTgt(L),inT=p<e.u;
+ if(e.lw){const r=peRoute(L),D=peDrive(L),W=peWalk(L),f=peFoot(L,t),pk=r[r.length-1],h=peHutOf(L);
+  if(inT){const a=e.s0,b=a+D,c2=b+W;
+   if(L===7){// zu Fuß vom Häuschen
+    if(p<c2){const q=peAt(f,(p-a)/Math.max(W,1e-6));P(q.y,c=>peMan(c,q.x,q.y,'#f2b705',{vest:1,hel:'#fff',walk:1}))}}
+   else if(p<b){const q=peAt(r,(p-a)/D);P(q.y,c=>peSled(c,q.x,q.y,q.dx>=0?1:-1,{col:'#f2b705',mv:1,blink:'#ffb01f',rider:'#f2b705',vest:1}))}
+   else{P(pk[1],c=>peSled(c,pk[0],pk[1],pk[0]>=t.x?-1:1,{col:'#f2b705'}));if(p<c2){const q=peAt(f,(p-b)/W);P(q.y,c=>peMan(c,q.x,q.y,'#f2b705',{vest:1,hel:'#fff',walk:1}))}}
+   if(p>=c2)peQFix(t,P,'#f2b705',1)}
+  else{const a=e.u,D2=peDrive(L),W2=peWalk(L);// zurück: erst zum Schlitten, dann heim
+   if(L===7){const q=peAt(f.slice().reverse(),(p-a)/Math.max(W2,1e-6));P(q.y,c=>peMan(c,q.x,q.y,'#f2b705',{vest:1,hel:'#fff',walk:1}))}
+   else if(p<a+W2){P(pk[1],c=>peSled(c,pk[0],pk[1],pk[0]>=t.x?-1:1,{col:'#f2b705'}));const q=peAt(f.slice().reverse(),(p-a)/W2);P(q.y,c=>peMan(c,q.x,q.y,'#f2b705',{vest:1,hel:'#fff',walk:1}))}
+   else{const q=peAt(r.slice().reverse(),(p-a-W2)/D2);P(q.y,c=>peSled(c,q.x,q.y,q.dx>=0?1:-1,{col:'#f2b705',mv:1,rider:'#f2b705',vest:1}))}}
+  if(inT)P(t.y-40,c=>peSign(c,t.x,t.y-t.sg));return}
+ // ohne Liftwart: Techniker-Auto
+ const Vd=peVd(e),road=Vd.road,dr=.016,wk=peLen(Vd.walk)/PEWLK,L1=L===1,w1=L1?peLen(PEVW.w1)/PEWLK:0,s=e.s0;
+ const van=(u,back)=>{const q=peAt(back?Vd.back:road,u),a=Math.atan2(q.dy,q.dx);P(q.y,c=>peVan(c,q.x,q.y,a))};
+ const tech=(x,y,w)=>P(y,c=>{peMan(c,x,y,'#f2701f',{vest:1,hel:'#fff',walk:w});peBox(c,x+3.5,y-3.2)});
+ if(inT){if(p<s+dr){van((p-s)/dr,0);return}
+  van(1,0);const a=s+dr;
+  if(p<a+wk){const q=peAt(Vd.walk,(p-a)/wk);tech(q.x,q.y,1)}
+  else if(L1&&p<a+wk+w1){const q=peAt(PEVW.w1,(p-a-wk)/w1);tech(q.x,q.y,1)}
+  else if(!L1&&p<a+wk+.006){}// fährt mit dem Lift hinauf
+  else peQFix(t,P,'#f2701f',0);
+  P(t.y-40,c=>peSign(c,t.x,t.y-t.sg))}
+ else{const a=e.u;if(!L1&&p<a+.006){van(1,0);return}const a2=L1?a:a+.006,wb=L1?w1:0;
+  if(p<a2+wb){van(1,0);const q=peAt(PEVW.w1.slice().reverse(),(p-a2)/wb);tech(q.x,q.y,1);return}
+  if(p<a2+wb+wk){van(1,0);const q=peAt(Vd.walk.slice().reverse(),(p-a2-wb)/wk);tech(q.x,q.y,1);return}
+  const u=(p-a2-wb-wk)/dr;if(u<1)van(u,1)}}
+function peQFix(t,P,col,lw){const fx=t.fx,fy=t.fy,tx=t.tx,ty=t.ty;
+ P(fy+.2,c=>{peLadder(c,fx,fy,tx,ty);peBox(c,fx+(fx>t.x?5:-5),fy+1.5);const k=.45,mx=fx+(tx-fx)*k,my=fy+(ty-fy)*k;peMan(c,mx+.5,my,col,{vest:1,hel:'#fff'});peSparks(c,tx-1.5,ty+2)})}
+// ---------- Häuschen, Bergwacht, Pistenhelfer in die Tiefen-Warteschlange
+const PEBW={x:538,y:-320,sx:566,sy:-314};
+function peDay(){const p=phase();return p>=pAt(7.7)&&!closed()}
+function stfQ(c,T){if(!started)return;const P=(k,d)=>OBAQ.push({k,d});peTrack();const S=stf(),day=peDay()&&!SWS,out=new Set(PEV.filter(e=>e.lw).map(e=>peHutOf(e.L)));
+ for(const h of PEH){if(h.ost&&!ost())continue;if(!peHutOn(h)||!inV(h.x,h.y-10,70))continue;const away=out.has(h);
+  P(h.y,c=>peHut(c,h.x,h.y,{label:'LIFTWART',sign:'#2d4a7a',lit:day&&!away}));
+  if(!SWS&&(!away||h.L.includes(7)&&!PEV.some(e=>e.lw&&e.L!==7&&peHutOf(e.L)===h)))P(h.sy,c=>peSled(c,h.sx,h.sy,-1,{col:'#f2b705'}));
+  if(day&&!away)P(h.y+4,c=>peMan(c,h.x-10,h.y+4,'#f2b705',{vest:1,hel:'#fff'}))}
+ if(!SWS)for(const e of PEV)peQJob(e,P);
+ if(S.bw>0&&G.areas>=4&&inV(PEBW.x,PEBW.y-10,90)){const pt=pePatrol();P(PEBW.y,c=>peHut(c,PEBW.x,PEBW.y,{label:'BERGWACHT',sign:'#e0302a',cross:1,w:34,lit:day}));
+  if(!SWS&&!pt&&!(RSQ&&RSQ.bw))P(PEBW.sy,c=>peSled(c,PEBW.sx,PEBW.sy,-1,{col:'#e0302a',akja:1}));
+  if(day&&!pt)P(PEBW.y+4,c=>peMan(c,PEBW.x-16,PEBW.y+4,'#e0302a',{hel:'#fff',cross:1}));
+  if(pt&&day)P(pt.y,c=>peSled(c,pt.x,pt.y,pt.d,{col:'#e0302a',akja:1,mv:1,blink:'#3b8cff',rider:'#e0302a',cross:1}))}
+ if(day&&!SWS)peHelpers(P);
+ OBAQ.sort((a,b)=>a.k-b.k)}
+// Bergwacht-Runde: alle ~1,6 Std. eine Kontrollfahrt (hinauf an der Pistenkante und zurück)
+const PEPT=[[566,-314],[572,-360],[571,-420],[568,-470]];
+function pePatrol(){if(RSQ||!peDay()||G.areas<4)return null;const p=phase(),per=.09,d=.032,k=Math.floor((p-pAt(8.2))/per),u=(p-pAt(8.2)-k*per)/d;if(k<0||u>=1)return null;
+ const half=u<.5,q=peAt(half?PEPT:PEPT.slice().reverse(),half?u*2:u*2-1);return {x:q.x,y:q.y,d:half?1:-1}}
+// ---------- Pistenhelfer (orange) an der Westpiste
+function peHelpers(P){const n=Math.min(stf().ph,G.areas);if(!n)return;const p=phase(),y0=pTopY(G.areas)+50,y1=V-90,job=.075;
+ for(let i=0;i<n;i++){const k=Math.floor((p+i*.031)/job),u=((p+i*.031)/job)-k,spot=kk=>{const r=peR(i*97+kk*13+G.day*7),yy=y0+(y1-y0)*((i+.15+.7*r())/n),side=(i+kk)%2?1:-1;return {y:yy,side,r:r()}};
+  const A=spot(k-1),B=spot(k),ty=(k+i)%3,mv=u<.14,uu=mv?u/.14:1,yy=A.y+(B.y-A.y)*uu;
+  const ex=(y,s,inn)=>slopeX(y)+s*(slopeW(y)-inn);
+  const x=mv?ex(yy,uu<.5?A.side:B.side,-6):ex(B.y,B.side,ty===2?16:-6),y=mv?yy:B.y;if(!inV(x,y,40))continue;
+  if(mv){P(y,c=>peMan(c,x,y,'#ff7a1a',{vest:1,hel:'#ff7a1a',walk:1,ph:i}));continue}
+  const w=(u-.14)/.86,s=B.side;
+  if(ty===0){// Netz aufstellen
+   const ya=B.y-26,yb=B.y-26+30*Math.min(1,w*1.6);P(B.y-1,c=>peNet(c,ex(ya,s,-3),ya,ex(yb,s,-3),yb));P(y,c=>{peMan(c,x+s*2,y+2,'#ff7a1a',{vest:1,hel:'#ff7a1a'})})}
+  else if(ty===1){// Stangen stecken
+   const m=Math.min(3,Math.floor(w*4));for(let j=0;j<m;j++){const py=B.y-30+j*14,px=ex(py,s,-2);P(py,c=>pePole(c,px,py,j%2?'#2f80ed':'#e0302a'))}
+   P(y,c=>{peMan(c,x+s*2,y+2,'#ff7a1a',{vest:1,hel:'#ff7a1a'});c.save();c.translate(x+s*2+3.5,y-1);c.rotate(.5);c.fillStyle=m%2?'#e0302a':'#2f80ed';c.fillRect(-.45,-8,.9,9);c.restore()})}
+  else{// Buckel schaufeln
+   const r=6.5*(1-w*.85),bx=x-s*6;P(B.y-2,c=>{if(r>1)peBump(c,bx,B.y-6,r);pePile(c,x+s*8,B.y+2,Math.min(1,w*1.4));peX(c,bx-s*12,B.y-10)});
+   P(y+3,c=>{peMan(c,x,y+3,'#ff7a1a',{vest:1,hel:'#ff7a1a'});peShovel(c,x,y+3,Math.sin(T*5))})}}}
+function peR(sd){let a=(sd*2654435761>>>0)||1;return ()=>{a^=a<<13;a>>>=0;a^=a>>>17;a^=a<<5;a>>>=0;return a/4294967296}}
+function peNet(c,x0,y0,x1,y1){c.save();c.strokeStyle='#f2701f';c.lineWidth=2.2;c.globalAlpha=.85;c.beginPath();c.moveTo(x0,y0-3.5);c.lineTo(x1,y1-3.5);c.stroke();c.globalAlpha=1;c.strokeStyle='rgba(255,255,255,.6)';c.lineWidth=.3;const n=Math.max(1,Math.round(Math.hypot(x1-x0,y1-y0)/1.6));for(let i=0;i<=n;i++){const u=i/n;c.beginPath();c.moveTo(x0+(x1-x0)*u,y0+(y1-y0)*u-4.6);c.lineTo(x0+(x1-x0)*u,y0+(y1-y0)*u-2.4);c.stroke()}c.strokeStyle='#5d667a';c.lineWidth=.6;for(const [x,y] of [[x0,y0],[(x0+x1)/2,(y0+y1)/2],[x1,y1]]){c.beginPath();c.moveTo(x,y);c.lineTo(x,y-6);c.stroke()}c.restore()}
+function pePole(c,x,y,col){c.strokeStyle=col;c.lineWidth=.9;c.beginPath();c.moveTo(x,y);c.lineTo(x,y-9);c.stroke();c.fillStyle='#2b303d';c.fillRect(x-.5,y-.3,1,.6)}
+function peShovel(c,x,y,a){c.save();c.translate(x+3,y-6);c.rotate(-.5+a*.35);c.strokeStyle='#7a4a2a';c.lineWidth=.6;c.beginPath();c.moveTo(0,-2);c.lineTo(4,6);c.stroke();c.fillStyle='#5d667a';c.beginPath();c.moveTo(3,5.5);c.lineTo(6,6.5);c.lineTo(5,8);c.lineTo(2.4,7);c.closePath();c.fill();c.restore()}
+function peBump(c,x,y,r){c.fillStyle='rgba(120,150,195,.45)';c.beginPath();c.ellipse(x+2,y+1,r*1.05,r*.42,0,0,7);c.fill();const g=c.createLinearGradient(x-r,y-r*.6,x+r,y);g.addColorStop(0,'#ffffff');g.addColorStop(1,'#c9d6e8');c.fillStyle=g;c.beginPath();c.ellipse(x,y,r,r*.62,0,Math.PI,0);c.ellipse(x,y,r,r*.25,0,0,Math.PI);c.fill()}
+function pePile(c,x,y,k){if(k<=0)return;for(const [dx,dy,r] of [[0,0,2.4],[2,.7,1.8],[-1.8,.6,1.7]]){const rr=r*k;c.fillStyle='rgba(120,150,195,.4)';c.beginPath();c.ellipse(x+dx+.8,y+dy+.3,rr,rr*.4,0,0,7);c.fill();c.fillStyle='#f4f8fd';c.beginPath();c.arc(x+dx,y+dy,rr,Math.PI,0);c.fill()}}
+function peX(c,x,y){c.strokeStyle='#e0302a';c.lineWidth=.9;c.beginPath();c.moveTo(x-2.5,y-5);c.lineTo(x+2.5,y+5);c.moveTo(x+2.5,y-5);c.lineTo(x-2.5,y+5);c.stroke();c.strokeStyle='#5d667a';c.lineWidth=.5;c.beginPath();c.moveTo(x,y);c.lineTo(x,y+8);c.stroke()}
+
 function choQ(c,T){let add=0;const P=(k,d)=>{OBAQ.push({k,d});add=1};spQ();
  if(G.rvw&&inV(RNTW.x,RNTW.y-20,60))P(RNTW.y,c=>{rntShop(c,RNTW.x,RNTW.y,0);rntLit(RNTW,0)});
  if(G.rvo&&inV(RNTO.x,RNTO.y-20,60))P(RNTO.y,c=>{rntShop(c,RNTO.x,RNTO.y,1);rntLit(RNTO,1)});
@@ -2562,7 +2745,7 @@ function rntLit(P,o){if(!NL.on||hrOf(Math.min(phase(),.9999))>=18.5)return;const
 function choBoxes(P){spBoxes(P);if(G.cho)P('cho',800,CHO.y-90,1046,1004);if(G.rvw)P('rvw',RNTW.x-30,RNTW.y-44,RNTW.x+46,RNTW.y+4);if(G.rvo)P('rvo',RNTO.x-30,RNTO.y-44,RNTO.x+30,RNTO.y+4)}
 function choInf(k,pre){{const _s=spInf(k,pre);if(_s)return _s}
  if(k==='cho'){const b=[];if(G.cho&&G.cho.s===1&&G.cho.st==='ok')b.push({l:'Ausbau Stufe 2: 2 Chalets, Sauna, Hot-Pots ('+CHOT2+' Tage Bauzeit)',b:'',p:CHOC2P,ok:()=>G.money>=CHOC2P,go:choBuy2});b.push(pre);
-  return {ic:'🏔️',t:'Chalet Bergkristall',sub:'Chalet-Hotel am Ostberg'+(choBau()?' · 🚧 im Bau':''),rows:[['Betten',()=>choBeds()+(choS()>=2?' (mit Sauna und Hot-Pots)':'')],['Belegung',()=>Math.round(choOcc()*100)+' %'],['Preis pro Nacht',()=>fmt(chp())+' (fair ca. '+fmt(CHOF)+')'],['Pro Nacht',()=>'ca. '+fmt(chInc())],['Gäste unterwegs',()=>folks.filter(f=>f.cho&&!f.dead).length+''],['Unterhalt',()=>fmt(choU()*CF)+'/Tag']],btns:b,hint:choBau()?'Fertig in '+Math.max(0,G.cho.d0+(G.cho.s>1?CHOT2:CHOT)-G.day)+' Tagen.':'Die Chalet-Gäste fahren am Ostberg und kaufen ihre Karte an der Kassa Ost.'}}
+  return {ic:'🏔️',t:'Chalet Bergkristall',sub:'Chalet-Hotel am Ostberg'+(choBau()?' · 🚧 im Bau':''),rows:[['Betten',()=>choBeds()+(choS()>=2?' (mit Sauna und Hot-Pots)':'')],['Belegung',()=>Math.round(choOcc()*100)+' %'],['Preis pro Nacht',()=>fmt(chp())+' (fair ca. '+fmt(CHOF)+')'],['Pro Nacht',()=>'ca. '+fmt(chInc())],['Gäste unterwegs',()=>folks.filter(f=>f.cho&&!f.dead).length+''],['Unterhalt',()=>fmt(choU()*CF)+'/Tag']],btns:b,hint:choBau()?'Fertig in '+Math.max(0,G.cho.d0+(G.cho.s>1?CHOT2:CHOT)-G.day)+' Tagen.':'Die Chalet-Gäste fahren am Ostberg und kaufen ihre Karte an der Kassa Ost. Am Abend gehen manche noch in die Après-Ski-Bar Ost.'}}
  if(k==='rvw'||k==='rvo'){const o=k==='rvo';return {ic:'⛷️',t:'Skiverleih '+(o?'Ost':'West'),sub:o?'Neben der Wendeschleife beim Ostberg':'Am Hauptweg zur Kassa',rows:[['Gerade drinnen',()=>folks.filter(f=>f.cw==='R'&&(f.x>800)===o).length+' Gäste'],['Verliehen heute',()=>(o?G.inc.von:G.inc.vn)||0],['Preis',()=>fmt(rnp())+' (fair ca. '+fmt(rntF())+')'],['Verleih heute (beide)',()=>fmt(G.inc.vl||0)]],btns:[pre],hint:'Wer keine eigenen Ski hat, holt sie sich hier, bevor er zur Kassa geht. Abends werden sie im Vorbeigehen zurückgegeben.'}}
  return null}
 
@@ -3715,7 +3898,7 @@ function evenChairs(k){const q=lifts[k-1].slice().sort((a,b)=>a.u-b.u),g=2/q.len
 // V254: Ausgleich West ⇄ Ost – je länger die Schlange an Lift 1 West im Vergleich zur Ostberg-Gondel, desto mehr Gäste fahren zum Ostberg
 function owBal(){if(!ost())return 0;const qW=(queues[0]||[]).length,qO=OBQ.length,q=cl((qW-1.5*qO-10)/90,0,1);let tg=.35;try{const a=thr(1),b=obThr();tg=cl(b/Math.max(.01,a+b),.3,.6)}catch(e){}return Math.max(q,cl((tg-OSH)*4,0,1))}
 function spawnCar(nt,oa){
- const used=new Set(cars.filter(c=>c.sp>=0&&c.sp<100).map(c=>c.sp)),free=[];
+ const used=new Set([...cars.filter(c=>c.sp>=0&&c.sp<100).map(c=>c.sp),...peVanSp()]),free=[];
  for(let i=0;i<G.spots;i++)if(!used.has(i))free.push(i);
  if(ost()&&!nt&&!oa&&(Math.random()<(ost()>=2?.48:.38)+.3*owBal()||!free.length)&&(obCar()||(phase()<pAt(15)&&pkSpawnE())))return 1;
  if(pao()&&!nt&&!oa&&phase()<pAt(15)&&Math.random()<.08+.25*owBal()&&pkSpawnE())return 1;// V255: Parkhäuser Ost
@@ -5230,11 +5413,11 @@ function obHome(f){if(ob9Home(f))return;const Z=obZ(),pre=(f.st==='oq'||(f.x>OBG
 function obNext(f){const n=f.nx;f.nx=null;if(obxNext(f,n))return;if(ob8Next(f,n))return;
  if(n==='okas'){if(obCl()){obHome(f);return}f.st='okas';f.kt=.5+Math.random()*.7}
  else if(n==='oq0'){if(obCl()){obHome(f);return}OBQ.push(f);f.st='oq';f.arr=false}
- else if(n==='oplat')f.st='oplat';else if(n==='tocar')f.st='tocar';else if(n==='choIn'){G.guests++;G.gT++;if(!f.atx)rufUpd(f);f.dead=1}else if(n==='rbIn'){const c=f.car;if(c)c.back++;if(!f.oa){G.guests++;G.gT++;if(!f.atx)rufUpd(f)}f.dead=1}else{f.dead=1}}
+ else if(n==='oplat')f.st='oplat';else if(n==='tocar')f.st='tocar';else if(n==='choIn'){if(!f.ape){G.guests++;G.gT++;if(!f.atx)rufUpd(f)}if(choEve(f))return;f.dead=1}else if(n==='rbIn'){const c=f.car;if(c)c.back++;if(!f.oa){G.guests++;G.gT++;if(!f.atx)rufUpd(f)}f.dead=1}else{f.dead=1}}
 function obBuyT(f){if(f.paid)return;f.paid=1;const ss=ob9Buy(f),pr=ss||(f.half?G.half:G.ticket);G.money+=pr;G.inc.l+=pr;if(f.half)G.inc.nh=(G.inc.nh||0)+1;else G.inc.n=(G.inc.n||0)+1;G.inc.on=(G.inc.on||0)+1;pop(OBKX,OBKY()-30,pr)}
 const obSlot=i=>{const r=i>>3,j=i&7;if(r>=8){const k=i-64;return {x:1312-8*(k%6),y:R-140+8*Math.floor(k/6)}}return {x:r%2?1330+9*j:1393-9*j,y:R-132+8*r}};
 // Gast-Schritt (true = erledigt, sonst übernimmt der normale Code, z. B. tocar)
-function obFolk(f,dt){const st=f.st;if((st==='orin'||st==='oapi')&&obxFolk(f,dt))return true;
+function obFolk(f,dt){const st=f.st;if(st==='chev'){if(phase()>=f.evp)choEvGo(f);return true}if((st==='orin'||st==='oapi')&&obxFolk(f,dt))return true;
  if(st==='ort'){if(f.cw==='R'){if(rntWait(f,dt))f.cw=null;return true}if(f.cw==='S'){if(spWait(f,dt))f.cw=null;return true}const w=f.rt&&f.rt[0];if(!w){obNext(f);return true}if(mv(f,w[0],w[1],obCl()?50:36,dt)){f.rt.shift();if(w[2]==='h')f.hid=1;else if(w[2]==='s')f.hid=0;else if(w[2]==='R')f.cw='R';else if(w[2]==='S')f.cw='S';if(!f.rt.length)obNext(f)}return true}
  if(st==='okas'){if(obCl()){obHome(f);return true}f.kt-=dt;if(f.kt<=0){gi(f);obBuyT(f);f.st='ort';f.rt=[[1312,R-90],[OBGX,R-88]];f.nx='oq0'}return true}
  if(st==='oq'){const i=OBQ.indexOf(f);if(i<0){obHome(f);return true}const p=obSlot(i);if(f.x<OBGX+3&&p.x>OBGX&&Math.abs(f.y-p.y)>2){mv(f,OBGX,p.y,36,dt);f.arr=false;return true}
@@ -5252,7 +5435,7 @@ function obTrain(tr,dt){tr.dw-=dt;
 function obTrainIn(tr,dt){const dist=OBSX-tr.x;tr.v=Math.max(8,Math.min(tr.v+35*dt,Math.sqrt(2*40*Math.max(0,dist))+6,95));tr.x+=tr.v*dt;
  if(dist<1.5||tr.x>=OBSX){tr.x=OBSX;tr.st='stop2';tr.dw=tr.k==='arr'?1.5+(tr.n2||0)*.25:2.5;tr.u2=0;tr.ut=0;tr.bn2=0;if(tr.k==='arr'&&tr.n2)lg('🚆','anr','Zug am Bahnhof Ost, '+gN(tr.n2)+(tr.n2===1?' steigt':' steigen')+' aus')}}
 // --- Autos: freier Platz Ost (die 4 nächsten zur Talstation)
-function obFree(){const used=new Set(cars.filter(k=>k.sp>=800&&k.st!=='gone').map(k=>k.sp)),F=[];for(let i=0;i<OBPK.length;i++)if(!used.has(800+i))F.push(800+i);if(!F.length)return -1;F.sort((a,b)=>Math.abs(obSX(a)-OBTX+40)-Math.abs(obSX(b)-OBTX+40));return F[Math.random()*Math.min(F.length,4)|0]}
+function obFree(){const used=new Set([...cars.filter(k=>k.sp>=800&&k.st!=='gone').map(k=>k.sp),...peVanSp()]),F=[];for(let i=0;i<OBPK.length;i++)if(!used.has(800+i))F.push(800+i);if(!F.length)return -1;F.sort((a,b)=>Math.abs(obSX(a)-OBTX+40)-Math.abs(obSX(b)-OBTX+40));return F[Math.random()*Math.min(F.length,4)|0]}
 function obCar(){const sp=obFree();if(sp<0)return 0;const d=obSd(sp)?1:-1,n0=2+(Math.random()*3|0);cars.push({fam:n0>=3&&Math.random()<.45?1:0,d,x:vSpawnX(d,XL-30,XR+30),sp,g:0,ph:0,st:'in',p:0,n:n0,back:0,col:pick(COL),nt:0,oa:0,z:0,zi:null});return 1}
 // --- Kaufen
 function obBuy7(){if(ost()||G.areas<NA||G.money<OBC7||!reqOK(7))return;spend(OBC7);G.ost=1;(G.aD=G.aD||{})[7]=G.day;OBQ=[];OBCB=[];obInit();buildStatic();
@@ -5363,8 +5546,8 @@ function obxStep(dt){if(!ost())return;if(G.pqO==null)G.pqO=G.pq;if(G.snO==null)G
  // Pannen der Ostbahnen
  const B=G.obk;if(B){if(phase()>=B.u||phase()<B.s0){lg('🔧','lif',obxLN(B.L)+' läuft wieder');toast('🔧 '+obxLN(B.L)+' läuft wieder');G.obk=null}}
  else if(started&&!obCl()&&!stormOn())for(let L=7;L<=9;L++){if(!obxBuilt(L))continue;const r=obxRel(L),P=Math.max(0,(90-r)/100)*.9;if(P<=0)continue;
-  if(Math.random()<P*dt*timeScale()/(DAY*.45)){const d=lwCov(L)?.03:.085;G.obk={L,u:phase()+d,s0:phase()};G.brkN=(G.brkN||0)+1;
-   lg('🔧','lif',obxLN(L)+' hat eine Panne (Zuverlässigkeit '+Math.round(r)+' %)'+(lwCov(L)?', der Liftwart ist schon unterwegs':''));if(SET.hint)toast('🔧 Panne: '+obxLN(L)+'! '+(L===7?'Sie fährt im Notbetrieb langsam weiter. ':'')+(lwCov(L)?'Der Liftwart repariert sie, etwa 30 Minuten.':'Ohne Liftwart dauert es etwa 1,5 Stunden.'),4500);sfx('bad');break}}}
+  if(Math.random()<P*dt*timeScale()/(DAY*.45)){const d=lwCov(L)?lwDur(L):.085;G.obk={L,u:phase()+d,s0:phase()};G.brkN=(G.brkN||0)+1;
+   lg('🔧','lif',obxLN(L)+' hat eine Panne (Zuverlässigkeit '+Math.round(r)+' %)'+(lwCov(L)?', der Liftwart ist schon unterwegs':''));if(SET.hint)toast('🔧 Panne: '+obxLN(L)+'! '+(L===7?'Sie fährt im Notbetrieb langsam weiter. ':'')+(lwCov(L)?'Der Liftwart ist unterwegs und repariert sie, etwa '+lwMin(L)+' Minuten.':'Ohne Liftwart dauert es etwa 1,5 Stunden.'),4500);sfx('bad');break}}}
 function obxWear(nO,dt){if(!ost()||G.areas<2||G.pqO==null)return;if(nO>0)G.pqO=Math.max(0,G.pqO-(.2+.022*Math.min(nO,40))/(DAY/45)*dt*.5*(1-.1*Math.min(stf().ph,G.areas)))}
 function obxDay(){if(!ost())return;G.obk=null;if(G.pqO==null)G.pqO=G.pq;if(!G.ork&&G.raupen)G.pqO=Math.max(G.pqO,60);OXRP.st='park';
  const R2=G.olr||(G.olr=[100,100,100]);for(let L=7;L<=9;L++){if(!obxBuilt(L))continue;const use=[1.2,1,.9][L-7],w=.9*use*(lwCov(L)?.45:1);R2[L-7]=Math.max(15,(R2[L-7]??100)-w);
@@ -5699,7 +5882,7 @@ function zuGo(){if(!G.zu||zuBk())return false;if(!closed()&&phase()<pAt(17))retu
 function zuBk(){return !!(G.zbk&&phase()<G.zbk.u&&phase()>=G.zbk.s0)}
 function zuRel(){return G.zr??100}
 function zuAge(){if(!G.zu)return;G.zbk=null;if(G.zbd==null)G.zbd=G.day;const use=Math.min(1.6,.6+(G.inc.zu||0)/300),w=(.9*use)*(lwCov(10)?.45:1);G.zr=Math.max(15,zuRel()-w);if(G.zr<50&&Math.random()<.4)lg('⚠️','lif','Der Zubringer West wird unzuverlässig ('+Math.round(G.zr)+' %). Generalüberholung im Fenster der Talstation West.')}
-function zuBrk(dt){if(!G.zu||closed()||!started)return;if(G.zbk&&!zuBk()){if(phase()>=G.zbk.u){lg('🔧','lif','Der Zubringer West läuft wieder');G.zbk=null}return}if(G.zbk)return;const r=zuRel(),P=Math.max(0,(90-r)/100)*.9;if(P>0&&Math.random()<P*dt*timeScale()/(DAY*.45)){const d=lwCov(10)?.03:.085;G.zbk={u:phase()+d,s0:phase()};G.brkN=(G.brkN||0)+1;lg('🔧','lif','Der Zubringer West hat eine Panne (Zuverlässigkeit '+Math.round(r)+' %)'+(lwCov(10)?', der Liftwart ist schon unterwegs':''));if(SET.hint)toast('🔧 Panne am Zubringer West! '+(lwCov(10)?'Der Liftwart repariert ihn, etwa 30 Minuten.':'Ohne Liftwart dauert es etwa 1,5 Stunden.'),4500);sfx('bad')}}
+function zuBrk(dt){if(!G.zu||closed()||!started)return;if(G.zbk&&!zuBk()){if(phase()>=G.zbk.u){lg('🔧','lif','Der Zubringer West läuft wieder');G.zbk=null}return}if(G.zbk)return;const r=zuRel(),P=Math.max(0,(90-r)/100)*.9;if(P>0&&Math.random()<P*dt*timeScale()/(DAY*.45)){const d=lwCov(10)?lwDur(10):.085;G.zbk={u:phase()+d,s0:phase()};G.brkN=(G.brkN||0)+1;lg('🔧','lif','Der Zubringer West hat eine Panne (Zuverlässigkeit '+Math.round(r)+' %)'+(lwCov(10)?', der Liftwart ist schon unterwegs':''));if(SET.hint)toast('🔧 Panne am Zubringer West! '+(lwCov(10)?'Der Liftwart fährt mit dem Motorschlitten hin und repariert ihn, etwa '+lwMin(10)+' Minuten.':'Ohne Liftwart dauert es etwa 1,5 Stunden.'),4500);sfx('bad')}}
 function zuOhC(){return Math.max(500,Math.round((800+10*350)*(100-zuRel())/100*2/100)*100)}
 function zuInf(){const gp=zuGC(),b=[];b.push({l:'+2 Gondeln ('+zuN()+' jetzt)',b:'+2',p:gp,ok:()=>gp&&G.money>=gp,go:()=>{if(gp&&G.money>=gp){zuBuy('g');toast('+2 Gondeln für den Zubringer West')}},full:!gp});
  {const oc=zuOhC();if(zuRel()<95)b.push({l:'Generalüberholung (auf 100 %)',b:'',p:oc,ok:()=>G.money>=oc&&zuRel()<95,go:()=>{if(G.money>=oc){spend(oc);G.zr=100;lg('🛠️','lif','Zubringer West generalüberholt');toast('🛠️ Der Zubringer West ist wie neu')}}})}
@@ -6834,7 +7017,7 @@ function wrOv(){const R=G.wrR,show=!!(wrDay()&&['r1','p','r2','end'].includes(R.
 
 // ===== V239: Versteckter Testbereich (Optionen › 5× auf die Versionszeile tippen) =====
 // Jeder Test sichert vorher den Spielstand; „Test beenden“ holt ihn zurück. Neue Tests einfach in TESTS eintragen.
-const TVER='V275',TBAK='art-test-bak';
+const TVER='V276',TBAK='art-test-bak';
 // V263: Test „Alles ausgebaut“ – kauft über das Baumenü alles, was es gibt (Voraussetzungen und Sterne werden dabei übersprungen), und stellt Baustellen sofort fertig. wc = mit Verbindungsbahn West.
 var TALL=0;
 function tstAll(wc){const m0=G.money,st0=G.stN;let n=0;TALL=1;G.stN=5;
@@ -6858,6 +7041,18 @@ const TESTS=[
  {id:'sw2',ic:'⏩',t:'Saisonwechsel – Kurzfassung',
   was:['Die kurze Szene (ca. 4 Sekunden), die nach dem 3. Überspringen kommt'],
   can:()=>'',run:()=>setTimeout(()=>{open=null;render();seaGo(1)},500)},
+ {id:'pe1',ic:'🔧',t:'Panne mit Liftwart',
+  was:['Lift 4 (oder der höchste gebaute Lift) hat eine Panne, 11 Uhr, Sonne','Der Liftwart fährt vom Häuschen mit dem Motorschlitten zur Station','Stellt den Schlitten ab, geht zur Leiter, repariert mit Funken (Schild „PANNE“)','Danach fährt er zurück zum Häuschen'],
+  can:()=>G.areas<2?'Erst ab Ausbau Stufe 2':'',run:()=>{const S=stf();S.lw=Math.max(S.lw,3);tstAt('sonne',11);const L=Math.min(4,G.areas);G.brk={L,s0:phase(),u:phase()+lwDur(L)};const h=peHutOf(L);setTimeout(()=>{open=null;render();camA={s:2.2,x:h.x-cw/2.2/2,y:h.y-ch*.6/2.2}},400)}},
+ {id:'pe2',ic:'🚐',t:'Panne ohne Liftwart',
+  was:['Ohne Liftwart: Lift 1 hat eine Panne','Ein Techniker-Auto kommt über die Talstraße und parkt','Der Techniker geht zu Fuß zur Talstation und repariert','Dauert etwa 1,5 Stunden, danach fährt das Auto wieder weg'],
+  can:()=>'',run:()=>{stf().lw=0;tstAt('sonne',11);G.brk={L:1,s0:phase(),u:phase()+.085};setTimeout(()=>{open=null;render();camA={s:1.8,x:470-cw/1.8/2,y:930-ch*.5/1.8}},400)}},
+ {id:'pe3',ic:'🚑',t:'Unfall mit Bergwacht',
+  was:['Bergwacht eingestellt, ein Gast stürzt schwer (sobald Skifahrer auf der Piste sind)','Die Bergretter kommen mit Motorschlitten und Akja','Der Notarzthubschrauber landet, Trage, Abflug'],
+  can:()=>'',run:()=>{stf().bw=1;tstAt('sonne',11);G.hxN=G.day;G.hxD=G.day;G.hxT=phase()+.003;setTimeout(()=>{open=null;render()},400)}},
+ {id:'pe4',ic:'🦺',t:'Pistenhelfer und Bergwacht-Hütte',
+  was:['So viele Pistenhelfer wie Ausbau Stufen, 11 Uhr','Orange Helfer stellen Netze auf, stecken Stangen und schaufeln Buckel weg','Ab Ausbau Stufe 4: Bergwacht-Hütte mit rotem Kreuz neben Lift 4, Kontrollfahrten'],
+  can:()=>'',run:()=>{const S=stf();S.ph=G.areas;S.bw=1;tstAt('sonne',11);setTimeout(()=>{open=null;render();camA={s:1.6,x:200-cw/1.6/2,y:350-ch*.5/1.6}},400)}},
  {id:'wr1',ic:'🏁',t:'Weltcuprennen – ganzer Renntag',
   was:['Übertragungswagen stehen aufgebaut, Landeplatz und Hubschrauber im Tal','Zuschauer an der Strecke, Tribünen und LED-Wand im Ziel','Westpiste gesperrt: Gäste fahren über die schwarze Piste','1. Durchgang (10:30) mit Kamerafahrt, Zeitlupe und Hubschrauber, der dem Läufer folgt','Mögliche Stürze mit Bergwacht, Pause mit Landung im Tal, 2. Durchgang (13:00)','Siegerehrung 18:15 mit Feuerwerk, danach die Abrechnung zum Bestätigen'],
   can:()=>G.areas<6?'Geht erst ab Ausbau Stufe 6.':'',run:()=>{tstWr();G.t=pAt(10.15)*DAY}},
@@ -7003,7 +7198,7 @@ function draw0(dt){
  szDraw(c,T,1);pzBars(c,T,1);for(const k of SWS?[]:buses){const q=vPose(k);if(!inV(k.x,q.y,70))continue;bus(c,k.x,q.y,q.a,k.col,k.skb?'SKIBUS':k.sch?'SCHULE':k.sh?'SHUTTLE':0)}sxDraw(c);oxDraw(c);atBridge(c);
  for(const p of fx){p.t-=dt;p.x+=p.vx*dt;p.y+=p.vy*dt}fx=fx.filter(p=>p.t>0);c.fillStyle='#bcdcf2';for(const p of fx){if(!inV(p.x,p.y,10))continue;c.globalAlpha=Math.min(1,p.t*2);c.beginPath();c.arc(p.x,p.y,1+(.6-p.t)*3,0,7);c.fill()}c.globalAlpha=1;
  pisteFx(c);if(G.look==='neu')trails(c);drawGroom(c);zuCab(c,T);drawMasts(c);drawCourse(c);wrDrawG(c,T);hxGround(c,T);
- choQ(c,T);{const sq=stQ.slice().sort((a,b)=>a[1]-b[1]);let si=0;let oi=0;for(const f of folks.filter(f=>{if(!f.id)f.id=Math.random()*20;return inV(f.x,f.y,30)}).sort((a,b)=>a.y-b.y)){while(si<sq.length&&sq[si][1]+18<f.y)stFq(c,sq[si++]);while(oi<OBAQ.length&&OBAQ[oi].k<f.y)OBAQ[oi++].d(c);if(f.st==='bnk'&&f.bs)personSit(c,f);else if(f.st!=='lift'&&!f.hid&&!fbAct(f)&&!ssZeb(f)&&!pzTunF(f)){const ob=f.oa?oaB(f):0;if(ob)f.y-=ob;person(c,f,f.sit?(f.id||0)*0:T+(f.id||(f.id=Math.random()*20)));if(ob)f.y+=ob}}while(si<sq.length)stFq(c,sq[si++]);while(oi<OBAQ.length)OBAQ[oi++].d(c);if(OBAC)OBAC(c)}kassaSign(c);
+ choQ(c,T);stfQ(c,T);{const sq=stQ.slice().sort((a,b)=>a[1]-b[1]);let si=0;let oi=0;for(const f of folks.filter(f=>{if(!f.id)f.id=Math.random()*20;return inV(f.x,f.y,30)}).sort((a,b)=>a.y-b.y)){while(si<sq.length&&sq[si][1]+18<f.y)stFq(c,sq[si++]);while(oi<OBAQ.length&&OBAQ[oi].k<f.y)OBAQ[oi++].d(c);if(f.st==='bnk'&&f.bs)personSit(c,f);else if(f.st!=='lift'&&!f.hid&&!fbAct(f)&&!ssZeb(f)&&!pzTunF(f)){const ob=f.oa?oaB(f):0;if(ob)f.y-=ob;person(c,f,f.sit?(f.id||0)*0:T+(f.id||(f.id=Math.random()*20)));if(ob)f.y+=ob}}while(si<sq.length)stFq(c,sq[si++]);while(oi<OBAQ.length)OBAQ[oi++].d(c);if(OBAC)OBAC(c)}kassaSign(c);
  wayLamps(c,1);welcomeArch(c);drawRacers(c);wrDrawR(c,T);drawStoer(c);hxAir(c,T);wrDrawA(c,T);
  for(const p of sn){p.vx*=1-1.3*dt;p.vy+=32*dt;p.x+=(p.vx+Math.sin(T*3+p.ph)*7)*dt;p.y+=p.vy*dt;p.t-=dt*.7}sn=sn.filter(p=>p.t>0);
  c.fillStyle='#d3e7f6';for(const p of sn){if(!inV(p.x,p.y,10))continue;c.globalAlpha=Math.min(.6,p.t*.9);c.beginPath();c.arc(p.x,p.y,p.r*(1+(1-p.t)*1.4),0,7);c.fill()}c.globalAlpha=1;
