@@ -692,7 +692,7 @@ function seaGo(sh){if(SWS)return;const v0={S,camX,camY};
 // Kühe und Wanderer auf freien Wiesen (Farbe im Sommerbild prüfen)
 function seaAnim(){const C=SWS.C.s.c,g=C.getContext('2d');let D;try{D=g.getImageData(0,0,C.width,C.height).data}catch(e){return}
  const px=(x,y)=>{const i=Math.round((x-XL)*rs),j=Math.round((y+EXT)*rs);if(i<0||j<0||i>=C.width||j>=C.height)return 0;const k=(j*C.width+i)*4,r=D[k],gg=D[k+1],b=D[k+2];return gg>150&&gg-r>30&&gg-b>55&&r>95},
-  free=(x,y,w,h)=>{for(let a=-w;a<=w;a+=3)for(let b=-h;b<=h;b+=3)if(!px(x+a,y+b))return 0;return 1};
+  free=(x,y,w,h)=>{if((G.areas<NA&&y<Yk(G.areas)+20)||(!ost()&&x>OBX0-30))return 0;for(let a=-w;a<=w;a+=3)for(let b=-h;b<=h;b+=3)if(!px(x+a,y+b))return 0;return 1};
  let s=5;const rn=()=>(s=(s*16807)%2147483647)/2147483647,v=SWS.v1,x0=v.camX,x1=v.camX+cw/v.S,y0=Math.max(v.camY,GLB()+60),y1=V+20,Cw=SWS.cow,Hk=SWS.hik;
  for(let t=0;t<15000&&Cw.length<16;t++){const x=x0+rn()*(x1-x0),y=y0+rn()*(y1-y0);if(!free(x,y,16,8)||Cw.some(q=>Math.hypot(q.x-x,q.y-y)<26))continue;const n=1+Math.floor(rn()*3);for(let i=0;i<n&&Cw.length<16;i++){const xx=x+(i?(rn()-.5)*40:0),yy=y+(i?(rn()-.5)*24:0);if(free(xx,yy,14,7))Cw.push({x:xx,y:yy,d:rn()<.5?1:-1,p:rn()*6})}}
  for(let t=0;t<15000&&Hk.length<22;t++){const x=x0+rn()*(x1-x0),y=y0+rn()*(y1-y0);if(!free(x,y,5,8))continue;const d=rn()<.5?1:-1;Hk.push({x,y,d,k:Math.floor(rn()*4),p:rn()*6});if(rn()<.6&&free(x+9*d,y+3,5,8))Hk.push({x:x-9*d,y:y+3,d,k:Math.floor(rn()*4),p:rn()*6})}}
@@ -6535,6 +6535,12 @@ const TESTS=[
  {id:'all2',ic:'🚡',t:'Alles ausgebaut mit Verbindungsbahn West',
   was:['Wie oben, zusätzlich werden alle Westlifte zur Verbindungsbahn verbunden und die 10er-Gondel gekauft'],
   can:()=>'',run:()=>tstAll(1)},
+ {id:'sw1',ic:'🍂',t:'Saisonwechsel – ganze Szene',
+  was:['Spielt die Szene nach der Saisonbilanz ab (ca. 25 Sekunden)','Abend mit „Saisonende“, Schneeschmelze von unten nach oben, Sommer mit Kühen und Wanderern','Herbst, erster Schnee von oben nach unten, Eröffnungsfeuerwerk','Mit ⏭ unten rechts überspringen (zählt mit: nach dem 3. Mal nur noch die Kurzfassung)'],
+  can:()=>'',run:()=>setTimeout(()=>{open=null;render();seaGo(0)},500)},
+ {id:'sw2',ic:'⏩',t:'Saisonwechsel – Kurzfassung',
+  was:['Die kurze Szene (ca. 4 Sekunden), die nach dem 3. Überspringen kommt'],
+  can:()=>'',run:()=>setTimeout(()=>{open=null;render();seaGo(1)},500)},
  {id:'wr1',ic:'🏁',t:'Weltcuprennen – ganzer Renntag',
   was:['Übertragungswagen stehen aufgebaut, Landeplatz und Hubschrauber im Tal','Zuschauer an der Strecke, Tribünen und LED-Wand im Ziel','Westpiste gesperrt: Gäste fahren über die schwarze Piste','1. Durchgang (10:30) mit Kamerafahrt, Zeitlupe und Hubschrauber, der dem Läufer folgt','Mögliche Stürze mit Bergwacht, Pause mit Landung im Tal, 2. Durchgang (13:00)','Siegerehrung 18:15 mit Feuerwerk, danach die Abrechnung zum Bestätigen'],
   can:()=>G.areas<6?'Geht erst ab Ausbau Stufe 6.':'',run:()=>{tstWr();G.t=pAt(10.15)*DAY}},
@@ -6686,7 +6692,7 @@ function draw0(dt){
  c.fillStyle='#d3e7f6';for(const p of sn){if(!inV(p.x,p.y,10))continue;c.globalAlpha=Math.min(.6,p.t*.9);c.beginPath();c.arc(p.x,p.y,p.r*(1+(1-p.t)*1.4),0,7);c.fill()}c.globalAlpha=1;
  infDraw(c);if(plane)drawPlane(c,plane,T);
  c.textAlign='center';c.font='600 11px Fredoka,sans-serif';c.lineWidth=3;c.lineJoin='round';c.strokeStyle=INK;for(const p of pops){if(!inV(p.x,p.y,30))continue;c.globalAlpha=Math.min(1,p.t*2.5);const m=p.s||(p.s='+'+fmt(p.v));c.strokeText(m,p.x,p.y);c.fillStyle='#ffd84d';c.fillText(m,p.x,p.y)}c.globalAlpha=1;bubDraw(c);gstMark(c);
- c.setTransform(dpr*cw/400,0,0,dpr*cw/400,0,0);weatherFx(c,dt);c.fillStyle='#fff';for(const f of flakes.slice(0,Math.round(26*snK()))){f.y+=18*f.s*dt;f.x+=4*dt;if(f.y>HS){f.y=-5;f.x=Math.random()*600-100}if(G.look==='neu'){const r2=1.9*f.s;c.strokeStyle='rgba(130,185,235,.8)';c.lineWidth=.7;c.beginPath();for(let a=0;a<3;a++){const an=a*Math.PI/3;c.moveTo(f.x-100-Math.cos(an)*r2,f.y-Math.sin(an)*r2);c.lineTo(f.x-100+Math.cos(an)*r2,f.y+Math.sin(an)*r2)}c.stroke()}else{c.beginPath();c.arc(f.x-100,f.y,1.6*f.s,0,7);c.fill()}}
+ c.setTransform(dpr*cw/400,0,0,dpr*cw/400,0,0);weatherFx(c,dt);c.fillStyle='#fff';for(const f of flakes.slice(0,SEAD!=='w'?0:Math.round(26*snK()))){f.y+=18*f.s*dt;f.x+=4*dt;if(f.y>HS){f.y=-5;f.x=Math.random()*600-100}if(G.look==='neu'){const r2=1.9*f.s;c.strokeStyle='rgba(130,185,235,.8)';c.lineWidth=.7;c.beginPath();for(let a=0;a<3;a++){const an=a*Math.PI/3;c.moveTo(f.x-100-Math.cos(an)*r2,f.y-Math.sin(an)*r2);c.lineTo(f.x-100+Math.cos(an)*r2,f.y+Math.sin(an)*r2)}c.stroke()}else{c.beginPath();c.arc(f.x-100,f.y,1.6*f.s,0,7);c.fill()}}
  nightFx(c);wrPost(c,dt);
 }
 function fitBar(){const W=innerWidth;for(let r=0;r<2;r++)for(const e of document.querySelectorAll('#bar .chip')){const k=e.innerHTML+'|'+W+'|'+e.clientWidth;if(e._fk===k)continue;e.style.fontSize='';let f=13;while(e.scrollWidth>e.clientWidth&&f>9){f-=.5;e.style.fontSize=f+'px'}e._fk=e.innerHTML+'|'+W+'|'+e.clientWidth}}
