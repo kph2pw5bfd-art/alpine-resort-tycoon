@@ -837,19 +837,22 @@ function finKre(){const L=G.loan||0,M=lMax(),z=zins(),R=(a,b,c)=>`<div class="ro
 
 // ===== Lift-Alterung, Störungen, Personal (V153) =====
 function stf(){return G.st||(G.st={lw:0,bw:0,ph:0})}
-function lrel(L){const R=G.lr||(G.lr=[100,100,100,100,100,100]);return R[L-1]??100}
-function lage(L){const B=G.lbd||(G.lbd=[1,0,0,0,0,0]);return Math.max(0,G.day-(B[L-1]||G.day))}
+function lrel(L){const R=G.lr||(G.lr=[100,100,100,100,100,100]);return R[(wcIn(L)?1:L)-1]??100}
+function lage(L){const B=G.lbd||(G.lbd=[1,0,0,0,0,0]);return Math.max(0,G.day-(B[(wcIn(L)?1:L)-1]||G.day))}
 const lwCov=L=>L<=2*stf().lw;
 function ohC(L){return Math.max(500,Math.round((800+G.cap[L-1]*350)*(100-lrel(L))/100*2/100)*100)}
 function brkStep(dt){const B=G.brk;if(B){if(phase()>=B.u||phase()<B.s0){lg('🔧','lif','Lift '+B.L+' läuft wieder');G.brk=null}return}if(closed()||stormOn()||!started)return;if(stoerL(0))return;
- for(let L=1;L<=G.areas;L++){const r=lrel(L),P=Math.max(0,(90-r)/100)*.9;if(P<=0)continue;if(Math.random()<P*dt*timeScale()/(DAY*.45)){const d=lwCov(L)?.03:.085;G.brk={L,u:phase()+d,s0:phase()};G.brkN=(G.brkN||0)+1;
-  lg('🔧','lif','Lift '+L+' hat eine Panne (Zuverlässigkeit '+Math.round(r)+' %)'+(lwCov(L)?', der Liftwart ist schon unterwegs':''));if(SET.hint)toast('🔧 Panne an Lift '+L+'! '+(lwCov(L)?'Der Liftwart repariert ihn, etwa 30 Minuten.':'Ohne Liftwart dauert es etwa 1,5 Stunden.'),4500);sfx('bad');return}}}
+ for(let L=1;L<=G.areas;L++){if(wcIn(L)&&L>1)continue;const r=lrel(L),P=Math.max(0,(90-r)/100)*.9;if(P<=0)continue;if(Math.random()<P*dt*timeScale()/(DAY*.45)){const d=lwCov(L)?.03:.085;G.brk={L,u:phase()+d,s0:phase()};G.brkN=(G.brkN||0)+1;
+  lg('🔧','lif',(wcIn(L)?'Die Verbindungsbahn':'Lift '+L)+' hat eine Panne (Zuverlässigkeit '+Math.round(r)+' %)'+(lwCov(L)?', der Liftwart ist schon unterwegs':''));if(SET.hint)toast('🔧 Panne an Lift '+L+'! '+(lwCov(L)?'Der Liftwart repariert ihn, etwa 30 Minuten.':'Ohne Liftwart dauert es etwa 1,5 Stunden.'),4500);sfx('bad');return}}}
 function ageDay(){G.brk=null;const R=G.lr||(G.lr=[100,100,100,100,100,100]),C=G.lcap||(G.lcap=G.cap.slice()),B=G.lbd||(G.lbd=[1,0,0,0,0,0]);
  for(let L=1;L<=6;L++){if(L>G.areas)continue;if(!B[L-1])B[L-1]=G.day;if(C[L-1]!==G.cap[L-1]){R[L-1]=100;B[L-1]=G.day;C[L-1]=G.cap[L-1]}
-  const use=Math.min(1.6,.6+(G.inc['f'+L]||0)/300),w=(.9*use)*(lwCov(L)?.45:1);R[L-1]=Math.max(15,(R[L-1]??100)-w);if(R[L-1]<50&&Math.random()<.4)lg('⚠️','lif','Lift '+L+' wird unzuverlässig ('+Math.round(R[L-1])+' %). Generalüberholung im Lift-Fenster.')}}
+  if(wcIn(L)&&L>1){R[L-1]=R[0];B[L-1]=B[0];continue}
+  let fr=G.inc['f'+L]||0;if(wcIn(L)){fr=0;for(let j=1;j<=G.wk;j++)fr+=G.inc['f'+j]||0;fr/=G.wk}
+  const use=Math.min(1.6,.6+fr/300),w=(.9*use)*(lwCov(L)?.45:1);R[L-1]=Math.max(15,(R[L-1]??100)-w);if(R[L-1]<50&&Math.random()<.4)lg('⚠️','lif',(wcIn(L)?'Die Verbindungsbahn':'Lift '+L)+' wird unzuverlässig ('+Math.round(R[L-1])+' %). Generalüberholung im Lift-Fenster.')}
+ zuAge()}
 function stfCards(cd,dn,m){const S=stf(),P=(k,v)=>`<span style="display:flex;gap:5px;align-items:center"><button class="pm" data-stf="${k}:-1" ${v<=0?'disabled':''}>−</button><b style="min-width:16px;text-align:center">${v}</b><button class="pm" data-stf="${k}:1">+</button></span>`;
  return '<div class="bgh">👷 Personal · Lohn wird täglich abgebucht</div>'
- +cd('🔧','Liftwarte',`Je Liftwart sind 2 Lifte betreut (${Math.min(G.areas+ost(),2*S.lw)} von ${G.areas+ost()}). Betreute Lifte altern halb so schnell, Pannen dauern 30 statt 90 Minuten. ${fmt(30*CF)}/Tag pro Person`,P('lw',S.lw)+(S.lw?'':'<small class="cst">'+fmt(30*CF)+'/Tag</small>'))
+ +cd('🔧','Liftwarte',`Je Liftwart sind 2 Lifte betreut (${Math.min(G.areas+ost()+(G.zu?1:0),2*S.lw)} von ${G.areas+ost()+(G.zu?1:0)}). Betreute Lifte altern halb so schnell, Pannen dauern 30 statt 90 Minuten. ${fmt(30*CF)}/Tag pro Person`,P('lw',S.lw)+(S.lw?'':'<small class="cst">'+fmt(30*CF)+'/Tag</small>'))
  +cd('🚑','Bergwacht',G.areas<4?'Ab Ausbau Stufe 4 erwarten die Gäste eine Bergwacht. Sie bringt +2 Ruf.':`Sicherheit auf dem Berg: +2 Ruf. Ohne Bergwacht sind die Gäste ab Ausbau Stufe 4 unzufriedener. ${fmt(40*CF)}/Tag`,P('bw',S.bw))
  +cd('🚩','Pistenhelfer',`Stecken ab, sperren Buckel, räumen auf: Pro Helfer nutzt sich die Piste 10 % langsamer ab (bis zu ${G.areas} Helfer). ${fmt(25*CF)}/Tag pro Person`,P('ph',S.ph))
  +'<p class="hint">Lifte altern mit jedem Tag, stark genutzte schneller. Unter etwa 90 % Zuverlässigkeit kommen Pannen vor, und je älter der Lift, desto öfter. Im Lift-Fenster (Lift antippen) kannst du ihn generalüberholen lassen. Ein Ausbau macht den Lift wieder neu.</p>'}
@@ -3815,7 +3818,7 @@ const EV={
  stoer:{ic:'🔧',t:'Liftstörung',d:()=>''}};
 const RACE={rennen:{h:10,org:800,sg:50,ent:10,gas:8,rb:6,f:1},nacht:{h:19,org:1200,sg:60,ent:15,gas:12,rb:10,f:1.3}};
 const schulOn=()=>!!(G.ev&&G.ev.k==='schul'),isRace=e=>!!(e&&(e.k==='rennen'||e.k==='nacht')),evSlow=()=>(isRace(G.ev)&&G.ev.st==='run'&&!rcQ(G.ev.k))||(wcLive()&&!rcQ('wc'))||wrSlow(),
- stoerL=L=>!!(G.ev&&G.ev.k==='stoer'&&G.ev.st==='run'&&(G.ev.L===L||L===0))||!!(L&&G.brk&&G.brk.L===L),kidP=()=>Math.max(5,Math.round(G.ticket*.5)),repC=()=>Math.max(500,Math.round(cost()*.35/50)*50),
+ stoerL=L=>!!(G.ev&&G.ev.k==='stoer'&&G.ev.st==='run'&&(G.ev.L===L||L===0))||!!(L&&G.brk&&(G.brk.L===L||(wcIn(L)&&wcIn(G.brk.L)))),kidP=()=>Math.max(5,Math.round(G.ticket*.5)),repC=()=>Math.max(500,Math.round(cost()*.35/50)*50),
  specN=k=>Math.round(cl(30+rufE()*.6,20,90)*RACE[k].f),
  evHoldGroom=()=>{const e=G.ev;if(wrDay()&&!wrGone())return true;return !!(e&&e.k==='nacht'&&(e.st!=='done'||(e.sa||0)>0))},
  floodOn=()=>!!(G.flut&&((G.ev&&G.ev.k==='nacht'&&(G.ev.st==='pre'||G.ev.st==='run'||(G.ev.sa||0)>0))||G.flE)),
@@ -5261,12 +5264,22 @@ const ZUPS=ZUPP.map(q=>{let bi=0,bd=1e9;ZUD.forEach((d,i)=>{const e=Math.hypot(d
 const ZUN=ZUD.map((d,i)=>{let nx=0,ny=0;for(const [a,b] of [[i-1,i],[i,i+1]]){if(a<0||b>=ZUD.length)continue;const dx=ZUD[b][0]-ZUD[a][0],dy=ZUD[b][1]-ZUD[a][1],l=Math.hypot(dx,dy);nx+=-dy/l;ny+=dx/l}const l=Math.hypot(nx,ny);return [nx/l,ny/l]});
 function zuAt(s,sd){let lo=0,hi=ZUS.length-1;s=cl(s,0,ZUL);while(hi-lo>1){const m=(lo+hi)>>1;if(ZUS[m]<=s)lo=m;else hi=m}const t=(s-ZUS[lo])/Math.max(1e-6,ZUS[hi]-ZUS[lo]),a=ZUD[lo],b=ZUD[hi],na=ZUN[lo],nb=ZUN[hi],o=(sd||0)*OBCO;let nx=na[0]+(nb[0]-na[0])*t,ny=na[1]+(nb[1]-na[1])*t;const l=Math.hypot(nx,ny)||1;nx/=l;ny/=l;return {x:a[0]+(b[0]-a[0])*t+nx*o,y:a[1]+(b[1]-a[1])*t+ny*o,nx,ny}}
 let ZUK=null,ZUQ=[];
-function zuN(){return 24+(G.zug||0)}
+function zuN(){return 14+(G.zug||0)}
 function zuV(){return stormOn()?20:44}
+// V269: fährt wie die anderen Lifte nur zu Betriebszeiten (nach Liftschluss noch, bis alle Gondeln leer sind), steht bei Panne
+function zuGo(){if(!G.zu||zuBk())return false;if(!closed()&&phase()<pAt(17))return true;return !!(ZUK&&ZUK.some(k=>k.r.length))}
+function zuBk(){return !!(G.zbk&&phase()<G.zbk.u&&phase()>=G.zbk.s0)}
+function zuRel(){return G.zr??100}
+function zuAge(){if(!G.zu)return;G.zbk=null;if(G.zbd==null)G.zbd=G.day;const use=Math.min(1.6,.6+(G.inc.zu||0)/300),w=(.9*use)*(lwCov(10)?.45:1);G.zr=Math.max(15,zuRel()-w);if(G.zr<50&&Math.random()<.4)lg('⚠️','lif','Der Zubringer West wird unzuverlässig ('+Math.round(G.zr)+' %). Generalüberholung im Fenster der Talstation West.')}
+function zuBrk(dt){if(!G.zu||closed()||!started)return;if(G.zbk&&!zuBk()){if(phase()>=G.zbk.u){lg('🔧','lif','Der Zubringer West läuft wieder');G.zbk=null}return}if(G.zbk)return;const r=zuRel(),P=Math.max(0,(90-r)/100)*.9;if(P>0&&Math.random()<P*dt*timeScale()/(DAY*.45)){const d=lwCov(10)?.03:.085;G.zbk={u:phase()+d,s0:phase()};G.brkN=(G.brkN||0)+1;lg('🔧','lif','Der Zubringer West hat eine Panne (Zuverlässigkeit '+Math.round(r)+' %)'+(lwCov(10)?', der Liftwart ist schon unterwegs':''));if(SET.hint)toast('🔧 Panne am Zubringer West! '+(lwCov(10)?'Der Liftwart repariert ihn, etwa 30 Minuten.':'Ohne Liftwart dauert es etwa 1,5 Stunden.'),4500);sfx('bad')}}
+function zuOhC(){return Math.max(500,Math.round((800+10*350)*(100-zuRel())/100*2/100)*100)}
+function zuInf(){const gp=zuGC(),b=[];b.push({l:'+2 Gondeln ('+zuN()+' jetzt)',b:'+2',p:gp,ok:()=>gp&&G.money>=gp,go:()=>{if(gp&&G.money>=gp){zuBuy('g');toast('+2 Gondeln für den Zubringer West')}},full:!gp});
+ {const oc=zuOhC();if(zuRel()<95)b.push({l:'Generalüberholung (auf 100 %)',b:'',p:oc,ok:()=>G.money>=oc&&zuRel()<95,go:()=>{if(G.money>=oc){spend(oc);G.zr=100;lg('🛠️','lif','Zubringer West generalüberholt');toast('🛠️ Der Zubringer West ist wie neu')}}})}
+ return {ic:'🚡',t:'Zubringer West',sub:'10er-Gondelbahn · Talstation West → Umstieg Lift 3',rows:[['Wartezeit',()=>{const w=zuWaitMin();return amp(w)+' '+wfmt(w)}],['In der Schlange',()=>ZUQ.length+' Gäste'],['Gerade in den Gondeln',()=>(ZUK||[]).reduce((a,k)=>a+k.r.length,0)+' Gäste'],['Gondeln',()=>zuN()+' × '+ZUCAP+' Plätze'],['Zuverlässigkeit',()=>{const r=zuRel();return (r>=80?'🟢':r>=55?'🟠':'🔴')+' '+Math.round(r)+' %'}],['Alter',()=>Math.max(0,G.day-(G.zbd??G.day))+' Tage'+(lwCov(10)?' · 🔧 betreut':'')],['Fahrgäste heute',()=>(G.inc.zu||0)+''],['Läuft',()=>zuGo()?(stormOn()?'Ja, langsam (Sturm)':'Ja'):zuBk()?'Nein, Panne bis ca. '+clock(G.zbk.u):'Nein, Liftschluss (fährt bis 17 Uhr, nicht beim Nachtskilauf)']],btns:b,hint:'Bringt Gäste aus Bussen, Parkplätzen und Parkhäusern direkt zu Lift 3. Der Liftwart betreut ihn ab dem 5. Liftwart.'}}
 function zuThr(){return zuN()*ZUCAP*zuV()/(2*ZUL)}
 function zuWaitMin(){return ZUQ.length/Math.max(.05,zuThr())/(DAY*.056/TSD)*60}
-function zuGC(){const g=G.zug||0;return g>=16?0:20000+5000*(g/2)}
-function zuFit(){const n=zuN();if(!ZUK){ZUK=Array.from({length:n},(_,i)=>({u:i*2/n,r:[]}));return}if(ZUK.length!==n){zuAdd(n);zuSpace()}}
+function zuGC(){const g=G.zug||0;return g>=12?0:20000+5000*(g/2)}
+function zuFit(){const n=zuN();if(!ZUK){ZUK=Array.from({length:n},(_,i)=>({u:i*2/n,r:[]}));return}if(ZUK.length!==n){zuAdd(n);while(ZUK.length>n){const i=ZUK.findIndex(k=>!k.r.length);if(i<0)break;ZUK.splice(i,1)}zuSpace()}}
 // V265: alle Gondeln in gleichem Abstand – Reihenfolge bleibt, wer dabei über die Bergstation rutscht, steigt dort aus
 function zuSpace(){if(!ZUK||!ZUK.length)return;ZUK.sort((a,b)=>a.u-b.u);const n=ZUK.length,u0=ZUK[0].u%(2/n);ZUK.forEach((k,i)=>{const pv=k.u,nu=u0+i*2/n;if(k.r.length&&pv<1&&nu>=1){for(const f of k.r)zuOut(f);k.r=[]}k.u=nu})}
 function zuAdd(n){
@@ -5276,7 +5289,7 @@ function zuLen(L){const e=ends(L);return Math.hypot(e.t.x-e.b.x,e.t.y-e.b.y)}
 // geschätzte Sekunden von der Talstation Lift 1 (Schlange) bis zur Talstation Lift 3
 function zuL12(){const w1=queues[0].length/Math.max(.05,thr(1));if(wcIn(2))return w1+(zuLen(1)+zuLen(2))/spd(1)+1;return w1+zuLen(1)/spd(1)+2.5+queues[1].length/Math.max(.05,thr(2))+zuLen(2)/spd(2)+2.5}
 function zuZ(d,v){return d/v+ZUQ.length/Math.max(.05,zuThr())+ZUL/zuV()+2.5+.7*queues[2].length/Math.max(.05,thr(3))}
-function zuOK(f){return !!G.zu&&G.areas>=3&&!closed()&&!f.nt&&!f.kid&&!f.ost&&!f.oa&&!f.atx&&!f.ar&&!(stormOn()&&!isG(3))&&Math.min(gi(f).mx,G.areas)>=3&&wrMx(f)>=3}
+function zuOK(f){return !!G.zu&&!zuBk()&&G.areas>=3&&!closed()&&phase()<pAt(16.7)&&!f.nt&&!f.kid&&!f.ost&&!f.oa&&!f.atx&&!f.ar&&!(stormOn()&&!isG(3))&&Math.min(gi(f).mx,G.areas)>=3&&wrMx(f)>=3}
 function zuPick(tZ,tL){return Math.random()<1/(1+Math.exp((tZ-tL)/3))}
 // Ankunft: Route zur Kassa – ab dem ersten Punkt am Gehsteig Nord zur Talstation West abzweigen (Karte am Automaten)
 function zuArr(f,r){if(!zuOK(f))return null;const PN=WAYS.PN;let i=-1;for(let j=0;j<r.length;j++){const q=r[j];if(q[0]>PN[0][0]&&q[0]<PN[PN.length-1][0]&&Math.abs(q[1]-yAt(PN,q[0]))<6){i=j;break}}if(i<0)return null;
@@ -5291,7 +5304,7 @@ function zuQStep(f,dt){const i=ZUQ.indexOf(f);if(i<0){f.st='zuK';return}const p=
 function zuOut(f){f.zu=0;f.x=ZUB.x;f.y=ZUB.y+16;const w3=waitMin(3);if(3<=Math.min(wrMx(f),G.areas)&&!closed()&&!(stormOn()&&!isG(3))&&!(w3>Math.max(6,waitMin(2)+3)&&Math.random()<.6)){f.st='qu';f.l=3;f.arr=0;queues[2].push(f)}else{f.st='ski';f.x0=f.x;f.y0=f.y;f.ph=0;f.sv=0;pChoose(f,2,{x:f.x,y:f.y})}}
 function zuStep(dt){if(!G.zu){ZUQ=[];return}zuFit();ZUQ=ZUQ.filter(f=>!f.dead&&f.st==='zuq');
  if(closed()&&ZUQ.length){for(const f of ZUQ.splice(0))leave(f)}
- const v=zuV();for(const k of ZUK){const pv=k.u;k.u+=v*dt/ZUL;if(pv<1&&k.u>=1){for(const f of k.r)zuOut(f);k.r=[]}
+ zuBrk(dt);const v=zuGo()?zuV():0;for(const k of ZUK){const pv=k.u;k.u+=v*dt/ZUL;if(pv<1&&k.u>=1){for(const f of k.r)zuOut(f);k.r=[]}
   if(k.u>=2){k.u-=2;if(closed())continue;for(let qi=0;k.r.length<ZUCAP&&qi<ZUQ.length&&qi<16;){const f=ZUQ[qi];if(!f.arr){qi++;continue}ZUQ.splice(qi,1);f.st='lift';f.zu=1;f.rides=(f.rides||0)+1;f.bd=(f.bd||0)+1;G.inc.zu=(G.inc.zu||0)+1;k.r.push(f);gi(f);if(!f.paid){const m0=G.money;buyT(f);if(G.money>m0)pop(-140,950,G.money-m0)}}}}}
 function zuTree(x,y){if(!G.zu)return 0;const b=(a,b2,c2,d)=>x>a&&x<b2&&y>c2&&y<d;if(b(-262,-40,905,1005)||b(265,385,140,240))return 1;for(const q of ZUPS){const p=zuAt(q.s,0);if(Math.abs(x-p.x)<26&&y>p.y-8&&y<p.y+40)return 1}for(let a=30;a<ZUL-30;a+=12){const p=zuAt(a,0);if(Math.abs(x-p.x)<24&&y>p.y-4&&y<p.y+34)return 1}return 0}
 // V267: nichts unter das Zubringer-Seil stellen (Kabinen hängen bis ~25 darunter)
@@ -6389,7 +6402,7 @@ function wrOv(){const R=G.wrR,show=!!(wrDay()&&['r1','p','r2','end'].includes(R.
 
 // ===== V239: Versteckter Testbereich (Optionen › 5× auf die Versionszeile tippen) =====
 // Jeder Test sichert vorher den Spielstand; „Test beenden“ holt ihn zurück. Neue Tests einfach in TESTS eintragen.
-const TVER='V268',TBAK='art-test-bak';
+const TVER='V269',TBAK='art-test-bak';
 // V263: Test „Alles ausgebaut“ – kauft über das Baumenü alles, was es gibt (Voraussetzungen und Sterne werden dabei übersprungen), und stellt Baustellen sofort fertig. wc = mit Verbindungsbahn West.
 var TALL=0;
 function tstAll(wc){const m0=G.money,st0=G.stN;let n=0;TALL=1;G.stN=5;
@@ -6730,6 +6743,7 @@ function infBoxes(){const B=[],P=(k,x0,y0,x1,y1)=>B.push({k,x0,y0,x1,y1});
  P('l1',330,V+6,412,V+58);P('l1',304,V-6,340,V+24);
  for(let i=0;i<G.hotels;i++){const b=HIB(i);P('h'+i,b[0],b[2],b[1],b[3])}
  if(G.up.s){const b=SCB(),q=SCS();P('sch',b.x-52,b.y-64,b.x+66,b.y+18);P('sch',-270,495,-80,852)}
+ if(G.zu){P('zu',ZUT.x-48,ZUT.y-60,ZUT.x+48,ZUT.y+24);P('zu',ZUB.x-40,ZUB.y-54,ZUB.x+40,ZUB.y+24)}
  if(oaK()>0)P('oa',OSZ()[0]-14,OSR()-16,OSZ()[1]+14,OSF()+6);
  if(G.ap){P('aps',AX0-44,AY0()-68,AX0+44,AY0()+16);P('aps',AX0-94,AY0()-34,AX0-36,AY0()+14);if((G.apL||1)>=2)P('aps',AX0-164,AY0()-52,AX0-94,AY0()+20);if((G.apL||1)>=3)P('aps',AX0-92,AY0()+14,AX0-40,AY0()+40)}
  if(G.up.h){const y=Yk(1)+20,x=Math.max(40,slopeX(y)-slopeW(y)-40);P('hut',x-46,y-48,x+30,y+24)}
@@ -6754,6 +6768,7 @@ function pjBox(id){if(id==='arena'){const p=APOS();return [p.x0,p.y0,p.x1,p.y1]}
 function infHit(wx,wy){const pd=6/S;let best=null,ba=1e9;for(const b of infBoxes()){if(wx<b.x0-pd||wx>b.x1+pd||wy<b.y0-pd||wy>b.y1+pd)continue;const a=(b.x1-b.x0)*(b.y1-b.y0);if(a<ba){ba=a;best=b}}return best}
 function infDef(k){const m=G.money,pre={l:'Preise einstellen',b:'Preise ›',p:0,ok:()=>1,go:()=>{open='pre';render()}};
  if(k==='sxl')return sxInf(pre);
+ if(k==='zu')return zuInf();
  if(k==='sxo')return oxInf(pre);
  if(k.startsWith('ob')){const o=obInf(k,pre);if(o)return o}
  if(k==='pao')return paoInf(pre);
@@ -6765,7 +6780,7 @@ function infDef(k){const m=G.money,pre={l:'Preise einstellen',b:'Preise ›',p:0
   if(G.cap[L-1]<4){const p=qcost(L);b.push({l:'Ausbau auf 4er-Sessellift',b:'',p,ok:()=>G.money>=p,go:()=>{if(G.cap[L-1]<4&&G.money>=p){spend(p);wcCap(L,4);toast(wcNm(L)+' ist jetzt ein 4er-Sessellift')}}})}
   else if(G.cap[L-1]<6){const p=q6cost(L);b.push({l:'Ausbau auf 6er-Sesselbahn',b:'',p,ok:()=>G.money>=p,go:()=>{if(G.cap[L-1]===4&&G.money>=p){spend(p);wcCap(L,6);toast(wcNm(L)+' ist jetzt eine 6er-Sesselbahn')}}})}
    else if(G.cap[L-1]<8){const p=g8cost(L);b.push({l:'Ausbau auf 8er-Gondelbahn'+(stars()<3?' (ab ★★★)':''),b:'',p,ok:()=>G.money>=p&&stars()>=3,go:()=>{if(G.cap[L-1]===6&&G.money>=p){spend(p);wcCap(L,8);toast(wcNm(L)+' ist jetzt eine 8er-Gondelbahn 🚡')}}})}
-  {const oc=ohC(L);if(lrel(L)<95)b.push({l:'Generalüberholung (auf 100 %)',b:'',p:oc,ok:()=>G.money>=oc&&lrel(L)<95,go:()=>{if(G.money>=oc){spend(oc);G.lr[L-1]=100;lg('🛠️','lif','Lift '+L+' generalüberholt');toast('🛠️ Lift '+L+' ist wie neu')}}})}
+  {const W=wcIn(L)?wcG(L):[L],oc=W.reduce((a,j)=>a+ohC(j),0);if(lrel(L)<95)b.push({l:'Generalüberholung (auf 100 %)'+(W.length>1?' – ganze Verbindungsbahn':''),b:'',p:oc,ok:()=>G.money>=oc&&lrel(L)<95,go:()=>{if(G.money>=oc){spend(oc);for(const j of W)G.lr[j-1]=100;lg('🛠️','lif',(W.length>1?'Verbindungsbahn':'Lift '+L)+' generalüberholt');toast('🛠️ '+(W.length>1?'Die Verbindungsbahn':'Lift '+L)+' ist wie neu')}}})}
   if(stoerL(L)){const rc=repC();b.unshift({l:'Störung sofort beheben',b:'',p:rc,ok:()=>stoerL(L)&&G.money>=rc,go:()=>repair()})}
   return {ic:'🚡',t:'Lift '+L,sub:LTN(L)+' · '+(wcIn(L)?'Teil der Verbindungsbahn Lift 1–'+G.wk:L===1?'vom Tal hinauf':'Pistenabschnitt '+L),rows:[['Wartezeit',()=>{const w=waitMin(L);return amp(w)+' '+wfmt(w)}],['In der Schlange',()=>queues[L-1].length+' Gäste'],[isG(L)?'Gerade in den Gondeln':'Gerade im Sessel',()=>lfs(L).reduce((a,c)=>a+c.r.length,0)+' Gäste'],[isG(L)?'Gondeln':'Sessel',()=>lfs(L).length+' × '+G.cap[L-1]+' Plätze'],['Zuverlässigkeit',()=>{const r=lrel(L);return (r>=80?'🟢':r>=55?'🟠':'🔴')+' '+Math.round(r)+' %'}],['Alter',()=>lage(L)+' Tage'+(lwCov(L)?' · 🔧 betreut':'')],['Fahrten heute',()=>(G.inc['f'+L]||0)+''],['Läuft',()=>liftGo(L)?(isG(L)&&stormOn()?'Ja, langsam (Sturm)':'Ja'):stoerL(L)?'Nein, '+(G.brk&&G.brk.L===L?'Panne bis ca. '+clock(G.brk.u):'Störung'):closed()?'Nein, Liftschluss':'Nein, Sturm']],btns:b,hint:'Mehr Sessel und größere Lifte verkürzen die Wartezeit. Ab etwa 8 Minuten kommen weniger Gäste.'}}
  if(k[0]==='P'){const i=+k[1],nm=['Wo die meisten Gäste fahren, für alle offen','Für Anfänger und Familien, westlich der Hauptpiste','Für Profis, von ganz oben, östlich der Lifte'][i],H=i===0?(G.areas<2?'Ab Ausbau Stufe 2 kannst du eine blaue und eine schwarze Abfahrt dazubauen.':!G.pb&&!G.ps?'Anfänger fühlen sich hier unsicher, Profis ist sie zu leicht. Baue unter Bauen › Piste eine blaue oder schwarze Abfahrt.':!G.pb?'Anfänger fühlen sich hier unsicher. Eine blaue Abfahrt hilft.':!G.ps?'Profis ist sie zu leicht. Eine schwarze Abfahrt hilft.':'Mit allen drei Farben findet jeder Gast seine Piste.'):i===1?'Anfänger fahren ab Ausbau Stufe 2 hier, Fortgeschrittene manchmal auch.':'Profis fahren von ganz oben hierher und bleiben länger. Sie nutzt die Piste stärker ab.';return {ic:PIC[i],t:PNM[i],sub:nm,rows:[['Abfahrten heute',()=>(G.inc['r'+i]||0)+''],['Gerade auf der Piste',()=>folks.filter(f=>f.st==='ski'&&(f.pi||0)===i).length+' Gäste'],['Pistenzustand',()=>G.areas<2?'gut':Math.round(G.pq)+' %'],['Gäste-Können',()=>Math.round(anfA()*100)+' / '+Math.round((.8-anfA())*100)+' / 20 %']],btns:[],hint:H+' Gäste-Können: Anfänger / Fortgeschrittene / Profis.'}}
