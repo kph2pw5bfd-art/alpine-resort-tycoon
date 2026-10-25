@@ -2657,7 +2657,7 @@ function buildStatic(){LK=lkey();WAYS=waysB();WAYS.L=WAYS.L.filter(q=>!(Math.abs
  trees=[];{const A=G.areas,TG={},hutY=Yk(1)+20,hutX=Math.max(40,slopeX(hutY)-slopeW(hutY)-40),dX=parkX(0),dY=parkY(),sb=SCB();
   const box=(x,y,a,b,c2,d)=>x>a&&x<b&&y>c2&&y<d;
   const HB=i=>[HX[i]-34,HX[i]+34,V+80,V+160];
-  const ok=(x,y)=>{if(pzTree(x,y)||obTree(x,y)||arTree(x,y)||zuTree(x,y))return 0;if(G.ph&&x>-240&&x<-32&&y>R+12&&y<R+180)return 0;if(G.sz&&(box(x,y,SZW-26,SZE+26,TY()+8,SZY()+68)||box(x,y,SZW-24,SZW+24,R,TY()+10)||box(x,y,SZE-24,SZE+24,R,TY()+10)))return 0;if(!G.sz&&box(x,y,452,508,TY()+58,TY()+104))return 0;if(lotFree(x,y))return 1;if(x<XL-6||x>XR+6||y<92-EXT||y>H)return 0;
+  const ok=(x,y)=>{if(pzTree(x,y)||obTree(x,y)||arTree(x,y)||zuTree(x,y)||usTree(x,y))return 0;if(G.ph&&x>-240&&x<-32&&y>R+12&&y<R+180)return 0;if(G.sz&&(box(x,y,SZW-26,SZE+26,TY()+8,SZY()+68)||box(x,y,SZW-24,SZW+24,R,TY()+10)||box(x,y,SZE-24,SZE+24,R,TY()+10)))return 0;if(!G.sz&&box(x,y,452,508,TY()+58,TY()+104))return 0;if(lotFree(x,y))return 1;if(x<XL-6||x>XR+6||y<92-EXT||y>H)return 0;
    if(y>110-EXT&&y<V+4&&Math.abs(x-slopeX(y))<slopeW(y)+14)return 0;if(y>=V&&Math.hypot(x-slopeX(V),y-V)<slopeW(V)+14)return 0;if(onX(x,y,14))return 0;
    if(y>120-EXT&&y<V-18&&(Math.abs(x-lx(y))<40||Math.abs(x-lx(y)-88)<40))return 0;
    for(let k=1;k<=NA;k++){const y0=Yk(k);if(y>y0-24&&y<y0+124&&x>Math.min(lx(y0),slopeX(y))-24&&x<Math.max(lx(y0)+88,slopeX(y))+56)return 0}
@@ -2837,46 +2837,122 @@ function cannon(c,x,y,on,t){if(G.look==='neu')return cannonN(c,x,y,on,t);c.save(
  c.fillStyle=on>0?(Math.sin(t*8)>0?'#6dff9a':'#2f9e5a'):'#d98a3a';c.beginPath();c.arc(-3,-11.5,1.4,0,7);c.fill();
  c.restore()}
 const SCB=()=>({x:-22,y:V+8}),SCS=()=>{const Y0=V-142,Y1=V+16,SX=-126;return {SX,Y0,Y1,LX:SX-52,hw:v=>17+19*(v-Y0)/(Y1-Y0)}};
-function school(c,t){const {x,y}=SCB(),N=G.look==='neu',{SX,Y0,Y1,LX:LX2,hw}=SCS();c.lineWidth=1.4;c.strokeStyle=OL;
- // V264: Übungshang und Übungslift sind weg, sobald der Zubringer West gebaut ist (Platz wird neu gestaltet)
- const NOH=!!G.zu,ph=phase(),run=ph>=.05&&ph<=.6;
- if(!NOH){
- // Übungshang
- // Übungshang wie die großen Pisten: weißer Belag mit feinem Rand, gerade Kanten, flacher Auslauf (V116)
- {const hp=()=>{const r0=4;c.beginPath();c.moveTo(SX-hw(Y0)+r0,Y0);c.lineTo(SX+hw(Y0)-r0,Y0);c.quadraticCurveTo(SX+hw(Y0),Y0,SX+hw(Y0)+.3,Y0+r0);c.lineTo(SX+hw(Y1)-.3,Y1-r0);c.quadraticCurveTo(SX+hw(Y1),Y1,SX+hw(Y1)-r0,Y1);c.lineTo(SX-hw(Y1)+r0,Y1);c.quadraticCurveTo(SX-hw(Y1),Y1,SX-hw(Y1)+.3,Y1-r0);c.lineTo(SX-hw(Y0)-.3,Y0+r0);c.quadraticCurveTo(SX-hw(Y0),Y0,SX-hw(Y0)+r0,Y0);c.closePath()};
-  const bg=c.createLinearGradient(0,70-EXT,0,H);bg.addColorStop(0,N?'#ffffff':'#fdfeff');bg.addColorStop(1,N?'#edf4fb':'#e3f0fa');hp();c.fillStyle=bg;c.fill();c.strokeStyle=N?'#e1ecf7':'#a9cde8';c.lineWidth=N?2.2:3.2;c.lineJoin='round';c.stroke();hp();c.fill()}
- c.strokeStyle=N?'rgba(150,180,215,.16)':'rgba(150,180,215,.28)';c.lineWidth=.6;for(let q=-3;q<=3;q++){c.beginPath();c.moveTo(SX+q*4.5,Y0+4);c.lineTo(SX+q*8,Y1-6);c.stroke()}
- for(const sd of [-1,1])for(let v=Y0+8;v<Y1-4;v+=14){const fx=SX+sd*(hw(v)+3);c.fillStyle='#4b5468';c.fillRect(fx-.5,v-5,1,5);c.fillStyle='#f28c28';c.fillRect(sd<0?fx-.5:fx-6.5,v-4,7,1.4)}
- for(let q=0;q<6;q++){const fy2=Y0+16+q*24,fx=SX+(q%2?9:-9);c.strokeStyle='#4b5468';c.lineWidth=.8;c.beginPath();c.moveTo(fx,fy2);c.lineTo(fx,fy2-8);c.stroke();c.fillStyle=q%2?'#2f80ed':'#e8504a';c.beginPath();c.moveTo(fx,fy2-8);c.lineTo(fx+5,fy2-6.2);c.lineTo(fx,fy2-4.4);c.fill()}
- // Bögen und Hütchen auf dem Übungshang (V114)
- for(const [v,col] of [[Y0+34,'#f2c53b'],[Y0+82,'#6cc07a'],[Y0+128,'#b177e0']]){c.strokeStyle=col;c.lineWidth=1.6;c.beginPath();c.arc(SX,v,6,Math.PI,0);c.stroke();c.fillStyle='#5d667a';c.fillRect(SX-6.8,v-1,1.6,2);c.fillRect(SX+5.2,v-1,1.6,2)}
- for(let v=Y0+20;v<Y1-10;v+=30)for(const sd of [-1,1]){const cx2=SX+sd*(hw(v)-7);c.fillStyle='#f28c28';c.beginPath();c.moveTo(cx2-1.8,v);c.lineTo(cx2,v-4);c.lineTo(cx2+1.8,v);c.fill();c.fillStyle='#fff';c.fillRect(cx2-1,v-2.2,2,.7)}
- // Schneemann
- {const mx=SX+hw(Y1)+16,my=Y1-4;c.fillStyle='rgba(110,140,180,.25)';c.beginPath();c.ellipse(mx+3,my+1,8,2.4,0,0,7);c.fill();c.fillStyle='#fff';c.strokeStyle='#c9d8ea';c.lineWidth=.8;for(const [r,yy] of [[6,-6],[4.5,-15],[3.4,-22]]){c.beginPath();c.arc(mx,my+yy,r,0,7);c.fill();c.stroke()}
-  c.fillStyle='#2b303d';c.fillRect(mx-3,my-28.5,6,3.5);c.fillRect(mx-4.2,my-25.5,8.4,1);c.fillStyle='#f28c28';c.beginPath();c.moveTo(mx,my-22);c.lineTo(mx+4,my-21.4);c.lineTo(mx,my-20.8);c.fill();c.fillStyle='#e8504a';c.fillRect(mx-3.6,my-19.4,7.2,1.6)}
- // Schlepplift
- const st=(yy,big)=>{c.fillStyle='#8a94a8';c.beginPath();c.roundRect(LX2-8,yy-11,16,11,1.8);c.fill();c.fillStyle='#d8503f';c.fillRect(LX2-9,yy-13.5,18,3.5);if(big){c.fillStyle='#bfe6ff';c.fillRect(LX2-4,yy-8,8,4)}};
- st(Y1+2,1);c.fillStyle='#5d667a';for(const my of [Y0+(Y1-Y0)*.3,Y0+(Y1-Y0)*.62])c.fillRect(LX2-.9,my-17,1.8,17),c.fillRect(LX2-6,my-18,12,1.8);
- c.strokeStyle='#3b4354';c.lineWidth=.6;c.beginPath();for(const sx2 of [-4.8,4.8]){c.moveTo(LX2+sx2,Y0-8);c.lineTo(LX2+sx2,Y1-10)}c.stroke();st(Y0,0);
- const L=(Y1-10)-(Y0-8),off=run?(t*.6*14)%16:0;c.strokeStyle='#3b4354';c.lineWidth=.7;
- for(let q=0;q*16<L*2;q++){let d=(q*16+off)%(2*L),up=d<L,yy=up?(Y1-10)-d:(Y0-8)+(d-L),xx=LX2+(up?4.8:-4.8);c.beginPath();c.moveTo(xx,yy);c.lineTo(xx,yy+5);c.moveTo(xx-2.5,yy+5);c.lineTo(xx+2.5,yy+5);c.stroke()}
- c.fillStyle='rgba(255,255,255,.95)';c.beginPath();c.roundRect(LX2-24,Y0-30,48,10,2);c.fill();c.fillStyle=INK;c.font='600 6.2px Fredoka,sans-serif';c.textAlign='center';c.fillText('ÜBUNGSLIFT',LX2,Y0-22.8);
- }
+function school(c,t){const {x,y}=SCB();c.lineWidth=1.4;c.strokeStyle=OL;
  schoolHouse(c,x,y,t);
  // Skiständer + Fahne
  {const rx=x+42,ry=y-1;c.fillStyle='#8f5a34';c.fillRect(rx-1,ry-14,18,2);c.fillRect(rx,ry-14,1.6,14);c.fillRect(rx+15,ry-14,1.6,14);for(let q=0;q<6;q++){c.fillStyle=['#e8504a','#2f80ed','#f2c53b','#6cc07a','#b177e0','#ff8fb1'][q];c.fillRect(rx+2+q*2.3,ry-22,1.4,22)}}
  {const fx=x+66,fy=y;c.fillStyle='#5d667a';c.fillRect(fx-.8,fy-50,1.6,50);const w=Math.sin(t*3)*1.5;c.fillStyle='#e8504a';c.beginPath();c.moveTo(fx+1,fy-49);c.lineTo(fx+15,fy-45+w);c.lineTo(fx+1,fy-40);c.closePath();c.fill();c.fillStyle='#fff';c.fillRect(fx+4,fy-45.6,6,1.2)}
  flocki(c,x+26,y+14,t);
  {const tx=x-46,ty2=y+30;c.fillStyle='#5d667a';c.fillRect(tx-.6,ty2-16,1.2,16);c.fillStyle='#f2c53b';c.beginPath();c.roundRect(tx-12,ty2-22,24,7,1.5);c.fill();c.fillStyle=INK;c.font='700 3.6px Fredoka,sans-serif';c.textAlign='center';c.fillText('★ TREFFPUNKT',tx,ty2-17.2,22)}
- if(!run)return;
- const k=NOH?0:ph<.08?(ph-.05)/.03:ph>.56?(.6-ph)/.04:1,TC=22;
- const NP=schulOn()?14:8;for(let i=0;i<NP;i++){let u=((t/TC+i/NP)%1+1)%1,px,py,sv=0;
-  if(u<.4){const v=u/.4;px=LX2+4.8;py=(Y1-8)-v*((Y1-8)-(Y0-2))}
-  else if(u<.48){const v=(u-.4)/.08;px=LX2+4.8+(SX-LX2-4.8)*v;py=Y0-2+5*v}
-  else if(u<.9){const v=(u-.48)/.42;py=Y0+3+v*(Y1-8-Y0);const w=Math.sin(v*Math.PI*5);px=SX+11*w;sv=18*Math.cos(v*Math.PI*5)}
-  else{const v=(u-.9)/.1;px=SX+(LX2+4.8-SX)*v;py=Y1-8}
-  const dx=x-30+(i%7)*7,dy=y+22+Math.floor(i/7)*7;px=dx+(px-dx)*k;py=dy+(py-dy)*k;if(k<1)sv=0;
-  c.save();c.translate(px,py);c.scale(i?.75:.95,i?.75:.95);person(c,{x:0,y:0,st:'ski',col:i?pick2(i):'#e8504a',board:false,bc:'#34c0b8',sv},t+i);c.restore()}}
+ usDraw(c,t)}
+
+// ===== V266: Übungshang mit 1er-Tellerlift und Skischul-Gruppen (nach Zeichnung des Spielers) =====
+// Hang USP, Tellerlift Tal USB → Berg UST, Abfahrtslinie USD. Gruppen: 1 Lehrer + 7 Kinder (beim Schulausflug 2 Gruppen).
+// Tagesablauf: 8:40 aus der Skischule in den Kreis, 9:00 zum Lift, Runden (Lift, oben sammeln, hintereinander abfahren, zuerst der Lehrer), 12–13 Mittag in der Skischule, ab 15:15 nach der letzten Abfahrt heim.
+const USP=[[-222,509],[-243,548],[-221,566],[-200,600],[-196,680],[-194,751],[-181,792],[-162,836],[-128,849],[-92,836],[-82,800],[-96,768],[-145,738],[-151,670],[-141,609],[-160,548],[-190,515]],
+ USB={x:-224,y:772},UST={x:-262,y:512},USPY=[[-249.1,600],[-236.6,686]],USCO=4.2,USL=Math.hypot(UST.x-USB.x,UST.y-USB.y),USDX=(UST.x-USB.x)/USL,USDY=(UST.y-USB.y)/USL,USN=20,USV=38,
+ USD=[[-252,521],[-226,533],[-205,548],[-188,570],[-178,600],[-182,640],[-170,680],[-178,712],[-162,748],[-142,782],[-122,806],[-118,822]],
+ USDOOR={x:-20,y:803},USWAY=[[30,800],[-76,800],[-130,792],[-196,790]],USCIR=[{x:66,y:810},{x:100,y:826}],USCOL=['#4fa3e0','#f2a63b','#6cc07a','#b177e0','#ff8fb1','#2fb5a6','#f2c53b'];
+const USDS=(()=>{const S=[0];for(let i=1;i<USD.length;i++)S.push(S[i-1]+Math.hypot(USD[i][0]-USD[i-1][0],USD[i][1]-USD[i-1][1]));return S})(),USDL=USDS[USDS.length-1];
+let USK=null,USG=[],USGD=-1,USQ=[],usWA=0,usRun=0;
+function usAtD(s){s=cl(s,0,USDL);let j=0;while(j<USD.length-2&&s>USDS[j+1])j++;const t=(s-USDS[j])/(USDS[j+1]-USDS[j]),a=USD[j],b=USD[j+1];return {x:a[0]+(b[0]-a[0])*t,y:a[1]+(b[1]-a[1])*t}}
+function usIn(x,y){let c=false;for(let i=0,j=USP.length-1;i<USP.length;j=i++){const a=USP[i],b=USP[j];if((a[1]>y)!==(b[1]>y)&&x<(b[0]-a[0])*(y-a[1])/(b[1]-a[1])+a[0])c=!c}return c}
+function usTree(x,y){if(!G.up.s)return 0;for(const [dx,dy] of [[0,0],[-7,0],[7,0],[0,-6],[0,10]])if(usIn(x+dx,y+dy))return 1;
+ for(let k=0;k<=14;k++){const f=k/14,lx=USB.x+(UST.x-USB.x)*f,ly=USB.y+(UST.y-USB.y)*f;if(Math.abs(x-lx)<16&&y>ly-6&&y<ly+30)return 1}
+ const b=(a,b2,c2,d)=>x>a&&x<b2&&y>c2&&y<d;if(b(-262,-196,752,842)||b(-300,-224,486,540)||b(-210,40,780,812))return 1;for(const q of USCIR)if(Math.hypot(x-q.x,(y-q.y)*1.6)<26)return 1;return 0}
+// Teller am Seil: u 0..1 bergauf (rechts), 1..2 talwärts (links)
+function usBar(u){const up=u<1,f=up?u:2-u;return {x:USB.x+(UST.x-USB.x)*f+(up?USCO:-USCO),y:USB.y+(UST.y-USB.y)*f,up}}
+function usQPos(i){return {x:USB.x+USCO+1.2*i,y:USB.y+11+i*5.5}}
+function usMk(gi){const M=[];for(let i=0;i<8;i++)M.push({x:USDOOR.x,y:USDOOR.y,st:'stand',kid:i>0,col:i?USCOL[(i+gi*3)%7]:(gi?'#2f80ed':'#e8504a'),gi,i,m:'h',wp:[],sv:0});return {gi,M,ph:'in',t0:gi*.012,lu:0}}
+function usPh(h){return pAt(h)}
+function usGo(m,P,next){m.wp=P.map(q=>Array.isArray(q)?{x:q[0],y:q[1]}:q);m.m='w';m.nx=next;m.st='stand'}
+function usToQ(g,m){if(!USQ.includes(m))USQ.push(m);m.m='qw'}
+function usStep(dt){
+ if(!G.up.s){USG=[];USQ=[];return}
+ const p=phase(),n=schulOn()?2:1;
+ if(USGD!==G.day||USG.length!==n){USGD=G.day;USQ=[];USK=null;USG=[];for(let gi=0;gi<n;gi++)USG.push(usMk(gi));
+  // mitten am Tag geladen: gleich weiterfahren
+  for(const g of USG){if(p>=usPh(9.05)+g.t0&&p<usPh(15.1)&&!(p>=usPh(12)&&p<usPh(13))){g.ph='run';for(const m of g.M){m.m='qw';USQ.push(m);const q=usQPos(USQ.length-1);m.x=q.x;m.y=q.y}}else if(p>=usPh(15.1))g.ph='home'}}
+ if(!USK)USK=Array.from({length:USN},(_,i)=>({u:i*2/USN,f:null}));
+ for(const g of USG){const M=g.M,T0=g.t0;
+  if(g.ph==='in'&&p>=usPh(8.66)+T0&&p<usPh(9.4)){g.ph='circle';const C=USCIR[g.gi];M.forEach((m,i)=>{const a=i/8*Math.PI*2+Math.PI/2;usGo(m,[[USDOOR.x,USDOOR.y+4],[C.x+Math.cos(a)*11,C.y+Math.sin(a)*5]],'c');m.dl=i*.25})}
+  if((g.ph==='circle'&&p>=usPh(9)+T0)||(g.ph==='in'&&p>=usPh(9.4)&&p<usPh(11.9))){const fromC=g.ph==='circle';g.ph='run';M.forEach((m,i)=>{m.x=fromC?m.x:USDOOR.x;m.y=fromC?m.y:USDOOR.y;usGo(m,[...(fromC?[]:[[USDOOR.x,USDOOR.y+2]]),...USWAY],'q');m.dl=i*.3})}
+  if(g.ph==='lunch'&&p>=(g.lr||usPh(13))+T0){g.ph='run';M.forEach((m,i)=>{m.x=USDOOR.x;m.y=USDOOR.y;usGo(m,[[USDOOR.x,USDOOR.y+2],...USWAY],'q');m.dl=i*.3})}
+  if((g.ph==='run'||g.ph==='circle')&&(closed()||p>=usPh(16.5)))for(const m of M){if(m.m!=='h'&&m.m!=='w2'){const k=USQ.indexOf(m);if(k>=0)USQ.splice(k,1);if(m.m==='r'){for(const b of USK)if(b.f===m)b.f=null}usGo(m,[...USWAY.slice().reverse(),[USDOOR.x,USDOOR.y+2],[USDOOR.x,USDOOR.y]],'h');m.m='w';m.nx='h'}g.ph='going'}
+  // oben gesammelt? → hintereinander abfahren (zuerst der Lehrer)
+  if(g.ph==='run'&&M.every(m=>m.m==='s'&&m.arr)){M.forEach((m,i)=>{m.m='d';m.ds=(7-i)*7;m.dl=i*.3;m.st='ski'})}
+  for(const m of M){if(m.dl>0){m.dl-=dt;continue}
+   if(m.m==='w'){const w=m.wp[0];if(!w){m.m=m.nx==='c'?'c':m.nx==='q'?'qw':m.nx==='h'?'h':m.nx;if(m.m==='qw'&&!USQ.includes(m))USQ.push(m);if(m.m==='h'){m.x=USDOOR.x;m.y=USDOOR.y;if(M.every(o=>o.m==='h')){if(g.ph==='lunchgo')g.ph='lunch';else if(g.ph==='homego'||g.ph==='going')g.ph='home'}}continue}
+    if(mv(m,w.x,w.y,m.st==='ski'?34:34,dt))m.wp.shift()}
+   else if(m.m==='qw'){const k=USQ.indexOf(m),q=usQPos(Math.max(0,k));m.arr=mv(m,q.x,q.y,30,dt);m.st='stand'}
+   else if(m.m==='r'){}
+   else if(m.m==='s'){const q=usAtD(m.ds);m.arr=mv(m,q.x,q.y,22,dt);m.st='ski'}
+   else if(m.m==='d'){m.ds+=44*dt;const q=usAtD(m.ds),k=cl(Math.min(m.ds-60,USDL-m.ds)/30,0,1),w=Math.sin(m.ds/16)*7*k;m.x=q.x+w;m.y=q.y;m.sv=Math.cos(m.ds/16)*26*k;
+    if(m.ds>=USDL){m.sv=0;
+     // der Lehrer kommt zuerst unten an und entscheidet: weiter, Mittag oder heim – die Kinder folgen
+     if(m.i===0){const end=p>=usPh(14.8)||closed(),lun=!g.lu&&p>=usPh(11.3)&&p<usPh(14);g.nx=end?'home':lun?'lunch':'again';if(lun){g.lu=1;g.lr=Math.max(usPh(13),p+.042)}if(g.nx!=='again')g.ph=g.nx+'go'}
+     if(g.nx==='home'||g.nx==='lunch')usGo(m,[[-110,800],...USWAY.slice(0,2).reverse(),[USDOOR.x,USDOOR.y+2],[USDOOR.x,USDOOR.y]],'h');
+     else{usGo(m,[[-150,826],[-196,826]],'q');m.st='ski'}}}}
+ }
+ // Lift: läuft, wenn jemand ansteht oder fährt
+ usRun=USQ.length>0||USK.some(b=>b.f)?1:0;const v=usRun?USV:0;usWA+=v*dt;
+ for(const b of USK){const pv=b.u;b.u+=v*dt/USL;
+  if(pv<1&&b.u>=1&&b.f){const m=b.f;b.f=null;m.m='s';m.st='ski';m.arr=0;m.ds=(7-m.i)*7}
+  if(b.u>=2){b.u-=2;const m=USQ[0];if(m&&m.m==='qw'&&m.arr&&!b.f){USQ.shift();b.f=m;m.m='r';m.st='ski';m.sv=0}}}
+ for(const b of USK)if(b.f){const q=usBar(b.u);b.f.x=q.x;b.f.y=q.y+14}}
+// ---- Zeichnen ----
+function usSm(c,P){c.beginPath();const n=P.length;for(let i=0;i<n;i++){const a=P[i],b=P[(i+1)%n],m=[(a[0]+b[0])/2,(a[1]+b[1])/2];if(i===0){const z=P[n-1];c.moveTo((z[0]+a[0])/2,(z[1]+a[1])/2)}c.quadraticCurveTo(a[0],a[1],m[0],m[1])}c.closePath()}
+function usSlope(c){if(!G.up.s||!inVR(-250,505,-80,852,30))return;
+ const bg=c.createLinearGradient(0,500,0,850);bg.addColorStop(0,'#ffffff');bg.addColorStop(1,'#edf4fb');usSm(c,USP);c.fillStyle=bg;c.fill();c.strokeStyle='#e1ecf7';c.lineWidth=2.2;c.lineJoin='round';c.stroke();
+ c.save();usSm(c,USP);c.clip();c.strokeStyle='rgba(150,180,215,.18)';c.lineWidth=.6;for(let q=-3;q<=3;q++){c.beginPath();c.moveTo(-205+q*4,520);c.bezierCurveTo(-172+q*5,600,-176+q*5,720,-150+q*7,800);c.stroke()}c.restore();
+ const n=USP.length;for(let i=0;i<n;i++){const a=USP[i],b=USP[(i+1)%n];if(a[1]<540&&b[1]<540)continue;for(let t=0;t<1;t+=.5){const x=a[0]+(b[0]-a[0])*t,y=a[1]+(b[1]-a[1])*t;c.fillStyle='#4b5468';c.fillRect(x-.5,y-5,1,5);c.fillStyle='#f28c28';c.fillRect(x-.5,y-4,5,1.3)}}
+ for(const [x,y,col] of [[-196,600,'#f2c53b'],[-160,660,'#6cc07a'],[-190,700,'#b177e0'],[-150,770,'#e8504a']]){c.strokeStyle=col;c.lineWidth=1.6;c.beginPath();c.arc(x,y,5.5,Math.PI,0);c.stroke();c.fillStyle='#5d667a';c.fillRect(x-6.3,y-1,1.4,2);c.fillRect(x+4.9,y-1,1.4,2)}
+ for(const [x,y] of [[-160,615],[-192,650],[-158,700],[-190,735],[-128,790],[-108,818]]){c.fillStyle='#f28c28';c.beginPath();c.moveTo(x-1.8,y);c.lineTo(x,y-4);c.lineTo(x+1.8,y);c.fill();c.fillStyle='#fff';c.fillRect(x-1,y-2.2,2,.7)}}
+// Hütte im Holzstil: Bretter, Fenster mit Läden und Blumenkasten, Tür, Satteldach mit dicker Schneekappe, Kamin mit Rauch
+function usHut(c,hx,hy,w,h,T,win,door){const nt=1-bright();
+ c.fillStyle='rgba(110,140,180,.25)';c.beginPath();c.ellipse(hx+3,hy+1.5,w*.7,3,0,0,7);c.fill();
+ c.fillStyle='#9c9488';c.fillRect(hx-w/2-1,hy-3,w+2,3);c.fillStyle='#c98a5a';c.fillRect(hx-w/2,hy-h,w,h-3);c.fillStyle='rgba(110,60,30,.22)';for(let q=hy-h+2.5;q<hy-3;q+=2.6)c.fillRect(hx-w/2,q,w,.55);c.fillStyle='rgba(0,0,0,.1)';c.fillRect(hx+w/2-3,hy-h,3,h-3);
+ for(const [wx,ww] of win){const wy=hy-h+3;c.fillStyle='#2f6fb5';c.fillRect(wx-ww/2-2,wy-.3,1.6,ww*.8+.6);c.fillRect(wx+ww/2+.4,wy-.3,1.6,ww*.8+.6);c.fillStyle='#fff';c.fillRect(wx-ww/2-.4,wy-.4,ww+.8,ww*.8+.8);c.fillStyle='#a8dcf5';c.fillRect(wx-ww/2+.3,wy+.3,ww-.6,ww*.8-.6);if(nt>.3)nlLit(wx-ww/2+.3,wy+.3,ww-.6,ww*.8-.6);c.fillStyle='rgba(255,255,255,.6)';c.fillRect(wx-ww/2+.8,wy+.6,.8,ww*.8-1.4);c.fillStyle='#fff';c.fillRect(wx-.25,wy+.3,.5,ww*.8-.6);
+  c.fillStyle='#7a4a2a';c.fillRect(wx-ww/2-.8,wy+ww*.8+.4,ww+1.6,1.5);for(let q=0;q<3;q++){c.fillStyle=['#e8504a','#f2c53b','#ff8fb1'][q];c.beginPath();c.arc(wx-ww/2+1+q*(ww-2)/2,wy+ww*.8+.2,.8,0,7);c.fill()}}
+ if(door){const dx=door;c.fillStyle='#6b4a2e';c.beginPath();c.roundRect(dx-2.6,hy-10,5.2,7,[1.6,1.6,0,0]);c.fill();c.fillStyle='#f2c53b';c.fillRect(dx+1.2,hy-6.6,.8,.8);c.fillStyle='#9c9488';c.fillRect(dx-3.4,hy-3,6.8,1.2);
+  c.fillStyle='#3b4354';c.fillRect(dx+3.6,hy-11,1.6,2.4);c.fillStyle=nt>.3?'#ffd56a':'#f5e6b0';c.fillRect(dx+3.8,hy-10.6,1.2,1.6)}
+ const r0=hy-h,ov=3;c.fillStyle='#b8432f';c.beginPath();c.moveTo(hx-w/2-ov,r0+1);c.lineTo(hx,r0-w*.42);c.lineTo(hx+w/2+ov,r0+1);c.closePath();c.fill();c.fillStyle='#d8503f';c.beginPath();c.moveTo(hx-w/2-ov,r0+1);c.lineTo(hx,r0-w*.42);c.lineTo(hx,r0+1);c.closePath();c.fill();
+ c.fillStyle='#fff';c.beginPath();c.moveTo(hx-w/2-ov-.5,r0+1.2);c.lineTo(hx,r0-w*.42-1);c.lineTo(hx+w/2+ov+.5,r0+1.2);c.quadraticCurveTo(hx+w/2,r0-1.2,hx+w/2-2,r0-.8);c.lineTo(hx,r0-w*.42+3.2);c.lineTo(hx-w/2+2,r0-.8);c.quadraticCurveTo(hx-w/2,r0-1.2,hx-w/2-ov-.5,r0+1.2);c.fill();
+ const kx=hx+w*.22,ky=r0-w*.2;c.fillStyle='#8a8478';c.fillRect(kx-1.4,ky-4,2.8,5);c.fillStyle='#fff';c.fillRect(kx-1.7,ky-4.6,3.4,1.2);for(let q=0;q<3;q++){const ph=(T*.4+q/3)%1;c.fillStyle='rgba(235,240,248,'+(.6*(1-ph))+')';c.beginPath();c.arc(kx+ph*5,ky-5-ph*12,1.2+ph*2.6,0,7);c.fill()}}
+// Überdachter Seilscheiben-Stand: Stützen, Dach, Rad
+function usWheel(c,x,y,T,mot){c.fillStyle='#6b7488';c.fillRect(x-9,y-16,1.6,30);c.fillRect(x+7.4,y-16,1.6,30);
+ if(mot){c.fillStyle='#4a5164';c.beginPath();c.roundRect(x-6.5,y-12,13,7,1.5);c.fill();c.fillStyle='#f2c53b';c.fillRect(x-6.5,y-7.4,13,1.1);c.fillStyle='#2b303d';for(let q=0;q<3;q++)c.fillRect(x-4.6+q*3.4,y-11,1.5,2.6)}
+ else{c.strokeStyle='#5d6478';c.lineWidth=.8;c.beginPath();c.moveTo(x,y-2);c.lineTo(x,y-9);c.stroke();c.fillStyle='#7d8597';c.beginPath();c.roundRect(x-3,y-13,6,5,1);c.fill();c.fillStyle='#f2c53b';c.fillRect(x-3,y-10.6,6,1)}
+ sheave(c,x,y,USCO,-usWA/USCO);
+ c.fillStyle='#3a404e';c.beginPath();c.moveTo(x-12,y-14);c.lineTo(x-8,y-21);c.lineTo(x+8,y-21);c.lineTo(x+12,y-14);c.closePath();c.fill();c.fillStyle='#fff';c.beginPath();c.moveTo(x-11.5,y-15.4);c.lineTo(x-8,y-21.6);c.lineTo(x+8,y-21.6);c.lineTo(x+11.5,y-15.4);c.quadraticCurveTo(x,y-18.6,x-11.5,y-15.4);c.fill();c.fillStyle='#f2c53b';c.fillRect(x-12,y-14.4,24,1)}
+// Talstation: überdachter Antrieb, Einstiegsmatte mit Drehkreuz, Liftwart-Hütte mit Fenster zum Einstieg, Bank, Schild
+function usTal(c,T){const x=USB.x,y=USB.y;
+ c.fillStyle='rgba(110,140,180,.22)';c.beginPath();c.ellipse(x-12,y+17,30,5,0,0,7);c.fill();
+ c.fillStyle='#3b6fb5';c.beginPath();c.roundRect(x+USCO-4,y+7,8,13,1.5);c.fill();c.fillStyle='rgba(255,255,255,.35)';for(let q=0;q<3;q++)c.fillRect(x+USCO-3,y+9+q*3.6,6,.8);
+ c.fillStyle='#5d667a';c.fillRect(x+USCO+5,y+8,1.4,9);c.save();c.translate(x+USCO+5.7,y+9);c.rotate(Math.sin(T*2)*.3);c.fillStyle='#f2c53b';c.fillRect(-5,-.6,5,1.2);c.restore();
+ usWheel(c,x,y,T,1);
+ usHut(c,x-27,y+17,22,16,T,[[x-21.5,6]],x-32);
+ c.fillStyle='#8f5a34';c.fillRect(x-41,y+15,8,1.5);c.fillRect(x-40.5,y+16.5,1,2.4);c.fillRect(x-34.5,y+16.5,1,2.4);
+ const sx=x-27,sy=y+17-16-9.2-6;c.fillStyle='#5d667a';c.fillRect(sx-.4,sy+6,.8,3);c.fillStyle='#fff';c.strokeStyle='#2b3142';c.lineWidth=.5;c.beginPath();c.roundRect(sx-15,sy-1.5,30,7.5,1.5);c.fill();c.stroke();c.fillStyle=INK;c.font='700 4.6px Fredoka,sans-serif';c.textAlign='center';c.fillText('TELLERLIFT',sx,sy+3.7)}
+// Bergstation: überdachtes Umlenkrad mit Spanngewicht, Ausstiegsrampe, Schild, kleine Hütte
+function usBerg(c,T){const x=UST.x,y=UST.y;
+ c.fillStyle='rgba(110,140,180,.22)';c.beginPath();c.ellipse(x-8,y+16,24,4,0,0,7);c.fill();
+ c.fillStyle='#d9c6a2';c.beginPath();c.roundRect(x+USCO-3,y+5,17,7,1.5);c.fill();c.fillStyle='rgba(120,90,50,.25)';for(let q=0;q<4;q++)c.fillRect(x+USCO-2+q*4,y+5.5,.6,6);
+ usWheel(c,x,y,T,0);
+ usHut(c,x-23,y+15,15,12,T,[[x-20,4.6]],0);
+ const sx=x+USCO+16,sy=y+11;c.fillStyle='#5d667a';c.fillRect(sx-.5,sy-12,1,12);c.fillStyle='#f28c28';c.beginPath();c.roundRect(sx-8,sy-17,16,6,1.2);c.fill();c.fillStyle='#fff';c.font='700 3.4px Fredoka,sans-serif';c.textAlign='center';c.fillText('AUSSTIEG',sx,sy-12.9)}
+function usDraw(c,T){if(!G.up.s||!inVR(-300,480,140,860,40))return;if(!USK)USK=Array.from({length:USN},(_,i)=>({u:i*2/USN,f:null}));
+ // Seil
+ c.strokeStyle='#3b4354';c.lineWidth=.7;for(const o of [-USCO,USCO]){c.beginPath();c.moveTo(USB.x+o,USB.y);c.lineTo(UST.x+o,UST.y);c.stroke()}
+ // Stützen mit Rollen
+ for(const [x,y] of USPY){c.fillStyle='rgba(110,140,180,.25)';c.beginPath();c.ellipse(x+2,y+17,5,1.6,0,0,7);c.fill();c.fillStyle='#8a94a8';c.fillRect(x-1,y,2,17);c.fillStyle='#5d6478';c.fillRect(x-1,y,.8,17);c.fillStyle='#4a4d78';c.beginPath();c.roundRect(x-USCO-2.5,y-1,2*USCO+5,2.2,1);c.fill();for(const o of [-USCO,USCO])for(const d of [-2,2]){c.fillStyle='#eef1f5';c.strokeStyle='#6b7488';c.lineWidth=.35;c.beginPath();c.arc(x+o+USDX*d,y+USDY*d+.4,1,0,7);c.fill();c.stroke()}}
+ usBerg(c,T);
+ // Teller (bergauf ausgefahren, talwärts eingezogen)
+ for(const b of USK){const q=usBar(b.u);if(!inV(q.x,q.y,20))continue;const L=q.up?9:3.5;c.strokeStyle='#3b4354';c.lineWidth=.6;c.beginPath();c.moveTo(q.x,q.y);c.lineTo(q.x,q.y+L);c.stroke();c.fillStyle='#2b303d';c.fillRect(q.x-.9,q.y-.8,1.8,1.6);c.fillStyle='#e8504a';c.beginPath();c.ellipse(q.x,q.y+L+.4,q.up?2:1.5,q.up?1:.8,0,0,7);c.fill()}
+ usTal(c,T);
+ // Leute: nach Höhe sortiert
+ const A=[];for(const g of USG)for(const m of g.M)if(m.m!=='h')A.push(m);A.sort((a,b)=>a.y-b.y);for(const m of A)if(inV(m.x,m.y,20))person(c,m,T+m.i*1.3+m.gi)}
+
 function qFence(c){c.strokeStyle='#8a94a8';c.lineWidth=1;for(let r2=-1;r2<5;r2++){const y=V+14+r2*9+4.5;let a=332,b=410;if(r2>=0&&r2<4){if(r2%2===0)a=343;else b=399}c.beginPath();c.moveTo(a,y);c.lineTo(b,y);c.stroke();c.fillStyle='#5d667a';for(let x=a;x<=b;x+=13)c.fillRect(x-.8,y-1.6,1.6,3.2)}c.beginPath();c.moveTo(332,V+9.5);c.lineTo(332,V+54.5);c.stroke()}
 function waitSign(c){const w=waitMin(1),x=322,y=V+8;c.fillStyle='#5d667a';c.fillRect(x-.8,y,1.6,14);c.fillStyle=w>22?'#e8504a':w>8?'#f2a63b':'#2e9e5b';c.beginPath();c.roundRect(x-16,y-12,32,13,2.5);c.fill();c.fillStyle='#fff';c.font='700 5.6px Fredoka,sans-serif';c.textAlign='center';c.fillText('WARTEZEIT',x,y-6.4);c.font='600 5px Fredoka,sans-serif';c.fillText(w<1?'keine':wfmt(w),x,y-1.4)}
 function pick2(i){return ['#4fa3e0','#f2a63b','#6cc07a','#b177e0'][i%4]}
@@ -3807,7 +3883,7 @@ function flWc(){const Q=[];if((G.wk||0)>=2)try{const P=wcP();for(let a=0;a<=P.L;
 function flBuild(){const A=G.areas,L=[],yT=pTopY(A)-4;
  const segD=(px,py,a,b)=>{const dx=b.x-a.x,dy=b.y-a.y,t=cl(((px-a.x)*dx+(py-a.y)*dy)/(dx*dx+dy*dy),0,1);return Math.hypot(px-a.x-t*dx,py-a.y-t*dy)};
  const inP=(x,y,pd)=>{if(y>=yT-4&&y<=V+4&&Math.abs(x-slopeX(y))<slopeW(y)+pd)return 1;for(let k=1;k<=A;k++){const te=ends(k).t;if(y>=te.y-6&&y<=te.y+110){const t=cl((y-te.y)/110,0,1),e=t*t*(3-2*t);if(Math.abs(x-(te.x+(slopeX(y)-te.x)*e))<8+(slopeW(y)-8)*e+pd)return 1}}return onX(x,y,pd)};
- const bad=(x,y)=>{const ov=(a0,a1,b0,b1)=>x+7>a0&&x-7<a1&&y+3>b0&&y-40<b1;if(x<XL+8||x>XR-8||y>V-22||y<yT-10)return 1;if(inP(x,y,7))return 1;
+ const bad=(x,y)=>{const ov=(a0,a1,b0,b1)=>x+7>a0&&x-7<a1&&y+3>b0&&y-40<b1;if(x<XL+8||x>XR-8||y>V-22||y<yT-10)return 1;if(inP(x,y,7))return 1;if(usTree(x,y)||usTree(x,y-30))return 1;
   for(let k=1;k<=A;k++){const e=ends(k),rc=ropeCo(k);if(segD(x,y,e.b,e.t)<rc+10||segD(x,y-35,e.b,e.t)<rc+8||ov(e.t.x-30,e.t.x+30,e.t.y-46,e.t.y+14)||ov(e.b.x-30,e.b.x+30,e.b.y-46,e.b.y+14))return 1}
   for(const r of ROCKS)if(ov(r[0]-2,r[0]+r[2]+2,r[1]-r[3],r[1]+4))return 1;
   for(const b of BEN)if(ov(b.x-4,b.x+b.w+4,b.y-12,b.y+5))return 1;
@@ -5161,7 +5237,7 @@ function gondelO(c,k,open,lab){const R2=k.r,n=R2.length;
 // G.zu = gebaut, G.zug = zusätzliche Gondeln. Gäste wählen nach geschätzter Zeit (Weg + Warten + Fahrt) zwischen Lift 1+2 und dem Zubringer.
 // V264: Seilverlauf nach Zeichnung des Spielers – senkrecht aus der Talstation, Knick, schräg hinauf, kleiner Knick, Knick, senkrecht in die Bergstation; Ecken leicht abgerundet (ZUR)
 const ZUP=[[-205,975],[-210,842],[-5,615],[325,372],[325,207]],ZUT={x:ZUP[0][0],y:ZUP[0][1]},ZUB={x:ZUP[4][0],y:ZUP[4][1]},ZUEX=-62,ZUQY=990,ZUC=350000,ZUU=150,ZUCAP=10,ZUR=18,
- ZUPP=[[-210,842,1],[-120,742.4,0],[-5,615,1],[325,372,1]];
+ ZUPP=[[-210,842,1],[-100,720.2,0],[-5,615,1],[325,372,1]];
 // dichte Mittellinie mit abgerundeten Ecken: ZUD = [[x,y],…], ZUS = Länge bis zu jedem Punkt
 const ZUD=(()=>{const P=ZUP,D=[P[0]];for(let i=1;i<P.length-1;i++){const a=P[i-1],b=P[i],c2=P[i+1],l1=Math.hypot(b[0]-a[0],b[1]-a[1]),l2=Math.hypot(c2[0]-b[0],c2[1]-b[1]),r=Math.min(ZUR,l1/2,l2/2),A=[b[0]+(a[0]-b[0])*r/l1,b[1]+(a[1]-b[1])*r/l1],B=[b[0]+(c2[0]-b[0])*r/l2,b[1]+(c2[1]-b[1])*r/l2];
   for(let k=0;k<=10;k++){const t=k/10,u=1-t;D.push([u*u*A[0]+2*u*t*b[0]+t*t*B[0],u*u*A[1]+2*u*t*b[1]+t*t*B[1]])}}D.push(P[P.length-1]);
@@ -6299,7 +6375,7 @@ function wrOv(){const R=G.wrR,show=!!(wrDay()&&['r1','p','r2','end'].includes(R.
 
 // ===== V239: Versteckter Testbereich (Optionen › 5× auf die Versionszeile tippen) =====
 // Jeder Test sichert vorher den Spielstand; „Test beenden“ holt ihn zurück. Neue Tests einfach in TESTS eintragen.
-const TVER='V265',TBAK='art-test-bak';
+const TVER='V266',TBAK='art-test-bak';
 // V263: Test „Alles ausgebaut“ – kauft über das Baumenü alles, was es gibt (Voraussetzungen und Sterne werden dabei übersprungen), und stellt Baustellen sofort fertig. wc = mit Verbindungsbahn West.
 var TALL=0;
 function tstAll(wc){const m0=G.money,st0=G.stN;let n=0;TALL=1;G.stN=5;
@@ -6406,7 +6482,7 @@ function step(dt){if(wrHold())return;
    if(!f.pi&&!closed()&&phase()<f.home-.03&&!(f.wl&&!f.lunched&&lunchT())){const mL=Math.min(gi(f).mx,G.areas);let hit=0;for(let L=2;L<=mL;L++){const b=ends(L).b;if(yPrev<b.y&&f.y>=b.y&&f.y0<b.y-20){if(Math.random()<.55&&!(stormOn()&&!isG(L))&&waitMin(L)<=Math.max(3,waitMin(1))){f.st='qu';f.l=L;f.arr=0;queues[L-1].push(f);hit=1}break}}if(hit)continue}const tt=Math.min(1,(f.y-f.y0)/(f.ely===f.y0?f.el||110:110)),e=tt*tt*(3-2*tt),xs=skX(f,f.y);const nx=f.x0+(xs-f.x0)*e;f.vx=(nx-f.x)/Math.max(dt,.001);f.x=nx;f.sv=(f.sv||0)+(f.vx-(f.sv||0))*Math.min(1,dt*5);if(fx.length<160&&Math.random()<dt*(9+Math.abs(f.vx)*.5))fx.push({x:f.x,y:f.y,vx:(Math.random()-.5)*10-f.vx*.15,vy:-6-Math.random()*6,t:.6});
    if(f.y>=V){f.y=V;gi(f);earlyChk(f);if(!closed()&&phase()<f.home&&f.wl&&!f.lunched&&lunchT()&&Math.random()<(G.rest?.85:.7)){f.lunched=1;startLunch(f,18+Math.random()*16);toBrk(f)}else if(!closed()&&phase()<f.home&&(phase()<.60||G.rest)&&Math.random()<(phase()>.42&&phase()<.52?.15:phase()>=.60?.1:.09)){if(G.rest&&(phase()>=.60||Math.random()<.5))startLunch(f,8+Math.random()*8,'cafe');else startBrk(f,8+Math.random()*8);toBrk(f)}else if(!closed()&&phase()<f.home&&f.rides<40){if(!zuSki(f)){f.st='qu';f.l=1;f.arr=0;queues[0].push(f)}}else leave(f)}}
  }
- folks=folks.filter(f=>!f.dead);zuStep(dt);
+ folks=folks.filter(f=>!f.dead);zuStep(dt);usStep(dt);
  for(let L=1;L<=G.areas;L++){if(wcIn(L)){if(L===1)wcStep(dt);continue}const e=ends(L),t=e.t,len=Math.hypot(t.x-e.b.x,t.y-e.b.y),q=queues[L-1];
   wheelA[L-1]+=(liftGo(L)?spd(L):0)*dt;for(const k of lifts[L-1]){const pv=k.u;k.u+=(liftGo(L)?spd(L):0)*dt/len;if(k.du){const m=Math.min(k.du,.3*dt);k.u+=m;k.du-=m;if(k.du<1e-4)k.du=0}
    if(pv<1&&k.u>=1){for(const f of k.r){f.x=t.x;f.y=t.y;if(gzTry(f,L,t))continue;if(L<Math.min(wrMx(f),G.areas)&&!closed()&&!(stormOn()&&!isG(L+1))){f.st='qu';f.l=L+1;f.arr=0;queues[L].push(f)}else if(!ob9Up(f,L,t)&&!gipTry(f,L,t)){f.st='ski';f.x0=t.x;f.y0=t.y;f.ph=0;f.sv=0;pChoose(f,L,t)}}k.r=[]}
@@ -6427,7 +6503,7 @@ function draw0(dt){
  for(const k of clouds){k.x+=k.v*dt;if(k.x>XR+20)k.x=XL-60;cloud(c,k.x,k.y-EXT,k.k)}plotDraw(c,T);if(prjV('arena')){arenaDraw(c,T);arLit()}atDraw(c,T);if(prjV('gipf')){gipfDraw(c,T);gipfLit()}
  for(const [hx,hy] of CHL().slice(1).map(q=>[q[0]+q[2]*.25+.2,q[1]-q[3]-16])){c.fillStyle='#8a5a3c';c.fillRect(hx-2.5,hy,5,9);
   for(let q=0;q<3;q++){const ph=(T*.35+q/3)%1;c.fillStyle='rgba(235,240,248,'+(.7*(1-ph))+')';c.beginPath();c.arc(hx+ph*9+Math.sin(T*2+q)*1.5,hy-ph*24,2+ph*4.5,0,7);c.fill()}}
- lotDraw(c);talDeko(c);arWalk(c);wrBand(c);obWater(c,T);obDraw(c,T);
+ usSlope(c);lotDraw(c);talDeko(c);arWalk(c);wrBand(c);obWater(c,T);obDraw(c,T);
  for(let j=0;j<(G.bus||0);j++){const x=spotX(200+j),sd=0,y0=R-62-RD;c.fillStyle='#7b8497';c.fillRect(x-12,y0,24,50);c.strokeStyle='#ffd84d';c.lineWidth=1.4;c.beginPath();c.moveTo(x-12,y0);c.lineTo(x-12,y0+50);c.moveTo(x+12,y0);c.lineTo(x+12,y0+50);c.stroke();c.fillStyle='rgba(255,216,77,.85)';c.font='700 6.5px Fredoka,sans-serif';c.textAlign='center';c.fillText('BUS',x,sd?y0+46:y0+9)}
  drawLamps(c);wayLamps(c,0);
  const stQ=[];for(let L=1;L<=G.areas;L++){if(wcIn(L))continue;const e=ends(L),co=ropeCo(L),cw=carW(L),op=co+cw/2+4;stQ.push([e.b.x,e.b.y,op,L===1,isG(L)],[e.t.x,e.t.y,op,false,isG(L)])}
@@ -6639,7 +6715,7 @@ function infBoxes(){const B=[],P=(k,x0,y0,x1,y1)=>B.push({k,x0,y0,x1,y1});
  for(let L=1;L<=G.areas;L++){const e=ends(L),co=ropeCo(L),op=co+carW(L)/2+4;for(const [q,big] of [[e.b,L===1],[e.t,false]]){const hw=op+(big?20:7)+4;P('l'+L,q.x-hw,q.y-26,q.x+hw,q.y+26)}}
  P('l1',330,V+6,412,V+58);P('l1',304,V-6,340,V+24);
  for(let i=0;i<G.hotels;i++){const b=HIB(i);P('h'+i,b[0],b[2],b[1],b[3])}
- if(G.up.s){const b=SCB(),q=SCS();P('sch',b.x-52,b.y-64,b.x+66,b.y+18);if(!G.zu)P('sch',q.LX-26,q.Y0-32,q.SX+q.hw(q.Y1)+24,q.Y1+12)}
+ if(G.up.s){const b=SCB(),q=SCS();P('sch',b.x-52,b.y-64,b.x+66,b.y+18);P('sch',-270,495,-80,852)}
  if(oaK()>0)P('oa',OSZ()[0]-14,OSR()-16,OSZ()[1]+14,OSF()+6);
  if(G.ap){P('aps',AX0-44,AY0()-68,AX0+44,AY0()+16);P('aps',AX0-94,AY0()-34,AX0-36,AY0()+14);if((G.apL||1)>=2)P('aps',AX0-164,AY0()-52,AX0-94,AY0()+20);if((G.apL||1)>=3)P('aps',AX0-92,AY0()+14,AX0-40,AY0()+40)}
  if(G.up.h){const y=Yk(1)+20,x=Math.max(40,slopeX(y)-slopeW(y)-40);P('hut',x-46,y-48,x+30,y+24)}
@@ -6706,7 +6782,7 @@ if(k==='gar'||k==='gar2'){const n=k==='gar'?1:2,L=gLv(n),p=GEC[L];return {ic:'�
   A('Betriebskosten',()=>fmt(Math.round(seaK()*CF*U[id]))+'/Tag');
   return {ic:d.ic,t:d.n,sub:d.ds,rows:R,btns:bt,hint:hn+' Prestige zählt für die Sterne und die Rangliste.'}}
  if(k==='gip')return {ic:'🏔️',t:'Gipfel & Aussichtsplattform',sub:'Gletscher auf 3.250 m · +4 Ruf',rows:[['Gipfelfotos heute',()=>(G.inc.pf||0)+''],['Gerade auf der Plattform',()=>folks.filter(f=>f.st==='pf').length+' Gäste'],['Ruf-Bonus',()=>'+4'],['Schneesicher',()=>'Schneemangel kostet nur halb so viel Ruf'],['Gletscherlift',()=>'Lift 6 · '+liftName(6)]],btns:[],hint:'Etwa jeder dritte Gast macht oben bei schönem Wetter einen Abstecher auf die Plattform.'};
- if(k==='sch')return {ic:'⛷️',t:'Skischule',sub:'Mit Übungslift und Übungshang, +6 Ruf',rows:[['Unterricht',()=>{const p=phase();return p>=.05&&p<=.6?'läuft gerade':'erst morgen wieder'}],['Ruf-Bonus',()=>'+6'],['Anfänger unter den Gästen',()=>Math.round(anfA()*100)+' %'],['Kosten',()=>fmt(15*CF)+' pro Tag']],btns:[]};
+ if(k==='sch')return {ic:'⛷️',t:'Skischule',sub:'Mit Tellerlift und Übungshang, +6 Ruf',rows:[['Unterricht',()=>{const p=phase();return p>=.05&&p<=.6?'läuft gerade':'erst morgen wieder'}],['Ruf-Bonus',()=>'+6'],['Anfänger unter den Gästen',()=>Math.round(anfA()*100)+' %'],['Kosten',()=>fmt(15*CF)+' pro Tag']],btns:[]};
  if(k==='rau'){const r=rps[0];return {ic:'🚜',t:'Pistenraupe',sub:'Pflegt jede Nacht die ganze Piste',rows:[['Gerade',()=>{const r=rps[0];return !r?'–':r.st==='run'?'fährt auf der Piste':r.dd===G.day?'heute schon gefahren':'wartet auf den Abend'}],['Ausrüstung',()=>G.rupg?'Profi-Fräse 🛠️':'Standard-Fräse'],['Pistenzustand',()=>Math.round(G.pq)+' %'],['Schneehöhe',()=>Math.round(G.snow)+' %']],btns:[],hint:'Sie fährt nach Liftschluss los, spätestens gegen 22 Uhr.'}}
  if(k==='kan')return {ic:'🌨️',t:'Schneekanonen',sub:'Halten die Schneehöhe, vor allem bei Tauwetter',rows:[['Ausrüstung',()=>G.kup?'Hochleistungs-Düsen 💨':'Standard-Düsen'],['Gerade aktiv',()=>cann.filter(n=>n.k<=G.areas&&n.on>0).length+' von '+cann.filter(n=>n.k<=G.areas).length],['Schneehöhe',()=>Math.round(G.snow)+' %'],['Wetter',()=>wNm()+' '+wIc()]],btns:[]};
  return null}
