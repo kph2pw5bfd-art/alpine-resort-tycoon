@@ -1331,30 +1331,55 @@ function atGlass(c,x0,y0,x1,y1,n,step){c.fillStyle=n?'rgba(255,214,140,.16)':'rg
 function atFacade(c,x0,x1,top,base,n,o){o=o||{};const w=x1-x0;c.fillStyle='rgba(60,80,110,.24)';c.fillRect(x0+4,base-2,w,7);c.fillStyle=o.wall||'#f6f1e6';c.fillRect(x0,top,w,base-top);c.fillStyle=o.trim||'#8a5a3c';c.fillRect(x0,top,w,3);c.fillRect(x0,base-3,w,3);
  const g=c.createLinearGradient(0,top+4,0,base-4);g.addColorStop(0,n?'#ffe6a8':'#dff4ff');g.addColorStop(1,n?'#ffbd6a':'#a6dbf1');const st=o.win||14;for(let x=x0+5;x<x1-st+4;x+=st){c.fillStyle=g;c.fillRect(x,top+5,st-4,base-top-10);if(o.pool){c.fillStyle=n?'#33cde6':'#55d6ee';c.fillRect(x,base-(base-top)*.38,st-4,(base-top)*.38-5)}c.strokeStyle=o.trim||'#8a5a3c';c.lineWidth=.6;c.strokeRect(x,top+5,st-4,base-top-10)}}
 function atLabel(c,x,y,w,h,bg,fg,txt,fs){c.fillStyle=bg;atRR(c,x-w/2,y-h/2,w,h,Math.min(3,h/3));c.fill();c.fillStyle=fg;c.font='800 '+fs+'px Fredoka,sans-serif';c.textAlign='center';c.textBaseline='middle';c.fillText(txt,x,y+.3,w-3);c.textBaseline='alphabetic'}
-// ---------- Rutschen: Weg am Boden (x, y) mit Höhe h, Kreisbögen mit gleichmäßigen Rundungen ----------
-// seg {r,a}: Bogen mit Radius r und Winkel a (Umdrehungen, Vorzeichen = Drehrichtung); {l}: gerades Stück.
-// gl: Glasstücke als Anteile [von, bis] der Länge. Bild: (x, y - h); Kreise am Boden wirken flach (ATSQ).
-const ATSL=[
- {col:'#2f80ed',d:'#1a54a8',h0:122,h1:4,p0:.75,dir:1,seg:[{r:13,a:1.5},{r:16,a:-.22},{l:12}],gl:[[.74,.9]],pool:1},
- {col:'#e8504a',d:'#a8302a',h0:106,h1:36,p0:.5,dir:1,seg:[{r:22,a:1},{r:18,a:-.25}],gl:[[.45,.62]]},
- {col:'#f2c53b',d:'#b88a10',h0:94,h1:2,p0:.25,dir:-1,seg:[{r:30,a:-.75},{r:40,a:.25},{r:60,a:-.06}],gl:[[.62,.86]],lag:1}];
-function atSlideBuild(S){const P=[];const ph=S.p0*Math.PI*2;let x=ATX+S.seg[0].r*Math.cos(ph),y=ATB+S.seg[0].r*ATSQ*Math.sin(ph),th=ph+S.dir*Math.PI/2;
- const pts=[[x,y,th]];for(const g of S.seg){if(g.l){const n=Math.ceil(g.l/2);for(let i=0;i<n;i++){x+=Math.cos(th)*g.l/n;y+=Math.sin(th)*g.l/n*ATSQ;pts.push([x,y,th])}continue}
-  const L=Math.abs(g.a)*Math.PI*2*g.r,n=Math.ceil(L/2),dth=g.a*Math.PI*2/n,ds=L/n;for(let i=0;i<n;i++){th+=dth/2;x+=Math.cos(th)*ds;y+=Math.sin(th)*ds*ATSQ;th+=dth/2;pts.push([x,y,th])}}
- const N=pts.length-1;for(let i=0;i<=N;i++){const q=pts[i],u=i/N,h=S.h0+(S.h1-S.h0)*u,bk=q[1]<ATB-1&&Math.abs(q[0]-ATX)<34;P.push({x:q[0],gy:q[1],y:q[1]-h,h,u,bk,gl:S.gl.some(g=>u>=g[0]&&u<=g[1])})}S.P=P;S.end=P[N];return S}
-ATSL.forEach(atSlideBuild);
-function atTube(c,S,i0,i1,glass){const P=S.P;c.lineCap='round';c.lineJoin='round';c.beginPath();for(let i=i0;i<=i1;i++){const p=P[i];i===i0?c.moveTo(p.x,p.y):c.lineTo(p.x,p.y)}
- if(glass){c.strokeStyle='rgba(90,130,160,.85)';c.lineWidth=6.2;c.stroke();c.strokeStyle='rgba(205,240,255,.55)';c.lineWidth=4.8;c.stroke()}else{c.strokeStyle=S.d;c.lineWidth=6.2;c.stroke();c.strokeStyle=S.col;c.lineWidth=4.8;c.stroke()}
- c.beginPath();for(let i=i0;i<=i1;i++){const p=P[i];i===i0?c.moveTo(p.x,p.y-1.6):c.lineTo(p.x,p.y-1.6)}c.strokeStyle='rgba(255,255,255,'+(glass?.8:.5)+')';c.lineWidth=glass?.8:1;c.stroke()}
-// back = hinter dem Turm (zuerst), sonst davor; Stücke nach Glas getrennt
-function atSlides(c,back){for(const S of ATSL){const P=S.P;let i=0;while(i<P.length-1){const b=P[i].bk,g=P[i].gl;let j=i;while(j<P.length-1&&P[j+1].bk===b&&P[j+1].gl===g)j++;if(b===back)atTube(c,S,Math.max(0,i-1),Math.min(P.length-1,j+1),g);i=j+1}
- if(!back)for(let i=6;i<P.length-3;i+=12){const q=P[i];if(q.bk||q.h<10)continue;c.strokeStyle='#9aa4b5';c.lineWidth=.9;c.beginPath();c.moveTo(q.x,q.y+3);c.lineTo(q.x,q.gy);c.stroke();c.fillStyle='#8a94a8';c.fillRect(q.x-1.2,q.gy-.6,2.4,1.2)}}}
+// ---------- Rutschen (V246, nach Skizze des Spielers) ----------
+// Drei Rutschen eng ineinander um den Turm (gleiche Steigung, je 1/3 Windung versetzt), alle kommen hinter dem Turm hervor.
+// Blau: 3 Windungen, Bogen hinunter zur freistehenden Spirale (2 Runden um einen Mast), offene Rinne in die Lagune.
+// Rot und Gelb: je 2 Windungen mit einem Glasstück vorne, dann abwärts durch die Wandplatte in die Fun-Welt.
+// Punkte: x, gy (Boden), h (Höhe), y = gy - h; ex = außerhalb der Turmwendel, sp = Spirale, run = Auslauf Blau, gl = Glas, op = offen, bk = hinter dem Turm.
+const ATHC=ATX-3,ATHR=15,ATHP=27,ATHS=-0.6*Math.PI,ATLE={x:-270.1,y:1442.6},ATSPX=-208,ATSPY=1446,ATSPR=16,ATPL={x0:-226,x1:-217,y0:1356,y1:1388};
+function atHelix(h0,n,gT){const PI=Math.PI,pe=-0.5*PI-2*PI*n,turns=(ATHS-pe)/(2*PI),N=Math.ceil(turns*60),pts=[];
+ for(let i=0;i<=N;i++){const f=i/N,p=ATHS+(pe-ATHS)*f;pts.push({x:ATHC+ATHR*Math.cos(p),gy:ATB+ATHR*ATSQ*Math.sin(p),h:h0-ATHP*turns*f,g:gT!==undefined&&Math.floor((ATHS-p)/(2*PI))===gT&&Math.sin(p)>.15})}return pts}
+// Weg am Boden weiterführen: Stücke [Länge, Drehung], Richtung th; danach sanft auf das Ziel ziehen
+function atWalk(x,y,th,plan,o){const out=[];for(const [len,turn] of plan){const n=Math.max(2,Math.ceil(len/2));for(let i=0;i<n;i++){th+=turn/n/2;x+=Math.cos(th)*len/n;y+=Math.sin(th)*len/n*ATSQ;th+=turn/n/2;out.push(Object.assign({x,gy:y},o))}}return out}
+function atSnap(run,tx,ty){const Z=run[run.length-1],ox=tx-Z.x,oy=ty-Z.gy;run.forEach((q,i)=>{const f=Math.pow((i+1)/run.length,2);q.x+=ox*f;q.gy+=oy*f})}
+function atToFun(h0,n,gT,ty,hEnd){const H=atHelix(h0,n,gT),A=H[H.length-1],run=atWalk(A.x,A.gy,Math.PI,[[10,0],[22,.12],[10,-.12]],{ex:1});atSnap(run,-222,ty);run.forEach((q,i)=>q.h=A.h-(A.h-hEnd)*(i+1)/run.length);return H.concat(run)}
+function atBlue(){const PI=Math.PI,H=atHelix(124,3),A=H[H.length-1];
+ const con=atWalk(A.x,A.gy,PI,[[14,0],[28*PI/2,-PI/2]],{ex:1});atSnap(con,ATSPX-ATSPR,ATSPY);con.forEach((q,i)=>q.h=A.h-(A.h-34)*(i+1)/con.length);
+ const sp=[],N=144;for(let i=1;i<=N;i++){const p=PI-4*PI*i/N;sp.push({x:ATSPX+ATSPR*Math.cos(p),gy:ATSPY+ATSPR*ATSQ*Math.sin(p),h:34-18*i/N,sp:1})}
+ const B=sp[N-1],run=atWalk(B.x,B.gy,PI/2,[[14*PI/3,PI/3],[34,.15]],{ex:1,run:1});atSnap(run,ATLE.x,ATLE.y);
+ run.forEach((q,i)=>{const u=(i+1)/run.length;q.h=B.h-(B.h-2)*Math.pow(u,1.1);q.op=u>.5;q.g=u>.12&&u<=.44});return H.concat(con,sp,run)}
+function atMk(col,d,pts,o){const M=pts.length-1,S=Object.assign({col,d},o);S.P=pts.map((q,i)=>({x:q.x,gy:q.gy,y:q.gy-q.h,h:q.h,u:i/M,ex:q.ex?1:0,sp:q.sp?1:0,run:q.run?1:0,gl:q.g?1:0,op:q.op?1:0,bk:q.gy<ATB-1&&Math.abs(q.x-ATX)<34}));S.end=S.P[M];return S}
+const ATSL=[atMk('#e8504a','#a8302a',atToFun(124-2*ATHP/3,2,1,1400,20),{fun:1}),atMk('#f2c53b','#b88a10',atToFun(124-ATHP/3,2,0,1398,34),{fun:1}),atMk('#2f80ed','#1a54a8',atBlue(),{lag:1})];
+const atLite=c=>{const n=parseInt(c.slice(1),16),f=v=>Math.round(v+(255-v)*.5);return 'rgb('+f(n>>16)+','+f(n>>8&255)+','+f(n&255)+')'};ATSL.forEach(S=>S.lt=atLite(S.col));
+// a0..a1 eigener Bereich mit Umriss, f0..f1 Füllung etwas weiter (deckt die Naht zum Nachbarstück)
+function atTube(c,S,a0,a1,f0,f1,glass,round,open){const P=S.P;c.lineJoin='round';c.lineCap=round?'round':'butt';const path=(i0,i1,o)=>{c.beginPath();for(let i=i0;i<=i1;i++){const p=P[i];i===i0?c.moveTo(p.x,p.y+o):c.lineTo(p.x,p.y+o)}};
+ if(glass){path(f0,f1,0);c.strokeStyle='rgba(90,130,160,.85)';c.lineWidth=6.2;c.stroke();c.strokeStyle='rgba(205,240,255,.55)';c.lineWidth=4.8;c.stroke();path(f0,f1,-1.6);c.strokeStyle='rgba(255,255,255,.8)';c.lineWidth=.8;c.stroke();return}
+ if(open){path(a0,a1,0);c.strokeStyle=S.d;c.lineWidth=6.4;c.stroke();path(f0,f1,0);c.strokeStyle=S.col;c.lineWidth=5;c.stroke();path(f0,f1,.4);c.strokeStyle='#bfeaff';c.lineWidth=3.4;c.stroke();path(f0,f1,1);c.strokeStyle='#5cc8f0';c.lineWidth=1.6;c.stroke();path(f0,f1,-2.2);c.strokeStyle=S.lt;c.lineWidth=.7;c.stroke();return}
+ path(a0,a1,0);c.strokeStyle=S.d;c.lineWidth=6.2;c.stroke();path(f0,f1,0);c.strokeStyle=S.col;c.lineWidth=4.8;c.stroke();path(f0,f1,-1.6);c.strokeStyle=S.lt;c.lineWidth=1;c.stroke()}
+// Zeichnungsreihenfolge: Turmwendel in halben Windungen von unten nach oben (oben liegt vorne über unten),
+// Ausgänge nach Fun-Welt zuerst (liegen dahinter), Spirale: hintere Hälften, Mast, vordere Hälften, zuletzt der Auslauf.
+function atPieces(back){const ex=[],hx=[],con=[],spB=[],spF=[],run=[];for(const S of ATSL){const P=S.P,M=P.length-1,kd=p=>p.sp?'s':p.run?'r':p.ex?'e':'h';let i=0;
+ while(i<M){const q=P[i];if(q.bk!==back){i++;continue}const k=kd(q),cx=k==='s'?ATSPX:ATHC;let j=i;
+  const same=m=>{const p=P[m];return p.bk===back&&kd(p)===k&&p.gl===q.gl&&p.op===q.op&&(k==='e'||k==='r'||(Math.sign(p.x-cx)===Math.sign(q.x-cx)&&(k!=='s'||(p.gy<ATSPY)===(q.gy<ATSPY))))};
+  while(j<M&&same(j+1))j++;let h=0;for(let m=i;m<=j;m++)h+=P[m].h;
+  const it={S,a0:i,a1:Math.min(M,j+1),f0:Math.max(0,i-2),f1:Math.min(M,j+3),gl:q.gl,op:q.op,h:h/(j-i+1),rd:i===0||j+1>=M};
+  (k==='h'?hx:k==='s'?(q.gy<ATSPY?spB:spF):k==='r'?run:S.lag?con:ex).push(it);i=j+1}}
+ const up=(a,b)=>a.h-b.h;hx.sort(up);spB.sort(up);spF.sort(up);return {pre:ex.concat(hx,con,spB),post:spF.concat(run)}}
+function atSlides(c,back){const L=atPieces(back),dr=p=>atTube(c,p.S,p.a0,p.a1,p.f0,p.f1,p.gl,p.rd,p.op);
+ if(!back){atPlate(c);for(const S of ATSL){const P=S.P;for(let i=4;i<P.length-3;i+=9){const q=P[i];if(!q.ex||q.bk||q.h<6||Math.hypot(q.x-ATSPX,(q.gy-ATSPY)/ATSQ)<ATSPR+4)continue;
+  c.strokeStyle='#9aa4b5';c.lineWidth=.9;c.beginPath();c.moveTo(q.x,q.y+3);c.lineTo(q.x,q.gy);c.stroke();c.fillStyle='#8a94a8';c.fillRect(q.x-1.2,q.gy-.6,2.4,1.2)}}}
+ L.pre.forEach(dr);if(!back)atMast(c);L.post.forEach(dr)}
+// Wandplatte an der Fun-Welt, in der Rot und Gelb verschwinden
+function atPlate(c){const {x0,x1,y0,y1}=ATPL;c.fillStyle='rgba(60,80,110,.2)';c.fillRect(x1,y0+2,2,y1-y0);c.fillStyle='#e9dfcd';atRR(c,x0,y0,x1-x0,y1-y0,2);c.fill();c.strokeStyle='#8a5a3c';c.lineWidth=.9;c.stroke();c.fillStyle='#8a5a3c';c.fillRect(x0-1,y0-2,x1-x0+2,2.4)}
+// Mast der Spirale
+function atMast(c){const x=ATSPX,g=ATSPY;c.fillStyle='rgba(60,80,110,.2)';c.beginPath();c.ellipse(x+2,g,4,1.6,0,0,7);c.fill();c.fillStyle='#c9d0dc';c.fillRect(x-1.6,g-40,3.2,40);c.fillStyle='#e9eef5';c.fillRect(x-1.6,g-40,1.2,40);c.fillStyle='#e8504a';c.beginPath();c.ellipse(x,g-40,3,1.3,0,0,7);c.fill()}
 function atTower(c,n){const x=ATX,top=ATT,base=ATB,r=11;c.fillStyle='rgba(60,80,110,.2)';c.beginPath();c.ellipse(x+4,base,r+3,4,0,0,7);c.fill();const g=c.createLinearGradient(x-r,0,x+r,0);g.addColorStop(0,'#f2c53b');g.addColorStop(.5,'#ffe27a');g.addColorStop(1,'#d9a520');c.fillStyle=g;c.fillRect(x-r,top,2*r,base-top);
  c.fillStyle='#fff';for(let y=top+10;y<base;y+=16)c.fillRect(x-r,y,2*r,5);c.fillStyle=n?'#ffcf86':'#bfe6ff';for(let y=top+11;y<base;y+=16)c.fillRect(x-r+3,y+1,2*r-6,3);
  c.fillStyle='#e9e2d6';c.beginPath();c.ellipse(x,top,r+6,4,0,0,7);c.fill();c.fillStyle='#e8504a';c.beginPath();c.moveTo(x-r-7,top-2);c.lineTo(x,top-20);c.lineTo(x+r+7,top-2);c.closePath();c.fill();c.fillStyle='#fff';c.beginPath();c.moveTo(x-r-8,top-2);c.lineTo(x,top-21);c.lineTo(x+r+8,top-2);c.lineTo(x+r+2,top-3);c.lineTo(x,top-17);c.lineTo(x-r-2,top-3);c.fill();
  c.strokeStyle='#5d667a';c.lineWidth=.6;c.beginPath();c.moveTo(x,top-20);c.lineTo(x,top-30);c.stroke()}
 // Landebecken am Ende der Rutschen 1 und 3 (Rutsche 2 endet in der Fun-Welt)
-const atSplash=()=>ATSL.filter(S=>S.pool).map(S=>[S.end.x-4,S.end.gy+1.5]);
+// Landebecken am Turm gibt es seit V246 nicht mehr (Blau endet in der Lagune, Rot und Gelb in der Fun-Welt)
+const atSplash=()=>[];
 // ---------- Lage ----------
 const ATLAG=[[-344,1414],[-294,1408],[-254,1416],[-242,1436],[-258,1456],[-302,1462],[-336,1454],[-350,1434]],
  ATFP1=[[-424,1298],[-372,1294],[-342,1306],[-346,1334],[-384,1344],[-420,1336]],ATFP2=[[-280,1298],[-236,1298],[-226,1320],[-240,1342],[-276,1344],[-288,1322]],
@@ -1362,7 +1387,7 @@ const ATLAG=[[-344,1414],[-294,1408],[-254,1416],[-242,1436],[-258,1456],[-302,1
  ATHUT=[[-554,1468,'SAUNA'],[-474,1464,'DAMPF'],[-518,1486,'KRÄUTER']];
 function atTree(x,y){if(!prj('therme'))return 0;return (x>ATN.x0-8&&x<ATN.x1+6&&y>ATN.y0-6&&y<ATN.y1+6)||(x>ATS.x0-8&&x<ATS.x1+6&&y>ATS.y0-6&&y<ATS.y1+3)||(x>AGX0-4&&x<AGX1+4&&y>AGY0-6&&y<AGY1+6)}
 // ---------- Ruhendes Bild (unten) ----------
-const ATBX={x0:-584,y0:1092,x1:-118,y1:1494},ATTX={x0:-280,y0:1262,x1:-132,y1:1462};
+const ATBX={x0:-584,y0:1092,x1:-118,y1:1494},ATTX={x0:-290,y0:1262,x1:-132,y1:1470};
 // Zwei Schärfen: weit herausgezoomt reicht das kleine Bild (spart beim Zeichnen), nah dran das scharfe
 let atSB=null,atST=null;const atSC={};
 function atSprites(){const n=NIGHT(),z=S*dpr,r=SET.perf||z<=1.8?(z<=1.25?1.3:1.8):3,fk=document.fonts&&document.fonts.status==='loaded'?1:0,k=[n?1:0,fk].join(),C=atSC[r]||(atSC[r]={});
@@ -1458,9 +1483,9 @@ function atDraw(c,t){const q=prj('therme');if(!q)return;
  for(const [x,y] of ATFI)atFireD(c,x,y,t);
  // Turm und Rutschen, dann Rutscher in den Glasstücken
  c.drawImage(atST,ATTX.x0,ATTX.y0,ATTX.x1-ATTX.x0,ATTX.y1-ATTX.y0);
- if(on)ATSL.forEach((S,k)=>{const P=S.P,M=P.length-1;for(let j=0;j<2;j++){const f=((t*.07*(1+k*.15)+j*.5+k*.21)%1),u=f*f*.35+f*.65,i=Math.min(M,Math.floor(u*M)),p=P[i];if(!p.gl||p.bk)continue;
+ if(on)ATSL.forEach((S,k)=>{const P=S.P,M=P.length-1;for(let j=0;j<2;j++){const f=((t*.07*(1+k*.15)+j*.5+k*.21)%1),u=f*f*.35+f*.65,i=Math.min(M,Math.floor(u*M)),p=P[i];if(!(p.gl||p.op)||p.bk)continue;
   c.fillStyle=ATC[(k*3+j)%8];c.beginPath();c.ellipse(p.x,p.y-.4,1.6,1.1,0,0,7);c.fill();c.fillStyle='#ffd9b5';c.beginPath();c.arc(p.x,p.y-1.5,1.05,0,7);c.fill();
-  c.strokeStyle='rgba(225,248,255,.55)';c.lineWidth=4.2;c.beginPath();const a=P[Math.max(0,i-2)],b=P[Math.min(M,i+2)];c.moveTo(a.x,a.y);c.lineTo(b.x,b.y);c.stroke()}
+  if(p.op)continue;c.strokeStyle='rgba(225,248,255,.55)';c.lineWidth=4.2;c.beginPath();const a=P[Math.max(0,i-2)],b=P[Math.min(M,i+2)];c.moveTo(a.x,a.y);c.lineTo(b.x,b.y);c.stroke()}
   if(on&&(S.pool||S.lag)&&((t*.07*(1+k*.15)+k*.21)%.5)>.47){const e=S.end;c.fillStyle='rgba(255,255,255,.8)';for(let s=0;s<5;s++){c.beginPath();c.arc(e.x-4+Math.cos(s*1.3)*5,e.gy-.5-Math.sin(s*2)*2,1.1,0,7);c.fill()}}})}
 // Brücken: über Gleise und Zubringer, nach Zügen, Autos und Bussen gezeichnet
 function atBridge(c){if(!prjOk('therme'))return;const t=T,n=NIGHT();
@@ -5820,7 +5845,7 @@ function wrOv(){const R=G.wrR,show=!!(wrDay()&&['r1','p','r2','end'].includes(R.
 
 // ===== V239: Versteckter Testbereich (Optionen › 5× auf die Versionszeile tippen) =====
 // Jeder Test sichert vorher den Spielstand; „Test beenden“ holt ihn zurück. Neue Tests einfach in TESTS eintragen.
-const TVER='V245',TBAK='art-test-bak';
+const TVER='V246',TBAK='art-test-bak';
 const TESTS=[
  {id:'wr1',ic:'🏁',t:'Weltcuprennen – ganzer Renntag',
   was:['Übertragungswagen stehen aufgebaut, Landeplatz und Hubschrauber im Tal','Zuschauer an der Strecke, Tribünen und LED-Wand im Ziel','Westpiste gesperrt: Gäste fahren über die schwarze Piste','1. Durchgang (10:30) mit Kamerafahrt, Zeitlupe und Hubschrauber, der dem Läufer folgt','Mögliche Stürze mit Bergwacht, Pause mit Landung im Tal, 2. Durchgang (13:00)','Siegerehrung 18:15 mit Feuerwerk, danach die Abrechnung zum Bestätigen'],
