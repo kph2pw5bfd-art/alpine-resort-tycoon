@@ -2824,7 +2824,7 @@ function oaTreeHit(x,y){const bx=(a,b,c2,d)=>x>=a&&x<=b&&y>=c2&&y<=d;if(bx(-74,4
 var CPC={};
 // Schneekanonen (V115): nicht auf blauer/schwarzer Piste oder Ziehweg – entlang des Pistenrands verschieben, sonst rechte Seite
 function cpos(n){const key=n.k+'_'+n.fr;let r=CPC[key];if(r)return r;const y0=yb(n.k),y1=Yk(n.k),yc=y0-(y0-y1)*n.fr;
- const dX=parkX(0),dY=parkY(),okp=(x,y)=>!onX(x,y,12)&&!onX(x-7,y,12)&&!onX(x+7,y,12)&&!onX(x,y-14,12)&&!(G.raupen&&((x>dX-34&&x<dX+34&&y>dY-36&&y<dY+40)||(x>dX-30&&y>dY+16&&y<dY+112)));
+ const dX=parkX(0),dY=parkY(),okp=(x,y)=>!onX(x,y,12)&&!onX(x-7,y,12)&&!onX(x+7,y,12)&&!onX(x,y-14,12)&&!zuNear(x,y)&&!(G.raupen&&((x>dX-34&&x<dX+34&&y>dY-36&&y<dY+40)||(x>dX-30&&y>dY+16&&y<dY+112)));
  for(const dy of [0,14,-14,28,-28,42,-42,56,-56,70,-70,84,-84]){const y=yc+dy;if(y<y1+24||y>y0-24)continue;const x=slopeX(y)-slopeW(y)-12;if(okp(x,y)){r={x,y};break}}
  if(!r)for(const dy of [0,14,-14,28,-28]){const y=yc+dy,x=slopeX(y)+slopeW(y)+12;if(okp(x,y)){r={x,y};break}}
  if(!r)r={x:slopeX(yc)-slopeW(yc)-12,y:yc};CPC[key]=r;return r}
@@ -3890,6 +3890,7 @@ function flBuild(){const A=G.areas,L=[],yT=pTopY(A)-4;
   for(let k=1;k<=A;k++)for(const fr of [.3,.72]){const p=cpos({k,fr});if(ov(p.x-14,p.x+18,p.y-24,p.y+6))return 1}
   {const hy=Yk(1)+20,hx=Math.max(40,slopeX(hy)-slopeW(hy)-40);if(ov(hx-30,hx+30,hy-52,hy+34))return 1}if(A>=6){const P2=gipP();if(ov(P2.x0-10,P2.x1+70,P2.y0-70,P2.y1+30))return 1}for(const sp of GSP)if(ov(sp.x-sp.L*.6-6,sp.x+sp.L*.6+6,sp.y-10,sp.y+10))return 1;
   if((G.wk||0)>=2||G.zu){const WQ=flWc();for(const q of WQ){if(Math.abs(q[0]-x)<(q[2]?36:20)&&y>q[1]-(q[2]?16:10)&&y-42<q[1]+(q[2]?50:6))return 1}}
+  if(G.raupen){const n=Math.max(1,G.raupen),xl=parkX(n-1)-23,xr=parkX(0)+23,y0=parkY()-27,y1=parkY()+27;if(ov(xl-8,xr+8,y0-46,y1+14))return 1}
   for(const m of L)if(Math.hypot(x-m[0],y-m[1])<44)return 1;return 0};
  const put=(f,y,d,wide)=>{for(const o of (wide?[10,15,20,26,34,42]:[10,15,20,26]))for(const dy of [0,6,-6,12,-12,18,-18,24,-24]){const yy=y+dy,q=f(yy);if(!q)continue;const [cx,w]=q,x=cx+d*(w+o);if(bad(x,yy))continue;const ds=w+o;
    if(wide){const rx=ds*.9+40;L.push([x,yy,d,x-d*ds*.55,yy+6,rx,Math.max(62,rx*.66)])}else{const rx=w+28;L.push([x,yy,d,cx,yy+6,rx,Math.max(60,rx)])}return 1}return 0};
@@ -5282,6 +5283,8 @@ function zuStep(dt){if(!G.zu){ZUQ=[];return}zuFit();ZUQ=ZUQ.filter(f=>!f.dead&&f
  const v=zuV();for(const k of ZUK){const pv=k.u;k.u+=v*dt/ZUL;if(pv<1&&k.u>=1){for(const f of k.r)zuOut(f);k.r=[]}
   if(k.u>=2){k.u-=2;if(closed())continue;for(let qi=0;k.r.length<ZUCAP&&qi<ZUQ.length&&qi<16;){const f=ZUQ[qi];if(!f.arr){qi++;continue}ZUQ.splice(qi,1);f.st='lift';f.zu=1;f.rides=(f.rides||0)+1;f.bd=(f.bd||0)+1;G.inc.zu=(G.inc.zu||0)+1;k.r.push(f);gi(f);if(!f.paid){const m0=G.money;buyT(f);if(G.money>m0)pop(-140,950,G.money-m0)}}}}}
 function zuTree(x,y){if(!G.zu)return 0;const b=(a,b2,c2,d)=>x>a&&x<b2&&y>c2&&y<d;if(b(-262,-40,905,1005)||b(265,385,140,240))return 1;for(const q of ZUPS){const p=zuAt(q.s,0);if(Math.abs(x-p.x)<26&&y>p.y-8&&y<p.y+40)return 1}for(let a=30;a<ZUL-30;a+=12){const p=zuAt(a,0);if(Math.abs(x-p.x)<24&&y>p.y-4&&y<p.y+34)return 1}return 0}
+// V267: nichts unter das Zubringer-Seil stellen (Kabinen hängen bis ~25 darunter)
+function zuNear(x,y){if(!G.zu)return 0;for(let a=0;a<=ZUL;a+=8){const p=zuAt(a,0);if(Math.abs(x-p.x)<28&&y>p.y-12&&y<p.y+44)return 1}return 0}
 function zuFl(Q){if(!G.zu)return;for(let a=0;a<=ZUL;a+=6){const p=zuAt(a,0);Q.push([p.x,p.y,0],[p.x,p.y+26,0])}for(const [p,h] of [[ZUT,44],[ZUB,44]])for(const d of [-h,0,h])Q.push([p.x+d,p.y,1],[p.x+d,p.y-44,1])}
 function zuStQ(stQ){if(!G.zu)return;for(const [p,hw,big,lab] of [[ZUT,44,false,['TALSTATION WEST','🚠 10er-Zubringer · zu Lift 3','#b26a00']],[ZUB,44,false,['BERGSTATION','Zubringer West · Umstieg Lift 3','#2f6fb5']]]){
  const q=[p.x,p.y];q.b=c=>{if(inV(p.x,p.y,90))obStBack(c,p.x,p.y,hw)};q.f=c=>{if(inV(p.x,p.y,90))obStFront(c,p.x,p.y,hw,big,T,lab)};stQ.push(q)}}
@@ -6375,7 +6378,7 @@ function wrOv(){const R=G.wrR,show=!!(wrDay()&&['r1','p','r2','end'].includes(R.
 
 // ===== V239: Versteckter Testbereich (Optionen › 5× auf die Versionszeile tippen) =====
 // Jeder Test sichert vorher den Spielstand; „Test beenden“ holt ihn zurück. Neue Tests einfach in TESTS eintragen.
-const TVER='V266',TBAK='art-test-bak';
+const TVER='V267',TBAK='art-test-bak';
 // V263: Test „Alles ausgebaut“ – kauft über das Baumenü alles, was es gibt (Voraussetzungen und Sterne werden dabei übersprungen), und stellt Baustellen sofort fertig. wc = mit Verbindungsbahn West.
 var TALL=0;
 function tstAll(wc){const m0=G.money,st0=G.stN;let n=0;TALL=1;G.stN=5;
