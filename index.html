@@ -5036,7 +5036,7 @@ function gondelO(c,k,open,lab){const R2=k.r,n=R2.length;
 // ===== V216: Verbindungsbahn West – Lifte ab Lift 1 aufwärts verbinden (ab Ausbau Stufe 7), Aussehen wie die Ostbahn, am Schluss 10er-Gondelbahn =====
 // G.wk = Anzahl verbundener Lifte (0 oder 2..6), G.w10 = 10er-Gondelbahn gekauft. Alle Sessel/Gondeln der Kette stecken in lifts[0]; lifts[1..wk-1] bleiben leer.
 // Schlangen bleiben je Lift (queues[L-1]); für L>1 stehen sie an der Mittelstation (Einstieg bei ends(L).b, Ausstieg Mittelstation j bei ends(j).t).
-const WKC=250000,W10C=3000000;let wcArm=0,WCP=null,WCPK='';
+const WKC=100000,W10C=1200000;let wcArm=0,WCP=null,WCPK='';
 function wcIn(L){return (G.wk||0)>=2&&L<=G.wk}
 function wcG(L){return wcIn(L)?Array.from({length:G.wk},(_,i)=>i+1):[L]}
 function wcSum(fn,k){return wcIn(k)?wcG(k).reduce((a,j)=>a+fn(j),0):fn(k)}
@@ -6092,7 +6092,7 @@ function wrOv(){const R=G.wrR,show=!!(wrDay()&&['r1','p','r2','end'].includes(R.
 
 // ===== V239: Versteckter Testbereich (Optionen › 5× auf die Versionszeile tippen) =====
 // Jeder Test sichert vorher den Spielstand; „Test beenden“ holt ihn zurück. Neue Tests einfach in TESTS eintragen.
-const TVER='V251',TBAK='art-test-bak';
+const TVER='V252',TBAK='art-test-bak';
 const TESTS=[
  {id:'wr1',ic:'🏁',t:'Weltcuprennen – ganzer Renntag',
   was:['Übertragungswagen stehen aufgebaut, Landeplatz und Hubschrauber im Tal','Zuschauer an der Strecke, Tribünen und LED-Wand im Ziel','Westpiste gesperrt: Gäste fahren über die schwarze Piste','1. Durchgang (10:30) mit Kamerafahrt, Zeitlupe und Hubschrauber, der dem Läufer folgt','Mögliche Stürze mit Bergwacht, Pause mit Landung im Tal, 2. Durchgang (13:00)','Siegerehrung 18:15 mit Feuerwerk, danach die Abrechnung zum Bestätigen'],
