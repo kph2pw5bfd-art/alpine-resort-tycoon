@@ -3390,7 +3390,7 @@ function pAt(h){for(let i=1;i<CP.length;i++)if(h<=CP[i][1]){const a=CP[i-1],b=CP
 let wasC=false;const ARS=.5;
 // ===== Après-Ski (V95) =====
 const APC=8000,apCap=()=>[60,60,90,130][G.apL||1],APLC=[0,0,40000,150000],APLS=[0,0,3,5],APLU=[0,0,25,40],AX0=-22,AY0=()=>V+112,
- apEnd=()=>nToday()?pAt(22.5):pAt(20),apOpen=()=>!!G.ap&&phase()>=pAt(15)&&phase()<apEnd(),
+ apEnd=()=>pAt(25),apEnd0=()=>nToday()?pAt(22.5):pAt(20),apOpen=()=>!!G.ap&&phase()>=pAt(15)&&phase()<apEnd(),
  apIn=()=>{let n=0;for(const f of folks)if(f.st==='aps'&&f.in)n++;return n},
  apN=()=>{let n=0;for(const f of folks)if(f.st==='aps'||(f.st==='rt'&&f.nx==='aps'))n++;return n};
 function apTry(f){if(!apOpen()||f.oa||f.ap||f.kid||f.byT||(f.car&&f.car.bus)||f.x>=330||f.y>V+62||apN()>=apCap())return 0;
@@ -3487,7 +3487,7 @@ const LX=[];for(let x=-450;x<XR-8;x+=52)if(x<-250||x>905)LX.push(x);
 const liftGo=L=>wcIn(L)?wcGo():!(wxOn()&&G.wx==='sturm'&&!isG(L))&&!stoerL(L)&&(!closed()||lifts[L-1].some(k=>k.r.length>0)||queues[L-1].some(f=>f.lc));
 const TSD=.35;function gTS(){const r=rps.find(k=>k.st==='run'),p=phase();if(!r||!r.path||p>=.95||p<.5)return 1.3;let L=0,x=r.x,y=r.y;for(let i=r.pi;i<r.path.length;i++){const w=r.path[i];L+=Math.hypot(w[0]-x,w[1]-y);x=w[0];y=w[1]}if(r.ph==='out')L*=2.05;const need=L/((r.ph==='tour'?100:60)*.72);return cl((.95-p)*DAY/need,.18,1.3)}
 function timeScale(){return timeScale0()*pkSlow()}
-function timeScale0(){if(evSlow())return .14;{const p=phase();if(oaDay()&&p>=pAt(15.5)&&p<pAt(24.5)&&(folks.length||cars.length||buses.length))return nTS(p);if(G.ap&&p>=.60&&p<apEnd()+.01&&folks.length)return nTS(p);if(G.oap&&p>=.60&&p<pAt(20)+.01&&OAPN>0)return nTS(p);if(nToday()&&p>=.60&&p<NEP+.04&&(p>=NA0-.01||folks.length||cars.length))return nTS(p)}if(G.ev&&G.ev.k==='nacht'&&G.ev.st==='pre')return TSD;if(!closed())return TSD;if(G.ph&&(folks.some(f=>f.car&&f.car.ph)||cars.some(k=>k.ph&&k.st!=='gone'&&k.back>=k.n)))return nTS(phase());if(cars.some(k=>k.g&&k.st!=='gone'&&k.back>=k.n))return nTS(phase());if(G.sz&&(folks.some(f=>f.car&&f.car.z)||cars.some(k=>k.z&&k.st!=='gone'&&k.back>=k.n)))return nTS(phase());if(s4()&&(folks.some(f=>f.car&&f.car.pk!=null)||PC.some(k=>k.ty==='pk'&&(k.st!=='park'||k.back>=k.n))||cars.some(k=>k.pz)))return nTS(phase());if(rps.some(r=>r.st==='run'))return gTS();if(folks.length||cars.length)return 1;if(rps.some(r=>r.st==='run'))return gTS();return 4}
+function timeScale0(){if(evSlow())return .14;{const p=phase();if(oaDay()&&p>=pAt(15.5)&&p<pAt(24.5)&&(folks.length||cars.length||buses.length))return nTS(p);if(G.ap&&p>=.60&&((p<apEnd0()+.01&&folks.length)||(p<apEnd()+.01&&apIn()>0)))return nTS(p);if(G.oap&&p>=.60&&p<pAt(25)+.01&&OAPN>0)return nTS(p);if(nToday()&&p>=.60&&p<NEP+.04&&(p>=NA0-.01||folks.length||cars.length))return nTS(p)}if(G.ev&&G.ev.k==='nacht'&&G.ev.st==='pre')return TSD;if(!closed())return TSD;if(G.ph&&(folks.some(f=>f.car&&f.car.ph)||cars.some(k=>k.ph&&k.st!=='gone'&&k.back>=k.n)))return nTS(phase());if(cars.some(k=>k.g&&k.st!=='gone'&&k.back>=k.n))return nTS(phase());if(G.sz&&(folks.some(f=>f.car&&f.car.z)||cars.some(k=>k.z&&k.st!=='gone'&&k.back>=k.n)))return nTS(phase());if(s4()&&(folks.some(f=>f.car&&f.car.pk!=null)||PC.some(k=>k.ty==='pk'&&(k.st!=='park'||k.back>=k.n))||cars.some(k=>k.pz)))return nTS(phase());if(rps.some(r=>r.st==='run'))return gTS();if(folks.length||cars.length)return 1;if(rps.some(r=>r.st==='run'))return gTS();return 4}
 // V199: Laternen an der Talstraße (auch zwischen den Parkplätzen und den Lücken) und am Zubringer. Liefert Fußpunkte [x,y].
 function lampPts(){const yN=R-9-RD,yS=R+RD+16,P=[],gO=x=>G.garage&&Math.abs(x-GX)<26||G.garage2&&Math.abs(x-GX2)<26||G.fb&&Math.abs(x-FBX)<16;
  for(const x of LX)if(!gO(x)&&!obLX(x))P.push([x,yN]);P.push(...obLamps());
@@ -4487,7 +4487,7 @@ const obxU=()=>!ost()?0:(G.ork?OXUN.rp:0)+(G.okan?OXUN.kn:0)+(G.oap?OXUN.ap+OAPL
 const obxB=()=>!ost()?0:(G.oap?2+Math.max(0,(G.oapL||1)-1):0)+(G.ores?2:0);
 const pqC=()=>ost()?G.pq*(1-OSH)+(G.pqO??G.pq)*OSH:G.pq;
 const snC=()=>ost()?G.snow*(1-OSH)+(G.snO??G.snow)*OSH:G.snow;
-const oapOpen=()=>!!G.oap&&ost()&&phase()>=pAt(15)&&phase()<pAt(20);
+const oapOpen=()=>!!G.oap&&ost()&&phase()>=pAt(15)&&phase()<pAt(25);
 const obxBk=L=>!!(G.obk&&G.obk.L===L);
 function obxRel(L){const R2=G.olr||(G.olr=[100,100,100]);return R2[L-7]??100}
 const obxLN=L=>L===7?'Ostberg-Gondel':L===8?'6er-Sessel Ost':'Skischaukel-Bahn';
@@ -4495,12 +4495,12 @@ const obxBuilt=L=>L===7?ost()>=1:L===8?ost()>=2:ost()>=3;
 function obxOhC(L){return Math.max(1000,Math.round(([40000,30000,50000][L-7])*(100-obxRel(L))/100*2/1000)*1000)}
 // --- Kauf
 function obxBuy(k){if(!ost())return;const p=OXP[k],F={rp:'ork',kn:'okan',ap:'oap',rs:'ores'}[k];if(!F||G[F]||G.money<p)return;spend(p);G[F]=1;
- const T2={rp:['🚜','Pistenraupe Ost ist da: Sie präpariert jede Nacht alle Pisten am Ostberg.'],kn:['🌨️','Schneekanonen Ost laufen: Sie halten die Schneehöhe am Ostberg.'],ap:['🎶','Die Après-Ski-Bar Ost hat offen: täglich 15–20 Uhr neben der Talstation Ost.'],rs:['🍽️','Das Bergrestaurant Ost hat offen: Mittagessen mit Blick auf den Wasserfall.']}[k];
+ const T2={rp:['🚜','Pistenraupe Ost ist da: Sie präpariert jede Nacht alle Pisten am Ostberg.'],kn:['🌨️','Schneekanonen Ost laufen: Sie halten die Schneehöhe am Ostberg.'],ap:['🎶','Die Après-Ski-Bar Ost hat offen: täglich 15–1 Uhr neben der Talstation Ost.'],rs:['🍽️','Das Bergrestaurant Ost hat offen: Mittagessen mit Blick auf den Wasserfall.']}[k];
  lg(T2[0],'anr',T2[1],{s:1});toast(T2[0]+' '+T2[1].split(':')[0]);if(k==='kn')OXCN=null;buildStatic();render();save()}
 function obxCard(cd,dn,m,k,ic,t,txt,on){return cd(ic,t,on?txt[1]:txt[0]+', +'+fmt(OXUN[k]*CF)+'/Tag',on?dn(txt[2]||'✓ In Betrieb'):`<button class="btn" data-obx="${k}" ${m<OXP[k]?'disabled':''}>${fmt(OXP[k])}</button>`)}
 function obxGas(cd,dn,m){if(!ost())return '';return '<div class="bgh">🏔️ Ostberg</div>'
  +obxCard(cd,dn,m,'rs','🍽️','Bergrestaurant Ost',['An der Mittelstation, Terrasse mit Blick auf den Wasserfall. Die Ost-Gäste essen hier zu Mittag, '+OXCAP.rs+' Plätze, +2 Ruf','Mittagessen für die Gäste am Ostberg. Heute '+gN(G.inc.orN||0)+', Umsatz '+fmt(G.inc.orM||0),'✓ Geöffnet'],G.ores)
- +oapUpCard(cd,dn,m)+obxCard(cd,dn,m,'ap','🎶','Après-Ski-Bar Ost',['Rechts neben der Talstation Ost, Terrasse mit Musik. Nach der letzten Abfahrt kehren die Gäste ein, 15–20 Uhr, '+OXCAP.ap+' Plätze, +2 Ruf','Täglich 15–20 Uhr, bis '+OXCAP.ap+' Gäste. Heute '+gN(G.inc.oaN||0)+', Umsatz '+fmt(G.inc.oaM||0),'✓ Geöffnet'],G.oap)}
+ +oapUpCard(cd,dn,m)+obxCard(cd,dn,m,'ap','🎶','Après-Ski-Bar Ost',['Rechts neben der Talstation Ost, Terrasse mit Musik. Nach der letzten Abfahrt kehren die Gäste ein, 15–1 Uhr, '+OXCAP.ap+' Plätze, +2 Ruf','Täglich 15–20 Uhr, bis '+OXCAP.ap+' Gäste. Heute '+gN(G.inc.oaN||0)+', Umsatz '+fmt(G.inc.oaM||0),'✓ Geöffnet'],G.oap)}
 function obxRau(cd,dn,m){if(!ost())return '';return '<div class="bgh">🏔️ Ostberg</div>'
  +obxCard(cd,dn,m,'rp',GRM(28,21),'Pistenraupe Ost',['Eigene Garage neben dem Pistenende. Präpariert jede Nacht alle Ost-Pisten auf 100 %','Pflegt jede Nacht alle Pisten am Ostberg · Piste Ost '+Math.round(G.pqO??100)+' %','✓ Im Einsatz'],G.ork)
  +obxCard(cd,dn,m,'kn','🌨️','Schneekanonen Ost',['Alle Kanonen an den Ost-Pisten auf einmal, halten die Schneehöhe am Ostberg','Kanonen an allen Ost-Pisten · Schnee Ost '+Math.round(G.snO??100)+' %'],G.okan)
@@ -4583,7 +4583,7 @@ function obxBoxes(P){if(G.ork)P('obxg',OQG.x0-4,OQG.y1-56,OQG.x1+4,OQG.y1+16);if
 function obxInf(k,pre){
  if(k==='obxg')return {ic:'🚜',t:'Pistenraupe Ost',sub:'Garage am Pistenende Ost',rows:[['Piste Ost',()=>Math.round(G.pqO??100)+' %'],['Piste West',()=>Math.round(G.pq)+' %'],['Gerade',()=>OXRP.st==='run'?'unterwegs auf den Ost-Pisten':'in der Garage'],['Unterhalt',()=>fmt(Math.round(OXUN.rp*CF))+'/Tag']],btns:[],hint:'Sie fährt los, sobald niemand mehr auf den Ost-Pisten ist, und präpariert bis zum Morgen blau, rot und schwarz.'};
  if(k==='obxk')return {ic:'🌨️',t:'Schneekanonen Ost',sub:obxCans().length+' Kanonen an den Ost-Pisten',rows:[['Schnee Ost',()=>Math.round(G.snO??100)+' %'],['Schnee West',()=>Math.round(G.snow)+' %'],['Gerade in Betrieb',()=>obxCans().filter(n=>n.on>0).length+' von '+obxCans().length],['Wetter',()=>wNm()+' '+wIc()]],btns:[],hint:'Die Kanonen springen öfter an, je weniger Schnee am Ostberg liegt. Die Hochleistungs-Düsen aus dem Westen wirken auch hier.'};
- if(k==='obxa')return {ic:'🎶',t:'Après-Ski-Bar Ost',sub:'Neben der Talstation Ost · 15–20 Uhr',rows:[['Geöffnet',()=>oapOpen()?'Ja, bis 20 Uhr':'Nein (15–20 Uhr)'],['Drinnen',()=>folks.filter(f=>f.st==='oapi').length+' von '+OXCAP.ap],['Gäste heute',()=>String(G.inc.oaN||0)],['Umsatz heute',()=>fmt(G.inc.oaM||0)],['Getränk',()=>fmt(Math.max(1,Math.round(6*fpm())))]],btns:[pre].filter(Boolean),hint:'Nach der letzten Abfahrt kehren viele Gäste am Ostberg hier ein. Der Getränkepreis ist derselbe wie im Westen.'};
+ if(k==='obxa')return {ic:'🎶',t:'Après-Ski-Bar Ost',sub:'Neben der Talstation Ost · 15–1 Uhr',rows:[['Geöffnet',()=>oapOpen()?'Ja, bis 1 Uhr':'Nein (15–1 Uhr)'],['Drinnen',()=>folks.filter(f=>f.st==='oapi').length+' von '+OXCAP.ap],['Gäste heute',()=>String(G.inc.oaN||0)],['Umsatz heute',()=>fmt(G.inc.oaM||0)],['Getränk',()=>fmt(Math.max(1,Math.round(6*fpm())))]],btns:[pre].filter(Boolean),hint:'Nach der letzten Abfahrt kehren viele Gäste am Ostberg hier ein. Der Getränkepreis ist derselbe wie im Westen.'};
  if(k==='obxr')return {ic:'🍽️',t:'Bergrestaurant Ost',sub:'An der Mittelstation · Terrasse am Wasserfall',rows:[['Gerade beim Essen',()=>folks.filter(f=>f.st==='orin').length+' von '+OXCAP.rs],['Mittagessen heute',()=>String(G.inc.orN||0)],['Umsatz heute',()=>fmt(G.inc.orM||0)],['Menü',()=>fmt(Math.max(1,Math.round(22*fpm())))]],btns:[pre].filter(Boolean),hint:'Zur Mittagszeit kehren die Gäste am Ostberg hier ein, statt hungrig weiterzufahren.'};
  return null}
 function obxAug(k,D){const L=k==='obt'?7:k==='obc'?8:k==='obp9'?9:0;if(!L||!obxBuilt(L))return D;D=Object.assign({},D);D.rows=(D.rows||[]).map(r=>r[0]==='Läuft'?[r[0],()=>obxBk(L)?'Panne, '+(L===7?'Notbetrieb langsam':'steht')+' bis ca. '+clock(G.obk.u):r[1]()]:r);
@@ -5925,7 +5925,7 @@ function wrOv(){const R=G.wrR,show=!!(wrDay()&&['r1','p','r2','end'].includes(R.
 
 // ===== V239: Versteckter Testbereich (Optionen › 5× auf die Versionszeile tippen) =====
 // Jeder Test sichert vorher den Spielstand; „Test beenden“ holt ihn zurück. Neue Tests einfach in TESTS eintragen.
-const TVER='V247',TBAK='art-test-bak';
+const TVER='V248',TBAK='art-test-bak';
 const TESTS=[
  {id:'wr1',ic:'🏁',t:'Weltcuprennen – ganzer Renntag',
   was:['Übertragungswagen stehen aufgebaut, Landeplatz und Hubschrauber im Tal','Zuschauer an der Strecke, Tribünen und LED-Wand im Ziel','Westpiste gesperrt: Gäste fahren über die schwarze Piste','1. Durchgang (10:30) mit Kamerafahrt, Zeitlupe und Hubschrauber, der dem Läufer folgt','Mögliche Stürze mit Bergwacht, Pause mit Landung im Tal, 2. Durchgang (13:00)','Siegerehrung 18:15 mit Feuerwerk, danach die Abrechnung zum Bestätigen'],
