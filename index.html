@@ -1020,7 +1020,22 @@ function audDay(){G.ctr=G.ctr||[];for(const c of G.ctr.slice()){const d=AUF[c.k]
 function audAcc(){const O=G.ctrO;if(!O||(G.ctr||[]).length>=2)return;const d=AUF[O.k];(G.ctr=G.ctr||[]).push({k:O.k,p:0,until:G.day+d.days,a:G.areas,d0:G.day,tx:d.txt()});lg('📋','anr','Auftrag angenommen: '+d.t);toast('📋 Angenommen: '+d.t);G.ctrO=null;G.ctrPop=0;save()}
 function audDec(){const O=G.ctrO;if(!O)return;lg('📋','anr','Auftrag abgelehnt: '+AUF[O.k].t);if(O.k==='wc')G.wrFS=seaN();G.ctrO=null;G.ctrPop=0;save()}
 // V287: neues Auftrags-Angebot als eigenes Fenster (Annehmen / Ablehnen), wartet bis kein anderes Fenster/Szene offen ist
-function auPopTry(){if(!G.ctrPop)return;const O=G.ctrO;if(!O||!AUF[O.k]){G.ctrPop=0;return}if(!started||SWS||RSQ||open==='sea'||$('aubox')||$('lnbox')||$('wbbox')||document.querySelector('#tit:not([style*="none"])'))return;auBox()}
+function auPopTry(){if(G.ctrPop&&!(G.ctrO&&AUF[G.ctrO.k]))G.ctrPop=0;const n=G.evN;if(G.evPop&&!(n&&n.acc==null&&EV[n.k]&&n.d>G.day))G.evPop=0;
+ if(!G.ctrPop&&!G.evPop)return;if(!started||SWS||RSQ||open==='sea'||$('aubox')||$('evbox')||$('lnbox')||$('wbbox'))return;if(G.ctrPop)auBox();else evBox()}
+function evAns(ok){const n=G.evN;if(!n)return;n.acc=!!ok;G.evPop=0;if(ok)toast(EV[n.k].ic+' Zugesagt: '+EV[n.k].t+' morgen');else lg(EV[n.k].ic,'ev','Abgesagt: '+EV[n.k].t)}
+// V288: Ereignis-Anfrage für morgen als eigenes Fenster (Annehmen / Ablehnen)
+function evBox(){const n=G.evN,D=EV[n.k];let o=document.createElement('div');o.id='evbox';document.body.appendChild(o);
+ o.style.cssText='position:fixed;inset:0;z-index:9997;background:rgba(20,30,50,.55);display:flex;align-items:center;justify-content:center;padding:16px';
+ const R=(a,b)=>`<div style="display:flex;justify-content:space-between;gap:10px;padding:7px 0;border-top:1px solid var(--line)"><span>${a}</span><b style="text-align:right">${b}</b></div>`,wann='Morgen · '+sTk(n.d);
+ o.innerHTML=`<div style="background:var(--card,#fff);color:var(--ink,#2b3a55);border-radius:18px;max-width:400px;width:100%;max-height:92vh;overflow:auto;padding:16px 16px 14px;box-shadow:0 10px 30px rgba(0,0,0,.35);font-size:14.5px;line-height:1.35">
+ <div style="font:700 21px 'Fredoka',sans-serif">🎪 Anfrage für morgen</div><div style="color:var(--mut);font-size:13px;margin-bottom:10px">${wann}</div>
+ <div style="display:flex;gap:10px;align-items:flex-start;background:var(--line);border-radius:12px;padding:10px;margin-bottom:6px"><div style="font-size:30px;line-height:1">${D.ic}</div><div><b style="font-size:16px">${D.t}</b><div style="color:var(--mut);font-size:13px;margin-top:2px">${D.d()}</div></div></div>
+ ${evEst(n.k).map(r=>R(r[0],r[1])).join('')}
+ <div style="display:flex;gap:10px;margin-top:14px"><button class="btn ghost" id="evno" style="flex:1;font-size:16px;padding:11px 0">Ablehnen</button><button class="btn" id="evok" style="flex:1;font-size:16px;padding:11px 0">Annehmen</button></div>
+ <div style="color:var(--mut);font-size:12.5px;margin-top:8px;text-align:center">Du kannst es unter 🎪 Ereignisse bis morgen früh noch ändern.</div></div>`;
+ const pz=!paused;paused=true;$('pz').textContent='▶';
+ const done=ok=>{sfx('click');evAns(ok);save();o.remove();if(pz){paused=false;$('pz').textContent='⏸'}render();hud()};
+ $('evok').onclick=()=>done(1);$('evno').onclick=()=>done(0)}
 function auBox(){const O=G.ctrO,d=AUF[O.k];let o=document.createElement('div');o.id='aubox';document.body.appendChild(o);
  o.style.cssText='position:fixed;inset:0;z-index:9997;background:rgba(20,30,50,.55);display:flex;align-items:center;justify-content:center;padding:16px';
  const R=(a,b,c)=>`<div style="display:flex;justify-content:space-between;gap:10px;padding:7px 0;border-top:1px solid var(--line)"><span>${a}${c?`<br><small style="color:var(--mut)">${c}</small>`:''}</span><b style="text-align:right">${b}</b></div>`;
@@ -4825,8 +4840,8 @@ function evPick(d){const wd=wkD(d),W0=[],W=[];if(G.areas>=2&&G.day>=4)W.push(['s
 function evPlan(){if(G.evD==null||G.evD<=G.day)G.evD=G.day+2;
  if(G.oa&&G.oa.d===G.evD&&G.oa.st==='vk'){G.evD++;return}if(wrOn(G.evD)){G.evD++;return}
  if(!G.evN&&G.day===G.evD-1&&phase()>=.3){const k=evPick(G.evD);if(!k){G.evD++;return}G.evN={k,d:G.evD,acc:k==='stoer'?true:null};
-  if(k!=='stoer'){lg(EV[k].ic,'ev','Anfrage für morgen: '+EV[k].t);sfx('chime');if(SET.hint){toast(EV[k].ic+' Anfrage für morgen: '+EV[k].t+'. Tippe links auf 🎪 Ereignisse.',4500);if(!open||open==='ev'){open='ev';render()}}}save()}}
-function evRoll(){const n=G.evN;G.evN=null;G.ev=null;racers=[];courseW=0;
+  if(k!=='stoer'){lg(EV[k].ic,'ev','Anfrage für morgen: '+EV[k].t);sfx('chime');G.evPop=1}save()}}
+function evRoll(){const n=G.evN;G.evN=null;G.evPop=0;{const b=$('evbox');if(b)b.remove()}G.ev=null;racers=[];courseW=0;
  if(n&&n.d===G.day&&n.acc&&!wrOn(G.day)){const e={k:n.k,d:G.day,st:'wait'};
   if(isRace(e)){e.t0=hp(RACE[e.k].h);e.res=[];e.n=specN(e.k)}
   if(e.k==='schul'){e.kids=0;e.inc=0}
@@ -7411,7 +7426,7 @@ function wrOv(){const R=G.wrR,show=!!(wrDay()&&['r1','p','r2','end'].includes(R.
 
 // ===== V239: Versteckter Testbereich (Optionen › 5× auf die Versionszeile tippen) =====
 // Jeder Test sichert vorher den Spielstand; „Test beenden“ holt ihn zurück. Neue Tests einfach in TESTS eintragen.
-const TVER='V287',TBAK='art-test-bak';
+const TVER='V288',TBAK='art-test-bak';
 // V263: Test „Alles ausgebaut“ – kauft über das Baumenü alles, was es gibt (Voraussetzungen und Sterne werden dabei übersprungen), und stellt Baustellen sofort fertig. wc = mit Verbindungsbahn West.
 var TALL=0;
 function tstAll(wc){const m0=G.money,st0=G.stN;let n=0;TALL=1;G.stN=5;
@@ -7715,7 +7730,7 @@ function render(){
   el.querySelectorAll('[data-d]').forEach(b=>{let t,iv;const go=()=>{const r=$(b.dataset.d);r.value=cl(+r.value+ +b.dataset.s,+r.min,+r.max);r.oninput()},end=()=>{clearTimeout(t);clearInterval(iv)};b.onpointerdown=e=>{e.preventDefault();go();t=setTimeout(()=>{iv=setInterval(go,90)},380)};b.onpointerup=b.onpointerleave=b.onpointercancel=end})}
  el.querySelector('[data-x]').onclick=()=>{open=null;infB=null;render()};
  arUI(el);el.querySelectorAll('[data-oab]').forEach(b=>b.onclick=()=>{oaSel.b=+b.dataset.oab;oaSel.pr=OAB[oaSel.b].fair;render()});el.querySelectorAll('[data-oaa]').forEach(b=>b.onclick=()=>{oaSel.a=+b.dataset.oaa;render()});{const r=$('oapr');if(r){r.oninput=()=>{oaSel.pr=+r.value;$('oaprv').textContent=fmt(oaSel.pr)};r.onchange=()=>{const sc=$('sheet').scrollTop;render();$('sheet').scrollTop=sc}}}el.querySelectorAll('[data-oap]').forEach(b=>b.onclick=()=>{oaSel.pr=cl(oaSel.pr+ +b.dataset.oap,10,150);const sc=$('sheet').scrollTop;render();$('sheet').scrollTop=sc});{const g=el.querySelector('[data-oago]');if(g)g.onclick=()=>{oaBook();render()}}{const x=el.querySelector('[data-oacx]');if(x)x.onclick=()=>{if(!G.oaCx){G.oaCx=1;render();setTimeout(()=>{G.oaCx=0;if(open==='ev')render()},4000);return}G.oaCx=0;oaCancel();render()}}
- el.querySelectorAll('[data-ev]').forEach(b=>b.onclick=()=>{const a=b.dataset.ev;if(a==='skip'){if(isRace(G.ev)&&!rcQ(G.ev.k))rcSkip(G.ev.k);evSkip();return}if(a==='rep')repair();else if(G.evN){G.evN.acc=a==='acc';if(G.evN.acc)toast(EV[G.evN.k].ic+' Zugesagt: '+EV[G.evN.k].t+' morgen')}render();save()});
+ el.querySelectorAll('[data-ev]').forEach(b=>b.onclick=()=>{const a=b.dataset.ev;if(a==='skip'){if(isRace(G.ev)&&!rcQ(G.ev.k))rcSkip(G.ev.k);evSkip();return}if(a==='rep')repair();else if(G.evN)evAns(a==='acc');render();save()});
  const bpb=el.querySelector('[data-pb]');if(bpb)bpb.onclick=()=>{if(!G.pb&&G.areas>=2&&G.money>=PBC){spend(PBC);G.pb=1;buildStatic();toast('Die blaue Abfahrt ist offen! 🟦');render();save()}};
  const bps=el.querySelector('[data-ps]');if(bps)bps.onclick=()=>{if(!G.ps&&G.areas>=2&&G.money>=PSC){spend(PSC);G.ps=1;buildStatic();toast('Die schwarze Abfahrt ist offen! ⬛ +4 Ruf');render();save()}};
  choBind(el);const bapl=el.querySelector('[data-apl]');if(bapl)bapl.onclick=()=>apUp();const bap=el.querySelector('[data-ap]');if(bap)bap.onclick=()=>{if(!G.ap&&G.areas>=2&&G.money>=APC){spend(APC);G.ap=1;buildStatic();toast('Die Après-Ski-Hütte ist fertig! 🎶 Ab 15 Uhr wird gefeiert');render();save()}};
