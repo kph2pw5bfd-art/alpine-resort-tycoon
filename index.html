@@ -2022,11 +2022,126 @@ function pisteCards(cd,dn,m){const sk='Anfänger '+Math.round(anfA()*100)+' % ·
 function pine(c,x,y,s){if(G.look==='neu')return pineN(c,x,y,s);c.save();c.translate(x,y);c.scale(s,s);c.fillStyle='#7a5230';c.fillRect(-2,-3,4,5);
  for(let i=0;i<3;i++){const b=-3-i*8,wd=11-i*2.5;c.fillStyle='#2f9e6b';c.strokeStyle='#1f6e4b';c.lineWidth=1;c.beginPath();c.moveTo(-wd,b);c.lineTo(0,b-13);c.lineTo(wd,b);c.closePath();c.fill();c.stroke();
  c.fillStyle='#fff';c.beginPath();c.moveTo(-wd*.55,b-6);c.lineTo(0,b-13);c.lineTo(wd*.55,b-6);c.quadraticCurveTo(0,b-3,-wd*.55,b-6);c.fill()}c.restore()}
-function rock(c,x,y,w,h){c.lineWidth=1.2;c.strokeStyle=G.look==='neu'?'rgba(0,0,0,0)':'#8a6a4c';
- c.fillStyle='#e0c4a0';c.beginPath();c.moveTo(x,y);c.lineTo(x+w*.3,y-h);c.lineTo(x+w*.55,y-h*.7);c.lineTo(x+w*.5,y);c.closePath();c.fill();c.stroke();
- c.fillStyle='#b8926a';c.beginPath();c.moveTo(x+w*.5,y);c.lineTo(x+w*.55,y-h*.7);c.lineTo(x+w*.8,y-h*.45);c.lineTo(x+w,y);c.closePath();c.fill();c.stroke();
- c.fillStyle='#fff';c.beginPath();c.moveTo(x+w*.3,y-h);c.lineTo(x+w*.19,y-h*.72);c.lineTo(x+w*.42,y-h*.8);c.lineTo(x+w*.55,y-h*.7);c.closePath();c.fill()}
+// V282: Low-Poly-Felsgruppen (Stil wie Wasserfall). Präfix rk…/RK…
+const RKPAL=['#dfe2e7','#c9cdd4','#b1b6bf','#9a9fa9','#848995','#717684','#5f6473'];
+function rkR(i,s){const v=Math.sin(i*127.1+s*311.7)*43758.5453;return v-Math.floor(v)}
+// ein Brocken: Umriss je Form, Facetten von einem Grat-Punkt aus, Licht von links oben
+function rkOne(c,x,y,w,h,ty,sd,sn){const R=k=>rkR(k,sd);let O;
+ if(ty==='spitz')O=[[0,0],[.08,-.35],[.3,-.8],[.46,-1],[.62,-.72],[.8,-.42],[1,0]];
+ else if(ty==='block')O=[[0,0],[.04,-.62],[.2,-.95],[.58,-1],[.86,-.82],[1,-.4],[.97,0]];
+ else if(ty==='platte')O=[[0,0],[.1,-.7],[.35,-1],[.75,-.92],[.95,-.55],[1,0]];
+ else if(ty==='zacke')O=[[0,0],[.1,-.55],[.24,-1],[.4,-.66],[.58,-.88],[.74,-.5],[.9,-.3],[1,0]];
+ else O=[[0,0],[.06,-.5],[.25,-.9],[.5,-1],[.78,-.86],[.95,-.5],[1,0]];
+ const P=O.map(([u,v],i)=>[x+(u+(i&&i<O.length-1?(R(i)-.5)*.12:0))*w,y+(v+(i&&i<O.length-1?(R(i+9)-.5)*.1:0))*h]);
+ const ax=ty==='spitz'?.46:ty==='platte'?.42:.45,A=[x+w*(ax+(R(20)-.5)*.1),y-h*(ty==='platte'?.62:.7)];
+ const B=[x+w*(.5+(R(21)-.5)*.1),y];
+ // Facetten: Fächer vom Grat-Punkt A zu allen Kanten, plus Fußkante zu B
+ const F=[];for(let i=0;i<P.length-1;i++)F.push([A,P[i],P[i+1]]);F.push([A,P[P.length-1],B]);F.push([A,B,P[0]]);
+ c.lineJoin='round';c.lineWidth=.6;
+ for(let i=0;i<F.length;i++){const [a,b,d]=F[i],mx=(a[0]+b[0]+d[0])/3,my=(a[1]+b[1]+d[1])/3;
+  const fx=(mx-A[0])/w,fy=(my-A[1])/h; // rechts/unten dunkler
+  const k=Math.max(0,Math.min(6,Math.round(1.6+fx*4.2+fy*1.6+(R(i+40)-.5)*1.4)));const col=RKPAL[k];
+  c.fillStyle=col;c.strokeStyle=col;c.beginPath();c.moveTo(...a);c.lineTo(...b);c.lineTo(...d);c.closePath();c.fill();c.stroke()}
+ // Gratlinien leicht betont
+ c.strokeStyle='rgba(60,65,80,.18)';c.lineWidth=.5;c.beginPath();c.moveTo(...A);c.lineTo(...B);c.stroke();
+ // Schneekappe: nur auf den obersten Kanten, schmal
+ if(sn){c.fillStyle='#fbfdff';for(let i=1;i<P.length-1;i++){const p=P[i],q=P[i+1];if(p[1]>y-h*.7||q[1]>y-h*.62)continue;const m=[(p[0]+q[0])/2+(A[0]-(p[0]+q[0])/2)*.25,(p[1]+q[1])/2+h*.12];
+   c.beginPath();c.moveTo(p[0]-.3,p[1]-.5);c.lineTo(q[0]+.3,q[1]-.5);c.lineTo(m[0],m[1]);c.closePath();c.fill()}
+  for(let i=1;i<P.length-1;i++){const p=P[i];if(p[1]<y-h*.8){c.beginPath();c.moveTo(p[0]-w*.06,p[1]+h*.1);c.lineTo(p[0],p[1]-.6);c.lineTo(p[0]+w*.07,p[1]+h*.12);c.lineTo(p[0],p[1]+h*.2);c.closePath();c.fill()}}}}
+// Gruppe: 1 großer + 2–4 kleinere Brocken, nach Tiefe gezeichnet; nie riesig
+function rkGroup(c,x,y,W,H,sd){const R=k=>rkR(k,sd),T=['spitz','block','platte','rund','zacke'],sn=typeof SEAV==='undefined'||SEAV==='w';
+ const big=Math.max(12,Math.min(26,W*.62)),n=2+Math.floor(R(1)*3),L=[];
+ L.push({x:x+W*(.25+R(2)*.2),y:y-H*.12,w:big,h:big*(.7+R(3)*.5),t:T[Math.floor(R(4)*5)]});
+ for(let i=0;i<n;i++){const s=big*(.35+R(10+i)*.4),a=R(20+i)*Math.PI*2;L.push({x:L[0].x+big*.4+Math.cos(a)*big*.75-s/2,y:L[0].y+Math.sin(a)*big*.35+s*.15,w:s,h:s*(.6+R(30+i)*.6),t:T[Math.floor(R(40+i)*5)]})}
+ L.sort((a,b)=>a.y-b.y);
+ c.fillStyle='rgba(90,110,150,.18)';c.beginPath();c.ellipse(L[0].x+big*.55,y-H*.1+3,big*.95,big*.22,0,0,7);c.fill();
+ for(const [i,r] of L.entries()){c.fillStyle='rgba(90,110,150,.16)';c.beginPath();c.ellipse(r.x+r.w*.55,r.y+1,r.w*.6,r.w*.13,0,0,7);c.fill();rkOne(c,r.x,r.y,r.w,r.h,r.t,sd*7+i,sn)}}
+function rock(c,x,y,w,h){const sd=Math.round(x*3+y*7),n=Math.max(1,Math.min(3,Math.round(w*h/2400)));const G2=[];
+ for(let i=0;i<n;i++){const u=n===1?0:i/(n-1);G2.push([x+w*(.05+(i%2?.5:0)+(rkR(i,sd)-.5)*.3),y-h*u*.75+(rkR(i+5,sd)-.5)*12,Math.min(w*.7,44),Math.min(h,36)])}
+ G2.sort((a,b)=>a[1]-b[1]);for(const [i,g] of G2.entries())rkGroup(c,g[0],g[1],g[2],g[3],sd+i*13)}
+const fwyA=x=>-858+5*Math.sin(x/37)+3*Math.sin(x/13),fwhA=x=>{const u=(x+575)/335;return 18+92*Math.pow(Math.sin(Math.PI*Math.min(1,Math.max(0,u))),.7)},
+ fwyC=x=>-866+4*Math.sin(x/29)+2*Math.sin(x/11),fwhC=x=>{const u=(x-690)/285;return 12+38*Math.pow(Math.sin(Math.PI*Math.min(1,Math.max(0,u))),.6)};
+// V282: Felswände A (West unter Gletscher), B (Schlucht am Bach, Westufer), C (Felsband) + zusätzliche Felsgruppen. Präfix fw…/FW…
+const FWPAL=['#dfe2e7','#cdd1d8','#b9bec6','#a5aab4','#9196a2','#7f8491','#6d7280','#5c6170'];
+const fwR=(i,s)=>{const v=Math.sin(i*91.7+s*47.3)*43758.5453;return v-Math.floor(v)};
+const fwSum=()=>typeof SEAV!=='undefined'&&SEAV!=='w';
+// Frontale Wand: Oberkante yT(x), Höhe hF(x), von x0 bis x1
+function fwWall(c,x0,x1,yT,hF,sd,o){o=o||{};const cols=Math.max(4,Math.round((x1-x0)/13)),rows=o.rows||4,Vt=[];
+ for(let r=0;r<=rows;r++){const row=[];for(let k=0;k<=cols;k++){const u=k/cols,x=x0+(x1-x0)*u,t=r/rows,h=hF(x),edge=k===0||k===cols;
+   const jx=edge?0:(fwR(r*37+k,sd)-.5)*(x1-x0)/cols*.7,jy=(r===0||r===rows||edge)?0:(fwR(k*13+r,sd+1)-.5)*h/rows*.6;row.push([x+jx,yT(x)+h*t+jy])}Vt.push(row)}
+ // Fußschatten
+ c.fillStyle='rgba(90,110,150,.18)';c.beginPath();c.moveTo(x0,yT(x0)+hF(x0)+2);for(let k=0;k<=cols;k++){const x=x0+(x1-x0)*k/cols;c.lineTo(x,yT(x)+hF(x)+6)}c.lineTo(x1,yT(x1)+hF(x1)+2);c.closePath();c.fill();
+ c.lineJoin='round';c.lineWidth=.7;
+ for(let r=0;r<rows;r++)for(let k=0;k<cols;k++){const A=Vt[r][k],B=Vt[r][k+1],C=Vt[r+1][k+1],D=Vt[r+1][k],fl=fwR(k*5+r,sd+2)<.5;
+  const sh=i=>FWPAL[Math.max(0,Math.min(7,Math.round(1.2+r/rows*2.4+(fwR(r*7+k,sd+3+i)-.5)*2.6+i*1.1+(k/cols-.5)*1.2)))];
+  const T1=fl?[A,B,D]:[A,B,C],T2=fl?[B,C,D]:[A,C,D];
+  for(const [T,i] of [[T1,0],[T2,1]]){const col=sh(i);c.fillStyle=col;c.strokeStyle=col;c.beginPath();c.moveTo(...T[0]);c.lineTo(...T[1]);c.lineTo(...T[2]);c.closePath();c.fill();c.stroke()}
+  if(!fwSum()&&r>0&&fwR(k*3+r,sd+4)<.3){c.fillStyle='#fff';c.beginPath();c.moveTo(A[0]+.5,A[1]+.3);c.lineTo((A[0]+B[0])/2,(A[1]+B[1])/2-1.6);c.lineTo(B[0]-.5,B[1]+.3);c.lineTo((A[0]+B[0])/2+.8,(A[1]+B[1])/2+1.6);c.closePath();c.fill()}}
+ // Oberkante: Schneewechte (Winter) bzw. Grasrand (Sommer)
+ const T0=Vt[0];c.fillStyle=fwSum()?'#9cc07a':'#fbfdff';c.beginPath();c.moveTo(T0[0][0]-6,T0[0][1]+3);T0.forEach((q,i)=>c.lineTo(q[0],q[1]-3-fwR(i,sd+5)*2.5));c.lineTo(T0[cols][0]+6,T0[cols][1]+3);
+ for(let i=cols;i>=0;i--)c.lineTo(T0[i][0]+(fwR(i,sd+6)-.5)*3,T0[i][1]+2.5+fwR(i,sd+7)*3);c.closePath();c.fill();
+ if(!fwSum()){c.fillStyle='rgba(140,180,220,.45)';c.beginPath();T0.forEach((q,i)=>i?c.lineTo(q[0],q[1]+2.5+fwR(i,sd+7)*3):c.moveTo(q[0],q[1]+3));for(let i=cols;i>=0;i--)c.lineTo(T0[i][0],T0[i][1]+5+fwR(i,sd+8)*3);c.closePath();c.fill()}
+ // Schuttkegel am Fuß
+ const Bt=Vt[rows];c.fillStyle=fwSum()?'#cfc9bd':'#fbfdff';c.beginPath();c.moveTo(Bt[0][0]-8,Bt[0][1]+4);Bt.forEach((q,i)=>c.lineTo(q[0],q[1]-1-fwR(i,sd+9)*4));c.lineTo(Bt[cols][0]+8,Bt[cols][1]+4);for(let i=cols;i>=0;i--)c.lineTo(Bt[i][0],Bt[i][1]+5+fwR(i,sd+13)*3);c.closePath();c.fill();
+ for(let i=0;i<cols*1.4;i++){const x=x0+fwR(i,sd+10)*(x1-x0),y=yT(x)+hF(x)+2+fwR(i,sd+11)*6,s=3+fwR(i,sd+12)*4;rkOne(c,x,y,s,s*.7,['rund','platte','block'][i%3],sd*3+i,!fwSum())}
+ return Vt}
+// Eisfall (Winter) / Wasserfall (Sommer)
+function fwFall(c,x,yt,yb,w,sd){if(fwSum()){c.fillStyle='rgba(120,190,235,.9)';c.beginPath();c.moveTo(x-w*.5,yt);c.lineTo(x+w*.5,yt);c.lineTo(x+w*.7,yb);c.lineTo(x-w*.7,yb);c.closePath();c.fill();
+  c.strokeStyle='rgba(255,255,255,.75)';c.lineWidth=.8;for(let i=0;i<4;i++){const xx=x-w*.35+i*w*.24;c.beginPath();c.moveTo(xx,yt+2);c.lineTo(xx+(i-1.5)*.6,yb-2);c.stroke()}
+  c.fillStyle='rgba(255,255,255,.8)';for(let i=0;i<6;i++){c.beginPath();c.arc(x+(fwR(i,sd)-.5)*w*2,yb+fwR(i+3,sd)*3,1.6+fwR(i+6,sd)*1.8,0,7);c.fill()}
+  c.fillStyle='#7fc4ec';c.beginPath();c.ellipse(x,yb+5,w*1.3,3.5,0,0,7);c.fill();return}
+ const L=yb-yt;c.fillStyle='#eef9fe';c.beginPath();c.moveTo(x-w*.6,yt);c.lineTo(x-w*.9,yt+L*.4);c.lineTo(x-w*.75,yt+L*.75);c.lineTo(x-w,yb);c.lineTo(x,yb+2);c.lineTo(x,yt);c.closePath();c.fill();
+ c.fillStyle='#bfe2f4';c.beginPath();c.moveTo(x,yt);c.lineTo(x,yb+2);c.lineTo(x+w,yb);c.lineTo(x+w*.8,yt+L*.6);c.lineTo(x+w*.6,yt);c.closePath();c.fill();
+ c.fillStyle='rgba(255,255,255,.95)';c.fillRect(x-w*.55,yt+L*.1,w*.25,L*.55);c.fillStyle='#9fd3ef';for(let i=0;i<4;i++){const xx=x-w*.7+i*w*.45;c.beginPath();c.moveTo(xx-1.2,yb-1);c.lineTo(xx+1.2,yb-1);c.lineTo(xx,yb+4+fwR(i,sd)*3);c.closePath();c.fill()}}
+// Gämse / Steinbock
+function fwGoat(c,x,y,d,ib){c.save();c.translate(x,y);c.scale(d,1);c.fillStyle=ib?'#8a7a66':'#6b4a2e';c.beginPath();c.ellipse(0,-3.2,3.2,1.7,0,0,7);c.fill();
+ c.fillRect(-2.6,-2,.7,2.6);c.fillRect(-1.4,-2,.7,2.6);c.fillRect(1.2,-2,.7,2.6);c.fillRect(2.3,-2,.7,2.6);
+ c.beginPath();c.moveTo(2.2,-4);c.lineTo(3.8,-6.2);c.lineTo(5,-5.6);c.lineTo(4,-3.6);c.closePath();c.fill();
+ if(!ib){c.fillStyle='#f3ead8';c.fillRect(3.9,-5.9,.8,1.4)}c.strokeStyle='#2b2620';c.lineWidth=.55;c.beginPath();if(ib){c.moveTo(4,-6);c.quadraticCurveTo(2.6,-9.4,.6,-8.4)}else{c.moveTo(4,-6.1);c.quadraticCurveTo(4.2,-7.8,3.2,-8)}c.stroke();c.restore()}
+// Uferwand der Schlucht (Westufer des Bachs)
+function fwBank(c,y0,y1,sd){const st=12,N=Math.round((y1-y0)/st),P=[];for(let i=0;i<=N;i++){const y=y0+(y1-y0)*i/N,e=Math.sin(Math.PI*i/N),xc=obWX(y)-obBW(y)-6;P.push([xc-(10+22*Math.pow(e,.6))*(1+(fwR(i,sd)-.5)*.3),xc-(4+10*e)*(fwR(i+5,sd)*.5+.5),xc,y])}
+ for(let i=0;i<N;i++){const a=P[i],b=P[i+1];for(let j=0;j<2;j++){const xa0=a[j],xa1=a[j+1],xb0=b[j],xb1=b[j+1];const k1=Math.round(1+j*2.6+(fwR(i*3+j,sd+1)-.5)*2),k2=Math.min(7,k1+1+(fwR(i*7+j,sd+2)<.5?1:0));
+   for(const [T,k] of [[[[xa0,a[3]],[xa1,a[3]],[xb0,b[3]]],k1],[[[xa1,a[3]],[xb1,b[3]],[xb0,b[3]]],k2]]){const col=FWPAL[Math.max(0,Math.min(7,k))];c.fillStyle=col;c.strokeStyle=col;c.lineWidth=.7;c.beginPath();c.moveTo(...T[0]);c.lineTo(...T[1]);c.lineTo(...T[2]);c.closePath();c.fill();c.stroke()}}}
+ if(!fwSum()){c.fillStyle='#fbfdff';c.beginPath();P.forEach((p,i)=>i?c.lineTo(p[0]+1,p[3]):c.moveTo(p[0]-4,p[3]));for(let i=N;i>=0;i--)c.lineTo(P[i][0]+3+fwR(i,sd+3)*3,P[i][3]);c.closePath();c.fill()}
+ for(let i=0;i<=N;i+=2){const p=P[i];ROCKS.push([p[0]-8,p[3]+14,p[2]-p[0]+16,40])}return P}
+function fwAll(c){
+ // A: Westwand unter der Gletscherstirn
+ const yA=fwyA,hA=fwhA;
+ fwWall(c,-575,-240,yA,hA,11,{rows:5});
+ fwFall(c,-420,yA(-420)+2,yA(-420)+hA(-420)-2,10,3);
 
+ for(let x=-575;x<-240;x+=24)ROCKS.push([x-4,yA(x)+hA(x)+10,30,(hA(x)+22)/.6]);
+ // C: Felsband unter dem Gletscher zwischen Westpiste und Bach
+ const yC=fwyC,hC=fwhC;
+ fwWall(c,690,975,yC,hC,23,{rows:3});
+
+ for(let x=690;x<975;x+=24)ROCKS.push([x-4,yC(x)+hC(x)+10,30,(hC(x)+22)/.6]);
+ // B: Schlucht – Westufer zwischen den Wasserfällen
+ fwBank(c,-620,-290,31);fwBank(c,-178,-80,37);fwBank(c,40,150,41);}
+// zusätzliche Felsgruppen + viele kleine Steine
+function rkExtra(c){const bad=(x,y,m)=>{if(x<XL+8||x>XR-8||y<GLB()+40||y>V-130)return 1;if(Math.abs(x-slopeX(y))<slopeW(y)+16+m)return 1;if(onX(x,y,12+m))return 1;
+  if(Math.abs(x-lx(y))<34+m||Math.abs(x-lx(y)-88)<34+m)return 1;for(let k=1;k<=NA;k++){const y0=Yk(k);if(y>y0-30&&y<y0+130&&x>Math.min(lx(y0),slopeX(y))-30&&x<Math.max(lx(y0)+88,slopeX(y))+60)return 1}
+  if(Math.abs(x-obWX(y))<44+m)return 1;if(typeof ost==='function'&&ost()&&(obOnP(x,y,0)||obOnP(x,y+m,0)))return 1;if(obTree(x,y)||pzTree(x,y)||zuTree(x,y))return 1;if(Math.abs(x-538)<50&&Math.abs(y+330)<40)return 1;
+  for(const q of ROCKS)if(x>q[0]-8-m&&x<q[0]+q[2]+8+m&&y>q[1]-q[3]*.6-6-m&&y<q[1]+10+m)return 1;return 0};
+ let n=0;for(let i=0;i<400&&n<26;i++){const x=XL+fwR(i,71)*(XR-XL),y=GLB()+40+fwR(i,72)*(V-GLB()-170),w=26+fwR(i,73)*18;if(bad(x,y,8)||bad(x+w,y,8))continue;rkGroup(c,x,y,w,26,i*17+3);ROCKS.push([x,y,w,24]);n++}
+ let m=0;for(let i=0;i<1400&&m<110;i++){const x=XL+fwR(i,81)*(XR-XL),y=GLB()+30+fwR(i,82)*(V-GLB()-150),s=3+fwR(i,83)*6;if(bad(x,y,0))continue;
+  c.fillStyle='rgba(90,110,150,.15)';c.beginPath();c.ellipse(x+s*.55,y+.8,s*.7,s*.16,0,0,7);c.fill();rkOne(c,x,y,s,s*(.5+fwR(i,84)*.5),['rund','platte','block','spitz'][i%4],i*5+1,!fwSum());
+  if(fwR(i,85)<.4){const s2=s*.55;rkOne(c,x+s*.8,y+1,s2,s2*.7,'rund',i*5+2,!fwSum())}ROCKS.push([x,y,s,s]);m++}}
+// Leben an den Wänden (jedes Bild): Kletterer tagsüber an Wand A, Steinböcke/Gämsen bewegen sich ab und zu
+const FWG=[[-500,'A',.42,1],[-491,'A',.46,1],[-280,'A',.3,0],[800,'C',-1,0],[812,'C',-1,0],[905,'C',.5,1],[0,'B',-470,1]];
+function fwGoatAt(i){const g=FWG[i],blk=Math.floor(T/14+i*.37),u=Math.min(1,(T/14+i*.37-blk)*3),R0=fwR(blk,i*7+1),R1=fwR(blk+1,i*7+1),e=u*u*(3-2*u),dx=((R0+(R1-R0)*e)-.5)*14;
+ let x,y;if(g[1]==='A'){x=g[0]+dx;y=fwyA(x)+fwhA(x)*g[2]}else if(g[1]==='C'){x=g[0]+dx;y=g[2]<0?fwyC(x)-2:fwyC(x)+fwhC(x)*g[2]}else{y=g[2]+dx*.6;x=obWX(y)-34}
+ const d=(R1>R0)===(fwR(blk,i*3+9)<.8)?1:-1;return {x,y,d,ib:g[3]}}
+function fwLive(c,t){const p=phase();
+ if(inV(-330,-800,140)&&G.wx!=='sturm'&&p>=pAt(8.5)&&p<pAt(16.5)){const yt=fwyA(-330)+1,yb=fwyA(-330)+fwhA(-330)*.85;let u;
+  if(p<pAt(9))u=0;else if(p<pAt(14))u=(p-pAt(9))/(pAt(14)-pAt(9));else if(p<pAt(15))u=1;else if(p<pAt(16))u=1-(p-pAt(15))/(pAt(16)-pAt(15));else u=0;
+  fwClimbU(c,-330,yt,yb,u,t)}
+ for(let i=0;i<FWG.length;i++){const g=FWG[i];const q=g[1]==='B'?{x:obWX(g[2])-34,y:g[2]}:{x:g[0],y:g[1]==='A'?fwyA(g[0]):fwyC(g[0])};if(!inV(q.x,q.y,60))continue;const s=fwGoatAt(i);fwGoat(c,s.x,s.y,s.d,s.ib)}}
+// Kletterer: u=0 unten am Einstieg, u=1 oben; zwei Personen am Seil, der zweite folgt
+function fwClimbU(c,x,yt,yb,u,t){c.strokeStyle='rgba(230,80,60,.9)';c.lineWidth=.5;c.beginPath();c.moveTo(x,yt-2);c.quadraticCurveTo(x+3,(yt+yb)/2,x+1,yb+3);c.stroke();c.fillStyle='#5d667a';c.fillRect(x-1,yt-3,2,2);
+ const mv=Math.sin(t*3)*.6;for(const [k,col] of [[0,'#f2c53b'],[1,'#4fa3e0']]){const uu=Math.max(0,Math.min(1,u-k*.28+(k?.0:0))),y=yb-(yb-yt-6)*uu,xx=x+2.2*Math.sin(uu*3+k);
+  c.fillStyle=col;c.fillRect(xx-1.3,y-2.5,2.6,4);c.fillStyle='#ffd9b5';c.beginPath();c.arc(xx,y-3.6,1.2,0,7);c.fill();c.fillStyle='#e8504a';c.beginPath();c.arc(xx,y-4.2,1.25,Math.PI,0);c.fill();
+  c.strokeStyle='#3a4054';c.lineWidth=.6;c.beginPath();c.moveTo(xx-1,y+1.5);c.lineTo(xx-2,y+3.5-mv);c.moveTo(xx+1,y+1.5);c.lineTo(xx+1.8,y+3+mv);c.moveTo(xx-1.3,y-1.5);c.lineTo(xx-2.8,y-3.6+mv);c.moveTo(xx+1.3,y-1.5);c.lineTo(xx+2.6,y-.5-mv);c.stroke()}}
 function pineN(c,x,y,s){c.save();c.translate(x,y);c.scale(s,s);
  c.fillStyle=svC('TS','rgba(110,140,180,.22)');c.beginPath();c.ellipse(9,2,13,4,0,0,7);c.fill();
  c.fillStyle='#8a4a2e';c.fillRect(-1.6,-3,3.2,5);
@@ -3410,7 +3525,7 @@ function buildStatic0(){LK=lkey();WAYS=waysB();WAYS.L=WAYS.L.filter(q=>!(Math.ab
  if(N)for(const d of [-1,1]){const ps=PL.filter(p=>p[2]===d).sort((a,b)=>a[1]-b[1]);for(let i=1;i<ps.length;i++){const a=ps[i-1],b=ps[i];if(b[1]-a[1]>40)continue;const mx=(a[0]+b[0])/2,my=(a[1]+b[1])/2+12;c.strokeStyle='rgba(40,50,70,.55)';c.lineWidth=.6;c.beginPath();c.moveTo(a[0],a[1]);c.quadraticCurveTo(mx,my,b[0],b[1]);c.stroke();for(let q=1;q<6;q++){const u=q/6,x=(1-u)*(1-u)*a[0]+2*u*(1-u)*mx+u*u*b[0],y=(1-u)*(1-u)*a[1]+2*u*(1-u)*my+u*u*b[1];c.fillStyle=['#e8504a','#f2c53b','#4fc3a1','#4fa3e0'][(q+i)%4];c.beginPath();c.arc(x,y,1.1,0,7);c.fill()}}}
  for(const s of SEAV==='w'?XS:[])if(s.body){const i=s.pi;s.pts.forEach((q,j)=>{if(j%15!==7||pU(i,q[0])>.85)return;for(const d of [-1,1]){const px=q[1]+d*(q[2]+4);if(pU(i,q[0])>.02&&(Math.abs(px-slopeX(q[0]))<slopeW(q[0])+6||Math.abs(px-lx(q[0]))<26||q[0]>V-120))continue;c.fillStyle=PCO[i];c.fillRect(px,q[0]-8,1.6,9);c.fillStyle=i===2?'#f2c53b':'#fff';c.fillRect(px,q[0]-5,1.6,1.4)}})}
  if(G.areas>=2){if(G.pb)for(let k=2;k<=G.areas;k++){const y=ends(k).t.y+96;pSign(c,slopeX(y)-slopeW(y)-8,y,1)}if(G.ps){const T=ends(G.areas).t;pSign(c,T.x+30,T.y+34,2);if(G.pb)pSign(c,T.x-30,T.y+34,1)}}
- ROCKS=[];for(const [x,y0,w,h] of [[-14,330,70,150],[-6,500,56,110],[4,215,60,95],[545,270,56,95],[550,430,50,80],[552,-70,50,80],[-8,-130,56,90],[-10,-330,60,100],[548,-300,52,90]]){const ry=V-(V-y0)*AHF;const bad=(X,Y,o)=>{for(let a=0;a<=1;a+=.2)for(let q=0;q<=1;q+=.2)if(q<=1-Math.abs(a-.3)*1.2){const px=X+w*a,py=Y-h*q;if(onX(px,py,4)||(o&&py<V&&Math.abs(px-slopeX(py))<slopeW(py)+8)||px<XL+2||px>XR-2)return 1}return 0};let ok=null;for(const dy of [0,-50,50,-100,100])for(const dx of [0,-25,25,-50,50])if(!ok&&!bad(x+dx,ry+dy,dx||dy))ok=[x+dx,ry+dy];if(ok&&ok[1]>GLB()+30){rock(c,ok[0],ok[1],w,h);ROCKS.push([ok[0],ok[1],w,h])}}area5Rocks(c);obTerrain(c);obStatic(c);
+ ROCKS=[];for(const [x,y0,w,h] of [[-14,330,70,150],[-6,500,56,110],[4,215,60,95],[545,270,56,95],[550,430,50,80],[552,-70,50,80],[-8,-130,56,90],[-10,-330,60,100],[548,-300,52,90]]){const ry=V-(V-y0)*AHF;const bad=(X,Y,o)=>{for(let a=0;a<=1;a+=.2)for(let q=0;q<=1;q+=.2)if(q<=1-Math.abs(a-.3)*1.2){const px=X+w*a,py=Y-h*q;if(onX(px,py,4)||(o&&py<V&&Math.abs(px-slopeX(py))<slopeW(py)+8)||px<XL+2||px>XR-2)return 1}return 0};let ok=null;for(const dy of [0,-50,50,-100,100])for(const dx of [0,-25,25,-50,50])if(!ok&&!bad(x+dx,ry+dy,dx||dy))ok=[x+dx,ry+dy];if(ok&&ok[1]>GLB()+30){rock(c,ok[0],ok[1],w,h);ROCKS.push([ok[0],ok[1],w,h])}}area5Rocks(c);fwAll(c);rkExtra(c);obTerrain(c);obStatic(c);
  trees=[];{const A=G.areas,TG={},hutY=Yk(1)+20,hutX=Math.max(40,slopeX(hutY)-slopeW(hutY)-40),dX=parkX(0),dY=parkY(),sb=SCB();
   const box=(x,y,a,b,c2,d)=>x>a&&x<b&&y>c2&&y<d;
   const HB=i=>[HX[i]-34,HX[i]+34,V+80,V+160];
@@ -7197,7 +7312,7 @@ function wrOv(){const R=G.wrR,show=!!(wrDay()&&['r1','p','r2','end'].includes(R.
 
 // ===== V239: Versteckter Testbereich (Optionen › 5× auf die Versionszeile tippen) =====
 // Jeder Test sichert vorher den Spielstand; „Test beenden“ holt ihn zurück. Neue Tests einfach in TESTS eintragen.
-const TVER='V281',TBAK='art-test-bak';
+const TVER='V282',TBAK='art-test-bak';
 // V263: Test „Alles ausgebaut“ – kauft über das Baumenü alles, was es gibt (Voraussetzungen und Sterne werden dabei übersprungen), und stellt Baustellen sofort fertig. wc = mit Verbindungsbahn West.
 var TALL=0;
 function tstAll(wc){const m0=G.money,st0=G.stN;let n=0;TALL=1;G.stN=5;
@@ -7367,7 +7482,7 @@ function draw0(dt){
     else{c.strokeStyle=INK;c.lineWidth=1.1;for(const d of [-1.3,1.3]){c.beginPath();c.moveTo(px+d,12);c.lineTo(px+d,17);c.stroke()}}
     c.strokeStyle=INK;c.lineWidth=1});}
    c.restore()}}
- wcDraw(c,T);zuDraw(c,T);if(G.train){OBAQ.push({k:TY()-30,d:c=>bahnhof(c,T)});OBAQ.sort((a,b)=>a.k-b.k);bahnDeko(c,T)}if(inVR(120,V-120,760,V+320,80)){hotels(c,T);hotelLit()}terrace(c);kiosk(c);if(G.rest)restaurant(c);kassa(c);qFence(c);waitSign(c);if(G.up.s){school(c,T);const {x,y}=SCB();for(let r=0;r<2;r++)for(const q of [-32,-20,12,24])nlLit(x+q,y-35+r*18,8,8)}if(G.ap){apres(c,T);if(apOpen()){const t=T;const W=apWinPts(),bb=[Math.min(...W.map(w=>w[0])),Math.min(...W.map(w=>w[1])),Math.max(...W.map(w=>w[0]+w[2])),Math.max(...W.map(w=>w[1]+w[3]))];nlDo((l,la)=>{l.globalAlpha=Math.min(1,la*1.3);for(const [wx,wy,ww,wh,i] of W){l.fillStyle=apCol(i,t,55);l.fillRect(wx,wy,ww,wh)}},bb)}}oaDraw(c,T);if(G.up.h)hut(c,T);gipfel(c,T);if(G.garage)garagePortal(c,gFree(1),T,GX,gLv(1),'');if(G.garage2)garagePortal(c,gFree(2),T,GX2,gLv(2),' 2');if(G.ph)phDraw(c,T);pkDraw(c,T);
+ fwLive(c,T);wcDraw(c,T);zuDraw(c,T);if(G.train){OBAQ.push({k:TY()-30,d:c=>bahnhof(c,T)});OBAQ.sort((a,b)=>a.k-b.k);bahnDeko(c,T)}if(inVR(120,V-120,760,V+320,80)){hotels(c,T);hotelLit()}terrace(c);kiosk(c);if(G.rest)restaurant(c);kassa(c);qFence(c);waitSign(c);if(G.up.s){school(c,T);const {x,y}=SCB();for(let r=0;r<2;r++)for(const q of [-32,-20,12,24])nlLit(x+q,y-35+r*18,8,8)}if(G.ap){apres(c,T);if(apOpen()){const t=T;const W=apWinPts(),bb=[Math.min(...W.map(w=>w[0])),Math.min(...W.map(w=>w[1])),Math.max(...W.map(w=>w[0]+w[2])),Math.max(...W.map(w=>w[1]+w[3]))];nlDo((l,la)=>{l.globalAlpha=Math.min(1,la*1.3);for(const [wx,wy,ww,wh,i] of W){l.fillStyle=apCol(i,t,55);l.fillRect(wx,wy,ww,wh)}},bb)}}oaDraw(c,T);if(G.up.h)hut(c,T);gipfel(c,T);if(G.garage)garagePortal(c,gFree(1),T,GX,gLv(1),'');if(G.garage2)garagePortal(c,gFree(2),T,GX2,gLv(2),' 2');if(G.ph)phDraw(c,T);pkDraw(c,T);
  for(const n of cann){if(!G.kan||n.k>G.areas||cOff(n))continue;const p=cpos(n);if(!inV(p.x,p.y,50))continue;cannon(c,p.x,p.y,n.on,T);
   if(n.on>0&&G.look!=='neu')for(let q=0;q<3;q++){const ph=(T*2+q/3)%1;c.fillStyle='rgba(255,255,255,'+(.6*(1-ph))+')';c.beginPath();c.arc(p.x+9+ph*10,p.y-9-ph*8,3+ph*5,0,7);c.fill()}}
  if(G.areas<NA){const y=Yk(G.areas)-34;c.save();c.beginPath();c.rect(XL-10,-EXT-20,OBX0+24-XL,y+EXT+20);c.clip();c.fillStyle='rgba(206,230,247,.88)';c.fillRect(XL-10,-EXT-20,OBX0+24-XL,y+EXT+20);
