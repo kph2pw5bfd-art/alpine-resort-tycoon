@@ -897,7 +897,7 @@ function nsTog(i){if(!G.flut)return;G.nW=G.nW||[0,0,0,0,0,0,0];const td=wkD(),ol
  lg('🌙','lif','Nachtskilauf am '+WKL[i]+(G.nW[i]?' eingeschaltet':' ausgeschaltet'));
  if(i===td&&G.nTf&&G.nTf.d===G.day)toast('🌙 Für heute zu spät – gilt ab nächster Woche');sfx('click');render();save()}
 // V294: nach dem Kauf des Flutlichts gleich die Nachtski-Tage wählen (eigenes Fenster)
-function nsBox(){if(!G.flut||$('nsbox'))return;const o=document.createElement('div');o.id='nsbox';document.body.appendChild(o);
+function nsBox(){if(!G.flut||$('nsbox')||(typeof TALL!=='undefined'&&TALL))return;const o=document.createElement('div');o.id='nsbox';document.body.appendChild(o);
  o.style.cssText='position:fixed;inset:0;z-index:9997;background:rgba(20,30,50,.55);display:flex;align-items:center;justify-content:center;padding:16px';
  const pz=!paused;paused=true;$('pz').textContent='▶';
  const fill=()=>{o.innerHTML=`<div style="background:var(--card,#fff);color:var(--ink,#2b3a55);border-radius:18px;max-width:400px;width:100%;max-height:92vh;overflow:auto;padding:16px 16px 14px;box-shadow:0 10px 30px rgba(0,0,0,.35);font-size:14px;line-height:1.4">
@@ -6942,17 +6942,17 @@ function rwRuf(){const E=Math.round(rufE()),B=Math.round(G.ruf),bo=Math.round(bo
  const col=E>=75?'#2e9e5b':E>=50?'#e8a33a':'#e8504a';let h='';
  const tr=rate==null?'Sobald Gäste heimfahren, bewerten sie ihren Tag – daraus entsteht die Basis.':Math.abs(rate-B)<2?'Die Gäste bewerten etwa so, wie dein Ruf ist – er bleibt ungefähr gleich.':rate<B?'📉 Die Gäste sind gerade unzufriedener als dein Ruf – er <b>sinkt langsam</b> Richtung '+rate+' %.':'📈 Die Gäste sind gerade zufriedener als dein Ruf – er <b>steigt langsam</b> Richtung '+rate+' %.';
  h+=rwCard(`<div style="display:flex;align-items:flex-end;justify-content:space-between;gap:8px"><div><small style="color:var(--mut)">Ruf gerade</small><div style="font:700 38px 'Fredoka',sans-serif;line-height:1;color:${col}">${E} %</div></div><div style="text-align:right;font-size:13px">${y==null?'':`<b style="color:${dl<0?'#e8504a':dl>0?'#2e9e5b':'var(--mut)'}">${dl<0?'▼':dl>0?'▲':'±'} ${Math.abs(dl)}</b> seit gestern<br>`}${rate==null?'':`<span style="color:var(--mut)">Gäste bewerten mit ${rate} %</span>`}</div></div>
-  <div style="height:10px;background:var(--line);border-radius:6px;margin:10px 0 6px;overflow:hidden;position:relative"><div style="width:${E}%;height:100%;background:${col}"></div>${cap<100?`<i style="position:absolute;left:${cap}%;top:-2px;bottom:-2px;width:2px;background:#e8504a"></i>`:''}</div><div style="font-size:13px">${tr}</div>`);
- // Zusammensetzung
- const top=Math.min(B+bo,cap),cut=B+bo-top;
+  <div style="height:10px;background:var(--line);border-radius:6px;margin:10px 0 6px;overflow:hidden;position:relative"><div style="width:${E}%;height:100%;background:${col}"></div>${Math.round(cap)<100?`<i style="position:absolute;left:${Math.round(cap)}%;top:-2px;bottom:-2px;width:2px;background:#e8504a"></i>`:''}</div><div style="font-size:13px">${tr}</div>`);
+ // Zusammensetzung (V297: ganze Zahlen, Deckel verständlich)
+ const capR=Math.round(cap),top=Math.min(B+bo,capR),gr=Math.max(0,top-B),cut=B+bo-top,why=[cp.pi>.05?'die Pisten nicht perfekt präpariert sind':'',cp.sn>.05?'zu wenig Schnee liegt':''].filter(Boolean);
  h+=`<div class="pgh">🧮 So entsteht dein Ruf</div>`+rwCard(`<div style="display:flex;height:26px;border-radius:7px;overflow:hidden;font:600 12px sans-serif;color:#fff;background:var(--line)">
-  <div style="flex:${Math.max(0,Math.min(B,top))};background:#2f7fd8;display:flex;align-items:center;justify-content:center;min-width:0;overflow:hidden;white-space:nowrap">${B>=14?'Basis '+B:B}</div>
-  ${top-B>0?`<div style="flex:${top-B};background:#2e9e5b;display:flex;align-items:center;justify-content:center;min-width:0;overflow:hidden">+${top-B}</div>`:''}
-  ${ab<0?`<div style="flex:${-ab};background:#e8504a;display:flex;align-items:center;justify-content:center;min-width:0;overflow:hidden">${ab}</div>`:''}
+  <div style="flex:${Math.min(B,top)};background:#2f7fd8;display:flex;align-items:center;justify-content:center;min-width:0;overflow:hidden;white-space:nowrap">${B>=14?'Basis '+B:B}</div>
+  ${gr>0?`<div style="flex:${gr};background:#2e9e5b;display:flex;align-items:center;justify-content:center;min-width:0;overflow:hidden;white-space:nowrap">${gr>=4?'+'+gr:''}</div>`:''}
+  ${ab<0?`<div style="flex:${-ab};background:#e8504a;display:flex;align-items:center;justify-content:center;min-width:0;overflow:hidden;white-space:nowrap">${-ab>=4?ab:''}</div>`:''}
   <div style="flex:${Math.max(0,100-top-Math.max(0,-ab))}"></div></div>
-  <div style="display:flex;gap:4px 12px;font-size:12.5px;margin-top:8px;flex-wrap:wrap"><span><b style="color:#2f7fd8">■</b> Basis ${B}: Bewertung der Gäste</span><span><b style="color:#2e9e5b">■</b> Bonus +${bo}: Gebäude, Werbung, Neues</span>${ab<0?`<span><b style="color:#e8504a">■</b> Abzüge ${ab}</span>`:''}</div>
-  <div style="font-size:13px;margin-top:6px"><b>${B} + ${bo}${cut>0?' (gedeckelt auf '+Math.round(cap)+')':''}${ab<0?' − '+(-ab):''} = ${E} %</b></div>
-  ${cap<100?`<div style="font-size:12.5px;color:#e8504a;margin-top:4px">Höchstens ${Math.round(cap)} %, weil ${[cp.pi>=1?'die Pisten schlecht präpariert sind':'',cp.sn>=1?'zu wenig Schnee liegt':''].filter(Boolean).join(' und ')}.</div>`:''}`);
+  <div style="display:flex;gap:4px 12px;font-size:12.5px;margin-top:8px;flex-wrap:wrap"><span><b style="color:#2f7fd8">■</b> Basis ${B}: Bewertung der Gäste</span><span><b style="color:#2e9e5b">■</b> Bonus +${bo}${cut>0?` (davon zählen ${gr})`:''}: Gebäude, Werbung, Neues</span>${ab<0?`<span><b style="color:#e8504a">■</b> Abzüge ${ab}</span>`:''}</div>
+  <div style="font-size:13px;margin-top:6px"><b>${cut>0?`${B} + ${bo} = ${B+bo}, mehr als ${capR} geht nicht${ab<0?' · dann − '+(-ab):''} → ${E} %`:`${B} + ${bo}${ab<0?' − '+(-ab):''} = ${E} %`}</b></div>
+  ${cut>0?`<div style="font-size:12.5px;color:var(--mut);margin-top:4px">${capR>=100?'Mehr als 100 % geht nicht – der übrige Bonus verfällt.':'Höchstens '+capR+' %, weil '+(why.length?why.join(' und '):'Piste und Schnee nicht ganz perfekt sind')+'.'}</div>`:capR<100&&why.length?`<div style="font-size:12.5px;color:#e8504a;margin-top:4px">Achtung: höchstens ${capR} % möglich, weil ${why.join(' und ')}.</div>`:''}`);
  // Verlauf 14 Tage
  {const D=H.slice(-13).map(x=>({d:x.d,v:x.r})).concat([{d:G.day,v:E}]),n=D.length;
   if(n>=2){const W=340,Hh=118,X=i=>14+i*(W-40)/(n-1),Y=v=>Hh-12-v/100*(Hh-26);let bg='';
@@ -7542,7 +7542,7 @@ function wrOv(){const R=G.wrR,show=!!(wrDay()&&['r1','p','r2','end'].includes(R.
 
 // ===== V239: Versteckter Testbereich (Optionen › 5× auf die Versionszeile tippen) =====
 // Jeder Test sichert vorher den Spielstand; „Test beenden“ holt ihn zurück. Neue Tests einfach in TESTS eintragen.
-const TVER='V296',TBAK='art-test-bak';
+const TVER='V297',TBAK='art-test-bak';
 // V263: Test „Alles ausgebaut“ – kauft über das Baumenü alles, was es gibt (Voraussetzungen und Sterne werden dabei übersprungen), und stellt Baustellen sofort fertig. wc = mit Verbindungsbahn West.
 var TALL=0;
 function tstAll(wc){const m0=G.money,st0=G.stN;let n=0;TALL=1;G.stN=5;
