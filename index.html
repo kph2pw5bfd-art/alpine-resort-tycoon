@@ -552,7 +552,7 @@ function mpDay(){const m=mpCalc(G.rk,G.inc.ab);G.mp=m.v;G.mpL=Object.assign({d:G
 function earlyChk(f){if(f.early||f.kid||f.oa||f.nt||(f.rides||0)<2||closed()||phase()>=f.home)return;const {sat}=satQ(f);if(sat>=.38)return;
  f.early=1;f.home=phase();G.inc.ea=(G.inc.ea||0)+1;if(G.inc.ea===1)lg('😠','anr','Erster Gast fährt verärgert früher heim');
  if(!bub&&SET.bub){const vx=camX,vy=camY;if(f.x>vx&&f.x<vx+cw/S&&f.y>vy&&f.y<vy+ch/S){const th=['😠','Mir reicht\'s, ich fahr heim!',0];bub={f,th,t:0};sfx('bad');bubT=8+Math.random()*5;const R=G.thR||(G.thR=[]);R.push({d:G.day,h:clock(Math.min(phase(),1)),ic:th[0],t:th[1],p:0});if(R.length>8)R.shift()}}}
-function satQ(f){const ty=gTy(f),ww=(f.wt||0)/Math.max(1,f.bd||f.rides)/(DAY*.056/TSD)*60,cp=cpen(),Wm=ty==='pro'?2:ty==='anf'?.8:1,Pm=ty==='fam'?1.6:ty==='pro'?.8:1,q={f:f.ate?(1-fpr())*.1*(ty==='fam'?1.5:1):0,pi:-cp.pi/100*(ty==='sb'?.7:1),sn:-cp.sn/100,w:-Math.min(ty==='pro'?.6:.45,Math.max(0,ww-8)/60*Wm*DF().w*(1+.08*(stars()-1))),p:-Math.max(0,(f.nt?G.nk/(fair()*.5):f.half?G.half/(fair()*.6):f.ssk?sskP()/sskF():tkP()/tkF())-1)*.6*Pm,m:-(.12*(f.nbA||0)*(ty==='fam'?1.5:1)*rq('mb')+.08*(f.nkA||0)*(ty==='pro'?1.5:1)*rq('mk'))/Math.max(1,f.rd||0),k:f.pk?.03*(ty==='pro'?1.5:1):0,sx:f.sxR?.03:0,pw:ty==='sb'&&G.wx==='schnee'?.05:0,ap:f.hg&&G.areas>=2?(G.ap?.04:-.04*rq('ap')):0,hu:G.areas>=2&&!G.rest&&!(f.ost&&G.ores)&&f.wl&&!f.nt&&!f.half&&!f.kid&&phase()>=.40?-.03*(ty==='fam'?1.5:1)*rq('hu'):0,st:-(f.stm?.05:0)-(f.sto?.04:0),bw:G.areas>=4&&!stf().bw?-.03*rq('bw'):0,gf:f.gpf?(f.gpf<=32?.05:f.gpf<=42?.02:-.03):0,sa:stauQ(f)};return {q,sat:cl(DF().b+seaB()+q.f+q.pi+q.sn+q.w+q.p+q.m+q.k+(q.sx||0)+q.pw+q.ap+q.hu+q.st+q.bw+q.gf+q.sa,0,1)}}
+function satQ(f){const ty=gTy(f),ww=(f.wt||0)/Math.max(1,f.bd||f.rides)/(DAY*.056/TSD)*60,cp=cpen(),Wm=ty==='pro'?2:ty==='anf'?.8:1,Pm=ty==='fam'?1.6:ty==='pro'?.55:1,q={f:f.ate?(1-fpr())*.1*(ty==='fam'?1.5:1):0,pi:-cp.pi/100*(ty==='sb'?.7:1),sn:-cp.sn/100,w:-Math.min(ty==='pro'?.6:.45,Math.max(0,ww-8)/60*Wm*DF().w*(1+.08*(stars()-1))),p:-Math.max(0,(f.nt?G.nk/(fair()*.5):f.half?G.half/(fair()*.6):f.ssk?sskP()/sskF():tkP()/tkF())-1)*.6*Pm,m:-(.12*(f.nbA||0)*(ty==='fam'?1.5:1)*rq('mb')+.08*(f.nkA||0)*(ty==='pro'?1.5:1)*rq('mk'))/Math.max(1,f.rd||0),k:f.pk?.03*(ty==='pro'?1.5:1):0,sx:f.sxR?.03:0,pw:ty==='sb'&&G.wx==='schnee'?.05:0,ap:f.hg&&G.areas>=2?(G.ap?.04:-.04*rq('ap')):0,hu:G.areas>=2&&!G.rest&&!(f.ost&&G.ores)&&f.wl&&!f.nt&&!f.half&&!f.kid&&phase()>=.40?-.03*(ty==='fam'?1.5:1)*rq('hu'):0,st:-(f.stm?.05:0)-(f.sto?.04:0),bw:G.areas>=4&&!stf().bw?-.03*rq('bw'):0,gf:f.gpf?(f.gpf<=32?.05:f.gpf<=42?.02:-.03):0,sa:stauQ(f)};return {q,sat:cl(DF().b+seaB()+q.f+q.pi+q.sn+q.w+q.p+q.m+q.k+(q.sx||0)+q.pw+q.ap+q.hu+q.st+q.bw+q.gf+q.sa,0,1)}}
 
 // ===== Gedanken der Gäste (V134): Heimfahr-Bewertung, kleine Sprechblasen im Spiel =====
 
@@ -1276,17 +1276,71 @@ function achHTML(){const A=G.ach||{},n=ACH.filter(a=>A[a[0]]).length;let h=`<div
 // ===== Gästeliste (V155) =====
 let glSort='low',glTy='all';
 function glThought(f){const now=performance.now();if(!f._tht||now-f._thT>6000){f._thT=now;f._tht=thNow(f)||null}return f._tht}
-function glBody(){const F=folks.filter(f=>!f.dead&&!f.oa&&f.st!=='go');if(!F.length)return '<p class="hint">Gerade sind keine Gäste im Skigebiet.</p>';
- const L=F.map(f=>{gTy(f);return {f,v:Math.round(satQ(f).sat*100)}}).filter(x=>glTy==='all'||x.f.ty===glTy||(glTy==='hg'&&x.f.hg));
- L.sort((a,b)=>glSort==='low'?a.v-b.v:glSort==='high'?b.v-a.v:(a.f.ty||'').localeCompare(b.f.ty||'')||a.v-b.v);
- const av=Math.round(L.reduce((a,x)=>a+x.v,0)/Math.max(1,L.length)),bad=L.filter(x=>x.v<45).length;
- let h=`<div class="kpi"><div><small>Im Gebiet${glTy!=='all'?' (gefiltert)':''}</small><b>${L.length} Gäste</b></div><div><small>Laune im Schnitt</small><b style="color:${av>=75?'#2e9e5b':av>=55?'#e8a33a':'#e8504a'}">${av} %</b>${bad?` <small style="color:#e8504a">${bad} verärgert</small>`:''}</div></div>`;
- h+=L.slice(0,60).map(({f,v})=>{const th=glThought(f),col=v>=75?'#2e9e5b':v>=55?'#e8a33a':'#e8504a',i=folks.indexOf(f);
-  return `<div class="bk gl" data-gl="${i}"><div class="ic">${GT[f.ty]?GT[f.ty][0]:'🙂'}</div><div class="tx"><b>${gName(f)}${f.hg?' <small style="display:inline;color:var(--mut)">🏨</small>':''}</b><small class="sh">${th?th[0]+' „'+th[1]+'“':ACT(f)}</small></div><div class="br"><b style="color:${col}">${v} %</b><small class="cst">${f.early?'😠 fährt heim':th?ACT(f).replace(/^(Steht am|Fährt mit) /,''):''}</small></div></div>`}).join('');
- if(L.length>60)h+=`<p class="hint">… und ${L.length-60} weitere.</p>`;return h}
-function glHTML(){const sg=(k,v,l,cur)=>`<button data-gls="${k}:${v}" class="${cur===v?'on':''}">${l}</button>`;
- return `<div class="seg sm">${sg('s','low','😠 Schlechteste',glSort)}${sg('s','high','😄 Beste',glSort)}${sg('s','ty','👥 Nach Typ',glSort)}</div><div class="seg sm">${sg('t','all','Alle',glTy)}${['fam','anf','pro','sb'].map(k=>sg('t',k,GT[k][0],glTy)).join('')}${sg('t','hg','🏨',glTy)}</div><div id="sgl">${glBody()}</div><p class="hint">Tippe einen Gast an, um ihn im Spiel zu finden und seine Karte zu öffnen. Die Liste aktualisiert sich alle paar Sekunden.</p>`}
-function glBind(){document.querySelectorAll('[data-gl]').forEach(b=>b.onclick=()=>{const f=folks[+b.dataset.gl];if(!f||f.dead)return;camA=null;camX=f.x-cw/S/2;camY=f.y-ch*.3/S;clampCam();gstOpen(f)})}
+// ===== V301: Reiter Gäste neu – was die meisten denken und tun, Gästemix, Werbe-Empfehlung (Präfix gx…/GX…) =====
+// Ausgaben je Gästetyp heute: G.tyS={d,fam:{n,m},…} (n = Gäste mit Karte, m = Geld)
+function tyPay(f,v,t){if(!f||f.kid||f.oa||!(v>0))return;const S=G.tyS&&G.tyS.d===G.day?G.tyS:(G.tyS={d:G.day});const k=gTy(f),o=S[k]||(S[k]={n:0,m:0});o.m+=v;if(t)o.n++}
+const GXT={fam:'Essen viel · achten auf den Preis · brauchen Blaue + Hütte',anf:'Skischule + Verleih · Warten ist ihnen egal · brauchen Blaue',pro:'Zahlen mehr ohne Murren · hassen Warten · wollen Schwarze',sb:'Lieben Neuschnee · feiern länger im Après-Ski'};
+// Was stört: Schlüssel aus satQ → [Symbol, Text, Ziel]
+function gxLongL(){let L=0,w=-1;for(let k=1;k<=G.areas;k++){const v=waitMin(k);if(v>w){w=v;L=k}}return [L,Math.round(w)]}
+function gxNeg(f,q){const o=[];const t=-.02;if(q.w<t)o.push('w');if(q.p<t)o.push('p');if(q.f<t)o.push('fp');if(q.pi<t)o.push('pi');if(q.sn<t)o.push('sn');if(q.m<t)o.push((f.nkA||0)>(f.nbA||0)?'mk':'mb');if(q.hu<t)o.push('hu');if(q.st<t)o.push('st');if(q.bw<t)o.push('bw');if(q.sa<t)o.push('sa');if(q.ap<t)o.push('ap');if(q.gf<t)o.push('gf');return o}
+function gxPos(f,q){const o=[];if(q.pw>0)o.push('pw');if(q.k>0)o.push('k');if(q.f>=.02)o.push('f');if(q.ap>0)o.push('apy');if(q.gf>0)o.push('gf+');if(q.w===0&&(f.bd||f.rides))o.push('kw');if(q.p===0&&!f.nt&&!f.half&&tkP()<tkF()*.95)o.push('kp');if(q.pi>-.004&&G.areas>=2)o.push('gp');return o}
+function gxLab(k){const [L,w]=gxLongL();return ({w:['⌛','Wartezeiten'+(L?' (am längsten: Lift '+L+', '+w+' Min.)':''),'w'],p:['💸','Preis der Liftkarte','pre'],fp:['🍽️','Essen zu teuer','pre'],pi:['😖','Pisten voller Buckel','rau|Pistenraupe'],sn:['🪨','Zu wenig Schnee','rau|Schneekanonen-Paket'],mb:['😰','Keine blaue Piste','rau|Blaue Abfahrt'],mk:['🥱','Keine schwarze Piste','rau|Schwarze Abfahrt'],hu:['🍲','Kein richtiges Mittagessen','gas|Berghütte'],st:['🛑','Lift steht still',null],bw:['🚑','Keine Bergwacht','stf|Bergwacht'],sa:['🚗','Stau bei der Anreise',null],ap:['🍻','Abends nichts los','gas|Après-Ski-Hütte'],gf:['🍽️','Panorama-Menü zu teuer','pre'],
+ pw:['❄️','Pulverschnee'],k:['🤩','Schwarze Abfahrt'],f:['😋','Essen zu fairen Preisen'],apy:['🎉','Après-Ski'],'gf+':['🏔️','Panorama Restaurant'],kw:['🚡','Kurze Wartezeiten'],kp:['🎟️','Günstige Liftkarte'],gp:['✨','Gut präparierte Pisten']})[k]||['•',k]}
+function gxGo(g){if(!g)return;if(g==='w'){const [L]=gxLongL();if(L){open=null;gbGo('l'+L)}return}if(g==='pre'){open='pre';render();$('sheet').scrollTop=0;return}goBuild(g)}
+// Zustände → Tätigkeit
+const GXA=[['🎿','Auf der Piste','#4fa3e0'],['🚡','Im Lift','#7b8cde'],['⏳','In der Schlange','#e8a33a'],['🍲','Essen & Pause','#f2a63b'],['🧖','Therme & Après-Ski','#b177e0'],['🚶','Unterwegs','#9aa5b5']];
+function gxAct(f){const s=f.st;if(s==='ski')return 0;if(/^(lift|olift2?|oclift|p9r)$/.test(s))return 1;if(/^(qu|oq2?|ocq|p9q|zuq)$/.test(s))return 2;if(/^(brk|gz|bnk|orin|pf|cafe)$/.test(s))return 3;if(/^(aps|oapi|hev|chev|at[A-Z].*|ar.*)$/.test(s))return 4;return 5}
+function gxCome(f){if(f.hg)return 3;if(f.byT)return 2;if(f.car&&(f.car.bus||f.car.ty==='rb'))return 1;return 0}
+const GXC=[['🚗','Auto','#9aa5b5'],['🚌','Reisebus','#f2a63b'],['🚆','Bahn','#4fa3e0'],['🏨','Hotelgäste','#b177e0']];
+// alles auf einmal auswerten (≤ 1×/2 s)
+function gxData(){const F=folks.filter(f=>!f.dead&&!f.oa&&!f.kid&&f.st!=='go');const D={n:F.length,sat:0,c:[0,0,0],neg:{},pos:{},ty:{},act:[0,0,0,0,0,0],come:[0,0,0,0],ost:0};
+ for(const f of F){const ty=gTy(f),Q=satQ(f),s=Q.sat,q=Q.q;D.sat+=s;D.c[s>=.75?0:s>=.55?1:2]++;const T=D.ty[ty]||(D.ty[ty]={n:0,sat:0,neg:{}});T.n++;T.sat+=s;
+  for(const k of gxNeg(f,q)){D.neg[k]=(D.neg[k]||0)+1;T.neg[k]=(T.neg[k]||0)+1}for(const k of gxPos(f,q))D.pos[k]=(D.pos[k]||0)+1;
+  D.act[gxAct(f)]++;D.come[gxCome(f)]++;if(f.ost)D.ost++}
+ return D}
+function gxTop(o,n){return Object.entries(o).sort((a,b)=>b[1]-a[1]).slice(0,n)}
+function gxPct(v,n){return Math.round(v/Math.max(1,n)*100)}
+// Gruppen für gezielte Werbung: Kennzahlen
+function gxGrp(D,ks){let n=0,s=0;const neg={};for(const k of ks){const T=D.ty[k];if(!T)continue;n+=T.n;s+=T.sat;for(const [a,b] of Object.entries(T.neg))neg[a]=(neg[a]||0)+b}const S=G.tyS&&G.tyS.d===G.day?G.tyS:{};let m=0,c=0;for(const k of ks){const o=S[k];if(o){m+=o.m;c+=o.n}}
+ return {n,sat:n?Math.round(s/n*100):0,neg,sp:c?Math.round(m/c):0}}
+// Passt die gezielte Kampagne gerade? → [Art g/w/n, Überschrift, Text] (g = passt, w = erst beheben, n = wenig Nutzen)
+function cmpFit(c,D){D=D||gxData();const occ0=G.hotels?Math.round(occ()*100):0;
+ if(c.k==='fa'||c.k==='fr'){const fa=c.k==='fa',G0=gxGrp(D,fa?['fam','anf']:['pro','sb']),nm=fa?'Familien und Anfänger':'Profis und Snowboarder';
+  if(G.areas>=2&&fa&&!G.pb)return ['w','Erst eine blaue Abfahrt:','Familien und Anfänger brauchen sie, sonst ärgern sie sich.'];
+  if(G.areas>=2&&!fa&&!G.ps)return ['w','Erst eine schwarze Abfahrt:','Profis wollen etwas Steiles.'];
+  if(G0.n<5)return ['n','Noch offen:','Gerade sind zu wenige '+nm+' da, um es zu sagen.'];
+  if(G0.sat<65){const t=gxTop(G0.neg,1)[0];return ['w',t?'Erst '+gxLab(t[0])[1].replace(/ \(.*\)/,'')+':':'Erst die Laune:',nm+' sind nur '+G0.sat+' % zufrieden'+(t?' – das stört sie am meisten.':'.')]}
+  if(G0.sat>=75)return ['g','Passt gut:',nm+' sind '+G0.sat+' % zufrieden'+(G0.sp?', Ø '+G0.sp+' € pro Gast':'')+'.'];
+  return ['n','Geht so:',nm+' sind '+G0.sat+' % zufrieden'+(G0.sp?', Ø '+G0.sp+' € pro Gast':'')+'.']}
+ if(c.k==='ho'){if(!G.hotels&&!choS())return null;return occ0>=88?['n','Wenig Nutzen:','Die Hotels sind schon zu '+occ0+' % belegt.']:occ0<65?['g','Passt gut:','Die Hotels sind nur zu '+occ0+' % belegt.']:['n','Geht so:','Die Hotels sind zu '+occ0+' % belegt.']}
+ if(c.k==='pa'){if(!G.ap)return null;const d=wkD(G.day);return d===3||d===4?['g','Passt gut:','Das Wochenende steht vor der Tür.']:d>=5?['n','Wenig Nutzen:','Das Wochenende läuft schon, die Werbung endet am Sonntag.']:['n','Lieber später:','Wirkt nur Fr–So – am besten am Donnerstag oder Freitag buchen.']}
+ if(c.k==='os'){if(ost()<1)return null;const p=gxPct(D.ost,D.n);return p<40?['g','Passt gut:','Nur '+p+' % der Gäste sind am Ostberg.']:['n','Wenig Nutzen:','Schon '+p+' % der Gäste sind am Ostberg.']}
+ if(c.k==='sw'){const b=G.wxN==='tau'||G.wxN==='sturm'||G.wx==='tau'||G.wx==='sturm';return b?['g','Passt gut:',(G.wx==='tau'||G.wx==='sturm'?'Gerade ist '+WN[G.wx]:'Vorhersage: '+WN[G.wxN])+'.']:['n','Wenig Nutzen:','Kein Schlechtwetter in Sicht.']}
+ return null}
+function cmpFitH(c,D){if(c.g)return '';const r=cmpFit(c,D);if(!r)return '';const col={g:'#e3f5ea',w:'#fff3d6',n:'var(--line)'}[r[0]],ic={g:'✅',w:'⚠️',n:'➖'}[r[0]];
+ return `<div style="margin:-2px 0 8px 46px;padding:5px 9px;border-radius:10px;background:${col};font-size:12.5px;line-height:1.3">${ic} <b>${r[1]}</b> ${r[2]}</div>`}
+function gxTip(D){const t=[];for(const k of ['fa','fr']){const c=CMPS.find(x=>x.k===k);if(!c||(c.lk&&c.lk()))continue;const r=cmpFit(c,D);if(!r||r[0]==='n')continue;t.push(r[0]==='g'?`<b>${c.n}</b> ${k==='fa'?'lohnen':'lohnt'} sich jetzt – ${r[2].replace(/\.$/,'')}.`:`${r[2].replace(/\.$/,'')}: ${r[1].replace(/:$/,'').replace(/^Erst /,'erst ')} beheben, dann lohnt ${k==='fr'?'das':'die'} <b>${c.n}</b>.`)}
+ return t.length?`<div class="gbhi b" style="margin-top:8px"><span>💡 <b>Werbe-Tipp:</b> ${t.join(' ')}</span><button class="btn" data-gg="wer">Werbung ›</button></div>`:''}
+function glBody(){const D=gxData();if(!D.n)return '<p class="hint">Gerade sind keine Gäste im Skigebiet.</p>';
+ const sec=t=>`<div class="bgh" style="margin-top:14px">${t}</div>`,av=Math.round(D.sat/D.n*100),pc=D.c.map(v=>gxPct(v,D.n));pc[0]=100-pc[1]-pc[2];
+ const bar=(a,v,ex)=>`<div style="display:flex;align-items:center;gap:8px;padding:5px 0;font-size:14px"><span style="width:134px;flex:none">${a[0]} ${a[1]}</span><span style="flex:1;height:12px;background:var(--line);border-radius:6px;overflow:hidden"><span style="display:block;height:100%;width:${v}%;background:${a[2]};border-radius:6px"></span></span><b style="width:44px;text-align:right">${v} %</b></div>`;
+ const row=(k,v,go)=>{const l=gxLab(k);return `<div class="row"><span>${l[0]} ${l[1]}</span><span style="display:flex;align-items:center;gap:8px"><b>${v} %</b>${go&&l[2]?`<button class="gob" data-gg="${l[2]}">›</button>`:''}</span></div>`};
+ let h=`<div class="kpi"><div><small>Gerade im Gebiet</small><b>${D.n} Gäste</b></div><div><small>Laune im Schnitt</small><b style="color:${av>=75?'#2e9e5b':av>=55?'#e8a33a':'#e8504a'}">${av} %</b></div></div>`;
+ h+=`<div style="display:flex;height:14px;border-radius:7px;overflow:hidden;margin:8px 0 4px;background:var(--line)"><span style="width:${pc[0]}%;background:#4cc27a"></span><span style="width:${pc[1]}%;background:#e8a33a"></span><span style="width:${pc[2]}%;background:#e8504a"></span></div><div style="display:flex;justify-content:space-between;font-size:12.5px;color:var(--mut)"><span>😄 zufrieden ${pc[0]} %</span><span>😐 neutral ${pc[1]} %</span><span>😠 verärgert ${pc[2]} %</span></div>`;
+ const ng=gxTop(D.neg,3);h+=sec('😠 Was die meisten stört')+(ng.length?ng.map(([k,v])=>row(k,gxPct(v,D.n),1)).join(''):'<p class="hint">Gerade stört die Gäste nichts Besonderes. 👍</p>');
+ const ps=gxTop(D.pos,3);if(ps.length)h+=sec('😄 Was den meisten gefällt')+ps.map(([k,v])=>row(k,gxPct(v,D.n),0)).join('');
+ h+=sec('👥 Gästemix · Laune · Ausgaben pro Gast heute');const S=G.tyS&&G.tyS.d===G.day?G.tyS:{};let sh=0;const KS=['fam','anf','pro','sb'],sp=KS.map(k=>gxPct((D.ty[k]||{n:0}).n,D.n));sp[0]=100-sp[1]-sp[2]-sp[3];
+ KS.forEach((k,i)=>{const T=D.ty[k]||{n:0,sat:0},l=T.n?Math.round(T.sat/T.n*100):0,o=S[k],e=o&&o.n?Math.round(o.m/o.n):null,lc=l>=75?'#2e9e5b':l>=55?'#e8a33a':'#e8504a';
+  h+=`<div style="display:flex;gap:10px;align-items:center;padding:8px 0;border-top:1px solid var(--line)"><span style="font-size:24px;width:30px;text-align:center">${GT[k][0]}</span><span style="flex:1;line-height:1.25"><b style="font-size:15px">${GT[k][1]}</b> <small style="color:var(--mut)">${sp[i]} % der Gäste</small><br><small style="color:var(--mut)">${GXT[k]}</small></span><span style="text-align:right;line-height:1.25">${T.n?`<b style="color:${lc}">${l} %</b>`:'<b style="color:var(--mut)">–</b>'}<br><small style="color:var(--mut)">${e!=null?'Ø '+e+' €':'–'}</small></span></div>`});
+ h+=gxTip(D);
+ h+=sec('🎿 Was die Gäste gerade machen');{const v=D.act.map(x=>gxPct(x,D.n));v[0]=100-v.slice(1).reduce((a,b)=>a+b,0);h+=GXA.map((a,i)=>bar(a,v[i])).join('')}
+ h+=sec('🚗 Wie sie gekommen sind');{const v=D.come.map(x=>gxPct(x,D.n));v[0]=100-v.slice(1).reduce((a,b)=>a+b,0);h+=GXC.map((a,i)=>bar(a,v[i])).join('')}
+ if(ost()>=1){const o=gxPct(D.ost,D.n);h+=`<div class="row"><span>⛰️ Westberg | Ostberg</span><b>${100-o} % | ${o} %</b></div>`}
+ {const A=G.rvA||[],la=A[A.length-1],T=G.thd||{},lob=gxTop(Object.fromEntries(Object.entries(T).filter(([k])=>TH[k]&&TH[k][2]&&k!=='ok'&&k!=='top')),1)[0],kri=gxTop(Object.fromEntries(Object.entries(T).filter(([k])=>TH[k]&&!TH[k][2]&&k!=='meh')),1)[0];
+  h+=sec('⭐ Bewertungen')+`<div class="row"><span>Durchschnitt${la?' (gestern, '+la.n+' Gäste)':''}</span><b style="color:#e8a33a">${la?'★'.repeat(Math.round(la.a))+'☆'.repeat(5-Math.round(la.a))+' '+String(la.a).replace('.',','):'kommt nach dem ersten Tag'}</b></div><div class="row"><span>👍 Häufigstes Lob heute</span><b>${lob?TH[lob[0]][1]:'–'}</b></div><div class="row"><span>👎 Häufigste Kritik heute</span><b>${kri?TH[kri[0]][1]:'–'}</b></div>`}
+ return h}
+function glHTML(){return `<div id="sgl">${glBody()}</div><p class="hint">Die Zahlen gelten für die Gäste, die gerade im Skigebiet sind, und aktualisieren sich alle paar Sekunden. Einzelne Gäste kannst du auf der Karte antippen.</p>`}
+function glBind(){document.querySelectorAll('[data-gg]').forEach(b=>b.onclick=()=>{const g=b.dataset.gg;if(g==='wer'){open='rw';rwTab='wer';render();$('sheet').scrollTop=0;return}gxGo(g)})}
 
 // ===== Einführung (V157) =====
 const TUT=[
@@ -1361,7 +1415,7 @@ const GPOS=()=>{const e=ends(4).t;return {x:e.x+112,y:e.y+30}};
 const gmp=()=>G.gmp||28,wcp=()=>G.wcp||25,kfp=()=>G.kfp||12;
 // Panorama Restaurant: Gäste oben an Lift 4+ essen hier
 function gipfEat(f,L){if(!prjOk('gipf')||L<4||f.gpf||stormOn())return;const p=phase();if(p<pAt(11)||p>pAt(14.5))return;const pr=cl(1.45-gmp()/34,.08,.95);if(Math.random()>pr*.55)return;
- const gv=Math.round(gmp()*wrGx());if(gv>gmp())G.wrR.gx+=gv-gmp();f.gpf=gv;G.money+=gv;G.inc.g=(G.inc.g||0)+gv;G.inc.gfn=(G.inc.gfn||0)+1;G.inc.gfm=(G.inc.gfm||0)+gv;G.gfT=performance.now();const P=GPOS();pop(P.x,P.y-30,gv)}
+ const gv=Math.round(gmp()*wrGx());if(gv>gmp())G.wrR.gx+=gv-gmp();f.gpf=gv;G.money+=gv;tyPay(f,gv);G.inc.g=(G.inc.g||0)+gv;G.inc.gfn=(G.inc.gfn||0)+1;G.inc.gfm=(G.inc.gfm||0)+gv;G.gfT=performance.now();const P=GPOS();pop(P.x,P.y-30,gv)}
 // Snowpark-Zustand
 const bdP=()=>.4;
 // Shows: Freestyle-Contest (Tag 12) und Skisprung-Weltcup (Tag 22)
@@ -1859,7 +1913,7 @@ function atRate(f){const fp=f.atH?ATF/2:ATF,po=Math.max(0,(f.atP||0)/fp-1),sat=c
 function atFolk(f,dt){
  if(f.st==='atG'){f.hid=1;f.atg=1;if(mv(f,AGX0+2,f.y,30,dt)){const hn=hrOf(phase());if(!atOpen()||hn>20.3){f.st='atGo';f.atP=0;return}f.atg=0;f.st='atIn';AT.way=Math.max(0,AT.way-1);AT.inn++;f.atE=pAt(Math.min(20.8,Math.max(hn+(f.atS||1.5),f.atL||0)));f.atM=hn<13.5&&hrOf(f.atE)>12.5?1:0;
    const half=f.hx!=null&&!f.car&&hrOf(phase())>=16,pr=Math.round(atEp()*(half?.5:1));f.atP=pr;f.atH=half?1:0;f.atC=AT.inn>ATCAP*.9?1:0;
-   G.money+=pr;G.inc.atm=(G.inc.atm||0)+pr;G.inc.atn=(G.inc.atn||0)+1;if(pr>0&&Math.random()<.3)pop(AGX0+8,AGY0-14,pr)}}
+   G.money+=pr;tyPay(f,pr);G.inc.atm=(G.inc.atm||0)+pr;G.inc.atn=(G.inc.atn||0)+1;if(pr>0&&Math.random()<.3)pop(AGX0+8,AGY0-14,pr)}}
  else if(f.st==='atIn'){if(phase()>=f.atE||!atOpen()){AT.inn=Math.max(0,AT.inn-1);f.st='atGo';f.x=AGX0+2;f.atg=1}}
  else if(f.st==='atGo'){const [xw,yw]=atPSW();if(mv(f,xw,f.y,30,dt)){f.atg=0;f.hid=0;f.y=yw;if(f.atP!==0){atRate(f);atEat(f)}const o=atOut(f);f.rt=o.r;f.nx=o.nx;f.st='rt';f.cw=null;f.zc=null}}}
 // Zähler alle 0,5 s nachzählen (sicher gegen Abweichungen)
@@ -2824,7 +2878,7 @@ function choHome(f,pre){if(!f.cho)return false;f.rt=[...pre,[1226,R-120],[1226,R
 // --- Skiverleih: Gäste ohne Ski gehen hinein, kommen mit Ski heraus ---
 const RNT={t:0};
 function rntWant(f,o){if(o?!G.rvo:!G.rvw)return false;if(f.nt||f.kid||f.oa||f.ape||f.atx||f.rnt||phase()>pAt(14))return false;
- const ty=gTy(f),b={fam:.35,anf:.4,sb:.15,pro:.06}[ty]||.2,pf=cl(1.5-.5*rnp()/rntF(),.25,1.25);f.rnt=Math.random()<b*pf?1:4;return f.rnt===1}
+ const ty=gTy(f),b={fam:.35,anf:.5,sb:.15,pro:.06}[ty]||.2,pf=cl(1.5-.5*rnp()/rntF(),.25,1.25);f.rnt=Math.random()<b*pf?1:4;return f.rnt===1}
 // West: Weg zur Kassa führt über HWX (K0); Umweg über die Tür nur, wenn der Gast vom Gehsteig kommt
 function rntAddW(f,rt){if(!rt||!G.rvw)return rt;const i=rt.findIndex(p=>p[0]===HWX&&p[1]===V+100);if(i<1||rt[i-1][1]<990)return rt;if(!rntWant(f,0))return rt;
  rt.splice(i,0,[524,1011],[524,1006,'R'],[503,1006]);return rt}
@@ -2833,7 +2887,7 @@ function rntAdd(f,rt){if(!rt||!G.rvo)return rt;let i=rt.findIndex(p=>p[0]===1246
  if(i>=0){if(rntWant(f,1))rt.splice(i,0,[1196,R-65],[1196,R-74,'R'],[1196,R-65]);return rt}
  i=rt.findIndex(p=>p[0]===OBUX&&p[1]===R-76&&p[2]==='s');if(i>=0&&rntWant(f,1))rt.splice(i+1,0,[OBUX,R-65],[1196,R-65],[1196,R-74,'R'],[1196,R-65],[OBUX,R-65],[OBUX,R-78]);return rt}
 function rntWait(f,dt){if(f.rwt==null){f.rwt=1.2+Math.random()*1.6;f.hid=1;f.vlO=f.x>800}f.rwt-=dt;if(f.rwt>0)return false;
- f.rwt=null;f.hid=0;f.rnt=2;const pr=rnp();G.money+=pr;G.inc.vl=(G.inc.vl||0)+pr;if(f.vlO)G.inc.von=(G.inc.von||0)+1;else G.inc.vn=(G.inc.vn||0)+1;if(Math.random()<.35)pop(f.x,f.y-18,pr);return true}
+ f.rwt=null;f.hid=0;f.rnt=2;const pr=rnp();G.money+=pr;tyPay(f,pr);G.inc.vl=(G.inc.vl||0)+pr;if(f.vlO)G.inc.von=(G.inc.von||0)+1;else G.inc.vn=(G.inc.vn||0)+1;if(Math.random()<.35)pop(f.x,f.y-18,pr);return true}
 // abends im Vorbeigehen zurückgeben
 function rntStep(dt){RNT.t-=dt;if(RNT.t>0)return;RNT.t=.3;if(!G.rvw&&!G.rvo)return;for(const f of folks){if(f.rnt!==2||f.st==='ski'||f.st==='lift'||f.st==='qu'||f.st==='oq'||f.hid)continue;if(phase()<pAt(14))continue;
   if((G.rvw&&Math.abs(f.x-524)<40&&Math.abs(f.y-1008)<16)||(G.rvo&&Math.abs(f.x-1196)<64&&Math.abs(f.y-1008)<16))f.rnt=3}}
@@ -3117,7 +3171,7 @@ const SPW={x:380,y:1186},SPO={x:1404,y:1186},SPWC=60000,SPOC=120000,SPSC=[20000,
 function spOver(x,y){for(const [o,P] of [[0,SPW],[1,SPO]])if(spLv(o)&&Math.abs(x-P.x)<46&&y>P.y-62&&y<P.y+8)return 1;return 0}
 // will der Gast hinein? (einmal pro Gast)
 function spWant(f,out){if(f.spq||f.kid||f.oa||f.nt||f.atx)return false;f.spq=1;{const h=hrOf(Math.min(phase(),.9999));if(h<8||h>=19.4)return false}
- const t=f.ty||'',k={fam:1.2,anf:1.35,pro:.8,sb:1.05}[t]||1,w=wxOn()?({sonne:1,schnee:1.35,tau:1.1,sturm:1.6})[G.wx]||1:1,pf=cl(1.5-.5*spp()/spFair(),.25,1.25);
+ const t=f.ty||'',k={fam:1,anf:.9,pro:1.6,sb:1.2}[t]||1,w=wxOn()?({sonne:1,schnee:1.35,tau:1.1,sturm:1.6})[G.wx]||1:1,pf=cl(1.5-.5*spp()/spFair(),.25,1.25);
  return Math.random()<(f.byT?(out?.22:.3):(out?.12:.18))*k*w*pf}
 const spDetW=()=>[[458,1200],[386,1197,'S'],[458,1200]],spDetO=()=>[[1380,1203],[1404,1197,'S'],[1380,1203]];
 // West hinein: Bahngäste vom Bahnsteig, Parkhaus-Gäste oben an der Treppe (über den Gehsteig bis x 458, dann vor das Haus)
@@ -3137,7 +3191,7 @@ function spOutOP(f,rt){if(!rt||!G.spo||f.byT)return rt;const i=rt.findIndex(p=>p
 function spOutO(f,rt){if(!rt||!G.spo||!f.byT||!rt.length)return rt;if(!spWant(f,1))return rt;rt.splice(rt.length-1,0,...spDetO());return rt}
 // im Geschäft: kurz verschwinden, bezahlen, mit Tasche heraus
 function spWait(f,dt){if(f.swt==null){f.swt=2+Math.random()*2.4;f.hid=1;f.spO=f.x>800}f.swt-=dt;if(f.swt>0)return false;
- f.swt=null;f.hid=0;if(!spOpen())return true;const w=wxOn()&&G.wx==='sturm'?1.2:1,pr=Math.max(5,Math.round(spp()*(.6+.8*Math.random())*w));G.money+=pr;G.inc.sp=(G.inc.sp||0)+pr;
+ f.swt=null;f.hid=0;if(!spOpen())return true;const w=(wxOn()&&G.wx==='sturm'?1.2:1)*(f.ty==='pro'?1.3:1),pr=Math.max(5,Math.round(spp()*(.6+.8*Math.random())*w));G.money+=pr;tyPay(f,pr);G.inc.sp=(G.inc.sp||0)+pr;
  if(f.spO)G.inc.spon=(G.inc.spon||0)+1;else G.inc.spn=(G.inc.spn||0)+1;f.bag=pick(['#e8504a','#2f80ed','#34c0b8','#ffb02e']);if(Math.random()<.4)pop(f.x,f.y-18,pr);return true}
 // Ski-Service über Nacht (Tagesabschluss)
 function spNight(){let n=0;if(G.spw>=2)n+=Math.round(G.hotels*20*occ()*.3+(prjOk('therme')?20*occT()*.3:0));if(G.spo>=2)n+=Math.round(choBeds()*choOcc()*.3);if(!n)return;const v=n*SPSP;G.inc.sp=(G.inc.sp||0)+v;G.ssL=n}
@@ -4325,9 +4379,9 @@ const TB=[[520,V0=>V0+8],[559,V0=>V0+18],[524,V0=>V0+42],[562,V0=>V0+54]],SO=[[-
 const spd=L=>(isG(L)?(stormOn()?15:30):G.cap[L-1]>4?26:18)*wrLs(),thr=L=>{if(wcIn(L))return lifts[0].length*G.cap[0]*spd(1)/(2*wcP().L);const e=ends(L),len=Math.hypot(e.t.x-e.b.x,e.t.y-e.b.y);return lifts[L-1].length*G.cap[L-1]*spd(L)/(2*len)},waitMin=L=>queues[L-1].length/Math.max(.05,thr(L))/(DAY*.056/TSD)*60,
  wfmt=m=>m<1?'keine':m<60?Math.round(m)+' Min':Math.floor(m/60)+' Std '+String(Math.round(m%60)).padStart(2,'0'),lunchT=()=>{const p=phase();return p>=.29&&p<.40},q6cost0=k=>[7000,10000,14000,19000,25000,30000][k-1],q6cost=k=>wcSum(q6cost0,k);
 const KX=458,ky=()=>V+50;
-function buyT(f){if(f.paid)return;f.paid=1;const ss=ob9Buy(f),pr=ss||(f.kid?kidP():f.nt?G.nk:f.half?G.half:tkP());if(f.kid&&schulOn()){G.ev.inc+=pr;if(G.up.s){G.money+=15;G.inc.ev=(G.inc.ev||0)+15;G.ev.inc+=15}}G.money+=pr;G.inc.l+=pr;if(f.nt){G.inc.nn=(G.inc.nn||0)+1;G.inc.nk=(G.inc.nk||0)+pr}else if(f.half)G.inc.nh=(G.inc.nh||0)+1;else G.inc.n=(G.inc.n||0)+1;pop(KX,ky()-50,pr)}
+function buyT(f){if(f.paid)return;f.paid=1;const ss=ob9Buy(f),pr=ss||(f.kid?kidP():f.nt?G.nk:f.half?G.half:tkP());if(f.kid&&schulOn()){G.ev.inc+=pr;if(G.up.s){G.money+=15;G.inc.ev=(G.inc.ev||0)+15;G.ev.inc+=15}}G.money+=pr;G.inc.l+=pr;tyPay(f,pr,1);if(f.nt){G.inc.nn=(G.inc.nn||0)+1;G.inc.nk=(G.inc.nk||0)+pr}else if(f.half)G.inc.nh=(G.inc.nh||0)+1;else G.inc.n=(G.inc.n||0)+1;pop(KX,ky()-50,pr)}
 const RX=540,fpm=()=>(G.fp||100)/100,buyP=()=>cl(1.3-.5*fpr(),.2,1);
-function eat(f,base){if(Math.random()>buyP())return;const pm=wrGx(),pr=Math.max(1,Math.round(base*fpm()*pm*hgF(f)));if(pm>1)G.wrR.gx+=pr-pr/pm;G.money+=pr;G.inc.g=(G.inc.g||0)+pr;{const kk=f.at==='hut'?'gh':f.at==='rest'?'gr':f.at==='aps'?'ga':'gk';G.inc[kk]=(G.inc[kk]||0)+pr;G.inc[kk+'c']=(G.inc[kk+'c']||0)+1}f.ate=1;if(pr>=10||Math.random()<(f.at==='aps'?.08:.35))pop(f.x,f.y-18,pr)}
+function eat(f,base){if(Math.random()>buyP())return;const pm=wrGx(),tq=gTy(f),pr=Math.max(1,Math.round(base*fpm()*pm*hgF(f)*(tq==='fam'?1.4:tq==='sb'&&(f.at==='aps'||f.at==='obxa')?1.3:1)));if(pm>1)G.wrR.gx+=pr-pr/pm;G.money+=pr;tyPay(f,pr);G.inc.g=(G.inc.g||0)+pr;{const kk=f.at==='hut'?'gh':f.at==='rest'?'gr':f.at==='aps'?'ga':'gk';G.inc[kk]=(G.inc[kk]||0)+pr;G.inc[kk+'c']=(G.inc[kk+'c']||0)+1}f.ate=1;if(pr>=10||Math.random()<(f.at==='aps'?.08:.35))pop(f.x,f.y-18,pr)}
 function startLunch(f,d,kind){if(G.rest){f.st='brk';f.at='rest';f.kind=kind||'menu';f.sit=0;f.bt=d;f.inside=1;f.hid=0;f.seat=-1;f.bx=RX-4+Math.random()*8;f.by=V-26}else startBrk(f,d,'snack')}
 const TY=()=>R+150,TSX=500,hp=h=>h<=17?.04+(h-7)*.056:.60+(h-17)*.06;let trains=[],tsch=[],lastGone=false;
 function leave(f){if(arStay(f))return;if(atAfter(f))return;if(azThe(f))return;if(ob9Leave(f))return;if(apTry(f))return;if(!f.nt&&!f.dn&&!f.kid&&nPending()&&G.rest&&phase()<.635&&Math.random()<(f.byT&&f.dep>=22.5?.5:.12)){f.dn=1;const st=Math.random()<.5,sec=(NSP-phase())*32*hpp(phase());startLunch(f,st?sec+1+Math.random()*4:14+Math.random()*14,'menu');if(st){f.nt=1;f.paid=0;f.half=false;f.home=NEP+.01;f.wl=false;f.lunched=1}toBrk(f);if(f.st==='brk'||f.st==='rt')return}
@@ -5840,7 +5894,7 @@ function obNext(f){const n=f.nx;f.nx=null;if(obxNext(f,n))return;if(ob8Next(f,n)
  if(n==='okas'){if(obCl()){obHome(f);return}f.st='okas';f.kt=.5+Math.random()*.7}
  else if(n==='oq0'){if(obCl()){obHome(f);return}OBQ.push(f);f.st='oq';f.arr=false}
  else if(n==='oplat')f.st='oplat';else if(n==='tocar')f.st='tocar';else if(n==='choIn'){if(!f.ape){G.guests++;G.gT++;if(!f.atx)rufUpd(f)}if(choEve(f))return;f.dead=1}else if(n==='rbIn'){const c=f.car;if(c)c.back++;if(!f.oa){G.guests++;G.gT++;if(!f.atx)rufUpd(f)}f.dead=1}else{f.dead=1}}
-function obBuyT(f){if(f.paid)return;f.paid=1;const ss=ob9Buy(f),pr=ss||(f.half?G.half:tkP());G.money+=pr;G.inc.l+=pr;if(f.half)G.inc.nh=(G.inc.nh||0)+1;else G.inc.n=(G.inc.n||0)+1;G.inc.on=(G.inc.on||0)+1;pop(OBKX,OBKY()-30,pr)}
+function obBuyT(f){if(f.paid)return;f.paid=1;const ss=ob9Buy(f),pr=ss||(f.half?G.half:tkP());G.money+=pr;G.inc.l+=pr;tyPay(f,pr,1);if(f.half)G.inc.nh=(G.inc.nh||0)+1;else G.inc.n=(G.inc.n||0)+1;G.inc.on=(G.inc.on||0)+1;pop(OBKX,OBKY()-30,pr)}
 const obSlot=i=>{const r=i>>3,j=i&7;if(r>=8){const k=i-64;return {x:1312-8*(k%6),y:R-140+8*Math.floor(k/6)}}return {x:r%2?1330+9*j:1393-9*j,y:R-132+8*r}};
 // Gast-Schritt (true = erledigt, sonst übernimmt der normale Code, z. B. tocar)
 function obFolk(f,dt){const st=f.st;if(st==='chev'){if(phase()>=f.evp)choEvGo(f);return true}if((st==='orin'||st==='oapi')&&obxFolk(f,dt))return true;
@@ -6422,7 +6476,7 @@ function wcOut(f,L,t){f.x=t.x;f.y=t.y;if(gzTry(f,L,t))return;if(L<Math.min(wrMx(
 // Mittelstation j: wer weiter hinauf will, bleibt sitzen; danach steigen Gäste aus der Schlange von Lift j+1 zu
 function wcMid(k,j,cap){const keep=[];for(const f of k.r){if(j<Math.min(wrMx(f),G.areas)&&!closed()){keep.push(f);G.inc['f'+(j+1)]=(G.inc['f'+(j+1)]||0)+1}else wcOut(f,j,ends(j).t)}k.r=keep;wcBoard(k,j+1,cap,ends(j+1).b)}
 function wcBoard(k,L,cap,b){const q=queues[L-1],cz=closed();for(let qi=0;(!cz||q.some(x=>x.lc))&&k.r.length<cap&&qi<q.length&&qi<14;){if(!q[qi].arr||(cz&&!q[qi].lc)){qi++;continue}const f=q.splice(qi,1)[0];f.lc=0;f.st='lift';if(L===1)f.rides++;f.bd=(f.bd||0)+1;G.inc['f'+L]=(G.inc['f'+L]||0)+1;k.r.push(f);gi(f);
-  if(!f.paid){f.paid=1;const pr=f.nt?G.nk:f.half?G.half:tkP();G.money+=pr;G.inc.l+=pr;if(f.nt){G.inc.nn=(G.inc.nn||0)+1;G.inc.nk=(G.inc.nk||0)+pr}else if(f.half)G.inc.nh=(G.inc.nh||0)+1;else G.inc.n=(G.inc.n||0)+1;pop(b.x,b.y-6,pr)}}}
+  if(!f.paid){f.paid=1;const pr=f.nt?G.nk:f.half?G.half:tkP();G.money+=pr;G.inc.l+=pr;tyPay(f,pr,1);if(f.nt){G.inc.nn=(G.inc.nn||0)+1;G.inc.nk=(G.inc.nk||0)+pr}else if(f.half)G.inc.nh=(G.inc.nh||0)+1;else G.inc.n=(G.inc.n||0)+1;pop(b.x,b.y-6,pr)}}}
 // --- Zeichnen: Stationen wie am Ostberg (Holz/Glas, Tonnendach), Seil mit Knicken, Stützen, Sessel bzw. Ost-Kabinen
 function stFq(c,q){if(q.f)q.f(c);else stFront(c,...q)}
 function wcStQ(stQ){if(!((G.wk||0)>=2))return;const P=wcP(),n=G.wk,nm=liftName(1).toUpperCase();
@@ -7011,7 +7065,7 @@ function rwWer(){let h='';const run=[];
  const card=c=>{const p=cmpP(c),lk=c.lk?c.lk():'',on=c.g?(G.ct>0&&G.cK===c.k):cOn(c.k),busy=c.g?G.ct>0:G.tt>0,dur=c.d==='so'?'bis Sonntag':c.d+' Tage',rc=cmpRch(c),er=cmpEff(c),ef=c.g?'+'+er+' Ruf für '+dur+(rc<1?' · Reichweite '+(rc===.75?'¾':rc===.5?'½':'¼'):'')+' · '+String(Math.round(er/p*1000*10)/10).replace('.',',')+' Ruf je 1.000 €':c.x+' · '+dur;
   return `<div class="bk"${lk?' style="opacity:.55"':''}><div class="ic">${c.ic}</div><div class="tx"><b>${c.n}</b><small class="sh">${lk?'🔒 '+lk:ef}</small></div><div class="br">${on?'<b style="color:#2e9e5b;font-size:13px">✓ läuft</b>':`<button class="btn" data-cm="${c.k}" ${lk||busy||G.money<p?'disabled':''}>${fmt(p)}</button>`}</div></div>`};
  h+=`<div class="pgh">📣 Allgemein · heben den Ruf</div>`+CMPS.filter(c=>c.g).map(card).join('');
- h+=`<div class="pgh">🎯 Gezielt · holen bestimmte Gäste</div>`+CMPS.filter(c=>!c.g).map(card).join('');
+ {const D=gxData();h+=`<div class="pgh">🎯 Gezielt · holen bestimmte Gäste</div>`+CMPS.filter(c=>!c.g).map(c=>card(c)+(c.lk&&c.lk()||cOn(c.k)?'':cmpFitH(c,D))).join('')}
  h+=`<p class="hint" style="margin:6px 2px">Gleichzeitig kann eine allgemeine und eine gezielte Kampagne laufen. Die Preise steigen mit deinem Ausbau (gerade Stufe ${cmpSt()}). Je größer dein Skigebiet, desto weniger erreichen kleine Kampagnen.</p>`;
  const Hs=(G.cH||[]).slice(-8).reverse();
  h+=`<div class="pgh">📒 Bisherige Kampagnen</div>`+rwCard(Hs.length?`<table style="width:100%;font-size:12.5px;border-collapse:collapse"><tr style="color:var(--mut)"><td>Wann</td><td>Kampagne</td><td style="text-align:right">Kosten</td><td style="text-align:right">Ruf davor → danach</td></tr>${Hs.map(e=>{const c=CMPS.find(x=>x.k===e.k)||{ic:'📣',n:'Werbung'},r1=e.r1==null?Math.round(rufE()):e.r1;return `<tr><td style="padding:3px 0">${sTk(e.d)}</td><td>${c.ic} ${c.n.split(' ')[0]}</td><td style="text-align:right">${fmt(e.c)}</td><td style="text-align:right">${e.r0} → <b style="color:${r1>=e.r0?'#2e9e5b':'#e8504a'}">${r1}</b>${e.r1==null?' <small style="color:var(--mut)">läuft</small>':''}</td></tr>`}).join('')}</table>`:'<div style="font-size:13px;color:var(--mut)">Noch keine Kampagne gestartet.</div>');
@@ -7075,7 +7129,7 @@ function staUpd(){const T=(i,v)=>{const e=$(i);if(e)e.textContent=v};
  T('f1',fmt(G.inc.l));T('f9',wfmt(waitMin(1)));T('fa',folks.filter(f=>f.st==='brk').length+' Gäste');T('f8',(G.inc.n||0)+'× Tag, '+(G.inc.nh||0)+'× Halbtag'+(G.inc.nn?', '+G.inc.nn+'× Nacht':''));
  T('fap',gN(G.inc.an||0)+' · '+fmt(G.inc.ga||0));T('fn',!G.night?'ausgeschaltet':!nToday()?(nWd()?'heute nicht (Nachtrennen)':'heute kein Nachtski-Tag'):gN(G.inc.nn||0)+' · '+fmt(G.inc.nk||0));
  T('f2',fmt(G.inc.p));T('fg',fmt(G.inc.g||0));T('ftr',G.train?(G.inc.tr||0)+' Gäste':'kein Bahnhof');T('f3',G.guests);T('f4',G.fotos);T('f5',Math.round(G.pq)+' %');T('f6',wNm()+' '+wIc());T('f7',Math.round(G.snow)+' %');
- if(sTab==='geb'){const now=performance.now();if(now-sAt>2500){sAt=now;const e=$('sgb');if(e){e.innerHTML=gbStaHTML();gbStaBind(e)}}}if(sTab==='gl'){const now=performance.now();if(now-sAt>2500){sAt=now;const e=$('sgl');if(e){e.innerHTML=glBody();glBind()}}}if(sTab==='ruf'){const now=performance.now();if(now-sAt>2000){sAt=now;const e=$('srf');if(e&&!e.querySelector('details[open]')){e.innerHTML=rufSplit(staRuf());rufBind()}}}}
+ if(sTab==='geb'){const now=performance.now();if(now-sAt>2500){sAt=now;const e=$('sgb');if(e){e.innerHTML=gbStaHTML();gbStaBind(e)}}}if(sTab==='gl'){const now=performance.now();if(now-sAt>2500){sAt=now;const e=$('sgl');if(e){const v=glBody();if(e._v!==v){e._v=v;e.innerHTML=v;glBind()}}}}if(sTab==='ruf'){const now=performance.now();if(now-sAt>2000){sAt=now;const e=$('srf');if(e&&!e.querySelector('details[open]')){e.innerHTML=rufSplit(staRuf());rufBind()}}}}
 // ===== V238: Weltcuprennen West (Riesentorlauf auf der Hauptpiste, Tag 27, ab Stufe 6 mit 4 Sternen) =====
 // Ablauf: Auftrag „Bewerbung Weltcuprennen“ (einmalig) → Zuschlag G.wrOK → ab Tag 20 angekündigt (G.wrS) → Renntag G.wrR.
 // Renntag: Westpiste ganztägig gesperrt (Gäste über die schwarze Piste), Westlifte langsamer, Gastro/Hotels +50 %, Hotels ausgebucht.
@@ -7561,7 +7615,7 @@ function wrOv(){const R=G.wrR,show=!!(wrDay()&&['r1','p','r2','end'].includes(R.
 
 // ===== V239: Versteckter Testbereich (Optionen › 5× auf die Versionszeile tippen) =====
 // Jeder Test sichert vorher den Spielstand; „Test beenden“ holt ihn zurück. Neue Tests einfach in TESTS eintragen.
-const TVER='V300',TBAK='art-test-bak';
+const TVER='V301',TBAK='art-test-bak';
 // V263: Test „Alles ausgebaut“ – kauft über das Baumenü alles, was es gibt (Voraussetzungen und Sterne werden dabei übersprungen), und stellt Baustellen sofort fertig. wc = mit Verbindungsbahn West.
 var TALL=0;
 function tstAll(wc){const m0=G.money,st0=G.stN;let n=0;TALL=1;G.stN=5;
@@ -7690,7 +7744,7 @@ function step(dt){if(wrHold())return;
  for(let L=1;L<=G.areas;L++){if(wcIn(L)){if(L===1)wcStep(dt);continue}const e=ends(L),t=e.t,len=Math.hypot(t.x-e.b.x,t.y-e.b.y),q=queues[L-1];
   wheelA[L-1]+=(liftGo(L)?spd(L):0)*dt;for(const k of lifts[L-1]){const pv=k.u;k.u+=(liftGo(L)?spd(L):0)*dt/len;if(k.du){const m=Math.min(k.du,.3*dt);k.u+=m;k.du-=m;if(k.du<1e-4)k.du=0}
    if(pv<1&&k.u>=1){for(const f of k.r){f.x=t.x;f.y=t.y;if(gzTry(f,L,t))continue;if(L<Math.min(wrMx(f),G.areas)&&!closed()&&!(stormOn()&&!isG(L+1))){f.st='qu';f.l=L+1;f.arr=0;queues[L].push(f)}else if(!ob9Up(f,L,t)&&!gipTry(f,L,t)){f.st='ski';f.x0=t.x;f.y0=t.y;f.ph=0;f.sv=0;pChoose(f,L,t)}}k.r=[]}
-   if(k.u>=2){k.u-=2;const cz=closed();for(let qi=0;(!cz||q.some(x=>x.lc))&&k.r.length<G.cap[L-1]&&qi<q.length&&qi<14;){if(!q[qi].arr||(cz&&!q[qi].lc)){qi++;continue}const f=q.splice(qi,1)[0];f.lc=0;f.st='lift';if(L===1)f.rides++;f.bd=(f.bd||0)+1;G.inc['f'+L]=(G.inc['f'+L]||0)+1;k.r.push(f);gi(f);if(!f.paid){f.paid=1;const pr=f.nt?G.nk:f.half?G.half:tkP();G.money+=pr;G.inc.l+=pr;if(f.nt){G.inc.nn=(G.inc.nn||0)+1;G.inc.nk=(G.inc.nk||0)+pr}else if(f.half)G.inc.nh=(G.inc.nh||0)+1;else G.inc.n=(G.inc.n||0)+1;pop(e.b.x,e.b.y-6,pr)}}}}}
+   if(k.u>=2){k.u-=2;const cz=closed();for(let qi=0;(!cz||q.some(x=>x.lc))&&k.r.length<G.cap[L-1]&&qi<q.length&&qi<14;){if(!q[qi].arr||(cz&&!q[qi].lc)){qi++;continue}const f=q.splice(qi,1)[0];f.lc=0;f.st='lift';if(L===1)f.rides++;f.bd=(f.bd||0)+1;G.inc['f'+L]=(G.inc['f'+L]||0)+1;k.r.push(f);gi(f);if(!f.paid){f.paid=1;const pr=f.nt?G.nk:f.half?G.half:tkP();G.money+=pr;G.inc.l+=pr;tyPay(f,pr,1);if(f.nt){G.inc.nn=(G.inc.nn||0)+1;G.inc.nk=(G.inc.nk||0)+pr}else if(f.half)G.inc.nh=(G.inc.nh||0)+1;else G.inc.n=(G.inc.n||0)+1;pop(e.b.x,e.b.y-6,pr)}}}}}
 }
 
 let T=0,yeti=null,yt=20,plane=null,pt=50,pops=[],fx=[],cann=[],sn=[];
