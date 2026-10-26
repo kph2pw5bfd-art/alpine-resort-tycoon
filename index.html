@@ -5533,14 +5533,13 @@ function oxStep(dt){if(!OXL()){if(OXB.length){for(const b of OXB)for(const f of 
   const i=oxIx(b.s);for(const f of b.pax){f.x=P.X[i];f.y=P.Y[i]}}}
 // Ankunft: ein kleiner Teil der Parkhaus-Gäste fährt zum Ostberg
 function oxIn(f){if(!OXL()||f.nt||f.oa||!f.car||gSide(f.car.sp)!=='P'||obCl()||phase()>pAt(15))return null;
- const w=obWait(),p=(.25+.5*owBal())*cl(1.35-w/10,.15,1);if(Math.random()>p)return null;
+ const w=obWait(),p=(.25+.5*owBal())*cl(1.35-w/10,.15,1);if(!f.wrE&&Math.random()>p)return null;
  const c=f.car,[dx]=pkDoor(c.pk),g=PGY(),pS=sxPlat('S'),pN=oxPlat('N');
  const B=[[dx,g],[506,g],[506,g+60],[pS[0],pS[1],'oxS'],pN,[1070,R-140],[1070,R-66],[1246,R-66],[1274,R-70],obKas()];B.ost=1;return B}
 // V270: Skibus für ankommende Gäste (ab Stufe 9) – ist Lift 1 West voller als die Gondel Ost, geht ein Teil der ankommenden Gäste
 // ohne Umweg über die Kassa West vom Gehsteig zur Skibus-Haltestelle West, fährt nach Ost und kauft die Karte an der Kassa Ost.
 function sbIn(f){if(ost()<3||f.nt||f.oa||f.kid||f.sh||f.atx||obCl()||stormOn())return null;const ph=phase();if(ph<pAt(7.8)||ph>pAt(13.5))return null;
-  if(f.car&&gSide(f.car.sp)==='P')return null;if(SBQ.W.length>=2*SBCAP)return null;const b=owBal();if(b<.05)return null;
-  if(Math.random()>.5*b*cl(1.35-obWait()/10,.15,1))return null;
+  if(f.car&&gSide(f.car.sp)==='P')return null;if(SBQ.W.length>=2*SBCAP)return null;const b=owBal();if(!f.wrE&&(b<.05||Math.random()>.5*b*cl(1.35-obWait()/10,.15,1)))return null;
   const r=rIn(f);if(!r||r.length<3)return null;const a=r[r.length-2],z=r[r.length-1];if(a[0]!==HWX||a[1]!==V+100||z[0]!==484||z[1]!==V+72)return null;
   const B=r.slice(0,-2);B.push([HWX,yAt(WAYS.PN,HWX)],[SBW+14+Math.random()*36,R-70]);B.ost=1;B.sb=1;return B}
 function rtNx(f){if(f.nx==='sbw0'){f.nx=null;f.ost=1;f.st='sbw';f.sbW=0;f.sbH='W';if(SBQ.W.indexOf(f)<0)SBQ.W.push(f);return}if(f.nx==='oK'){f.nx=null;if(obCl()){obHome(f);return}f.st='okas';f.kt=.5+Math.random()*.7}else f.st=f.nx}
@@ -6279,7 +6278,7 @@ let ZUK=null,ZUQ=[];
 function zuN(){return 14+(G.zug||0)}
 function zuV(){return stormOn()?20:44}
 // V269: fährt wie die anderen Lifte nur zu Betriebszeiten (nach Liftschluss noch, bis alle Gondeln leer sind), steht bei Panne
-function zuGo(){if(!G.zu||zuBk())return false;if(!closed()&&phase()<pAt(17))return true;return !!(ZUK&&ZUK.some(k=>k.r.length))}
+function zuGo(){if(!G.zu||zuBk())return false;if(wrDay())return !!(ZUK&&ZUK.some(k=>k.r.length));if(!closed()&&phase()<pAt(17))return true;return !!(ZUK&&ZUK.some(k=>k.r.length))}
 function zuBk(){return !!(G.zbk&&phase()<G.zbk.u&&phase()>=G.zbk.s0)}
 function zuRel(){return G.zr??100}
 function zuAge(){if(!G.zu)return;G.zbk=null;if(G.zbd==null)G.zbd=G.day;const use=Math.min(1.6,.6+(G.inc.zu||0)/300),w=(.9*use)*(lwCov(10)?.45:1);G.zr=Math.max(15,zuRel()-w);if(G.zr<50&&Math.random()<.4)lg('⚠️','lif','Der Zubringer West wird unzuverlässig ('+Math.round(G.zr)+' %). Generalüberholung im Fenster der Talstation West.')}
@@ -6301,7 +6300,7 @@ function zuLen(L){const e=ends(L);return Math.hypot(e.t.x-e.b.x,e.t.y-e.b.y)}
 // geschätzte Sekunden von der Talstation Lift 1 (Schlange) bis zur Talstation Lift 3
 function zuL12(){const w1=queues[0].length/Math.max(.05,thr(1));if(wcIn(2))return w1+(zuLen(1)+zuLen(2))/spd(1)+1;return w1+zuLen(1)/spd(1)+2.5+queues[1].length/Math.max(.05,thr(2))+zuLen(2)/spd(2)+2.5}
 function zuZ(d,v){return d/v+ZUQ.length/Math.max(.05,zuThr())+ZUL/zuV()+2.5+.7*queues[2].length/Math.max(.05,thr(3))}
-function zuOK(f){return !!G.zu&&!zuBk()&&G.areas>=3&&!closed()&&phase()<pAt(16.7)&&!f.nt&&!f.kid&&!f.ost&&!f.oa&&!f.atx&&!f.ar&&!(stormOn()&&!isG(3))&&Math.min(gi(f).mx,G.areas)>=3&&wrMx(f)>=3}
+function zuOK(f){return !!G.zu&&!zuBk()&&!wrDay()&&G.areas>=3&&!closed()&&phase()<pAt(16.7)&&!f.nt&&!f.kid&&!f.ost&&!f.oa&&!f.atx&&!f.ar&&!(stormOn()&&!isG(3))&&Math.min(gi(f).mx,G.areas)>=3&&wrMx(f)>=3}
 function zuPick(tZ,tL){return Math.random()<1/(1+Math.exp((tZ-tL)/3))}
 // Ankunft: Route zur Kassa – ab dem ersten Punkt am Gehsteig Nord zur Talstation West abzweigen (Karte am Automaten)
 function zuArr(f,r){if(!zuOK(f))return null;const PN=WAYS.PN;let i=-1;for(let j=0;j<r.length;j++){const q=r[j];if(q[0]>PN[0][0]&&q[0]<PN[PN.length-1][0]&&Math.abs(q[1]-yAt(PN,q[0]))<6){i=j;break}}if(i<0)return null;
@@ -6746,7 +6745,7 @@ function ob9Up(f,L,t){if(L!==6||ost()<3||!p9Open()||stormOn()||f.kid||f.nt)retur
  if(f.ho)go=Math.random()<(p>pAt(14)?.9:.3);else if(f.ssk&&!f.hw)go=p<pAt(14.5)&&Math.random()<.5;
  if(!go||QW.length>110)return false;const w=P9W();f.ost=1;f.st='ort';f.hid=0;f.rt=[[t.x+30,t.y+20],[w.x-40,w.y+26],[w.x-6,w.y+22]];f.nx='p9W';return true}
 // Ost: oben am Gipfel Ost – hinüber zum Westberg (oder als West-Gast zurück)
-function ob9Top(f,src){if(ost()<3||!p9Open()||stormOn()||f.kid)return false;const p=phase();let go=false;
+function ob9Top(f,src){if(ost()<3||!p9Open()||stormOn()||f.kid)return false;if(wrDay()&&wrWN()+QE.length>=WRCAP-10)return false;const p=phase();let go=false;
  if(f.hw)go=Math.random()<(p>pAt(14)?.9:.3);else if(f.ssk&&!f.ho)go=p<pAt(14.5)&&Math.random()<.45;
  if(!go||QE.length>110)return false;const e=P9E();f.hid=0;f.st='ort';if(src==='g'){const T2=obT2();f.x=T2.x-40;f.y=T2.y+26}else{const T2=OCT();f.x=T2.x+18;f.y=T2.y+22}f.rt=[[e.x+2,e.y+30],[e.x,e.y+22]];f.nx='p9E';return true}
 // --- Skischaukel-Ticket: an der Kassa (West und Ost) für Profis und Snowboarder
@@ -6959,6 +6958,11 @@ let WRX=null;
 // Hilfsfunktionen als function-Deklarationen: sie werden auch aus älterem Code aufgerufen (kein TDZ-Problem beim Laden)
 function wrYS(){return Yk(6)+60}function wrTk(){return G.wrP||25}
 function wrDay(){return !!(G&&G.wrR&&G.wrR.d===G.day&&G.areas>=6)}
+// V293: am Renntag höchstens 200 Gäste am Westberg – weitere gehen zum Ostberg (Shuttle/Skibus) oder fahren wieder heim
+const WRCAP=200;
+function wrWN(){let n=0;for(const f of folks)if(!f.dead&&!f.ost&&!f.atx&&!f.oa&&!f.ar&&!f.ape&&f.st!=='tocar'&&f.st!=='go'&&f.st!=='tohotel'&&f.st!=='plat')n++;return n}
+function wrCap(f){return wrDay()&&!f.nt&&!f.oa&&!f.ar&&!f.atx&&wrWN()>=WRCAP}
+function wrTurn(f){const R=G.wrR;R.lost+=Math.round(2.4*tkP());R.capN=(R.capN||0)+1;if(!R.capL){R.capL=1;lg('🏁','anr','Westberg voll: am Renntag dürfen höchstens '+WRCAP+' Gäste am Westberg fahren'+(ost()?' – weitere werden zum Ostberg geschickt, sonst fahren sie wieder heim':' – weitere fahren wieder heim'),{s:1})}leave(f)}
 function wrGx(){return wrDay()?1.5:1}function wrLs(){return wrDay()&&phase()>=pAt(9)&&phase()<pAt(16)?.8:1}
 function wrMx(f){return wrDay()?NA:gi(f).mx}
 function wrHold(){return !!(G&&G.wrR&&G.wrR.st==='sum')}
@@ -7426,7 +7430,7 @@ function wrOv(){const R=G.wrR,show=!!(wrDay()&&['r1','p','r2','end'].includes(R.
 
 // ===== V239: Versteckter Testbereich (Optionen › 5× auf die Versionszeile tippen) =====
 // Jeder Test sichert vorher den Spielstand; „Test beenden“ holt ihn zurück. Neue Tests einfach in TESTS eintragen.
-const TVER='V292',TBAK='art-test-bak';
+const TVER='V293',TBAK='art-test-bak';
 // V263: Test „Alles ausgebaut“ – kauft über das Baumenü alles, was es gibt (Voraussetzungen und Sterne werden dabei übersprungen), und stellt Baustellen sofort fertig. wc = mit Verbindungsbahn West.
 var TALL=0;
 function tstAll(wc){const m0=G.money,st0=G.stN;let n=0;TALL=1;G.stN=5;
@@ -7531,7 +7535,7 @@ function step(dt){if(wrHold())return;
   else if(f.st==='rt'){const w=f.rt[0];if(!w){rtNx(f)}else if(f.cw!=null){if(f.cw==='sxD')f.cw=null;else if(f.cw==='oxS'||f.cw==='oxN'||f.cw==='oxR'){f.sxW=(f.sxW||0)+dt;if(f.sxW>150||!OXL()){f.sxW=0;oxDrop(f,f.cw==='oxS'?'N':f.cw==='oxN'?'S':f.sxTo||'N',null)}}else if(f.cw==='sxS'||f.cw==='sxN'||f.cw==='sxR'){f.sxW=(f.sxW||0)+dt;if(f.sxW>150||!SXL()){f.sxW=0;sxDrop(f,f.cw==='sxS'?'N':f.cw==='sxN'?'S':f.sxTo||'N',null);for(const b of SXB)b.pax=b.pax.filter(q=>q!==f)}}else if(typeof f.cw==='string'&&f.cw[0]==='B'){if(fbStep(f,dt))f.cw=null}else if(f.cw==='R'){if(rntWait(f,dt))f.cw=null}else if(f.cw==='S'){if(spWait(f,dt))f.cw=null}else if(f.cw==='b'?szPedOK():f.cw==='q'?pzRailOK():f.cw==='a'?paZebOK():zFree(f.cw)){if(f.cw==='a')f.pza=1;else if(f.cw!=='b'&&f.cw!=='q')f.zc=f.cw;f.cw=null}else f.cwt=(f.cwt||0)+dt}else if(mv(f,w[0],w[1],closed()?50:(f.zuS?62:36),dt)){f.rt.shift();f.zc=null;f.pza=0;if(w[2]==='U'||w[2]==='u')f.tun=w[2]==='U'?1:0;else if(w[2]!=null)f.cw=w[2];if(!f.rt.length&&f.cw==null)rtNx(f)}}
   else if(f.st==='aps'){if(!f.in){if(mv(f,f.x<AX0-30||f.x>AX0+30?AX0:f.x,AY0()+11,30,dt)){if(apIn()>=apCap()||!apOpen()){f.ap=2;if(f.oa){f.rt=[[20,V+124],[44,V+150],...along(WAYS.PN,44,HWX)];f.st='rt';f.nx='oaJ';f.cw=null;f.zc=null}else leave(f)}else{f.in=1;f.hid=1}}}else{f.bt-=dt;f.dk-=dt;if(f.dk<=0){f.dk=12+Math.random()*10;eat(f,6)}if((f.apL?phase()>=f.apL:f.bt<=0)||!apOpen()){f.in=0;f.hid=0;f.ap=2;f.y=AY0()+12;f.x=AX0+Math.random()*8-4;if(f.oa){f.rt=[[20,V+124],[44,V+150],...along(WAYS.PN,44,HWX)];f.st='rt';f.nx='oaJ';f.cw=null;f.zc=null}else leave(f)}}}
   else if(f.st==='plat'){if(lastGone)gone(f)}
-  else if(f.st==='kas'){if(!f.rd&&atTry(f))continue;if(!f.rd){f.rd=1;const r=oxIn(f)||sbIn(f)||rIn(f);if(r){const zr=!r.ost&&zuArr(f,r);f.rt=zr||r;if(!zr&&!r.sb){if(r.ost)rntAdd(f,f.rt);else{rntAddW(f,f.rt);spInW(f,f.rt)}}f.st='rt';f.nx=zr?'zuK':r.sb?'sbw0':r.ost?'oK':'kas';if(r.ost){f.ost=1;if(r.sb){f.sbH='W';f.hw=1;f.sbA=1;G.inc.sba=(G.inc.sba||0)+1}else f.osx=1}f.cw=null;f.zc=null;continue}}if(closed()&&!(f.nt&&nPending())){leave(f)}else if(!f.kb){if(f.kx==null)f.kx=KX-10+Math.random()*20;if(mv(f,f.kx,ky()+9,32,dt)){f.kb=1;f.kt=.5+Math.random()*.7}}else{f.kt-=dt;if(f.kt<=0){gi(f);buyT(f);f.st='qu';f.l=1;f.arr=0;queues[0].push(f)}}}
+  else if(f.st==='kas'){if(!f.rd&&atTry(f))continue;if(!f.rd){f.rd=1;let r;if(wrCap(f)){f.wrE=1;r=oxIn(f)||sbIn(f);f.wrE=0;if(!r){wrTurn(f);continue}}else r=oxIn(f)||sbIn(f)||rIn(f);if(r){const zr=!r.ost&&zuArr(f,r);f.rt=zr||r;if(!zr&&!r.sb){if(r.ost)rntAdd(f,f.rt);else{rntAddW(f,f.rt);spInW(f,f.rt)}}f.st='rt';f.nx=zr?'zuK':r.sb?'sbw0':r.ost?'oK':'kas';if(r.ost){f.ost=1;if(r.sb){f.sbH='W';f.hw=1;f.sbA=1;G.inc.sba=(G.inc.sba||0)+1}else f.osx=1}f.cw=null;f.zc=null;continue}}if(closed()&&!(f.nt&&nPending())){leave(f)}else if(!f.kb){if(f.kx==null)f.kx=KX-10+Math.random()*20;if(mv(f,f.kx,ky()+9,32,dt)){f.kb=1;f.kt=.5+Math.random()*.7}}else{f.kt-=dt;if(f.kt<=0){gi(f);buyT(f);f.st='qu';f.l=1;f.arr=0;queues[0].push(f)}}}
   else if(f.st==='tohotel'){if(mv(f,f.hx,f.hy,closed()?55:34,dt)){if(!f.oa&&!f.ape){G.guests++;G.gT++}if(apEve(f))continue;f.dead=1}}
   else if(f.st==='hev'){if(phase()>=f.evp)apGo(f)}
    else if(f.st==='tocar'&&f.car.pk!=null){const d=pkDoor(f.car.pk);if(mv(f,d[0],d[1],closed()?55:34,dt)){f.car.back++;if(!f.oa){G.guests++;G.gT++;if(!f.atx)rufUpd(f)}f.dead=1}}
