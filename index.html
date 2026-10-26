@@ -289,7 +289,7 @@ function expDay(){expInit();for(const e of expList()){if(e.ok())continue;const s
   if(G.day===st-1)lg('⏳','anr','Ab morgen erwarten die Gäste: '+e.t);
   else if(G.day===st){lg(e.ic,'anr','Ab heute erwarten die Gäste: '+e.t+'. Unter 🏆 Ziele › Saison steht, was noch fehlt.',{s:1});if(SET.hint)setTimeout(()=>toast(e.ic+' Ab heute erwarten die Gäste: '+e.t,4500),1200)}}}
 // Kurzwege: direkt zur richtigen Karte im Baumenü springen und sie aufklappen
-function goBuild(g){if(g==='pre'){open='pre';render();$('sheet').scrollTop=0;return}if(g==='pbw'){open='pbw';pbTab='bw';render();return}if(g.startsWith('wer|')){kidGoWer('[data-u="'+g.slice(4)+'"]');return}
+function goBuild(g){if(g==='wer|s')g='gas|Skischule';if(g==='pre'){open='pre';render();$('sheet').scrollTop=0;return}if(g==='pbw'){open='pbw';pbTab='bw';render();return}if(g.startsWith('wer|')){kidGoWer('[data-u="'+g.slice(4)+'"]');return}
  {const lm=/^lif\|L(\d)$/.exec(g);if(lm){open='bau';bTab='lif';bOpen=null;render();const sh=$('sheet');sh.scrollTop=0;setTimeout(()=>{const hd=[...sh.querySelectorAll('.bgh')].find(x=>x.textContent.includes('Lift '+lm[1]+' '));if(hd){const r=hd.getBoundingClientRect(),R=sh.getBoundingClientRect();sh.scrollTop+=r.top-R.top-8;let n=hd.nextElementSibling;while(n&&n.classList.contains('bk')){n.classList.add('hl');const q=n;setTimeout(()=>q.classList.remove('hl'),1700);n=n.nextElementSibling}}},40);return}}const [t,k]=g.split('|');open='bau';bTab=t;bOpen=k||null;render();const sh=$('sheet');sh.scrollTop=0;
  setTimeout(()=>{const c=k?[...sh.querySelectorAll('.bk')].find(b=>b.dataset.bk===k):null;if(c){c.classList.add('op');const r=c.getBoundingClientRect(),R=sh.getBoundingClientRect();sh.scrollTop+=r.top-R.top-R.height/3;c.classList.add('hl');setTimeout(()=>c.classList.remove('hl'),1700)}},40)}
 
@@ -507,7 +507,7 @@ function kidTip(){const m=G.money,T=(k,ic,t,o)=>Object.assign({k,ic,t},o||{});
  // 5. Preis
  if(tkP()>tkF()*1.15)return T('pre','🎟️','Deine Tageskarte ist teurer als fair. Mach sie ein bisschen billiger, dann kommen mehr Gäste!',{go:()=>{open='pre';render();$('sheet').scrollTop=0}});
  // 6. Wachsen
- if(!G.up.s)return T('ski','⛷️','Bau eine Skischule! Dann sind deine Gäste zufriedener.',{need:UPG.s[1],go:()=>kidGoWer('[data-u="s"]')});
+ if(!G.up.s)return T('ski','⛷️','Bau eine Skischule! Dann sind deine Gäste zufriedener.',{need:UPG.s[1],go:()=>goBuild('gas|Skischule')});
  const hot=G.areas>=2&&G.hotels<3&&stars()>=(G.hotels===1?3:G.hotels===2?4:0)?T('hot','🏨','Bau ein Hotel! Hotelgäste übernachten bei dir und bringen jeden Tag Geld.',{need:HC[G.hotels],go:()=>kidGo('gas','[data-h]')}):null;
  const k=G.areas+1;
  if(k<=NA){const sn={3:2,4:3,5:4,6:4}[k]||0;
@@ -7426,7 +7426,7 @@ function wrOv(){const R=G.wrR,show=!!(wrDay()&&['r1','p','r2','end'].includes(R.
 
 // ===== V239: Versteckter Testbereich (Optionen › 5× auf die Versionszeile tippen) =====
 // Jeder Test sichert vorher den Spielstand; „Test beenden“ holt ihn zurück. Neue Tests einfach in TESTS eintragen.
-const TVER='V290',TBAK='art-test-bak';
+const TVER='V291',TBAK='art-test-bak';
 // V263: Test „Alles ausgebaut“ – kauft über das Baumenü alles, was es gibt (Voraussetzungen und Sterne werden dabei übersprungen), und stellt Baustellen sofort fertig. wc = mit Verbindungsbahn West.
 var TALL=0;
 function tstAll(wc){const m0=G.money,st0=G.stN;let n=0;TALL=1;G.stN=5;
