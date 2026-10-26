@@ -2908,7 +2908,7 @@ function peTgt(L){let x,y,hw,wb,sg=62;
  else if(L===7){const o=obB();x=o.x;y=o.y;hw=56;wb=y+20;sg=74}
  else if(L===8){const o=OCB();x=o.x;y=o.y;hw=40;wb=y+20;sg=68}
  else if(L===9){x=520;y=-1282;hw=44;wb=y+20;sg=70}
- else{x=325;y=207;hw=44;wb=y+20;sg=70}
+ else{x=ZUB.x;y=ZUB.y;hw=44;wb=y+20;sg=70}
  // L3/L5: rechte Wand im schmalen Spalt zur Nachbarstation
  const fx=x+hw+(L===3||L===5?4:3);return {x,y,hw,fx,fy:wb,tx:fx-3,ty:y-30,sg}}
 function OBT_X(){return obT().x}function OBT_Y(){return obT().y}
@@ -2917,7 +2917,7 @@ function peRoute(L){const h=peHutOf(L),s=[h.sx,h.sy];
  switch(L){
   case 1:return [s,[524,540],[512,590],[488,660],[476,712],[474,742]];
   case 2:return [s,[514,478]];
-  case 10:return [s,[470,508],[400,503],[372,488],[350,440],[348,380],[356,310],[374,250],[384,236]];
+  case 10:return [s,[470,508],[400,503],[372,488],[350,440],[348,380],[356,310],[350,240],[341,170],[337,108]];
   case 3:return [s,[455,-120],[430,-50],[412,20],[409,52]];
   case 4:return [s,[484,-196],[484,-214]];
   case 5:return [s,[402,-760],[374,-700],[360,-654]];
@@ -3067,7 +3067,7 @@ function peHelpers(P){const n=Math.min(stf().ph,G.areas);if(!n)return;const p=ph
    P(y+3,c=>{peMan(c,x,y+3,'#ff7a1a',{vest:1,hel:'#ff7a1a'});peShovel(c,x,y+3,Math.sin(T*5))})}}}
 function peR(sd){let a=(sd*2654435761>>>0)||1;return ()=>{a^=a<<13;a>>>=0;a^=a>>>17;a^=a<<5;a>>>=0;return a/4294967296}}
 // Pistenhelfer nicht an Stationen, Hütten oder dem Zubringer arbeiten lassen
-function peBad(x,y){const P=[];for(let L=1;L<=G.areas;L++){const e=ends(L);P.push([e.b.x,e.b.y],[e.t.x,e.t.y])}if(G.zu)P.push([325,207],[-205,975]);if(G.up.h){const h=hutPos();P.push([h.x,h.y])}
+function peBad(x,y){const P=[];for(let L=1;L<=G.areas;L++){const e=ends(L);P.push([e.b.x,e.b.y],[e.t.x,e.t.y])}if(G.zu)P.push([ZUB.x,ZUB.y],[ZUT.x,ZUT.y]);if(G.up.h){const h=hutPos();P.push([h.x,h.y])}
  for(const q of P)if(Math.abs(q[0]-x)<75&&y>q[1]-80&&y<q[1]+60)return 1;return 0}
 function peNet(c,x0,y0,x1,y1){c.save();c.strokeStyle='#f2701f';c.lineWidth=2.2;c.globalAlpha=.85;c.beginPath();c.moveTo(x0,y0-3.5);c.lineTo(x1,y1-3.5);c.stroke();c.globalAlpha=1;c.strokeStyle='rgba(255,255,255,.6)';c.lineWidth=.3;const n=Math.max(1,Math.round(Math.hypot(x1-x0,y1-y0)/1.6));for(let i=0;i<=n;i++){const u=i/n;c.beginPath();c.moveTo(x0+(x1-x0)*u,y0+(y1-y0)*u-4.6);c.lineTo(x0+(x1-x0)*u,y0+(y1-y0)*u-2.4);c.stroke()}c.strokeStyle='#5d667a';c.lineWidth=.6;for(const [x,y] of [[x0,y0],[(x0+x1)/2,(y0+y1)/2],[x1,y1]]){c.beginPath();c.moveTo(x,y);c.lineTo(x,y-6);c.stroke()}c.restore()}
 function pePole(c,x,y,col){c.strokeStyle=col;c.lineWidth=.9;c.beginPath();c.moveTo(x,y);c.lineTo(x,y-9);c.stroke();c.fillStyle='#2b303d';c.fillRect(x-.5,y-.3,1,.6)}
@@ -4766,9 +4766,11 @@ const NSP=pAt(18.5),NEP=pAt(22),NA0=pAt(17.75),NLC=4*CF,
 function clock(p){for(let i=1;i<CP.length;i++){if(p<=CP[i][0]){const a=CP[i-1],b=CP[i],h=a[1]+(b[1]-a[1])*(p-a[0])/(b[0]-a[0]);return String(Math.floor(h)%24).padStart(2,'0')+':'+String(Math.floor((h%1)*12)*5).padStart(2,'0')}}return '06:00'}
 const LX=[];for(let x=-450;x<XR-8;x+=52)if(x<-250||x>905)LX.push(x);
 const liftGo=L=>wcIn(L)?wcGo():!(wxOn()&&G.wx==='sturm'&&!isG(L))&&!stoerL(L)&&(!closed()||lifts[L-1].some(k=>k.r.length>0)||queues[L-1].some(f=>f.lc));
-const TSD=.35;function gTS(){const r=rps.find(k=>k.st==='run'),p=phase();if(!r||!r.path||p>=.95||p<.5)return 1.3;let L=0,x=r.x,y=r.y;for(let i=r.pi;i<r.path.length;i++){const w=r.path[i];L+=Math.hypot(w[0]-x,w[1]-y);x=w[0];y=w[1]}if(r.ph==='out')L*=2.05;const need=L/((r.ph==='tour'?100:60)*.72);return cl((.95-p)*DAY/need,.18,1.3)}
+const TSD=.35;function gTS(){const r=rps.find(k=>k.st==='run'),p=phase();if(!r||!r.path||p>=.95||p<.5)return 1.3;let L=0,x=r.x,y=r.y;for(let i=r.pi;i<r.path.length;i++){const w=r.path[i];L+=Math.hypot(w[0]-x,w[1]-y);x=w[0];y=w[1]}if(r.ph==='out')L*=2.05;const need=L/((r.ph==='tour'?100:60)*.72*(eveFast(p)?2:1));return cl((.95-p)*DAY/need,.18,1.3)}
 function timeScale(){return timeScale0()*pkSlow()}
-function timeScale0(){if(evSlow())return .14;{const p=phase();if(oaDay()&&p>=pAt(15.5)&&p<pAt(24.5)&&(folks.length||cars.length||buses.length))return nTS(p);if(G.ap&&p>=.60&&p<apEnd0()+.01&&folks.length)return nTS(p);if(G.oap&&p>=.60&&p<pAt(25)+.01&&OAPN>0)return nTS(p);if(nToday()&&p>=.60&&p<NEP+.04&&(p>=NA0-.01||folks.length||cars.length))return nTS(p);if(azOn()&&p>=.60&&p<pAt(25.7)&&(trains.some(t=>t.az)||folks.some(f=>f.byT&&!f.dead)))return nTS(p)}if(G.ev&&G.ev.k==='nacht'&&G.ev.st==='pre')return TSD;if(!closed())return TSD;if(G.ph&&(folks.some(f=>f.car&&f.car.ph)||cars.some(k=>k.ph&&k.st!=='gone'&&k.back>=k.n)))return nTS(phase());if(cars.some(k=>k.g&&k.st!=='gone'&&k.back>=k.n))return nTS(phase());if(G.sz&&(folks.some(f=>f.car&&f.car.z)||cars.some(k=>k.z&&k.st!=='gone'&&k.back>=k.n)))return nTS(phase());if(s4()&&(folks.some(f=>f.car&&f.car.pk!=null)||PC.some(k=>k.ty==='pk'&&(k.st!=='park'||k.back>=k.n))||cars.some(k=>k.pz)))return nTS(phase());if(rps.some(r=>r.st==='run'))return gTS();if(folks.length||cars.length)return 1;if(rps.some(r=>r.st==='run'))return gTS();return 4}
+// V299: Abend ohne Nachtskilauf (und ohne Arena-Abend/Nachtrennen) läuft schnell durch – Après-Ski, Abendzug und Heimfahrt im schnellen Tempo statt in Nacht-Zeitlupe
+function eveFast(p){return p>=.60&&closed()&&!nToday()&&!oaDay()&&!arDay()&&!(G.ev&&G.ev.k==='nacht'&&G.ev.d===G.day)}
+function timeScale0(){if(evSlow())return .14;{const p=phase();if(oaDay()&&p>=pAt(15.5)&&p<pAt(24.5)&&(folks.length||cars.length||buses.length))return nTS(p);if(eveFast(p)){const v=(folks.length||cars.length)?1:4;return rps.some(r=>r.st==='run')?Math.min(v,gTS()):v}if(G.ap&&p>=.60&&p<apEnd0()+.01&&folks.length)return nTS(p);if(G.oap&&p>=.60&&p<pAt(25)+.01&&OAPN>0)return nTS(p);if(nToday()&&p>=.60&&p<NEP+.04&&(p>=NA0-.01||folks.length||cars.length))return nTS(p);if(azOn()&&p>=.60&&p<pAt(25.7)&&(trains.some(t=>t.az)||folks.some(f=>f.byT&&!f.dead)))return nTS(p)}if(G.ev&&G.ev.k==='nacht'&&G.ev.st==='pre')return TSD;if(!closed())return TSD;if(G.ph&&(folks.some(f=>f.car&&f.car.ph)||cars.some(k=>k.ph&&k.st!=='gone'&&k.back>=k.n)))return nTS(phase());if(cars.some(k=>k.g&&k.st!=='gone'&&k.back>=k.n))return nTS(phase());if(G.sz&&(folks.some(f=>f.car&&f.car.z)||cars.some(k=>k.z&&k.st!=='gone'&&k.back>=k.n)))return nTS(phase());if(s4()&&(folks.some(f=>f.car&&f.car.pk!=null)||PC.some(k=>k.ty==='pk'&&(k.st!=='park'||k.back>=k.n))||cars.some(k=>k.pz)))return nTS(phase());if(rps.some(r=>r.st==='run'))return gTS();if(folks.length||cars.length)return 1;if(rps.some(r=>r.st==='run'))return gTS();return 4}
 // V199: Laternen an der Talstraße (auch zwischen den Parkplätzen und den Lücken) und am Zubringer. Liefert Fußpunkte [x,y].
 function lampPts(){const yN=R-9-RD,yS=R+RD+16,P=[],gO=x=>G.garage&&Math.abs(x-GX)<26||G.garage2&&Math.abs(x-GX2)<26||G.fb&&Math.abs(x-FBX)<16;
  for(const x of LX)if(!gO(x)&&!obLX(x))P.push([x,yN]);P.push(...obLamps());
@@ -4796,7 +4798,8 @@ function groomStep(dt){oaTrample();rgTick(dt);
    for(let y=yb+300;y<V-150;y+=28)P.push([pX(1,y),y]);P.push([slopeX(V-120)-.2*slopeW(V-120),V-120])}
   P.push(...home(r));return P};
  const wrap=a=>{while(a>Math.PI)a-=2*Math.PI;while(a<-Math.PI)a+=2*Math.PI;return a};
- for(const r of rps){
+ // V299: an schnellen Abenden fährt die Raupe im gleichen Zeitraffer mit (zwei Schritte je Bild)
+ for(let gk=eveFast(p)?2:1;gk>0;gk--)for(const r of rps){
   if(r.st==='park'){r.y=parkY();r.x=parkX(r.i);r.th=0;r.cd-=dt;if(r.cd<=0&&r.dd!==G.day&&p>=(oaDay()?pAt(26.05):nToday()?NEP+.004:.62)&&p<(G.ev&&G.ev.k==='nacht'?.95:.90)&&(clear||p>=(oaDay()?pAt(26.4):nToday()?NEP+.06:.80))&&!evHoldGroom()){r.st='run';r.dd=G.day;lg('🚜','lif','Pistenraupe fährt los, Pistenzustand '+Math.round(G.pq)+' %');if(G.areas>=2&&(G.pb||G.ps)){r.ph='tour';r.path=tourPath(r)}else{r.ph='out';r.path=outPath(r)}r.pi=0}}
   else{
    if(rgHoldW(r))continue;
@@ -6276,9 +6279,10 @@ function gondelO(c,k,open,lab){const R2=k.r,n=R2.length;
  c.fillStyle='#f5a524';c.fillRect(-11,19.2,22,1.4);c.fillStyle='rgba(255,255,255,.9)';c.font='700 2.8px Fredoka,sans-serif';c.textAlign='center';c.fillText(lab||'OST',7,23.3,6);c.fillStyle='#2a2e44';c.fillRect(-8,24,16,1)}
 // ===== V261: Zubringer West – 10er-Gondel von der Talstation West (neben den Busparkplätzen) hinauf zu Lift 3 (ab Ausbau Stufe 6) =====
 // G.zu = gebaut, G.zug = zusätzliche Gondeln. Gäste wählen nach geschätzter Zeit (Weg + Warten + Fahrt) zwischen Lift 1+2 und dem Zubringer.
+// V299: Bergstation hinauf neben die Mittelstation 2 (Spieler: Gäste sollen die blaue Zubringerpiste nehmen können), starker Knick mit zusätzlicher Stütze entschärft
 // V264: Seilverlauf nach Zeichnung des Spielers – senkrecht aus der Talstation, Knick, schräg hinauf, kleiner Knick, Knick, senkrecht in die Bergstation; Ecken leicht abgerundet (ZUR)
-const ZUP=[[-205,975],[-210,842],[-5,615],[325,372],[325,207]],ZUT={x:ZUP[0][0],y:ZUP[0][1]},ZUB={x:ZUP[4][0],y:ZUP[4][1]},ZUEX=-62,ZUQY=990,ZUC=350000,ZUU=150,ZUCAP=10,ZUR=18,
- ZUPP=[[-210,842,1],[-100,720.2,0],[-5,615,1],[325,372,1]];
+const ZUP=[[-205,975],[-210,842],[-5,615],[265,416],[300,348],[278,20]],ZUT={x:ZUP[0][0],y:ZUP[0][1]},ZUB={x:ZUP[ZUP.length-1][0],y:ZUP[ZUP.length-1][1]},ZUEX=-62,ZUQY=990,ZUC=350000,ZUU=150,ZUCAP=10,ZUR=18,
+ ZUPP=[[-210,842,1],[-100,720.2,0],[-5,615,1],[265,416,1],[300,348,1]];
 // dichte Mittellinie mit abgerundeten Ecken: ZUD = [[x,y],…], ZUS = Länge bis zu jedem Punkt
 const ZUD=(()=>{const P=ZUP,D=[P[0]];for(let i=1;i<P.length-1;i++){const a=P[i-1],b=P[i],c2=P[i+1],l1=Math.hypot(b[0]-a[0],b[1]-a[1]),l2=Math.hypot(c2[0]-b[0],c2[1]-b[1]),r=Math.min(ZUR,l1/2,l2/2),A=[b[0]+(a[0]-b[0])*r/l1,b[1]+(a[1]-b[1])*r/l1],B=[b[0]+(c2[0]-b[0])*r/l2,b[1]+(c2[1]-b[1])*r/l2];
   for(let k=0;k<=10;k++){const t=k/10,u=1-t;D.push([u*u*A[0]+2*u*t*b[0]+t*t*B[0],u*u*A[1]+2*u*t*b[1]+t*t*B[1]])}}D.push(P[P.length-1]);
@@ -6327,22 +6331,22 @@ function zuSki(f){if(!zuOK(f))return 0;const PN=WAYS.PN,zr=[[124,V+46],[64,V+84]
 function zuJoin(f){f.zuS=0;if(closed()||!G.zu){leave(f);return}gi(f);f.st='zuq';f.arr=0;ZUQ.push(f)}
 function zuSlot(i){if(i>=90)return {x:-52+(i-90)*4,y:994};const r=Math.floor(i/18),j=i%18;return {x:r%2?-60-j*5:-145+j*5,y:958+r*8}}
 function zuQStep(f,dt){const i=ZUQ.indexOf(f);if(i<0){f.st='zuK';return}const p=zuSlot(i),dq=Math.hypot(p.x-f.x,p.y-f.y);mv(f,p.x,p.y,dq>30?32:70,dt);f.arr=dq<6;if(f.arr)f.wt=(f.wt||0)+dt}
-function zuOut(f){f.zu=0;f.x=ZUB.x;f.y=ZUB.y+16;const w3=waitMin(3);if(3<=Math.min(wrMx(f),G.areas)&&!closed()&&!(stormOn()&&!isG(3))&&!(w3>Math.max(6,waitMin(2)+3)&&Math.random()<.6)){f.st='qu';f.l=3;f.arr=0;queues[2].push(f)}else{f.st='ski';f.x0=f.x;f.y0=f.y;f.ph=0;f.sv=0;pChoose(f,2,{x:f.x,y:f.y})}}
+function zuOut(f){f.zu=0;f.x=ZUB.x;f.y=ZUB.y+16;const w3=waitMin(3);if(3<=Math.min(wrMx(f),G.areas)&&!closed()&&!(stormOn()&&!isG(3))&&!(w3>Math.max(6,waitMin(2)+3)&&Math.random()<.6)){f.st='qu';f.l=3;f.arr=0;queues[2].push(f)}else{f.st='ski';f.x0=f.x;f.y0=f.y;f.ph=0;f.sv=0;pChoose(f,2,{x:f.x,y:ends(2).t.y});f.ely=f.y-1}}
 function zuStep(dt){if(!G.zu){ZUQ=[];return}zuFit();ZUQ=ZUQ.filter(f=>!f.dead&&f.st==='zuq');
  if(closed()&&ZUQ.length){for(const f of ZUQ.splice(0))leave(f)}
  zuBrk(dt);const v=zuGo()?zuV():0;for(const k of ZUK){const pv=k.u;k.u+=v*dt/ZUL;if(pv<1&&k.u>=1){for(const f of k.r)zuOut(f);k.r=[]}
   if(k.u>=2){k.u-=2;if(closed())continue;for(let qi=0;k.r.length<ZUCAP&&qi<ZUQ.length&&qi<16;){const f=ZUQ[qi];if(!f.arr){qi++;continue}ZUQ.splice(qi,1);f.st='lift';f.zu=1;f.rides=(f.rides||0)+1;f.bd=(f.bd||0)+1;G.inc.zu=(G.inc.zu||0)+1;k.r.push(f);gi(f);if(!f.paid){const m0=G.money;buyT(f);if(G.money>m0)pop(-140,950,G.money-m0)}}}}}
-function zuTree(x,y){if(!G.zu)return 0;const b=(a,b2,c2,d)=>x>a&&x<b2&&y>c2&&y<d;if(b(-262,-40,905,1005)||b(265,385,140,240))return 1;for(const q of ZUPS){const p=zuAt(q.s,0);if(Math.abs(x-p.x)<26&&y>p.y-8&&y<p.y+40)return 1}for(let a=30;a<ZUL-30;a+=12){const p=zuAt(a,0);if(Math.abs(x-p.x)<24&&y>p.y-4&&y<p.y+34)return 1}return 0}
+function zuTree(x,y){if(!G.zu)return 0;const b=(a,b2,c2,d)=>x>a&&x<b2&&y>c2&&y<d;if(b(-262,-40,905,1005)||b(ZUB.x-60,ZUB.x+60,ZUB.y-67,ZUB.y+33))return 1;for(const q of ZUPS){const p=zuAt(q.s,0);if(Math.abs(x-p.x)<26&&y>p.y-8&&y<p.y+40)return 1}for(let a=30;a<ZUL-30;a+=12){const p=zuAt(a,0);if(Math.abs(x-p.x)<24&&y>p.y-4&&y<p.y+34)return 1}return 0}
 // V267: nichts unter das Zubringer-Seil stellen (Kabinen hängen bis ~25 darunter)
 function zuNear(x,y){if(!G.zu)return 0;for(let a=0;a<=ZUL;a+=8){const p=zuAt(a,0);if(Math.abs(x-p.x)<28&&y>p.y-12&&y<p.y+44)return 1}return 0}
-function zuFl(Q){if(!G.zu)return;for(let a=0;a<=ZUL;a+=6){const p=zuAt(a,0);Q.push([p.x,p.y,0],[p.x,p.y+26,0])}for(const [p,h] of [[ZUT,44],[ZUB,44]])for(const d of [-h,0,h])Q.push([p.x+d,p.y,1],[p.x+d,p.y-44,1])}
+function zuFl(Q){if(!G.zu)return;for(let a=0;a<=ZUL;a+=6){const p=zuAt(a,0);for(const d of [-12,0,12])Q.push([p.x+d,p.y,0],[p.x+d,p.y+26,0])}for(const [p,h] of [[ZUT,44],[ZUB,44]])for(const d of [-h,0,h])Q.push([p.x+d,p.y,1],[p.x+d,p.y-44,1])}
 function zuStQ(stQ){if(!G.zu)return;for(const [p,hw,big,lab] of [[ZUT,44,false,['TALSTATION WEST','🚠 10er-Zubringer · zu Lift 3','#b26a00']],[ZUB,44,false,['BERGSTATION','Zubringer West · Umstieg Lift 3','#2f6fb5']]]){
  const q=[p.x,p.y];q.b=c=>{if(inV(p.x,p.y,90))obStBack(c,p.x,p.y,hw)};q.f=c=>{if(inV(p.x,p.y,90))obStFront(c,p.x,p.y,hw,big,T,lab)};stQ.push(q)}}
 function zuDraw(c,T){if(!G.zu)return;zuFit();
  if(inVR(-160,945,-55,1000,40)){c.strokeStyle='#8a94a8';c.lineWidth=.9;c.lineCap='round';const ln=(x0,x1,y)=>{c.beginPath();c.moveTo(x0,y);c.lineTo(x1,y);c.stroke()};
   ln(-149,-54,953.5);for(let r=0;r<4;r++)r%2?ln(-139,-54,961.5+r*8):ln(-149,-64,961.5+r*8);c.fillStyle='#6b7488';for(let x=-149;x<=-54;x+=19)c.fillRect(x-.5,950.5,1,3)}
  const co=OBCO;
- if(inVR(-260,ZUB.y,ZUB.x,ZUT.y,40)){c.strokeStyle='#161a28';c.lineWidth=1.3;for(const sd of [-1,1]){c.beginPath();ZUD.forEach((q,i)=>{const x=q[0]+ZUN[i][0]*sd*co,y=q[1]+ZUN[i][1]*sd*co;i?c.lineTo(x,y):c.moveTo(x,y)});c.stroke()}}
+ if(inVR(-260,ZUB.y,320,ZUT.y,40)){c.strokeStyle='#161a28';c.lineWidth=1.3;for(const sd of [-1,1]){c.beginPath();ZUD.forEach((q,i)=>{const x=q[0]+ZUN[i][0]*sd*co,y=q[1]+ZUN[i][1]*sd*co;i?c.lineTo(x,y):c.moveTo(x,y)});c.stroke()}}
  for(const q of ZUPS){const p=zuAt(q.s,0);if(!inV(p.x,p.y,60))continue;pylon(c,p.x,p.y,3);const h=co+3;c.lineCap='round';c.strokeStyle='#4a4d78';c.lineWidth=3.4;c.beginPath();c.moveTo(p.x-p.nx*h,p.y-p.ny*h);c.lineTo(p.x+p.nx*h,p.y+p.ny*h);c.stroke();c.fillStyle='#9aa0c8';for(const d of [-co,0,co]){c.beginPath();c.arc(p.x+p.nx*d,p.y+p.ny*d,.9,0,7);c.fill()}zuRoll(c,q.n?q:{s:q.s,n:4})}}
 // Führungsrollen an den Knick-Stützen: eine Reihe Rollen auf beiden Seilen, darunter der Rollenträger mit Laufsteg
 // V265: Rollenbatterien an den Stützen (wie am Foto des Spielers): pts = Punkte entlang des Seils (erster/letzter nur für den Träger), Rollen dazwischen
@@ -7555,7 +7559,7 @@ function wrOv(){const R=G.wrR,show=!!(wrDay()&&['r1','p','r2','end'].includes(R.
 
 // ===== V239: Versteckter Testbereich (Optionen › 5× auf die Versionszeile tippen) =====
 // Jeder Test sichert vorher den Spielstand; „Test beenden“ holt ihn zurück. Neue Tests einfach in TESTS eintragen.
-const TVER='V298',TBAK='art-test-bak';
+const TVER='V299',TBAK='art-test-bak';
 // V263: Test „Alles ausgebaut“ – kauft über das Baumenü alles, was es gibt (Voraussetzungen und Sterne werden dabei übersprungen), und stellt Baustellen sofort fertig. wc = mit Verbindungsbahn West.
 var TALL=0;
 function tstAll(wc){const m0=G.money,st0=G.stN;let n=0;TALL=1;G.stN=5;
