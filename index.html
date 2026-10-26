@@ -896,6 +896,18 @@ function nsTog(i){if(!G.flut)return;G.nW=G.nW||[0,0,0,0,0,0,0];const td=wkD(),ol
  G.nW[i]=old?0:1;G.night=G.nW.some(x=>x)?1:0;
  lg('🌙','lif','Nachtskilauf am '+WKL[i]+(G.nW[i]?' eingeschaltet':' ausgeschaltet'));
  if(i===td&&G.nTf&&G.nTf.d===G.day)toast('🌙 Für heute zu spät – gilt ab nächster Woche');sfx('click');render();save()}
+// V294: nach dem Kauf des Flutlichts gleich die Nachtski-Tage wählen (eigenes Fenster)
+function nsBox(){if(!G.flut||$('nsbox'))return;const o=document.createElement('div');o.id='nsbox';document.body.appendChild(o);
+ o.style.cssText='position:fixed;inset:0;z-index:9997;background:rgba(20,30,50,.55);display:flex;align-items:center;justify-content:center;padding:16px';
+ const pz=!paused;paused=true;$('pz').textContent='▶';
+ const fill=()=>{o.innerHTML=`<div style="background:var(--card,#fff);color:var(--ink,#2b3a55);border-radius:18px;max-width:400px;width:100%;max-height:92vh;overflow:auto;padding:16px 16px 14px;box-shadow:0 10px 30px rgba(0,0,0,.35);font-size:14px;line-height:1.4">
+ <div style="font:700 21px 'Fredoka',sans-serif">🌙 Nachtskilauf</div><div style="color:var(--mut);font-size:13px;margin-bottom:8px">An welchen Tagen soll er laufen?</div>
+ ${nsCard((i,t,d)=>d)}
+ <div style="color:var(--mut);font-size:12.5px;margin-top:6px">Du kannst die Tage jederzeit unter Bauen › Piste ändern.</div>
+ <div style="display:flex;margin-top:12px"><button class="btn" id="nsok" style="flex:1;font-size:16px;padding:11px 0">Fertig</button></div></div>`;
+  o.querySelectorAll('[data-nsd]').forEach(b=>b.onclick=()=>{nsTog(+b.dataset.nsd);fill()});
+  $('nsok').onclick=()=>{sfx('click');o.remove();if(pz){paused=false;$('pz').textContent='⏸'}render();hud()}};
+ fill()}
 function nsCard(cd){if(!G.flut)return cd('🌙','Nachtskilauf','Braucht Flutlicht. Dann fahren alle Lifte zusätzlich von 18:30 bis 22:00 Uhr – an den Tagen, die du auswählst.','');
  const W=G.nW||[0,0,0,0,0,0,0],n=W.filter(x=>x).length,td=wkD(),days=WKN.filter((x,i)=>W[i]).join(' · ');
  const row=WKN.map((d,i)=>`<button class="btn${W[i]?'':' ghost'}" data-nsd="${i}" style="flex:1;min-width:0;padding:8px 0;font-size:14px;${i===td?'outline:3px solid #e8a33a;outline-offset:1px':''}">${d}</button>`).join('');
@@ -1021,7 +1033,7 @@ function audAcc(){const O=G.ctrO;if(!O||(G.ctr||[]).length>=2)return;const d=AUF
 function audDec(){const O=G.ctrO;if(!O)return;lg('📋','anr','Auftrag abgelehnt: '+AUF[O.k].t);if(O.k==='wc')G.wrFS=seaN();G.ctrO=null;G.ctrPop=0;save()}
 // V287: neues Auftrags-Angebot als eigenes Fenster (Annehmen / Ablehnen), wartet bis kein anderes Fenster/Szene offen ist
 function auPopTry(){if(G.ctrPop&&!(G.ctrO&&AUF[G.ctrO.k]))G.ctrPop=0;const n=G.evN;if(G.evPop&&!(n&&n.acc==null&&EV[n.k]&&n.d>G.day))G.evPop=0;
- if(!G.ctrPop&&!G.evPop)return;if(!started||SWS||RSQ||open==='sea'||$('aubox')||$('evbox')||$('lnbox')||$('wbbox'))return;if(G.ctrPop)auBox();else evBox()}
+ if(!G.ctrPop&&!G.evPop)return;if(!started||SWS||RSQ||open==='sea'||$('aubox')||$('evbox')||$('nsbox')||$('lnbox')||$('wbbox'))return;if(G.ctrPop)auBox();else evBox()}
 function evAns(ok){const n=G.evN;if(!n)return;n.acc=!!ok;G.evPop=0;if(ok)toast(EV[n.k].ic+' Zugesagt: '+EV[n.k].t+' morgen');else lg(EV[n.k].ic,'ev','Abgesagt: '+EV[n.k].t)}
 // V288: Ereignis-Anfrage für morgen als eigenes Fenster (Annehmen / Ablehnen)
 function evBox(){const n=G.evN,D=EV[n.k];let o=document.createElement('div');o.id='evbox';document.body.appendChild(o);
@@ -7430,7 +7442,7 @@ function wrOv(){const R=G.wrR,show=!!(wrDay()&&['r1','p','r2','end'].includes(R.
 
 // ===== V239: Versteckter Testbereich (Optionen › 5× auf die Versionszeile tippen) =====
 // Jeder Test sichert vorher den Spielstand; „Test beenden“ holt ihn zurück. Neue Tests einfach in TESTS eintragen.
-const TVER='V293',TBAK='art-test-bak';
+const TVER='V294',TBAK='art-test-bak';
 // V263: Test „Alles ausgebaut“ – kauft über das Baumenü alles, was es gibt (Voraussetzungen und Sterne werden dabei übersprungen), und stellt Baustellen sofort fertig. wc = mit Verbindungsbahn West.
 var TALL=0;
 function tstAll(wc){const m0=G.money,st0=G.stN;let n=0;TALL=1;G.stN=5;
@@ -7726,7 +7738,7 @@ function render(){
  const bps=el.querySelector('[data-ps]');if(bps)bps.onclick=()=>{if(!G.ps&&G.areas>=2&&G.money>=PSC){spend(PSC);G.ps=1;buildStatic();toast('Die schwarze Abfahrt ist offen! ⬛ +4 Ruf');render();save()}};
  choBind(el);const bapl=el.querySelector('[data-apl]');if(bapl)bapl.onclick=()=>apUp();const bap=el.querySelector('[data-ap]');if(bap)bap.onclick=()=>{if(!G.ap&&G.areas>=2&&G.money>=APC){spend(APC);G.ap=1;buildStatic();toast('Die Après-Ski-Hütte ist fertig! 🎶 Ab 15 Uhr wird gefeiert');render();save()}};
  el.querySelectorAll('[data-nsd]').forEach(b=>b.onclick=()=>nsTog(+b.dataset.nsd));const bns=el.querySelector('[data-ns]');if(bns)bns.onclick=()=>{if(!G.flut)return;G.night=G.night?0:1;const td=phase()<.58;if(G.night)G.nD=td?G.day:G.day+1;lg('🌙','lif',G.night?'Nachtskilauf eingeschaltet':'Nachtskilauf ausgeschaltet');toast(G.night?'🌙 Nachtskilauf eingeschaltet: '+(td?'ab heute':'ab morgen')+', 18:30–22:00 Uhr':'Nachtskilauf ausgeschaltet');render();save()};
- const bfl=el.querySelector('[data-fl]');if(bfl)bfl.onclick=()=>{if(!G.flut&&G.areas>=2&&G.money>=FLC){spend(FLC);G.flut=1;buildStatic();toast('Flutlicht gebaut! Es leuchtet ab der Dämmerung, und Nachtrennen sind möglich 💡');render();save()}};
+ const bfl=el.querySelector('[data-fl]');if(bfl)bfl.onclick=()=>{if(!G.flut&&G.areas>=2&&G.money>=FLC){spend(FLC);G.flut=1;buildStatic();toast('Flutlicht gebaut! Es leuchtet ab der Dämmerung, und Nachtrennen sind möglich 💡');render();save();nsBox()}};
  el.querySelectorAll('[data-ib]').forEach(b=>b.onclick=()=>{const d=infD&&infD.btns[+b.dataset.ib];if(d&&d.ok()){d.go();if(open==='inf')render();save()}});gbBind(el);if(open==='sta'&&sTab==='geb')gbStaBind(el);el.classList.toggle('gbw',open==='inf');
  el.querySelectorAll('[data-a]').forEach(b=>b.onclick=()=>{const k=+b.dataset.a,p=AC[k-1];if(G.areas===k-1&&G.money>=p&&reqOK(k)){spend(p);G.areas=k;(G.aD=G.aD||{})[k]=G.day;expInit();{const mc=[0,0,0,4,4,6,8][k];if(mc&&G.cap[k-1]<mc)G.cap[k-1]=mc}if(G.lg[k-1]<3)G.lg[k-1]=3;buildLift(k);buildStatic();lg(k===6?'🏔️':'⛰️','anr','Ausbau Stufe '+k+' ist frei: '+STG[k].neu.map(r=>r[1]).join(', ')+'.',{s:1});lg('📣','anr','Die neue Stufe spricht sich erst herum: In den ersten 3 Tagen fahren noch nicht alle hinauf. Zeit, Lift '+k+' auszubauen.');if(k===2||k===4)lg('🧭','anr','Neue Ansprüche der Gäste: '+expList(k).map(e=>e.t).join(', '),{s:1});toast((k===6?'🏔️ ':'⛰️ ')+'Ausbau Stufe '+k+' ist frei!'+(k>=4?' Bild nach unten ziehen':''));neuShow(k);save()}});
  el.querySelectorAll('[data-o7]').forEach(b=>b.onclick=()=>obBuy7());el.querySelectorAll('[data-ob]').forEach(b=>b.onclick=()=>obBuyK(+b.dataset.ob));
