@@ -159,7 +159,7 @@ const CHL=()=>[[415,V,46,28],[922,R+88,36,24],[966,R+88,36,24],[1010,R+88,36,24]
 const slopeX=y=>{const u=y-120;return 155+55*sfr(y)+16*Math.sin(u/52)+10*Math.sin(u/27+1.3)+7*Math.sin(u/80+.5)}, slopeW=y=>1.5*(28+(sfr(y)<0?9:32)*sfr(y))*(1+.15*Math.sin((y-120)/37+2));
 const NA=6,AHF=1.6,AH=()=>(V-130)/3*AHF,Yk=k=>V-k*AH(),TOPY4=()=>V-4*AH()-10,TOPY=()=>V-NA*AH()-10,sfr=y=>(y-TOPY4())/(V-TOPY4()), lx=y=>315+100*(y-Yk(4))/((V-22)-Yk(4));
 const GX=414,GX2=566,PGAP=30,ZC=[215,500],TCOL=[383,357,331,305,279,253,541,567,593,619,645,671,697,723,749,187,161,135,109,83,775,801,827,853,879,57,31,5,-21,-47],cX=j=>TCOL[Math.min(j,29)],spotX=i=>i>=900?(i===900?SBW:SBO):i>=800?obSX(i):i>=700?(i===700?ZS:ZN):i>=500?SZW:i>=300?-71:i>=200?-93-26*(i-200):i===101?GX2:i>=100?GX:cX(i>>1), spotY=i=>i>=900?SBY():i>=800?obSY(i):i>=700?R+44:i>=500?SZT():i>=300?R+52:i>=200?R-38-RD:i>=100?R-30-RD:(i&1)?R+32+RD:R-32-RD, fy=i=>i>=900?R-70:i>=800?obFY(i):i>=700?R+44:i>=500?SZT()+20:i>=300?R+133:i>=200?R-64-RD:i>=100?R-40-RD:(i&1)?R+46+RD:R-46-RD, spotCost=()=>G.spots<tMax()?600+120*(G.spots-4):0, cost=()=>zins()+Math.round(seaK()*CF*(40+60*G.areas+8*G.spots+10*G.lg.reduce((a,b)=>a+b,0)+15*G.up.s+20*G.up.h+25*G.garage+25*(G.garage2||0)+10*((G.garage?gLv(1):1)-1)+10*((G.garage2?gLv(2):1)-1)+30*(G.ph?1:0)+9*((G.ph||0)>=3?1:0)+25*(G.sz?1:0)+6*Math.max(0,(G.sz||0)-1)+20*(G.sst?1:0)+10*(G.fb?1:0)+pkUp()+20*G.cap.filter((c,i)=>i<G.areas&&c>2).length+30*G.cap.filter((c,i)=>i<G.areas&&c>4).length+45*G.cap.filter((c,i)=>i<G.areas&&c>6).length+60*G.hotels+50*G.raupen+20*(G.rupg||0)+30*stf().lw+40*stf().bw+25*stf().ph+(prjOk('gipf')?70+gzU():0)+(prjOk('arena')?120:0)+(prjOk('therme')?ATU:0)+30*(G.rest||0)+60*(G.train||0)+40*(G.kan||0)+20*(G.kup||0)+15*(G.bus||0)+15*(G.pb||0)+25*(G.ps||0)+(G.ap?40+APLU[G.apL||1]:0)+80*(G.sxl?1:0)+OXU*(G.sxo&&ost()?1:0)+(pao()?PAOU:0)+(ost()?olgU():0)+(ost()?OBUP:0)+(ost()>=2?OB8U:0)+(ost()>=3?OB9U:0)+obxU()+choU()+rntU()+spU()+(G.zu?ZUU+10*(G.zug||0):0))+(G.inc.fl||0)+(G.inc.nl||0)), gcost0=k=>G.lg[k-1]<6?400+250*G.lg[k-1]:0,qcost0=k=>[2500,4000,6000,9000,12000,15000][k-1],gcost=k=>wcSum(gcost0,k),qcost=k=>wcSum(qcost0,k),HC=[9000,16000,26000],KC=5500,RSC=6000,TRC=15000,BPC=[3500,6000,8000],RUC=9000,KUC=8000,RC=[4500,12000],pqf=()=>G.areas>=2?cl(pqC()/100,0,1):1,wxOn=()=>G.areas>=2,WI={sonne:'☀️',schnee:'❄️',tau:'💧',sturm:'🌪️'},WN={sonne:'Sonne',schnee:'Neuschnee',tau:'Tauwetter',sturm:'Sturm'},wxA=()=>wxOn()?({sonne:1.1,schnee:1.35,tau:.9,sturm:.25})[G.wx]*(.5+.5*cl(G.snow/50,0,1)):1,hw=()=>wxOn()?({sonne:0,schnee:.08,tau:-.05,sturm:.12})[G.wx]:0,HX=[438,226,644],occ=()=>oaDay()||wrDay()||arDay()?.98:cl(.15+(G.ap?.04:0)+(prjOk('gipf')?.03:0)+(prjOk('therme')?.03:0)+rufE()/130-(G.hp-45)/150+hw(),.05,.98),hInc=()=>Math.round((Math.round(G.hotels*20*occ()*G.hp*CF)+thInc()+chInc())*wrGx());
-const spend=p=>{G.money-=p;if(p>=100)sfx('build',300);G.inc.b=(G.inc.b||0)+p;if(!spP)queueMicrotask(()=>{if(spP){lg('🛠️','geld','Ausgabe −'+fmt(spP));spP=0}});spP+=p};
+const spend=p=>{G.money-=p;lnRec(p);if(p>=100)sfx('build',300);G.inc.b=(G.inc.b||0)+p;if(!spP)queueMicrotask(()=>{if(spP){lg('🛠️','geld','Ausgabe −'+fmt(spP));spP=0}});spP+=p};
 const cl=(a,lo,hi)=>Math.min(hi,Math.max(lo,a)),AC=[0,3200,10000,70000,250000,300000],GC=6000,talS=()=>Math.min(6,G.areas||1),tMax=()=>talS()>=2?60:40,busMax=()=>talS()>=2?6:0;
 const CAMP=[['Plakate',250,10,2],['Radiospot',600,20,2],['Influencer-Kampagne',1500,35,3]],UPG={s:['Skischule',2000,6,15],h:['Berghütte',3500,8,20]};
 const bonus=()=>(G.ap?3+Math.max(0,(G.apL||1)-1):0)+(G.areas>=6?4:0)+(G.night&&G.flut&&G.areas>=2?2:0)+G.up.s*6+G.up.h*8+(G.ps&&G.areas>=2?4:0)+(G.ct>0?G.cv:0)+(G.ebD>=G.day?G.eb||0:0)+(G.cbD>=G.day?G.cb||0:0)+(G.awD>=G.day?G.aw||0:0)+(stf().bw?2:0)-(baulaerm()?2:0)+(prjOk('gipf')?4+(gz2()?1:0):0)+2*ost()+obxB(), cpen=()=>{if(G.areas<2)return {pi:0,sn:0,t:0};const pi=(1-pqf())*35*rq('pi'),sn=(snC()<30?(30-snC())/30*30:0)*(G.areas>=6?.5:1)*rq('sn');return {pi,sn,t:pi+sn}},rufCap=()=>cl(100-1.5*cpen().t,10,100),rufE=()=>cl(Math.min(G.ruf+bonus(),rufCap()),0,100);
@@ -966,8 +966,6 @@ function scnHTML(){const d=SC();if(!d)return '<h3>Szenario<a data-x>✕</a></h3>
  <div class="row" style="justify-content:flex-end;gap:10px">${w?'':'<button class="btn ghost" id="scr">Neu versuchen</button>'}<button class="btn" id="scg">Weiterspielen</button></div>`}
 
 // ===== Finanzen: Tabelle, Kredit (V152) =====
-function zins(){return Math.round((G.loan||0)*.01)}
-function lMax(){return 10000*stars()}
 let fTab='tab';
 // Summen eines Bilanz-Tages (V245: eine Stelle für alle Tabellen und Diagramme)
 const hsE=x=>x.l+x.p+(x.h||0)+(x.g||0)+(x.e||0)+(x.a||0)+(x.w||0)+(x.th||0)+(x.vl||0)+(x.sp||0),hsA=x=>(x.k||0)+(x.b||0)+(x.wk||0);
@@ -979,12 +977,103 @@ function finTab(){const hs=(G.hist||[]).slice(-4),T={d:'Heute',l:G.inc.l,ss:G.in
  h+=`<tr class="sum"><td>Saldo</td>${C.map(x=>{const e=hsE(x),a=hsA(x),d=e-a;return x.live?'<td class="mut">abends</td>':`<td class="${d<0?'neg':'pos'}">${d>0?'+':''}${kf(d)}</td>`}).join('')}</tr></table>`;
  h+=`<div class="kpi"><div><small>Kassa</small><b class="${G.money<0?'neg':''}">${fmt(G.money)}</b></div><div><small>Kredit</small><b>${fmt(G.loan||0)}</b></div></div>`;
  h+='<p class="hint">Beträge in Euro, k = Tausend. „Heute“ ist der Stand bis jetzt. Betrieb und Zinsen (grau) werden erst abends abgebucht, Hotels sind für heute Nacht geschätzt. Geld aus Aufträgen, Preisgeld und Herbstsaison kommt abends nach dem Tagesabschluss und steht beim jeweiligen Tag. Betrieb = Tageskosten für Lifte, Personal, Gebäude und Technik.</p>';return h}
-function finKre(){const L=G.loan||0,M=lMax(),z=zins(),R=(a,b,c)=>`<div class="row"><span>${a}${c?`<br><small style="color:var(--mut)">${c}</small>`:''}</span><b>${b}</b></div>`;
- return `<div class="kpi"><div><small>Kredit</small><b>${fmt(L)}</b><div class="pb" style="height:6px;margin-top:5px"><i style="width:${M?L/M*100:0}%;background:#e8a33a"></i></div></div><div><small>Zinsen pro Tag</small><b class="${z?'neg':''}">${z?'−'+fmt(z):'–'}</b></div></div>
- ${R('Höchstbetrag',fmt(M),'10.000 € pro Stern, du hast '+stars())}${R('Zinssatz','1 % pro Tag','wird abends mit den Tageskosten abgebucht')}
- <div class="row"><span>Aufnehmen</span><span style="display:flex;gap:6px"><button class="btn" data-ln="5000" ${L+5000>M?'disabled':''}>+5.000 €</button><button class="btn" data-ln="20000" ${L+20000>M?'disabled':''}>+20.000 €</button></span></div>
- <div class="row"><span>Zurückzahlen</span><span style="display:flex;gap:6px"><button class="btn ghost" data-ln="-5000" ${L<5000||G.money<5000?'disabled':''}>−5.000 €</button><button class="btn ghost" data-ln="-all" ${!L||G.money<L?'disabled':''}>Alles</button></span></div>
- <p class="hint">Mit einem Kredit kannst du früher groß ausbauen. Aber die Zinsen laufen jeden Tag weiter, bis du zurückzahlst. Ein Kredit über ${fmt(20000)} kostet ${fmt(200)} pro Tag.</p>`}
+// ===== Kredit neu (V277): Rahmen nach Einnahmen, Zinsen nach Sternen, Laufzeit, Raten, Mahnung, Rücknahme =====
+// G.loan = offene Schuld, G.lnI Zinssatz/Tag, G.lnR Rate/Tag, G.lnN Raten offen (inkl. versäumte), G.lnT Laufzeit, G.lnD Tag der Aufnahme,
+// G.lnO versäumte Raten, G.lnOA versäumter Tilgungsbetrag, G.buys Käufe (für die Rücknahme), G.lnMsg Meldung nach der Rücknahme
+const LNZ=[.006,.005,.004,.003,.002],LNTS=[10,20,30],LNBK=40;
+function lnStar(){return Math.max(1,Math.min(5,stars()||1))}
+function lnRateI(){return LNZ[lnStar()-1]}
+function lnAnn(L,i,n){n=Math.max(1,n);return L<=0?0:Math.ceil(L*i/(1-Math.pow(1+i,-n)))}
+function lnAvg(){const H=(G.hist||[]).slice(-7);return H.length?Math.round(H.reduce((a,x)=>a+hsE(x),0)/H.length):0}
+function lMax(){return Math.max(20000,Math.floor(lnAvg()*10/1000)*1000)}
+function zins(){return Math.round((G.loan||0)*(G.lnI||lnRateI()))}
+function lnMig(){if((G.loan||0)>0&&!G.lnR){G.lnI=lnRateI();G.lnT=20;G.lnN=20;G.lnD=G.day;G.lnR=lnAnn(G.loan,G.lnI,20)}}
+function lnClr(){G.loan=0;G.lnR=0;G.lnN=0;G.lnO=0;G.lnOA=0}
+let lnAmt=0,lnTm=20;
+function lnStep(){return lMax()<=60000?5000:10000}
+function lnFree(){return Math.max(0,lMax()-(G.loan||0))}
+function lnFit(){const F=lnFree(),s=lnStep();if(!lnAmt)lnAmt=Math.min(F,s*2);lnAmt=Math.max(0,Math.min(lnAmt,Math.floor(F/1000)*1000))}
+// Tagesabschluss: Zinsen sind schon in cost() abgebucht, hier wird die Tilgung fällig
+function lnDay(){const L=G.loan||0;if(L<=0){if(G.lnR)lnClr();return}lnMig();
+ const OA=G.lnOA||0,last=(G.lnN||1)-(G.lnO||0)<=1,P0=last?L-OA:Math.min(L-OA,Math.max(0,G.lnR-zins())),due=OA+P0;
+ if(G.money>=due){G.money-=due;G.loan=Math.max(0,L-due);G.lnN=Math.max(0,(G.lnN||1)-1-(G.lnO||0));const war=G.lnO;G.lnO=0;G.lnOA=0;
+  if(G.loan<1||G.lnN<=0){if(G.loan>=1){G.money-=G.loan}lnClr();G.achL=1;lg('🏦','geld','Kredit ganz abbezahlt');toast('🏦 Dein Kredit ist ganz abbezahlt!',3500)}
+  else lg('🏦','geld','Kreditrate bezahlt: −'+fmt(due)+(war?' (mit nachgeholten Raten)':'')+', noch '+fmt(G.loan));return}
+ G.lnO=(G.lnO||0)+1;G.lnOA=OA+P0;G.ruf=Math.max(0,G.ruf-3);
+ lg('🏦','geld',G.lnO+'. Kreditrate nicht bezahlt ('+fmt(P0)+' fehlen), Ruf −3');
+ if(G.lnO===1)toast('⚠️ 1. Mahnung: Zu wenig Geld für die Kreditrate. Sie wird morgen Abend zusätzlich abgebucht.',5000);
+ else if(G.lnO===2)lnWarn();
+ else lnTake()}
+// Was die Bank als Nächstes zurücknehmen würde
+function lnPick(need){const B=G.buys||[],out=[];let v=0;for(let k=B.length-1;k>=0&&v<need;k--){out.push(B[k]);v+=Math.round(B[k].c/2)}return {l:out,v}}
+function lnBox(h){let o=$('lnbox');if(!o){o=document.createElement('div');o.id='lnbox';document.body.appendChild(o)}
+ o.style.cssText='position:fixed;inset:0;z-index:9999;background:rgba(20,30,50,.55);display:flex;align-items:center;justify-content:center;padding:16px';
+ o.innerHTML=`<div style="background:var(--card,#fff);color:var(--ink,#2b3a55);border-radius:18px;max-width:400px;width:100%;padding:16px 16px 14px;box-shadow:0 10px 30px rgba(0,0,0,.35);font-size:15px;line-height:1.4">${h}<div style="text-align:center;margin-top:14px"><button class="btn" id="lnok" style="font-size:16px;padding:10px 26px">Verstanden</button></div></div>`;
+ const pz=!paused;paused=true;$('pz').textContent='▶';
+ $('lnok').onclick=()=>{o.remove();if(pz){paused=false;$('pz').textContent='⏸'}render();hud()}}
+function lnWarn(){const due=(G.lnOA||0)+Math.min(G.loan,Math.max(0,G.lnR-zins()))+zins(),p=lnPick(G.lnOA+Math.max(0,G.lnR-zins()));
+ const it=p.l.length?p.l.map(e=>'<b>'+e.n+'</b>').join(', '):null;
+ lnBox(`<div style="font:700 20px 'Fredoka',sans-serif;color:#c0392b;margin-bottom:6px">⚠️ 2. Mahnung der Bank</div>
+ Schon zwei Kreditraten sind offen. Morgen Abend sind <b>${fmt(due)}</b> fällig.<br><br>
+ ${it?`Reicht das Geld wieder nicht, nimmt die Bank ${it} zurück – zum halben Kaufpreis (${fmt(p.v)}).`:'Reicht das Geld wieder nicht, bucht die Bank den Betrag trotzdem ab – deine Kassa kann dann ins Minus rutschen.'}
+ <div style="margin-top:8px;font-size:13px;color:var(--mut)">Tipp: Preise anpassen oder einen Teil vorzeitig zurückzahlen.</div>`)}
+// Rücknahme nach der 3. offenen Rate
+function lnTake(){const need=G.lnOA||0,B=G.buys||(G.buys=[]),tk=[];let v=0;
+ while(v<need&&B.length){const e=B.pop();lnUndo(e);v+=Math.round(e.c/2);tk.push(e.n)}
+ let paid=Math.min(need,v),rest=v-paid;G.loan-=paid;G.lnOA=need-paid;
+ if(G.lnOA>0){G.money-=G.lnOA;G.loan-=G.lnOA;G.lnOA=0}
+ if(rest>0){const r=Math.min(rest,G.loan);G.loan-=r;rest-=r;G.money+=rest}
+ G.lnN=Math.max(1,(G.lnN||1)-(G.lnO||0));G.lnO=0;G.loan=Math.max(0,Math.round(G.loan));
+ if(G.loan<1)lnClr();else G.lnR=lnAnn(G.loan,G.lnI,G.lnN);
+ lg('🏦','geld',tk.length?'Die Bank hat zurückgenommen: '+tk.join(', ')+' (+'+fmt(v)+')':'Die Bank hat '+fmt(need)+' von der Kassa abgebucht');
+ G.lnMsg={t:tk,v,n:need};
+ if(tk.length){resetting=true;try{G.sv=Date.now();localStorage.setItem(KEY,JSON.stringify(G))}catch(e){}setTimeout(()=>{try{location.hash='go'}catch(e){}location.reload()},60)}
+ else lnMsgShow()}
+function lnMsgShow(){const M=G.lnMsg;if(!M)return;G.lnMsg=null;
+ lnBox(`<div style="font:700 20px 'Fredoka',sans-serif;color:#c0392b;margin-bottom:6px">🏦 Die Bank hat zugegriffen</div>
+ Drei Kreditraten waren offen (${fmt(M.n)}).<br><br>${M.t.length?'Zurückgenommen zum halben Kaufpreis:<br>'+M.t.map(x=>'• <b>'+x+'</b>').join('<br>')+'<br><br>Erlös: <b>'+fmt(M.v)+'</b>'+(M.v<M.n?', der Rest wurde von der Kassa abgebucht.':', das deckt die offenen Raten'+(M.v>M.n?' – der Rest verringert deinen Kredit.':'.')):'Es gab nichts mehr zum Zurücknehmen – der Betrag wurde von der Kassa abgebucht.'}`);save()}
+// Käufe merken: Zustand vor jedem Tippen, Unterschied nach dem Kauf
+let lnSnap=null,lnLbl='',lnPend=0;
+const LNSKIP={money:1,inc:1,lb:1,sv:1,buys:1,hist:1,lnMsg:1,achL:1,ach:1,last:1};
+function lnDiff(a,b,p,out){if(a===b)return;const ja=JSON.stringify(a),jb=JSON.stringify(b);if(ja===jb)return;
+ if(a&&b&&typeof a==='object'&&typeof b==='object'&&!Array.isArray(a)&&!Array.isArray(b)){for(const k of new Set([...Object.keys(a),...Object.keys(b)])){if(!p.length&&LNSKIP[k])continue;lnDiff(a[k],b[k],p.concat(k),out)}return}
+ out.push([p,ja===undefined?'__u':ja])}
+function lnUndo(e){for(const [p,o] of e.ch){let t=G;for(let k=0;k<p.length-1;k++){if(t[p[k]]==null||typeof t[p[k]]!=='object')t[p[k]]={};t=t[p[k]]}const k=p[p.length-1];if(o==='__u')delete t[k];else t[k]=JSON.parse(o)}}
+document.addEventListener('click',ev=>{if(!started)return;const b=ev.target.closest&&ev.target.closest('button');if(!b||b.closest('#lnbox'))return;
+ try{lnSnap=JSON.parse(JSON.stringify(G))}catch(e){lnSnap=null}
+ const c=b.closest('[data-bk]'),s=b.closest('.stg'),h=c?c.dataset.bk:s&&s.querySelector('b')?s.querySelector('b').textContent.replace(/^\W+/,''):'',bt=b.textContent.replace(/[\d.,]+\s*€/g,'').replace(/\s+/g,' ').replace(/^[·\s]+|[·\s]+$/g,'').trim();
+ lnLbl=(h||bt||'Ausbau').trim()+(h&&bt&&!/^(Kaufen|Bauen|Bau starten)\b/i.test(bt)&&bt.length<28&&bt!==h?' ('+bt+')':'');
+ setTimeout(()=>{lnSnap=null},0)},true);
+function lnRec(p){if(!lnSnap||!started)return;lnPend+=p;if(lnPend>p)return;queueMicrotask(()=>{const c=lnPend;lnPend=0;const S=lnSnap;if(!S||c<100)return;
+ const ch=[];lnDiff(S,G,[],ch);if(!ch.length)return;if(ch.some(([p])=>p[0]==='areas'||p[0]==='ost'))return;
+ const B=G.buys||(G.buys=[]);B.push({d:G.day,c,n:lnLbl,ch});if(B.length>LNBK)B.splice(0,B.length-LNBK)})}
+// Fenster
+function finKre(){lnMig();const L=G.loan||0,M=lMax(),st=lnStar(),i=lnRateI(),R=(a,b,c,cl)=>`<div class="row"><span>${a}${c?`<br><small style="color:var(--mut)">${c}</small>`:''}</span><b class="${cl||''}">${b}</b></div>`;
+ const sb=`<div style="display:flex;gap:4px;margin:6px 0 2px">${LNZ.map((z,k)=>`<div style="flex:1;text-align:center;border-radius:8px;padding:4px 0;font-size:12px;${k===st-1?'background:#e8a33a;color:#fff;font-weight:700':'background:var(--line)'}">${k+1}★<br>${String(z*100).replace('.',',')} %</div>`).join('')}</div>`;
+ lnFit();const F=lnFree(),N=L+lnAmt,iN=L?Math.min(G.lnI,i):i,r=lnAnn(N,iN,lnTm),lock=(G.lnO||0)>0;
+ const form=t=>`<div class="row" style="display:block"><b>${t}</b></div>
+ <div class="row"><span>Betrag</span><span style="display:flex;gap:6px;align-items:center"><button class="btn ghost" data-lna="-" ${lnAmt<=0||lock?'disabled':''}>−</button><b style="min-width:86px;text-align:center">${fmt(lnAmt)}</b><button class="btn ghost" data-lna="+" ${lnAmt>=F||lock?'disabled':''}>+</button><button class="btn ghost" data-lna="max" ${lock||!F?'disabled':''}>Max</button></span></div>
+ <div class="row"><span>Laufzeit</span><span style="display:flex;gap:6px">${LNTS.map(t=>`<button class="btn ${lnTm===t?'':'ghost'}" data-lnt="${t}" ${lock?'disabled':''}>${t} Tage</button>`).join('')}</span></div>
+ ${R('Rate pro Tag','−'+fmt(r),L?'neue Rate für '+fmt(N)+' (alter Rest + neuer Betrag)':'wird jeden Abend automatisch abgebucht','neg')}${R('Zinsen insgesamt',fmt(Math.max(0,r*lnTm-N)))}${R('Zurück insgesamt',fmt(r*lnTm))}
+ <div style="text-align:center;margin:10px 0 4px"><button class="btn" data-ln="take" style="font-size:16px;padding:10px 22px" ${lock||lnAmt<=0?'disabled':''}>${lock?'🔒 erst ohne Mahnung':'🏦 '+(L?'Kredit aufstocken':'Kredit aufnehmen')}</button></div>`;
+ const rahmen=R('Wie viel bekomme ich?','',`10 × deine Einnahmen pro Tag (Ø letzte 7 Tage: ${fmt(lnAvg())}), mindestens ${fmt(20000)}`)+`<div class="row" style="display:block"><span>Zinsen pro Tag – je mehr Sterne, desto günstiger</span>${sb}</div>`;
+ if(!L)return `<div class="kpi"><div><small>Kreditrahmen</small><b>${fmt(M)}</b></div><div><small>Offener Kredit</small><b>–</b></div></div>${rahmen}${form('Neuer Kredit')}<p class="hint">Vorzeitig zurückzahlen geht jederzeit – dann sparst du dir die restlichen Zinsen. Kannst du eine Rate nicht bezahlen, gibt es eine Mahnung (Ruf −3). Nach der 3. offenen Rate nimmt die Bank das zuletzt Gekaufte zum halben Preis zurück (Ausbaustufen nie).</p>`;
+ const O=G.lnO||0,P=Math.min(L,Math.max(0,G.lnR-zins())),due=(G.lnOA||0)+P+zins(),tot=G.lnT||20,left=G.lnN||0;
+ const mb=O?`<div style="background:#fde3e1;border:2px solid #d9534f;border-radius:12px;padding:8px 10px;margin:8px 0;font-size:14px;color:#7a1d1a"><b>⚠️ ${O}. Mahnung</b><br>${O===1?'Gestern Abend war zu wenig Geld für die Rate in der Kassa. Sie wird heute Abend zusätzlich abgebucht.':'Zwei Raten sind offen. Reicht das Geld heute Abend wieder nicht, nimmt die Bank das zuletzt Gekaufte zurück.'}<br><small>Ruf −3 je offene Rate · kein Aufstocken, bis alles bezahlt ist</small></div>`:'';
+ return `${mb}<div class="kpi"><div><small>Offener Kredit</small><b>${fmt(L)}</b><div class="pb" style="height:6px;margin-top:5px"><i style="width:${Math.max(0,Math.min(100,100*(tot-left)/tot))}%;background:#4caf50"></i></div></div><div><small>Heute Abend fällig</small><b class="neg">−${fmt(due)}</b></div></div>
+ ${R('Rate pro Tag',fmt(G.lnR),'Laufzeit '+tot+' Tage, '+String(Math.round(G.lnI*1000)/10).replace('.',',')+' % pro Tag, aufgenommen an Tag '+(G.lnD||G.day))}${R('Noch offen',left+' von '+tot+' Raten',O?O+' davon versäumt':'')}
+ <div class="row"><span>Vorzeitig zurückzahlen</span><span style="display:flex;gap:6px"><button class="btn ghost" data-ln="-10000" ${L<10000||G.money<10000?'disabled':''}>−10.000 €</button><button class="btn ghost" data-ln="-all" ${G.money<L?'disabled':''}>Alles</button></span></div>
+ ${form('Aufstocken · Rahmen '+fmt(M)+', frei '+fmt(F))}${rahmen}
+ <p class="hint">Alles auf einmal zurückzahlen kostet ${fmt(L)} und spart dir ${fmt(Math.max(0,G.lnR*left-L))} Zinsen.</p>`}
+function lnClick(el){
+ el.querySelectorAll('[data-lna]').forEach(b=>b.onclick=()=>{const v=b.dataset.lna,s=lnStep();lnAmt=v==='max'?lnFree():v==='+'?lnAmt+s:Math.max(0,lnAmt-s);lnFit();sfx('click');render()});
+ el.querySelectorAll('[data-lnt]').forEach(b=>b.onclick=()=>{lnTm=+b.dataset.lnt;sfx('click');render()});
+ el.querySelectorAll('[data-ln]').forEach(b=>b.onclick=()=>{const v=b.dataset.ln,L=G.loan||0;
+  if(v==='take'){lnFit();if(lnAmt>0&&!(G.lnO>0)&&L+lnAmt<=lMax()){const N=L+lnAmt,i=L?Math.min(G.lnI,lnRateI()):lnRateI();G.money+=lnAmt;G.loan=N;G.lnI=i;G.lnT=lnTm;G.lnN=lnTm;G.lnD=G.day;G.lnR=lnAnn(N,i,lnTm);G.lnO=0;G.lnOA=0;
+   lg('🏦','geld',(L?'Kredit aufgestockt: +':'Kredit aufgenommen: +')+fmt(lnAmt)+', jetzt '+fmt(N)+', Rate '+fmt(G.lnR)+' pro Tag');sfx('coin');lnAmt=0}}
+  else if(v==='-all'){if(G.money>=L&&L>0){G.money-=L;lnClr();G.achL=1;lg('🏦','geld','Kredit ganz zurückgezahlt: '+fmt(L))}}
+  else{const n=-v;if(n>0&&L>=n&&G.money>=n){G.money-=n;G.loan=L-n;if(G.loan<1){lnClr();G.achL=1}else G.lnR=lnAnn(G.loan,G.lnI,Math.max(1,G.lnN-(G.lnO||0)));lg('🏦','geld','Kredit vorzeitig zurückgezahlt: '+fmt(n)+', noch '+fmt(G.loan))}}
+  render();hud();save()})}
 
 // ===== Lift-Alterung, Störungen, Personal (V153) =====
 function stf(){return G.st||(G.st={lw:0,bw:0,ph:0})}
@@ -7020,7 +7109,7 @@ function wrOv(){const R=G.wrR,show=!!(wrDay()&&['r1','p','r2','end'].includes(R.
 
 // ===== V239: Versteckter Testbereich (Optionen › 5× auf die Versionszeile tippen) =====
 // Jeder Test sichert vorher den Spielstand; „Test beenden“ holt ihn zurück. Neue Tests einfach in TESTS eintragen.
-const TVER='V276',TBAK='art-test-bak';
+const TVER='V277',TBAK='art-test-bak';
 // V263: Test „Alles ausgebaut“ – kauft über das Baumenü alles, was es gibt (Voraussetzungen und Sterne werden dabei übersprungen), und stellt Baustellen sofort fertig. wc = mit Verbindungsbahn West.
 var TALL=0;
 function tstAll(wc){const m0=G.money,st0=G.stN;let n=0;TALL=1;G.stN=5;
@@ -7101,7 +7190,7 @@ function step(dt){if(wrHold())return;
  for(const n of cann){if(!G.kan||n.k>G.areas||cOff(n))continue;if(n.on>0){n.on-=dt;const p=cpos(n),m=sn.length<(SET.perf?220:700)?Math.round(dt*140*(G.kup?1.5:1)+Math.random()):0;
   for(let i=0;i<m;i++){const tx=slopeX(p.y+20)+(Math.random()-.5)*slopeW(p.y)-p.x;sn.push({x:p.x+9,y:p.y-9,vx:tx*(.6+Math.random()*.6)+(Math.random()-.5)*14,vy:-30-Math.random()*26,t:1,r:.6+Math.random()*.9,ph:Math.random()*6})}}
   else{n.cd-=dt*(wxOn()?(G.snow<30?6:G.snow<60?3:1):1);if(n.cd<=0){n.on=6+Math.random()*5;n.cd=25+Math.random()*35}}}
- if(G.t>=DAY){for(const f of folks){if(f.seat>=0)seats[f.seat]=null;if(f.car)f.car.back++;else if(!f.byT&&!f.ape){G.guests++;G.gT++}f.dead=1}folks=[];for(const k of [...cars,...buses])if(k.st==='stay'&&k.n!=null&&k.back<k.n)k.back=k.n;queues.forEach(q=>q.length=0);OBQ.length=0;for(const k of OBCB)k.r=[];const hi=hInc();if(hi){G.money+=hi;G.inc.h=hi;const ci=Math.round(chInc()*wrGx());for(let i=0;i<G.hotels;i++)pop(HX[i],HDY(i)-34,Math.round((hi-ci)/G.hotels));if(ci)pop(CHO.x,CHO.y-70,ci)}spNight();const inc=G.inc.l+G.inc.p+hi+(G.inc.g||0)+(G.inc.ev||0)+(G.inc.w||0)+(G.inc.au||0)+(G.inc.atm||0)+(G.inc.vl||0)+(G.inc.sp||0),k=cost();G.money-=k;G.last={inc,k,profit:inc-k-(G.inc.wk||0)};{const F=lf(),pr=inc-k-(G.inc.wk||0),g=G.gT;lg('🏁','geld','Tagesabschluss: '+gN(g)+' · Einnahmen '+fmt(inc)+' · Tageskosten '+fmt(k)+' · Saldo '+(pr>=0?'+':'')+fmt(pr),{s:1});if(G.inc.b)lg('🛠️','geld','Gebaut und Werbung heute: '+fmt(G.inc.b));if(G.inc.sp)lg('🎿','geld','Sportgeschäft heute: '+gN((G.inc.spn||0)+(G.inc.spon||0))+' mit Einkauf · Umsatz '+fmt(G.inc.sp)+(G.ssL&&(G.spw>=2||G.spo>=2)?' (davon Ski-Service: '+G.ssL+' Paar Ski)':''));if(G.inc.fl>=1)lg('💡','geld','Flutlicht heute: '+fmt(G.inc.fl)+' Stromkosten');if(G.inc.nn||G.inc.nl>=1)lg('🌙','geld','Nachtskilauf heute: '+gN(G.inc.nn||0)+' · Nachtkarten '+fmt(G.inc.nk||0)+' · Abendbetrieb Lifte '+fmt(G.inc.nl||0));if(G.inc.on||G.inc.og)lg('🚠','anr','Ostberg heute: '+gN(G.inc.ou||G.inc.on||0)+' · '+(G.inc.og||0)+' Gondelfahrten'+(G.inc.og2?' · '+G.inc.og2+' bis zum Gipfel':'')+(G.inc.oc?' · '+G.inc.oc+' Sesselfahrten':'')+(G.inc.sxo?' · '+G.inc.sxo+' mit dem Shuttle Ost':''));if(G.inc.ssn||G.inc.p9e||G.inc.p9w||G.inc.sbn)lg('🚡','anr','Skischaukel heute: '+(G.inc.ssn||0)+' Tickets · '+(G.inc.p9e||0)+' Fahrten West → Ost · '+(G.inc.p9w||0)+' Ost → West'+(G.inc.sbn?' · '+G.inc.sbn+' im Skibus':''));if(G.inc.sx)lg('🚌','anr','Shuttlebus heute: '+G.inc.sx+(G.inc.sx===1?' Fahrt':' Fahrten')+' (Parkhäuser ↔ Kassa)');if(G.inc.ab)lg('🅿️','anr','Abgewiesen heute: '+G.inc.ab+(G.inc.ab===1?' Auto':' Autos'));if(F.mw>=1)lg('⏱️','lif','Längste Wartezeit: Lift '+F.mL+', '+wfmt(F.mw)+' um '+F.mt);if(G.rec){if(g>G.rec.g)lg('🏆','geld','Rekord: '+g+' Gäste an einem Tag (bisher '+G.rec.g+')',{s:1});if(pr>G.rec.s&&pr>0)lg('🏆','geld','Rekord: bester Saldo mit +'+fmt(pr)+' (bisher '+fmt(G.rec.s)+')',{s:1});G.rec.g=Math.max(G.rec.g,g);G.rec.s=Math.max(G.rec.s,pr)}else G.rec={g,s:Math.max(pr,...(G.hist||[]).map(x=>hsE(x)-hsA(x)))}}G.gLast=G.gT;G.gT=0;AT.inn=AT.way=0;G.hist=(G.hist||[]).concat([{d:G.day,th:G.inc.atm||0,vl:G.inc.vl||0,sp:G.inc.sp||0,l:G.inc.l,ss:G.inc.ssm||0,p:G.inc.p,h:hi,g:G.inc.g||0,e:G.inc.ev||0,a:G.inc.au||0,w:G.inc.w||0,wk:G.inc.wk||0,k,b:G.inc.b||0,z:zins(),n:G.gLast,r:Math.round(rufE())}]).slice(-10);{const tg=90-cpen().t;if(tg<G.ruf)G.ruf+=(tg-G.ruf)*.25}obDayEnd();obxDay();ageDay();atDay();prjDay();showDayEnd();wrDayEnd();seaDay();scnDay();achChk();mpDay();revDay();G.rkL=G.rk&&G.rk.n?G.rk:G.rkL;G.rk={n:0,s:0};G.thdL=G.thd&&Object.keys(G.thd).length?G.thd:G.thdL;G.thd={};G.thw={};G.rtyL=G.rty&&Object.keys(G.rty).length?G.rty:G.rtyL;G.rty={};G.thtL=G.tht&&Object.keys(G.tht).length?G.tht:G.thtL;G.tht={};G.day++;if(G.up.s)G.skl=Math.min(12,(G.skl||0)+1);G.t=0;G.inc={l:0,p:0,b:0,h:0,n:0,nh:0,g:0,ev:0};evRoll();oaRoll();arRoll();wrRoll();expDay();sfx('day');if(SET.hint)toast(sTk(G.day-1)+' vorbei: '+(G.last.profit>=0?'+':'')+fmt(G.last.profit))}
+ if(G.t>=DAY){for(const f of folks){if(f.seat>=0)seats[f.seat]=null;if(f.car)f.car.back++;else if(!f.byT&&!f.ape){G.guests++;G.gT++}f.dead=1}folks=[];for(const k of [...cars,...buses])if(k.st==='stay'&&k.n!=null&&k.back<k.n)k.back=k.n;queues.forEach(q=>q.length=0);OBQ.length=0;for(const k of OBCB)k.r=[];const hi=hInc();if(hi){G.money+=hi;G.inc.h=hi;const ci=Math.round(chInc()*wrGx());for(let i=0;i<G.hotels;i++)pop(HX[i],HDY(i)-34,Math.round((hi-ci)/G.hotels));if(ci)pop(CHO.x,CHO.y-70,ci)}spNight();const inc=G.inc.l+G.inc.p+hi+(G.inc.g||0)+(G.inc.ev||0)+(G.inc.w||0)+(G.inc.au||0)+(G.inc.atm||0)+(G.inc.vl||0)+(G.inc.sp||0),k=cost();G.money-=k;G.last={inc,k,profit:inc-k-(G.inc.wk||0)};{const F=lf(),pr=inc-k-(G.inc.wk||0),g=G.gT;lg('🏁','geld','Tagesabschluss: '+gN(g)+' · Einnahmen '+fmt(inc)+' · Tageskosten '+fmt(k)+' · Saldo '+(pr>=0?'+':'')+fmt(pr),{s:1});if(G.inc.b)lg('🛠️','geld','Gebaut und Werbung heute: '+fmt(G.inc.b));if(G.inc.sp)lg('🎿','geld','Sportgeschäft heute: '+gN((G.inc.spn||0)+(G.inc.spon||0))+' mit Einkauf · Umsatz '+fmt(G.inc.sp)+(G.ssL&&(G.spw>=2||G.spo>=2)?' (davon Ski-Service: '+G.ssL+' Paar Ski)':''));if(G.inc.fl>=1)lg('💡','geld','Flutlicht heute: '+fmt(G.inc.fl)+' Stromkosten');if(G.inc.nn||G.inc.nl>=1)lg('🌙','geld','Nachtskilauf heute: '+gN(G.inc.nn||0)+' · Nachtkarten '+fmt(G.inc.nk||0)+' · Abendbetrieb Lifte '+fmt(G.inc.nl||0));if(G.inc.on||G.inc.og)lg('🚠','anr','Ostberg heute: '+gN(G.inc.ou||G.inc.on||0)+' · '+(G.inc.og||0)+' Gondelfahrten'+(G.inc.og2?' · '+G.inc.og2+' bis zum Gipfel':'')+(G.inc.oc?' · '+G.inc.oc+' Sesselfahrten':'')+(G.inc.sxo?' · '+G.inc.sxo+' mit dem Shuttle Ost':''));if(G.inc.ssn||G.inc.p9e||G.inc.p9w||G.inc.sbn)lg('🚡','anr','Skischaukel heute: '+(G.inc.ssn||0)+' Tickets · '+(G.inc.p9e||0)+' Fahrten West → Ost · '+(G.inc.p9w||0)+' Ost → West'+(G.inc.sbn?' · '+G.inc.sbn+' im Skibus':''));if(G.inc.sx)lg('🚌','anr','Shuttlebus heute: '+G.inc.sx+(G.inc.sx===1?' Fahrt':' Fahrten')+' (Parkhäuser ↔ Kassa)');if(G.inc.ab)lg('🅿️','anr','Abgewiesen heute: '+G.inc.ab+(G.inc.ab===1?' Auto':' Autos'));if(F.mw>=1)lg('⏱️','lif','Längste Wartezeit: Lift '+F.mL+', '+wfmt(F.mw)+' um '+F.mt);if(G.rec){if(g>G.rec.g)lg('🏆','geld','Rekord: '+g+' Gäste an einem Tag (bisher '+G.rec.g+')',{s:1});if(pr>G.rec.s&&pr>0)lg('🏆','geld','Rekord: bester Saldo mit +'+fmt(pr)+' (bisher '+fmt(G.rec.s)+')',{s:1});G.rec.g=Math.max(G.rec.g,g);G.rec.s=Math.max(G.rec.s,pr)}else G.rec={g,s:Math.max(pr,...(G.hist||[]).map(x=>hsE(x)-hsA(x)))}}G.gLast=G.gT;G.gT=0;AT.inn=AT.way=0;G.hist=(G.hist||[]).concat([{d:G.day,th:G.inc.atm||0,vl:G.inc.vl||0,sp:G.inc.sp||0,l:G.inc.l,ss:G.inc.ssm||0,p:G.inc.p,h:hi,g:G.inc.g||0,e:G.inc.ev||0,a:G.inc.au||0,w:G.inc.w||0,wk:G.inc.wk||0,k,b:G.inc.b||0,z:zins(),n:G.gLast,r:Math.round(rufE())}]).slice(-10);lnDay();{const tg=90-cpen().t;if(tg<G.ruf)G.ruf+=(tg-G.ruf)*.25}obDayEnd();obxDay();ageDay();atDay();prjDay();showDayEnd();wrDayEnd();seaDay();scnDay();achChk();mpDay();revDay();G.rkL=G.rk&&G.rk.n?G.rk:G.rkL;G.rk={n:0,s:0};G.thdL=G.thd&&Object.keys(G.thd).length?G.thd:G.thdL;G.thd={};G.thw={};G.rtyL=G.rty&&Object.keys(G.rty).length?G.rty:G.rtyL;G.rty={};G.thtL=G.tht&&Object.keys(G.tht).length?G.tht:G.thtL;G.tht={};G.day++;if(G.up.s)G.skl=Math.min(12,(G.skl||0)+1);G.t=0;G.inc={l:0,p:0,b:0,h:0,n:0,nh:0,g:0,ev:0};evRoll();oaRoll();arRoll();wrRoll();expDay();sfx('day');if(SET.hint)toast(sTk(G.day-1)+' vorbei: '+(G.last.profit>=0?'+':'')+fmt(G.last.profit))}
  for(const c of cars){const a0=c.x,b0=c.p,z0=c.zs,s0=c.st;if(c.z&&szCar(c,dt)){stwCar(c,a0,b0,z0,s0,dt);continue}
   if(c.st==='in'){const sx=spotX(c.sp);let nx=c.x+70*c.d*dt;if(c.d>0?nx>=sx:nx<=sx)nx=sx;if(vGo(c,nx,c.p,dt)){c.x=nx;if(nx===sx&&c.z){c.zq=(c.zq||0)+dt;if(szInOK(c)&&(G.sst||vFree(c,'park',dt)||c.zq>15)){if(c.zq>15)G.gh=(G.gh||0)+1;c.st='park'}}else if(nx===sx&&(!c.pz||pzRoom())&&vFree(c,'park',dt))c.st='park'}}
   else if(c.st==='park'){const np=Math.min(1,c.p+dt/(c.z&&G.sst?.45:.7));if(vGo(c,c.x,np,dt))c.p=np;if(c.p>=1){c.p=1;if(c.pz){pzHand(c);continue}if(c.z){c.st='zin';c.zs=0;continue}c.st='stay';G.money+=G.park;G.inc.p+=G.park;if(G.park>0)pop(spotX(c.sp),spotY(c.sp)-14,G.park);
@@ -7327,7 +7416,7 @@ function render(){
   el.querySelectorAll('[data-prj]').forEach(b=>b.onclick=()=>{const d=PRJ.find(x=>x.id===b.dataset.prj);if(!d||prj(d.id)||G.money<d.p)return;spend(d.p);(G.prj=G.prj||{})[d.id]={st:'bau',d0:G.day};lg(d.ic,'anr','Baustart: '+d.n+', fertig in '+d.bt+' Tagen',{s:1});toast('🚧 Baustart: '+d.n);buildStatic();render();save()});
  el.querySelectorAll('[data-stf]').forEach(b=>b.onclick=()=>{const [k,v]=b.dataset.stf.split(':'),S=stf(),mx={lw:Math.min(5,3+ost()),bw:1,ph:G.areas}[k];S[k]=cl(S[k]+ +v,0,mx);lg('👷','lif',{lw:'Liftwarte',bw:'Bergwacht',ph:'Pistenhelfer'}[k]+': jetzt '+S[k]);sfx('click');render();save()});
  el.querySelectorAll('[data-ft]').forEach(b=>b.onclick=()=>{fTab=b.dataset.ft;render();el.scrollTop=0});
- el.querySelectorAll('[data-ln]').forEach(b=>b.onclick=()=>{const v=b.dataset.ln,L=G.loan||0;if(v==='-all'){if(G.money>=L&&L>0){G.money-=L;G.loan=0;G.achL=1;lg('🏦','geld','Kredit ganz zurückgezahlt: '+fmt(L))}}else{const n=+v;if(n>0&&L+n<=lMax()){G.loan=L+n;G.money+=n;lg('🏦','geld','Kredit aufgenommen: +'+fmt(n)+', jetzt '+fmt(G.loan));sfx('coin')}else if(n<0&&L>=-n&&G.money>=-n){G.loan=L+n;G.money+=n;if(!G.loan)G.achL=1;lg('🏦','geld','Kredit zurückgezahlt: '+fmt(-n)+', noch '+fmt(G.loan))}}render();hud();save()});
+ lnClick(el);
  el.querySelectorAll('[data-au]').forEach(b=>b.onclick=()=>{const O=G.ctrO;if(!O)return;if(b.dataset.au==='ok'&&(G.ctr||[]).length<2){const d=AUF[O.k];(G.ctr=G.ctr||[]).push({k:O.k,p:0,until:G.day+d.days,a:G.areas,d0:G.day,tx:d.txt()});lg('📋','anr','Auftrag angenommen: '+d.t);toast('📋 Angenommen: '+d.t)}else if(b.dataset.au==='no'){lg('📋','anr','Auftrag abgelehnt: '+AUF[O.k].t);if(O.k==='wc')G.wrFS=seaN()}G.ctrO=null;render();save()});
  el.querySelectorAll('[data-go]').forEach(b=>b.onclick=e=>{e.stopPropagation();sfx('click');if(open==='neu'&&neuP){paused=false;$('pz').textContent='⏸'}neuP=false;goBuild(b.dataset.go)});{const nk=$('neuok');if(nk)nk.onclick=()=>{sfx('click');neuClose()}}wrBind(el);tstBind(el);
  el.querySelectorAll('[data-zt]').forEach(b=>b.onclick=()=>{zTab=b.dataset.zt;render();el.scrollTop=0});{const sq=$('seask');if(sq&&!sq.dataset.b){sq.dataset.b=1;sq.onclick=e=>{e.stopPropagation();sfx('click');seaEnd(1)}}}{const sg=$('sgo');if(sg)sg.onclick=()=>{sfx('click');open=null;render();seaGo((G.seSk||0)>=3)};const sk=$('sskp');if(sk)sk.onclick=()=>{sfx('click');seaEnd(1)}}
@@ -7475,7 +7564,7 @@ document.addEventListener('visibilitychange',()=>{save();if(document.visibilityS
 resize();for(let k=1;k<=G.areas;k++)buildLift(k);for(let k=1;k<=5;k++)for(const fr of [.3,.72])cann.push({k,fr,on:0,cd:3+Math.random()*25});hud();
 let last=performance.now();
 function showTitle(){inTitle=true;newAsk=false;open=null;render();$('title').classList.remove('hide');$('tnew').textContent='Neues Spiel';$('tnote').textContent='';tDiff(false);tScn(false);document.querySelectorAll('[data-df]').forEach(x=>x.style.outline='');tUI()}
-function hideTitle(){if(G.tut==null&&!hasSave&&G.day===1)G.tut=0;inTitle=false;started=true;$('title').classList.add('hide');if(G.refR){delete G.refR;setTimeout(()=>toast('2. Pistenraupe zurückgegeben: +12.000 €'),600);save()}}
+function hideTitle(){if(G.tut==null&&!hasSave&&G.day===1)G.tut=0;inTitle=false;started=true;if(G.lnMsg)setTimeout(lnMsgShow,700);$('title').classList.add('hide');if(G.refR){delete G.refR;setTimeout(()=>toast('2. Pistenraupe zurückgegeben: +12.000 €'),600);save()}}
 $('tcont').onclick=()=>{if(cloudWait)return;if(hasSave||started)hideTitle()};
 function tDiff(on){$('tdiff').hidden=!on;for(const id of ['tcont','tnew','tsv'])$(id).style.display=on?'none':'';$('tnote').textContent=on&&(hasSave||started)?'Achtung: Dein jetziger Spielstand wird dabei gelöscht.':''}
 function tScn(on){$('tscn').hidden=!on;for(const id of ['tcont','tnew','tsv'])$(id).style.display=on?'none':'';$('tnote').textContent=on&&(hasSave||started)?'Achtung: Dein jetziger Spielstand wird dabei gelöscht.':'';
