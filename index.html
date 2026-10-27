@@ -1319,6 +1319,10 @@ function cmpFit(c,D){D=D||gxData();const occ0=G.hotels?Math.round(occ()*100):0;
  if(c.k==='ho'){if(!G.hotels&&!choS())return null;return occ0>=88?['n','Wenig Nutzen:','Die Hotels sind schon zu '+occ0+' % belegt.']:occ0<65?['g','Passt gut:','Die Hotels sind nur zu '+occ0+' % belegt.']:['n','Geht so:','Die Hotels sind zu '+occ0+' % belegt.']}
  if(c.k==='pa'){if(!G.ap)return null;const d=wkD(G.day);return d===3||d===4?['g','Passt gut:','Das Wochenende steht vor der Tür.']:d>=5?['n','Wenig Nutzen:','Das Wochenende läuft schon, die Werbung endet am Sonntag.']:['n','Lieber später:','Wirkt nur Fr–So – am besten am Donnerstag oder Freitag buchen.']}
  if(c.k==='os'){if(ost()<1)return null;const p=gxPct(D.ost,D.n);return p<40?['g','Passt gut:','Nur '+p+' % der Gäste sind am Ostberg.']:['n','Wenig Nutzen:','Schon '+p+' % der Gäste sind am Ostberg.']}
+ if(c.k==='sfa'){const G0=gxGrp(D,['fam']);if(G0.n<5)return ['n','Noch offen:','Gerade sind zu wenige Familien da, um es zu sagen.'];return G0.sat<65?['w','Erst die Laune:','Familien sind nur '+G0.sat+' % zufrieden.']:['g','Passt gut:','Familien sind '+G0.sat+' % zufrieden'+(G0.sp?', Ø '+G0.sp+' € pro Gast':'')+'.']}
+ if(c.k==='sbk'){if(!(G.su&&G.su.bk))return null;const w=Math.round(waitMin(3));return w>=8?['w','Erst Lift 3:','Biker warten dort schon '+w+' Minuten.']:['g','Passt gut:','Am Bike-Lift ist noch Platz.']}
+ if(c.k==='spg'){if(!(G.su&&G.su.pg))return null;const fr=(xaS().pgN||4)-xaPgPipe();return !(G.wx==='sonne'||G.wx==='wolke')?['n','Lieber bei Sonne:','Bei Regen und Gewitter wird nicht geflogen.']:fr<2?['n','Wenig Nutzen:','Es sind schon genug Tandem-Gäste unterwegs.']:['g','Passt gut:','Die Piloten haben noch Zeit für '+fr+' Flüge.']}
+ if(c.k==='srg'){const b=G.wx==='regen'||G.wx==='gewitter'||G.wxN==='regen'||G.wxN==='gewitter';return b?['g','Passt gut:',(G.wx==='regen'||G.wx==='gewitter'?'Gerade ist '+(SUWXN[G.wx]||G.wx):'Vorhersage: '+(SUWXN[G.wxN]||G.wxN))+'.']:['n','Wenig Nutzen:','Kein Regen in Sicht.']}
  if(c.k==='sw'){const b=G.wxN==='tau'||G.wxN==='sturm'||G.wx==='tau'||G.wx==='sturm';return b?['g','Passt gut:',(G.wx==='tau'||G.wx==='sturm'?'Gerade ist '+WN[G.wx]:'Vorhersage: '+WN[G.wxN])+'.']:['n','Wenig Nutzen:','Kein Schlechtwetter in Sicht.']}
  return null}
 function cmpFitH(c,D){if(c.g)return '';const r=cmpFit(c,D);if(!r)return '';const col={g:'#e3f5ea',w:'#fff3d6',n:'var(--line)'}[r[0]],ic={g:'✅',w:'⚠️',n:'➖'}[r[0]];
@@ -1829,7 +1833,9 @@ const APOS=()=>({x0:-575,x1:-250,y0:ARCY()-ARRY-24,y1:R-36});
 const ARK={rock:{n:'Rockkonzert',ic:'🎸',sh:'ROCK NIGHT',col:'#e8504a',lt:'255,60,90',fit:'Snowboarder und Profis'},
  klassik:{n:'Klassikkonzert',ic:'🎻',sh:'KLASSIK GALA',col:'#c9a227',lt:'255,200,110',fit:'Hotelgäste'},
  schlager:{n:'Schlagerabend',ic:'🎉',sh:'SCHLAGER PARTY',col:'#d64fc8',lt:'255,90,220',fit:'alle Gäste'},
- eis:{n:'Eisshow',ic:'⛸️',sh:'EISSHOW',col:'#2f9bed',lt:'120,210,255',fit:'Familien'}},ARKS=['rock','klassik','schlager','eis'];
+ eis:{n:'Eisshow',ic:'⛸️',sh:'EISSHOW',col:'#2f9bed',lt:'120,210,255',fit:'Familien'},
+ som:{n:'Sommernachtsfest',ic:'🏮',sh:'SOMMERNACHTSFEST',col:'#e8762a',lt:'255,170,70',fit:'Familien und alle Gäste'}},ARKS=['rock','klassik','schlager','eis'];
+function arKs(){return suOn()?['rock','klassik','schlager','som']:ARKS}
 const ARL=[{n:'Lokal',g:20000,base:1400,fair:22},{n:'Bekannt',g:80000,base:2600,fair:40},{n:'Star',g:250000,base:4000,fair:75}];
 let arSel={k:'rock',s:0,pr:22,dd:3},AR=null,arCx=0;
 const AREP=(a,dy,s)=>[ARX0+Math.cos(a)*ARRX*(s||1),ARCY()+Math.sin(a)*ARRY*(s||1)+(dy||0)];
@@ -1839,7 +1845,7 @@ const arDay=()=>!!(G.ae&&G.ae.d===G.day&&G.ae.st==='tag'),
  arOpenDoor=()=>arDay()&&phase()>=pAt(17.5)&&phase()<pAt(21.5);
 // Wie gut passt eine Event-Art zu den Gästen? (Rock: Snowboarder/Profis, Klassik: Hotelgäste, Eisshow: Familien)
 function arFitCalc(){const F=folks.filter(f=>!f.dead&&!f.oa&&!f.kid&&f.st!=='go');if(F.length<25)return null;let sp=0,fm=0;for(const f of F){const t=gTy(f);if(t==='sb'||t==='pro')sp++;if(f.car&&f.car.fam)fm++}
- sp/=F.length;fm/=F.length;return {rock:cl(.6+sp*.9,.7,1.3),klassik:cl(.8+.08*G.hotels+(prjOk('therme')?.1:0),.7,1.3),schlager:1,eis:cl(.65+fm*.9,.7,1.3)}}
+ sp/=F.length;fm/=F.length;return {rock:cl(.6+sp*.9,.7,1.3),klassik:cl(.8+.08*G.hotels+(prjOk('therme')?.1:0),.7,1.3),schlager:1,eis:cl(.65+fm*.9,.7,1.3),som:cl(.85+fm*.5,.8,1.25)}}
 function arFit(k){const F=G.arFit||{};return F[k]||1}
 const arFitTxt=k=>{const v=arFit(k);return v>=1.12?'passt gut':v<=.88?'passt weniger':'passt'};
 function arRep(k){return G.aeK===k?.85:1}
@@ -1885,7 +1891,7 @@ function arQpt(k){if(k<108){const sd=k%2?1:-1,j=k>>1,r=Math.floor(j/9),c=j%9,off
 const arGx=i=>ARX0-15+i*10;
 // Tagesgäste, die nach dem Skifahren in die Arena gehen (statt heim)
 function arStay(f){if(!AR||AR.done||AR.lv||AR.st<=0||f.oa||f.kid||f.nt||f.ost||f.hx!=null)return 0;if(f.byT){if(!(f.dep>=22.5))return 0}else if(!f.car||f.car.bus||f.car.sp>=800)return 0;const p=phase();if(p<pAt(15.3)||p>pAt(19.6))return 0;
- const t=gTy(f),k=G.ae.k,w=k==='rock'?(t==='sb'||t==='pro'?1.4:.7):k==='eis'?(f.car&&f.car.fam?1.6:.6):k==='klassik'?.7:1;if(!(f.car&&f.car.ars)&&Math.random()>(f.byT?.6:.32)*w)return 0;
+ const t=gTy(f),k=G.ae.k,w=k==='rock'?(t==='sb'||t==='pro'?1.4:.7):k==='eis'?(f.car&&f.car.fam?1.6:.6):k==='som'?(f.car&&f.car.fam?1.3:1):k==='klassik'?.7:1;if(!(f.car&&f.car.ars)&&Math.random()>(f.byT?.6:.32)*w)return 0;
  const r=arCut(rOut(f));if(!r)return 0;if(f.car)f.car.ars=1;G.guests++;G.gT++;rufUpd(f);Object.assign(f,{oa:1,ar:1,ars:1,qw:0,id:f.id||Math.random()*20});f.rt=r;f.st='rt';f.nx='arJ';f.cw=null;f.zc=null;AR.st--;AR.stC++;return 1}
 function arStep(dt){if(!G.ae)return;const e=G.ae,p=phase();
  if(p>=pAt(13)&&p<pAt(13.1)&&G.arFD!==G.day){const F=arFitCalc();if(F){G.arFit=F;G.arFD=G.day}}
@@ -1931,12 +1937,22 @@ function arWin(e,t,i,n){if(!e)return n?'rgba(255,214,150,.9)':null;
  if(e==='rock'){const h=(t*120+i*47)%360,on=Math.sin(t*9+i*1.7)>-.2;return on?'hsla('+h+',95%,62%,.95)':'rgba(40,20,60,.9)'}
  if(e==='klassik'){const a=.78+Math.sin(t*1.2+i*.6)*.12;return 'rgba(255,'+(196+Math.sin(t+i)*10|0)+',110,'+a+')'}
  if(e==='schlager'){const h=[300,330,280,20,190][(i+Math.floor(t*3))%5];return 'hsla('+h+',90%,'+(60+Math.sin(t*7+i)*8)+'%,.95)'}
+ if(e==='som'){const c=[[255,170,70],[255,120,60],[255,210,90],[255,110,130]][(i+Math.floor(t*.7))%4];return 'rgba('+c.join(',')+','+(.8+Math.sin(t*2.3+i*1.3)*.12)+')'}
  return 'rgba('+(150+Math.sin(t*1.5+i)*40|0)+',225,255,'+(.7+Math.sin(t*2+i*.9)*.2)+')'}
 function arSpark(c,x,y,r,col){c.fillStyle=col;c.beginPath();c.moveTo(x,y-r);c.lineTo(x+r*.25,y-r*.25);c.lineTo(x+r,y);c.lineTo(x+r*.25,y+r*.25);c.lineTo(x,y+r);c.lineTo(x-r*.25,y+r*.25);c.lineTo(x-r,y);c.lineTo(x-r*.25,y-r*.25);c.fill()}
 function arTreeD(c,x,y,s){c.fillStyle='rgba(60,80,110,.18)';c.beginPath();c.ellipse(x+3*s,y+1,8*s,2.4*s,0,0,7);c.fill();c.fillStyle='#7a4a28';c.fillRect(x-s,y-3*s,2*s,3*s);for(let i=0;i<3;i++){const w=(9-i*2.4)*s,yy=y-3*s-i*6*s;c.fillStyle=i%2?'#3fae5a':'#4cc26a';c.beginPath();c.moveTo(x-w,yy);c.lineTo(x,yy-9*s);c.lineTo(x+w,yy);c.fill();c.fillStyle='#fff';c.beginPath();c.moveTo(x-w*.35,yy-6*s);c.lineTo(x,yy-9*s);c.lineTo(x+w*.35,yy-6*s);c.fill()}}
 function arFlag(c,x,y,col,t,k){c.fillStyle='#5d667a';c.fillRect(x-.5,y-30,1,30);const w=Math.sin(t*3+k);c.fillStyle=col;c.beginPath();c.moveTo(x,y-30);c.quadraticCurveTo(x+5,y-29+w,x+10,y-28+w*1.2);c.lineTo(x+10,y-21+w*1.2);c.quadraticCurveTo(x+5,y-22+Math.sin(t*3+k+1),x,y-23);c.fill()}
 // Gehsteig von der Arena zum Nord-Gehsteig (wird mit den Busplätzen kürzer)
 function arWalk(c){if(!prj('arena'))return;const [xw,yw]=arW();if(xw<=ARPE)return;if(!inVR(ARPE,yw-8,xw,yw+8))return;c.fillStyle='#d9dde6';c.fillRect(ARPE-2,yw-6,xw-ARPE+4,12);c.fillStyle='#e9ecf2';c.fillRect(ARPE-2,yw-5,xw-ARPE+4,10);c.fillStyle='rgba(150,160,180,.5)';for(let x=ARPE+6;x<xw;x+=12)c.fillRect(x,yw-5,.6,10)}
+// V306: Sommernachtsfest – Lichterketten über der Tanzfläche, Lampions, aufsteigende Himmelslaternen
+const ARSC=['#ffb347','#ff7a3d','#ffd84d','#ff5e7a','#9be36b'];
+function arSomIn(c,AX,ACY,t){const rx=ARRX*.42,ry=ARRY*.42;c.lineWidth=.35;
+ for(let s=0;s<4;s++){const y0=ACY-ry*.7+s*ry*.45,sw=Math.sin(t*1.3+s)*.8;c.strokeStyle='rgba(60,40,30,.55)';c.beginPath();c.moveTo(AX-rx,y0);c.quadraticCurveTo(AX,y0+6+sw,AX+rx,y0);c.stroke();
+  for(let i=1;i<14;i++){const u=i/14,x=AX-rx+u*2*rx,y=(1-u)*(1-u)*y0+2*u*(1-u)*(y0+6+sw)+u*u*y0;if(Math.hypot((x-AX)/rx,(y-ACY)/ry)>1)continue;const on=.6+.4*Math.sin(t*3+i*1.7+s);c.fillStyle=ARSC[(i+s)%5];c.globalAlpha=on;c.beginPath();c.arc(x,y+.8,1,0,7);c.fill()}c.globalAlpha=1}
+ for(let i=0;i<5;i++){const x=AX-rx*.6+i*rx*.3,y=ACY+ry*.55+Math.sin(t*2+i)*.4;c.fillStyle='#6b4a2c';c.fillRect(x-.2,y-6,.4,6);c.fillStyle=ARSC[i];c.beginPath();c.ellipse(x,y-6.5,1.6,2,0,0,7);c.fill()}}
+function arSomNight(c,AX,ACY,t){glow(c,AX,ACY,ARRX*.85,'255,170,70',.32);
+ for(let j=0;j<30;j++){const p=AREP(j/30*Math.PI*2,-3,.98);glow(c,p[0],p[1],4,j%2?'255,200,90':'255,120,60',.35+.25*Math.sin(t*2+j))}
+ for(let j=0;j<16;j++){const ph=(t*.045+j/16)%1,x=AX+((j*67)%260)-130+Math.sin(t*.5+j)*8,y=ACY-14-ph*240,a=ph<.1?ph*10:1-ph;glow(c,x,y,7,'255,160,60',.45*a);c.fillStyle='rgba(255,190,110,'+(.9*a).toFixed(2)+')';c.beginPath();c.roundRect(x-1.3,y-2,2.6,3,.8);c.fill()}}
 function arenaDraw(c,t){const q=prj('arena');if(!q)return;const n=NIGHT(),e=G.ae,live=arLive(),ek=live?e.k:null,day=arDay(),soon=e&&(e.st==='vk'||e.st==='tag')?e:null,E=soon?ARK[soon.k]:null,EL=ek?ARK[ek]:null,AX=ARX0,ACY=ARCY(),AH=ARH,PB=ARPB(),FB=ARFB();c.textAlign='center';c.lineCap='round';c.lineJoin='round';
  if(q.st!=='ok')return;// Baustelle zeichnet siteDraw
  // ---------- Vorplatz ----------
@@ -1970,6 +1986,7 @@ function arenaDraw(c,t){const q=prj('arena');if(!q)return;const n=NIGHT(),e=G.ae
  if(ek==='eis'){c.fillStyle='rgba(235,250,255,.85)';c.beginPath();c.ellipse(AX,ACY+3,ARRX*.3,ARRY*.24,0,0,7);c.fill();for(let k=0;k<6;k++){const a=t*.8+k*1.05;ppl(c,AX+Math.cos(a)*ARRX*.22,ACY+6+Math.sin(a)*ARRY*.17,PCOL[k],.9)}}
  else if(ek){c.fillStyle='#23263a';c.fillRect(AX-22,ACY-18,44,9);for(let k=0;k<4;k++)ppl(c,AX-14+k*9.5,ACY-9+(ek==='klassik'?0:Math.abs(Math.sin(t*6+k))*-1.2),ek==='klassik'?'#1c2030':PCOL[k],.9);
   for(let i=0;i<60;i++){const r=(i*37%100)/100,s2=(i*61%100)/100;c.fillStyle=PCOL[i%8];c.beginPath();c.arc(AX+(s2*2-1)*ARRX*.36,ACY-3+r*19-(ek==='klassik'?0:Math.abs(Math.sin(t*5+i))*1.2),1,0,7);c.fill()}}
+ if(ek==='som')arSomIn(c,AX,ACY,t);
  c.strokeStyle='rgba(255,255,255,.75)';c.lineWidth=.6;for(let k=0;k<16;k++){const b=AREP(k/16*Math.PI*2,0,.42);c.beginPath();c.moveTo(AX,ACY);c.lineTo(b[0],b[1]);c.stroke()}for(const f of [.15,.28]){c.beginPath();c.ellipse(AX,ACY,ARRX*f,ARRY*f,0,0,7);c.stroke()}
  c.restore();c.strokeStyle='#8e98aa';c.lineWidth=1.2;c.beginPath();c.ellipse(AX,ACY,ARRX*.42,ARRY*.42,0,0,7);c.stroke();
  // Eingang
@@ -1998,12 +2015,13 @@ function arNight(c,la){if(!prjOk('arena')||!prjV('arena'))return;const t=T,e=G.a
  if(k==='rock'){for(let j=0;j<6;j++){const a=Math.sin(t*1.1+j*1.3)*.7,lx=AX-70+j*28,col=['255,60,90','80,160,255','255,220,80','120,255,160','200,120,255','255,140,60'][j],L=300,ex=lx+Math.sin(a)*150,ey=ACY-L,g=c.createLinearGradient(lx,ACY,ex,ey);g.addColorStop(0,'rgba('+col+',.55)');g.addColorStop(1,'rgba('+col+',0)');c.fillStyle=g;c.beginPath();c.moveTo(lx-3,ACY);c.lineTo(ex-18,ey);c.lineTo(ex+18,ey);c.lineTo(lx+3,ACY);c.fill()}glow(c,AX,ACY,ARRX*.7,'255,'+(80+Math.sin(t*9)*60|0)+',160',.35)}
  if(k==='klassik'){glow(c,AX,ACY,ARRX*.9,'255,200,110',.32);for(const d of [-1,1]){const lx=AX+d*55,g=c.createLinearGradient(lx,ACY,lx,ACY-250);g.addColorStop(0,'rgba(255,220,150,.35)');g.addColorStop(1,'rgba(255,220,150,0)');c.fillStyle=g;c.beginPath();c.moveTo(lx-3,ACY);c.lineTo(lx-10,ACY-250);c.lineTo(lx+10,ACY-250);c.lineTo(lx+3,ACY);c.fill()}for(let j=0;j<24;j++){const p=AREP(j/24*Math.PI*2+t*.15,-4,.5);c.fillStyle='rgba(255,230,170,'+(.5+.5*Math.sin(t*2+j))+')';c.beginPath();c.arc(p[0],p[1],1,0,7);c.fill()}}
  if(k==='schlager'){glow(c,AX,ACY,ARRX*.8,'255,80,220',.3);for(let j=0;j<50;j++){const a=(j*2.4+t*.6)%(Math.PI*2),p=AREP(a,-2,.2+((j*37)%100)/100*.9),tw=Math.sin(t*12+j*3);if(tw>.3)arSpark(c,p[0],p[1]-6,1.6+tw,'rgba(255,255,255,.9)')}for(let j=0;j<36;j++){const ph=(t*.35+j/36)%1;c.fillStyle=PCOL[j%8];c.save();c.translate(AX+((j*53)%260)-130,ACY-110+ph*100);c.rotate(t*3+j);c.fillRect(-1.4,-.6,2.8,1.2);c.restore()}}
+ if(k==='som')arSomNight(c,AX,ACY,t);
  if(k==='eis'){glow(c,AX,ACY,ARRX*.9,'120,210,255',.35);for(let j=0;j<36;j++){const ph=(t*.12+j/36)%1;arSpark(c,AX+((j*71)%300)-150+Math.sin(t+j)*4,ACY-140+ph*140,1.4+Math.sin(t*4+j),'rgba(200,240,255,.85)')}
   for(let j=0;j<7;j++){const p=AREP(Math.PI*.15+j/6*Math.PI*.7,AH*.5);c.strokeStyle='rgba(220,245,255,'+(.55+.3*Math.sin(t*2+j))+')';c.lineWidth=.8;for(let m=0;m<6;m++){const b=m/6*Math.PI*2+t*.3;c.beginPath();c.moveTo(p[0],p[1]);c.lineTo(p[0]+Math.cos(b)*6,p[1]+Math.sin(b)*6);c.stroke()}}}
  c.restore()}
 // ---------- Menü ----------
 function arStatTxt(){const e=G.ae;if(!e||!(e.st==='vk'||e.st==='tag'))return '';const p=phase();if(e.st==='vk')return 'Vorverkauf läuft, '+e.sold+' Tickets';if(!AR)return 'Heute Abend, Einlass 17:30 Uhr';if(AR.done)return 'Vorbei';if(AR.lv)return 'Die Besucher gehen heim';if(arLive())return 'Läuft gerade, '+(AR.arr+AR.virt)+' Besucher in der Halle';if(p>=pAt(17.5))return 'Einlass läuft: '+(AR.arr)+' drinnen, '+AR.q.length+' in der Schlange';return 'Aufbau, Einlass ab 17:30 Uhr'}
-function arHTML(){const e=G.ae;let h='<h3>🏟️ Eventarena<a data-x>✕</a></h3>';
+function arHTML(){if(!arKs().includes(arSel.k))arSel.k=suOn()?'som':'eis';const e=G.ae;let h='<h3>🏟️ Eventarena<a data-x>✕</a></h3>';
  if(!prjOk('arena'))return h+'<p class="hint">'+(prj('arena')?'Die Arena wird gerade gebaut.':'Die Eventarena baust du unter Bauen › Prestige.')+'</p>';
  if(e&&(e.st==='vk'||e.st==='tag')){const K=ARK[e.k],L=ARL[e.s];h+=`<div class="bgh">${K.ic} ${e.st==='tag'?'Heute':sTg(e.d)}: ${K.n} (${L.n})</div><p class="hint" style="margin:6px 0">Einlass 17:30 Uhr, Beginn 20 Uhr, Ende 22:30 Uhr. Bei Sturm um 15 Uhr wird verschoben, die Tickets bleiben gültig.</p>`+
   [['Gerade',arStatTxt()],['Ticketpreis',fmt(e.pr)],[e.st==='tag'?'Tickets verkauft':'Vorverkauf bisher',e.sold+(e.st==='vk'?' von etwa '+e.dem:'')+(e.sold>=ARCAP?' · ausverkauft':'')],['Gage (bezahlt)',fmt(e.g)],['Erwarteter Saldo',e.res?'':(v=>(v>=0?'etwa +':'etwa ')+fmt(v))(arEst(e.k,e.s,e.pr,e.st==='tag'?e.sold:e.dem))]].map(r=>`<div class="row"><span>${r[0]}</span><b>${r[1]}</b></div>`).join('')+
@@ -2012,7 +2030,7 @@ function arHTML(){const e=G.ae;let h='<h3>🏟️ Eventarena<a data-x>✕</a></h
  if(!G.arFit){const F=arFitCalc();if(F)G.arFit=F}h+=arLast();const s=arSel;if(arWhy(null))return h+`<p class="hint" style="margin:6px 0">${arWhy(null)}</p>`;
  let okD=arDD().filter(d=>!arWhy(G.day+d));if(!okD.includes(s.dd)&&okD.length)s.dd=okD[0];const L=ARL[s.s],dem=arDem(s.k,s.s,s.pr),pl=arPlan(dem),est=arEst(s.k,s.s,s.pr,dem),rf=arRufEst(s.s,s.pr,dem),w=arWhy(G.day+s.dd);
  h+=`<p class="hint" style="margin:6px 0 4px">Wähle Event, Künstler und Termin. Bis dahin läuft der Vorverkauf, das Event wird auf der Halle angekündigt.</p>
- <div class="lab"><span>Event</span></div><div class="seg">${ARKS.map(k=>`<button data-ark="${k}" class="${s.k===k?'on':''}">${ARK[k].ic} ${ARK[k].n}<br><small>${arFitTxt(k)}${G.aeK===k?' · gerade erst':''}</small></button>`).join('')}</div>
+ <div class="lab"><span>Event</span></div><div class="seg">${arKs().map(k=>`<button data-ark="${k}" class="${s.k===k?'on':''}">${ARK[k].ic} ${ARK[k].n}<br><small>${arFitTxt(k)}${G.aeK===k?' · gerade erst':''}</small></button>`).join('')}</div>
  <p class="hint" style="margin:2px 0 6px">${ARK[s.k].n} zieht vor allem ${ARK[s.k].fit} an.${G.aeK===s.k?' Das letzte Event war dasselbe – Abwechslung bringt mehr Besucher.':''}</p>
  <div class="lab"><span>Künstler</span></div><div class="seg">${ARL.map((l,i)=>`<button data-arl="${i}" class="${s.s===i?'on':''}">${l.n}<br><small>${fmt(l.g)}</small></button>`).join('')}</div>
  <div class="lab"><span>Termin</span></div><div class="seg">${arDD().map(d=>`<button data-ard="${d}" class="${s.dd===d?'on':''}" ${arWhy(G.day+d)?'disabled':''}>in ${d} Tagen<br><small>${sTk(G.day+d)}</small></button>`).join('')}</div>
@@ -4553,7 +4571,7 @@ function spawnCar(nt,oa){
  const lp=phase()>=pAt(15),f1=lp&&gPend(1)?0:gFree(1),f2=lp&&gPend(2)?0:gFree(2),gf=f1+f2,gar=gf>0&&(!free.length||Math.random()<.4),gn=gar?(f2>0&&(f1<=0||Math.random()<f2/gf)?2:1):0,pf=G.ph?phCap()-phN():0,ph=!gar&&!free.length&&pf>0,zi=!gar&&!free.length&&!ph&&G.sz?szFree():-1;
  if(zi>=0&&szCap()-szN()===1&&G.szF!==G.day){G.szF=G.day;lg('🅿️','anr','Parkzone Süd voll, alle '+szCap()+' Plätze belegt')}
  if(ph&&pf===1&&G.phF!==G.day){G.phF=G.day;lg('🅿️','anr','Parkhaus voll, alle '+phCap()+' Plätze belegt')}
- if(gar||free.length||ph||zi>=0){const sp=zi>=0?500:ph?300:gar?(gn===2?101:100):free[Math.random()*Math.min(free.length,6)|0],d=(sp>=300||(sp<100&&(sp&1)))?1:-1;const n0=oa?3:2+(Math.random()*3|0);cars.push({fam:!oa&&!nt&&n0>=3&&Math.random()<.45?1:0,d,x:vSpawnX(d,XL-30,XR+30),sp,g:gn,ph:ph?1:0,st:'in',p:0,n:n0,back:0,col:pick(COL),nt:nt?1:0,oa:oa||0,z:zi>=0?1:0,zi:zi>=0?zi:null});return 1}else{if(pkSpawn(nt,oa))return 1;G.inc.ab=(G.inc.ab||0)+1;if(G.inc.ab===1&&pkNB()&&pkCapAll()>PKI().reduce((n,i)=>n+pkN(i),0))lg('🅿️','anr','Parkplatz voll, die Zufahrt zu den Parkhäusern ist ausgelastet: erstes Auto abgewiesen'+(talS()<6?'. Mit dem nächsten Talausbau kommen mehr Autos durch.':''));else if(G.inc.ab===1)lg('🅿️','anr',(a=>a.length>1?a.slice(0,-1).join(', ')+' und '+a[a.length-1]:a[0])(['Parkplatz'].concat(G.garage?['Tiefgarage']:[],G.ph?['Parkhaus']:[],G.sz?['Parkzone Süd']:[],pkNB()?['Parkhäuser']:[]))+' voll, erstes Auto abgewiesen');return 0}
+ if(gar||free.length||ph||zi>=0){const sp=zi>=0?500:ph?300:gar?(gn===2?101:100):free[Math.random()*Math.min(free.length,6)|0],d=(sp>=300||(sp<100&&(sp&1)))?1:-1;const n0=oa?3:2+(Math.random()*3|0);cars.push({fam:!oa&&!nt&&n0>=3&&Math.random()<(cOn('sfa')&&suOn()?.7:.45)?1:0,d,x:vSpawnX(d,XL-30,XR+30),sp,g:gn,ph:ph?1:0,st:'in',p:0,n:n0,back:0,col:pick(COL),nt:nt?1:0,oa:oa||0,z:zi>=0?1:0,zi:zi>=0?zi:null});return 1}else{if(pkSpawn(nt,oa))return 1;G.inc.ab=(G.inc.ab||0)+1;if(G.inc.ab===1&&pkNB()&&pkCapAll()>PKI().reduce((n,i)=>n+pkN(i),0))lg('🅿️','anr','Parkplatz voll, die Zufahrt zu den Parkhäusern ist ausgelastet: erstes Auto abgewiesen'+(talS()<6?'. Mit dem nächsten Talausbau kommen mehr Autos durch.':''));else if(G.inc.ab===1)lg('🅿️','anr',(a=>a.length>1?a.slice(0,-1).join(', ')+' und '+a[a.length-1]:a[0])(['Parkplatz'].concat(G.garage?['Tiefgarage']:[],G.ph?['Parkhaus']:[],G.sz?['Parkzone Süd']:[],pkNB()?['Parkhäuser']:[]))+' voll, erstes Auto abgewiesen');return 0}
 }
 function spawnHG(nt){let i=0;{let t=0;for(let j=0;j<G.hotels;j++)t+=occH(j);let r=Math.random()*t;for(let j=0;j<G.hotels;j++){r-=occH(j);if(r<=0){i=j;break}i=j}}const f={nt:nt?1:0,x:HX[i],y:HDY(i)+1,st:'qu',col:pick(COL),car:null,rides:0,l:1,arr:0,board:Math.random()<bdP(),bc:pick(['#ff7a45','#34c0b8','#8a5ae0','#2f80ed']),hx:HX[i],hy:HDY(i)+1};f.st='kas';folks.push(f)}
 const parkY=()=>V-110,parkX=(i=0)=>Math.max(66,slopeX(V-38)-slopeW(V-38)-36)-30*i;
@@ -4562,7 +4580,8 @@ const TB=[[520,V0=>V0+8],[559,V0=>V0+18],[524,V0=>V0+42],[562,V0=>V0+54]],SO=[[-
 const spd=L=>(isG(L)?(stormOn()?15:30):G.cap[L-1]>4?26:18)*wrLs(),thr=L=>{if(wcIn(L))return lifts[0].length*G.cap[0]*spd(1)/(2*wcP().L);const e=ends(L),len=Math.hypot(e.t.x-e.b.x,e.t.y-e.b.y);return lifts[L-1].length*G.cap[L-1]*spd(L)/(2*len)},waitMin=L=>queues[L-1].length/Math.max(.05,thr(L))/(DAY*.056/TSD)*60,
  wfmt=m=>m<1?'keine':m<60?Math.round(m)+' Min':Math.floor(m/60)+' Std '+String(Math.round(m%60)).padStart(2,'0'),lunchT=()=>{const p=phase();return p>=.29&&p<.40},q6cost0=k=>[7000,10000,14000,19000,25000,30000][k-1],q6cost=k=>wcSum(q6cost0,k);
 const KX=458,ky=()=>V+50;
-function buyT(f){if(f.paid)return;f.paid=1;const ss=ob9Buy(f),pr=ss||(f.kid?kidP():f.nt?G.nk:f.half?G.half:tkP());if(f.kid&&schulOn()){G.ev.inc+=pr;if(G.up.s){G.money+=15;G.inc.ev=(G.inc.ev||0)+15;G.ev.inc+=15}}G.money+=pr;G.inc.l+=pr;tyPay(f,pr,1);if(f.nt){G.inc.nn=(G.inc.nn||0)+1;G.inc.nk=(G.inc.nk||0)+pr}else if(f.half)G.inc.nh=(G.inc.nh||0)+1;else G.inc.n=(G.inc.n||0)+1;pop(KX,ky()-50,pr)}
+function kasHome(f){if(f.nt||f.kid||f.byT||f.su||f.oa||f.home==null)return;const m=Math.min(.60,phase()+.084);if(f.home<m)f.home=m}
+function buyT(f){if(f.paid)return;f.paid=1;kasHome(f);const ss=ob9Buy(f),pr=ss||(f.kid?kidP():f.nt?G.nk:f.half?G.half:tkP());if(f.kid&&schulOn()){G.ev.inc+=pr;if(G.up.s){G.money+=15;G.inc.ev=(G.inc.ev||0)+15;G.ev.inc+=15}}G.money+=pr;G.inc.l+=pr;tyPay(f,pr,1);if(f.nt){G.inc.nn=(G.inc.nn||0)+1;G.inc.nk=(G.inc.nk||0)+pr}else if(f.half)G.inc.nh=(G.inc.nh||0)+1;else G.inc.n=(G.inc.n||0)+1;pop(KX,ky()-50,pr)}
 const RX=540,fpm=()=>(G.fp||100)/100,buyP=()=>cl(1.3-.5*fpr(),.2,1);
 function eat(f,base){if(Math.random()>buyP())return;const pm=wrGx(),tq=gTy(f),pr=Math.max(1,Math.round(base*fpm()*pm*hgF(f)*(tq==='fam'?1.4:tq==='sb'&&(f.at==='aps'||f.at==='obxa')?1.3:1)));if(pm>1)G.wrR.gx+=pr-pr/pm;G.money+=pr;tyPay(f,pr);G.inc.g=(G.inc.g||0)+pr;{const kk=f.at==='hut'?'gh':f.at==='rest'?'gr':f.at==='aps'?'ga':'gk';G.inc[kk]=(G.inc[kk]||0)+pr;G.inc[kk+'c']=(G.inc[kk+'c']||0)+1}f.ate=1;if(pr>=10||Math.random()<(f.at==='aps'?.08:.35))pop(f.x,f.y-18,pr)}
 function startLunch(f,d,kind){if(G.rest){f.st='brk';f.at='rest';f.kind=kind||'menu';f.sit=0;f.bt=d;f.inside=1;f.hid=0;f.seat=-1;f.bx=RX-4+Math.random()*8;f.by=V-26}else startBrk(f,d,'snack')}
@@ -4608,7 +4627,7 @@ const oaEstTxt=v=>(v>=0?'etwa +':'etwa ')+fmt(v);
 function oaPlan(S){const H=Math.min(Math.round(S*.12),G.hotels*18),T=G.train?Math.min(Math.round(S*.3),300):0,Rr=S-H-T,Sh=G.bus?Math.round(Rr*.6):0,C=Rr-Sh;return {ho:H,tr:T,sh:Sh,car:C}}
 function oaBook(){const w=oaWhy(),b=oaSel.b,a=oaSel.a,pr=oaSel.pr,k=oaCost(b,a);if(w||(b===2&&G.areas<3)||G.money<k)return;
  const d=oaD(),dem=oaDem(b,pr),sm=Math.random()<.12,r5=v=>Math.max(0,Math.round(v/5)*5);G.oa={d,b,a,pr,dem,sold:Math.round(dem*.4),st:'vk',k,sm,smT:17.5+Math.random()*3,fc0:sm?r5(25+Math.random()*20):r5(5+Math.random()*12),fc1:sm?r5(50+Math.random()*25):r5(Math.random()*9)};G.oaLast=d;spend(k);toast('🎤 Open Air gebucht: '+OAB[b].n+', '+sTg(d));lg('🎤','ev','Vorverkauf gestartet: '+G.oa.sold+' Tickets am ersten Tag');save()}
-function oaFc(){const o=G.oa;if(!o)return '';const r=o.d-G.day;if(r>=2)return 'Sturmrisiko etwa '+o.fc0+' %';if(r===1)return 'Sturmrisiko etwa '+o.fc1+' %';return o.sm?'Sturm erwartet ab etwa '+Math.floor(o.smT)+' Uhr':'Kein Sturm in Sicht'}
+function oaFc(){const o=G.oa;if(!o)return '';const W=suOn()?'Gewitter':'Sturm',r=o.d-G.day;if(r>=2)return W+'risiko etwa '+o.fc0+' %';if(r===1)return W+'risiko etwa '+o.fc1+' %';return o.sm?W+' erwartet ab etwa '+Math.floor(o.smT)+' Uhr':'Kein '+W+' in Sicht'}
 function oaCancel(){const o=G.oa;if(!o||o.st!=='vk')return;const g=Math.round(OAB[o.b].g/2);G.money+=g;G.inc.ev=(G.inc.ev||0)+g;o.st='abg';lg('🎤','ev','Open Air abgesagt: halbe Gage zurück (+'+fmt(g)+'), Bühne und Ausstattung sind bezahlt');G.evLog=(G.evLog||[]).concat([{d:G.day,k:'oa',m:Math.round(g-(o.k||0)),r:0}]).slice(-6);toast('🎤 Open Air abgesagt');save()}
 function oaRoll(){const o=G.oa;if(!o)return;
  if(o.st==='vk'){const r=o.d-G.day;o.sold=Math.round(o.dem*(r<=0?1:r===1?.8:.4)*(r<=0?.92+Math.random()*.16:1));
@@ -4647,9 +4666,9 @@ function oaLg(k,ic,x){if(!OA.lg[k]){OA.lg[k]=1;lg(ic,'ev',x)}}
 function oaStep(dt){if(!oaDay()){OA=null;return}
  const o=G.oa,p=phase();if(o.st!=='tag'){return}if(!OA||OA.d!==G.day)oaInit();
  // Wetter folgt der Aussicht
- if(wxOn()&&p>=pAt(14.5)&&p<pAt(22)){if(o.sm&&p>=pAt(o.smT)&&G.wx!=='sturm'&&!OA.done){G.wx='sturm';G.wxT=0;lg('🌪️','wet','Wetter: Sturm, '+stormTxt());toast('Sturm 🌪️')}else if(!o.sm&&G.wx==='sturm'){G.wx='schnee';G.wxT=0}if(!o.sm&&G.wxN==='sturm')G.wxN='schnee'}
+ if(!suOn()&&wxOn()&&p>=pAt(14.5)&&p<pAt(22)){if(o.sm&&p>=pAt(o.smT)&&G.wx!=='sturm'&&!OA.done){G.wx='sturm';G.wxT=0;lg('🌪️','wet','Wetter: Sturm, '+stormTxt());toast('Sturm 🌪️')}else if(!o.sm&&G.wx==='sturm'){G.wx='schnee';G.wxT=0}if(!o.sm&&G.wxN==='sturm')G.wxN='schnee'}
  // Sturm: Absage
- if(wxOn()&&G.wx==='sturm'&&p>=pAt(15)&&p<pAt(21.5)&&!OA.done){const t=o.sold*o.pr,g=Math.round(OAB[o.b].g/2);G.money+=g-t;G.inc.ev=(G.inc.ev||0)+g-t;o.st='abg';OA.done=1;for(const f of folks)if(f.oa&&!f.lvg)oaLeave(f);evRuf(-2,2);lg('🌪️','ev','Open Air wegen Sturm abgesagt: Tickets zurückerstattet (−'+fmt(t)+'), halbe Gage zurück (+'+fmt(g)+')');G.evLog=(G.evLog||[]).concat([{d:G.day,k:'oa',m:Math.round(g-t-(o.k||0)),r:-2}]).slice(-6);toast('🌪️ Sturm! Das Open Air ist abgesagt.',5000);return}
+ if((suOn()?G.wx==='gewitter':wxOn()&&G.wx==='sturm')&&p>=pAt(15)&&p<pAt(21.5)&&!OA.done){const t=o.sold*o.pr,g=Math.round(OAB[o.b].g/2);G.money+=g-t;G.inc.ev=(G.inc.ev||0)+g-t;o.st='abg';OA.done=1;for(const f of folks)if(f.oa&&!f.lvg)oaLeave(f);evRuf(-2,2);lg('🌪️','ev','Open Air wegen '+(suOn()?'Gewitter':'Sturm')+' abgesagt: Tickets zurückerstattet (−'+fmt(t)+'), halbe Gage zurück (+'+fmt(g)+')');G.evLog=(G.evLog||[]).concat([{d:G.day,k:'oa',m:Math.round(g-t-(o.k||0)),r:-2}]).slice(-6);toast(suOn()?'⛈️ Gewitter! Das Open Air ist abgesagt.':'🌪️ Sturm! Das Open Air ist abgesagt.',5000);return}
  if(p>=pAt(13)&&p<pAt(13.2))oaLg('auf','🎤','Die Bühne steht, Licht und Ton sind bereit');
  // Anreise
  if(p>=pAt(16.5)&&p<pAt(18.5)){const rem=Math.max(.01,(pAt(18.5)-p)*hpp(p)*32);
@@ -4832,7 +4851,7 @@ function oaNight(c,la,soft){if(oaK()<=0)return;const t=T,sh=oaSh();
 function oaB(f){if(f.st!=='oaC'||!f.at2)return 0;const sh=oaSh();if(!sh)return 0;const fr=cl(1.25-(f.y-(V-46))/70,.3,1);return Math.abs(Math.sin(T*(sh===2?8:5)+(f.id||0)))*(oaBal()?.35:2.2)*fr}
 
 function oaHTML(){const o=G.oa;let h='<div class="bgh">🎤 Open Air</div>';
- if(o&&(o.st==='vk'||o.st==='tag')){const B=OAB[o.b];h+=`<p class="hint" style="margin:6px 0">${o.st==='tag'?'Heute':sTg(o.d)}: ${B.n}. Aufbau ab 6 Uhr, Liftschluss 15:30, Einlass 17 Uhr, Vorband 18:30, Hauptact 19:30 bis 21:30, danach Feuerwerk.</p>`+
+ if(o&&(o.st==='vk'||o.st==='tag')){const B=OAB[o.b];h+=`<p class="hint" style="margin:6px 0">${o.st==='tag'?'Heute':sTg(o.d)}: ${B.n}. Aufbau ab 6 Uhr, ${suOn()?'':'Liftschluss 15:30, '}Einlass 17 Uhr, Vorband 18:30, Hauptact 19:30 bis 21:30, danach Feuerwerk.</p>`+
   [['Wetteraussicht Konzertabend',oaFc()],['Erwarteter Gewinn',o.res?'':oaEstTxt(oaEst(o.b,o.a,o.pr,o.st==='tag'?o.sold:o.dem))],['Erwarteter Ruf',o.res?'':oaRufTxt(oaRufEst(o.b,o.a,o.pr,o.st==='tag'?o.sold:o.dem)).replace(/<\/?b[^>]*>/g,'')],['Ticketpreis',fmt(o.pr)],['Ausstattung',OAA[o.a].n+' ('+OAA[o.a].st+' Stände, '+OAA[o.a].wc+' WC, '+OAA[o.a].lk+' Einlass-Spuren)'],[o.st==='tag'?'Tickets verkauft':'Vorverkauf bisher',o.sold+' Tickets'],...(o.st==='tag'&&OA?[['Auf dem Gelände',String(OA.arr+(phase()>=pAt(17.5)?OA.virt:0))],['In der Einlass-Schlange',String(OA.q.length)],['Getränke-Umsatz',fmt(OA.dr)]]:[])].map(r=>`<div class="row"><span>${r[0]}</span><b>${r[1]}</b></div>`).join('')+(o.st==='vk'?`<div class="row"><span>Absagen: halbe Gage zurück, Bühne und Ausstattung sind bezahlt</span><button class="btn ghost" data-oacx>${G.oaCx?'Wirklich absagen?':'Absagen'}</button></div>`:'');return h}
  if(o&&o.res&&o.d>=G.day-1)h+=`<p class="hint" style="margin:6px 0">Letztes Open Air (${sTg(o.d)}): ${o.res.arr} Besucher${o.res.miss?', '+o.res.miss+' kamen nicht an':''}, Saldo ${o.res.net>=0?'+':''}${fmt(o.res.net)}, Ruf ${o.res.r>=0?'+':''}${o.res.r}.</p>`;
  const w=oaWhy();if(w)return h+`<p class="hint" style="margin:6px 0">${w}</p>`;
@@ -4845,7 +4864,7 @@ function oaHTML(){const o=G.oa;let h='<div class="bgh">🎤 Open Air</div>';
  <div class="row"><span>Anreise</span><b>${[pl.car?'Auto '+pl.car:'',pl.sh?'Shuttle '+pl.sh:'',pl.tr?'Zug '+pl.tr:'',pl.ho?'Hotel '+pl.ho:''].filter(Boolean).join(' · ')}</b></div>
  ${pl.car>cc?`<p class="hint" style="margin:4px 0;color:#e8504a">Der Parkplatz reicht nur für etwa ${cc} Besucher mit dem Auto. ${G.bus?'':'Ohne Busparkplätze gibt es keine Shuttlebusse. '}${G.train?'':'Ein Bahnhof würde Sonderzüge bringen.'}</p>`:''}
  <div class="row"><span>Kosten (Gage, ${['kleine','mittlere','große'][s.b]} Bühne, Ausstattung)</span><b>${fmt(k)}</b></div><div class="row"><span>Tickets, wenn alle kommen</span><b>${fmt(dem*s.pr)}</b></div><div class="row"><span>${(e=>e>=0?'Gewinn':'Verlust')(oaEst(s.b,s.a,s.pr,dem))} mit Getränken und Shuttles</span><b style="color:${oaEst(s.b,s.a,s.pr,dem)>=0?'#2e9e5b':'#e8504a'}">${oaEstTxt(oaEst(s.b,s.a,s.pr,dem))}</b></div><div class="row"><span>Ruf danach, je nach Stimmung</span>${oaRufTxt(oaRufEst(s.b,s.a,s.pr,dem))}</div>${s.b===0?'<p class="hint" style="margin:4px 0">Für die lokale Band reicht kleine oder mittlere Ausstattung.</p>':''}
- <p class="hint" style="margin:4px 0">Dazu kommen Getränke, Shuttlefahrten kosten ${fmt(OASH)} pro Fahrt. Bei Sturm wird abgesagt: Tickets gehen zurück, die halbe Gage auch. Nach dem Buchen siehst du hier eine Wetteraussicht und kannst notfalls vorher absagen.</p>
+ <p class="hint" style="margin:4px 0">Dazu kommen Getränke, Shuttlefahrten kosten ${fmt(OASH)} pro Fahrt. Bei ${suOn()?'Gewitter':'Sturm'} wird abgesagt: Tickets gehen zurück, die halbe Gage auch. Nach dem Buchen siehst du hier eine Wetteraussicht und kannst notfalls vorher absagen.</p>
  <div class="row"><span></span><button class="btn" data-oago ${G.money<k?'disabled':''}>Für ${sTg(oaD())} buchen</button></div>`;
  return h}
 
@@ -4892,8 +4911,8 @@ function drawTrain(c,tr){if(tr.g2)return drawFreight(c,tr);const y=TY()-4,cars=4
  c.fillStyle='#2b303d';for(const wx of [x+7,x+L-7]){c.beginPath();c.arc(wx,y+7,2.6,0,7);c.fill()}
  c.fillStyle='#d8dde6';c.fillRect(x,y-11,L,1.6)}}
 function startBrk(f,d,kind){f.kind=kind||'drink';f.st='brk';f.at='ter';f.sit=0;f.bt=d;f.inside=0;f.hid=0;const i=seats.indexOf(null);if(i>=0){seats[i]=f;f.seat=i;const q=seatPos(i);f.bx=q.x;f.by=q.y}else{f.seat=-1;f.inside=1;f.bx=428;f.by=V-4}}
-const phase=()=>G.t/DAY,closed=()=>{const p=phase();if(oaDay()&&p>=pAt(15.5))return true;return p>=.60&&!(nToday()&&p>=NSP&&p<NEP)},
- arrF=p=>p<.03||p>=.55?0:p<.20?2.2:p<.45?1.2:.5,
+const phase=()=>G.t/DAY,closed=()=>{const p=phase();if(oaDay()&&!suOn()&&p>=pAt(15.5))return true;return p>=.60&&!(nToday()&&p>=NSP&&p<NEP)},
+ arrF=p=>p<.03||p>=pAt(14.5)?0:p<.20?2.2:1.35,
  bright=()=>{const p=phase();return p<.58?1:p<.72?1-(p-.58)/.14:p<.94?0:(p-.94)/.06},
  wIc=()=>G.wx==='sonne'&&bright()<.35?'🌙':WI[G.wx],wNm=()=>G.wx==='sonne'&&bright()<.35?'Klar':WN[G.wx],
  CP=[[0,6],[.04,7],[.60,17],[.72,19],[.94,29],[1,30]];
@@ -6077,7 +6096,7 @@ function obNext(f){const n=f.nx;f.nx=null;if(obxNext(f,n))return;if(ob8Next(f,n)
  if(n==='okas'){if(obCl()){obHome(f);return}f.st='okas';f.kt=.5+Math.random()*.7}
  else if(n==='oq0'){if(obCl()){obHome(f);return}OBQ.push(f);f.st='oq';f.arr=false}
  else if(n==='oplat')f.st='oplat';else if(n==='tocar')f.st='tocar';else if(n==='choIn'){if(!f.ape){G.guests++;G.gT++;if(!f.atx)rufUpd(f)}if(choEve(f))return;f.dead=1}else if(n==='rbIn'){const c=f.car;if(c)c.back++;if(!f.oa){G.guests++;G.gT++;if(!f.atx)rufUpd(f)}f.dead=1}else{f.dead=1}}
-function obBuyT(f){if(f.paid)return;f.paid=1;const ss=ob9Buy(f),pr=ss||(f.half?G.half:tkP());G.money+=pr;G.inc.l+=pr;tyPay(f,pr,1);if(f.half)G.inc.nh=(G.inc.nh||0)+1;else G.inc.n=(G.inc.n||0)+1;G.inc.on=(G.inc.on||0)+1;pop(OBKX,OBKY()-30,pr)}
+function obBuyT(f){if(f.paid)return;f.paid=1;kasHome(f);const ss=ob9Buy(f),pr=ss||(f.half?G.half:tkP());G.money+=pr;G.inc.l+=pr;tyPay(f,pr,1);if(f.half)G.inc.nh=(G.inc.nh||0)+1;else G.inc.n=(G.inc.n||0)+1;G.inc.on=(G.inc.on||0)+1;pop(OBKX,OBKY()-30,pr)}
 const obSlot=i=>{const r=i>>3,j=i&7;if(r>=8){const k=i-64;return {x:1312-8*(k%6),y:R-140+8*Math.floor(k/6)}}return {x:r%2?1330+9*j:1393-9*j,y:R-132+8*r}};
 // Gast-Schritt (true = erledigt, sonst übernimmt der normale Code, z. B. tocar)
 function obFolk(f,dt){const st=f.st;if(st==='chev'){if(phase()>=f.evp)choEvGo(f);return true}if((st==='orin'||st==='oapi')&&obxFolk(f,dt))return true;
@@ -7154,12 +7173,17 @@ const CMPS=[
  {k:'ra',ic:'📻',n:'Radiospot',b:600,r:20,d:2,g:1,x:'Im Regionalradio'},
  {k:'in',ic:'📱',n:'Influencer-Kampagne',b:800,r:35,d:3,g:1,x:'Videos auf allen Kanälen'},
  {k:'tv',ic:'📺',n:'TV-Spot',b:1000,r:45,d:3,g:1,x:'Im Fernsehen vor dem Wetterbericht',lk:()=>cmpSt()<5?'Ab Ausbau Stufe 5':''},
- {k:'fa',ic:'👨‍👩‍👧',n:'Familienwochen',b:800,r:5,d:4,x:'Mehr Familien und Anfänger kommen'},
- {k:'fr',ic:'🏂',n:'Freeride-Video',b:800,r:5,d:4,x:'Mehr Profis und Snowboarder kommen',lk:()=>G.areas<3?'Ab Ausbau Stufe 3':''},
+ {k:'fa',s:'w',ic:'👨‍👩‍👧',n:'Familienwochen',b:800,r:5,d:4,x:'Mehr Familien und Anfänger kommen'},
+ {k:'fr',s:'w',ic:'🏂',n:'Freeride-Video',b:800,r:5,d:4,x:'Mehr Profis und Snowboarder kommen',lk:()=>G.areas<3?'Ab Ausbau Stufe 3':''},
  {k:'ho',ic:'🏨',n:'Hotel-Pauschale im Reisebüro',b:1000,r:5,d:5,x:'Die Hotels sind deutlich voller',lk:()=>!G.hotels&&!choS()?'Braucht ein Hotel':''},
- {k:'pa',ic:'🎉',n:'Party-Wochenende',b:700,r:5,d:'so',x:'Fr–So deutlich mehr Gäste im Après-Ski',lk:()=>!G.ap?'Braucht die Après-Ski-Hütte':''},
- {k:'os',ic:'⛰️',n:'Ostberg-Kampagne',b:2000,r:5,d:4,x:'Mehr Gäste fahren gleich zum Ostberg',lk:()=>ost()<1?'Ab Ausbau Stufe 7':''},
- {k:'sw',ic:'🌧️',n:'Schlechtwetter-Angebot',b:1200,r:5,d:7,x:'Bei Tauwetter und Sturm bleiben viel weniger Gäste weg',lk:()=>G.areas<2?'Ab Ausbau Stufe 2':''}];
+ {k:'pa',s:'w',ic:'🎉',n:'Party-Wochenende',b:700,r:5,d:'so',x:'Fr–So deutlich mehr Gäste im Après-Ski',lk:()=>!G.ap?'Braucht die Après-Ski-Hütte':''},
+ {k:'os',s:'w',ic:'⛰️',n:'Ostberg-Kampagne',b:2000,r:5,d:4,x:'Mehr Gäste fahren gleich zum Ostberg',lk:()=>ost()<1?'Ab Ausbau Stufe 7':''},
+ {k:'sw',s:'w',ic:'🌧️',n:'Schlechtwetter-Angebot',b:1200,r:5,d:7,x:'Bei Tauwetter und Sturm bleiben viel weniger Gäste weg',lk:()=>G.areas<2?'Ab Ausbau Stufe 2':''},
+ {k:'sfa',s:'s',ic:'🥾',n:'Familien-Wanderwochen',b:800,r:5,d:4,x:'Mehr Familien kommen zum Wandern und Rodeln'},
+ {k:'sbk',s:'s',ic:'🚵',n:'Bikepark-Video',b:800,r:5,d:4,x:'Mehr Biker kommen in den Bikepark',lk:()=>!(G.su&&G.su.bk)?'Braucht den Bikepark':''},
+ {k:'spg',s:'s',ic:'🪂',n:'Paragleit-Schnuppertag',b:500,r:5,d:3,x:'Viel mehr Gäste buchen einen Tandemflug',lk:()=>!(G.su&&G.su.pg)?'Braucht das Paragleiten':''},
+ {k:'srg',s:'s',ic:'☔',n:'Regenwetter-Angebot',b:1200,r:5,d:7,x:'Bei Regen und Gewitter bleiben viel weniger Gäste weg'}];
+function cmpSeas(c){return !c.s||(c.s==='s')===suOn()}
 // V298: Reichweite – kleine Werbung wirkt bei großen Skigebieten schwächer
 const CMR={pl:[1,1,.75,.75,.5,.5,.25,.25,.25],ze:[1,1,1,1,.75,.75,.5,.5,.5],ra:[1,1,1,1,.75,.75,.5,.5,.5],in:[1,1,1,1,1,1,.75,.75,.75]};
 function cmpRch(c){const R=CMR[c.k];return R?R[cmpSt()-1]:1}
@@ -7175,7 +7199,7 @@ function cmpSt(){return Math.max(1,Math.min(9,(G.areas||1)+ost()))}
 function cmpP(c){return Math.round(c.b*CMF[cmpSt()-1]/50)*50}
 function cmpD(c){return c.d==='so'?Math.max(.5,7-wkD()-phase()):c.d}
 function cOn(k){return G.tt>0&&G.tk===k}
-function cmpRF(){return cOn('fa')||cOn('fr')?1.12:1}
+function cmpRF(){return cOn('fa')||cOn('fr')||cOn('sfa')||cOn('sbk')?1.12:1}
 function cmpTy(f){if(f.kid||f.oa)return;if(cOn('fa')&&f.ty==='pro'&&Math.random()<.4){f.ty='anf';f.sk=0}else if(cOn('fr')&&f.ty==='anf'&&!(f.car&&f.car.fam)&&Math.random()<.4){f.ty='pro';f.sk=2}}
 function cmpBy(k){const c=CMPS.find(x=>x.k===k);if(!c)return;const p=cmpP(c),busy=c.g?G.ct>0:G.tt>0;if(busy||G.money<p||(c.lk&&c.lk()))return;spend(p);G.inc.b=(G.inc.b||0)-p;G.inc.wb=(G.inc.wb||0)+p;const d=cmpD(c);
  if(c.g){G.cv=cmpEff(c);G.ct=d;G.cK=c.k}else{G.tt=d;G.tk=c.k;G.tr=c.r}
@@ -7248,7 +7272,7 @@ function rwWer(){let h='';const run=[];
  const card=c=>{const p=cmpP(c),lk=c.lk?c.lk():'',on=c.g?(G.ct>0&&G.cK===c.k):cOn(c.k),busy=c.g?G.ct>0:G.tt>0,dur=c.d==='so'?'bis Sonntag':c.d+' Tage',rc=cmpRch(c),er=cmpEff(c),ef=c.g?'+'+er+' Ruf für '+dur+(rc<1?' · Reichweite '+(rc===.75?'¾':rc===.5?'½':'¼'):'')+' · '+String(Math.round(er/p*1000*10)/10).replace('.',',')+' Ruf je 1.000 €':c.x+' · '+dur;
   return `<div class="bk"${lk?' style="opacity:.55"':''}><div class="ic">${c.ic}</div><div class="tx"><b>${c.n}</b><small class="sh">${lk?'🔒 '+lk:ef}</small></div><div class="br">${on?'<b style="color:#2e9e5b;font-size:13px">✓ läuft</b>':`<button class="btn" data-cm="${c.k}" ${lk||busy||G.money<p?'disabled':''}>${fmt(p)}</button>`}</div></div>`};
  h+=`<div class="pgh">📣 Allgemein · heben den Ruf</div>`+CMPS.filter(c=>c.g).map(card).join('');
- {const D=gxData();h+=`<div class="pgh">🎯 Gezielt · holen bestimmte Gäste</div>`+CMPS.filter(c=>!c.g).map(c=>card(c)+(c.lk&&c.lk()||cOn(c.k)?'':cmpFitH(c,D))).join('')}
+ {const D=gxData();h+=`<div class="pgh">🎯 Gezielt · holen bestimmte Gäste</div>`+CMPS.filter(c=>!c.g&&cmpSeas(c)).map(c=>card(c)+(c.lk&&c.lk()||cOn(c.k)?'':cmpFitH(c,D))).join('')}
  h+=`<p class="hint" style="margin:6px 2px">Gleichzeitig kann eine allgemeine und eine gezielte Kampagne laufen. Die Preise steigen mit deinem Ausbau (gerade Stufe ${cmpSt()}). Je größer dein Skigebiet, desto weniger erreichen kleine Kampagnen.</p>`;
  const Hs=(G.cH||[]).slice(-8).reverse();
  h+=`<div class="pgh">📒 Bisherige Kampagnen</div>`+rwCard(Hs.length?`<table style="width:100%;font-size:12.5px;border-collapse:collapse"><tr style="color:var(--mut)"><td>Wann</td><td>Kampagne</td><td style="text-align:right">Kosten</td><td style="text-align:right">Ruf davor → danach</td></tr>${Hs.map(e=>{const c=CMPS.find(x=>x.k===e.k)||{ic:'📣',n:'Werbung'},r1=e.r1==null?Math.round(rufE()):e.r1;return `<tr><td style="padding:3px 0">${sTk(e.d)}</td><td>${c.ic} ${c.n.split(' ')[0]}</td><td style="text-align:right">${fmt(e.c)}</td><td style="text-align:right">${e.r0} → <b style="color:${r1>=e.r0?'#2e9e5b':'#e8504a'}">${r1}</b>${e.r1==null?' <small style="color:var(--mut)">läuft</small>':''}</td></tr>`}).join('')}</table>`:'<div style="font-size:13px;color:var(--mut)">Noch keine Kampagne gestartet.</div>');
@@ -7798,7 +7822,7 @@ function wrOv(){const R=G.wrR,show=!!(wrDay()&&['r1','p','r2','end'].includes(R.
 
 // ===== V239: Versteckter Testbereich (Optionen › 5× auf die Versionszeile tippen) =====
 // Jeder Test sichert vorher den Spielstand; „Test beenden“ holt ihn zurück. Neue Tests einfach in TESTS eintragen.
-const TVER='V305',TBAK='art-test-bak';
+const TVER='V306',TBAK='art-test-bak';
 // V263: Test „Alles ausgebaut“ – kauft über das Baumenü alles, was es gibt (Voraussetzungen und Sterne werden dabei übersprungen), und stellt Baustellen sofort fertig. wc = mit Verbindungsbahn West.
 var TALL=0;
 function tstAll(wc){const m0=G.money,st0=G.stN;let n=0;TALL=1;G.stN=5;
@@ -7991,7 +8015,7 @@ function suOccF(){return suOn()?.05+.5*suAttr():1}
 const SUWX={sonne:'☀️',wolke:'⛅',regen:'🌧️',gewitter:'⛈️'},SUWXN={sonne:'Sonne',wolke:'Bewölkt',regen:'Regen',gewitter:'Gewitter'},SUTMP={sonne:24,wolke:20,regen:15,gewitter:19};
 function suNx(p){const W={sonne:[.55,.3,.15],wolke:[.42,.33,.25],regen:[.38,.37,.25]}[p]||[.55,.3,.15],K=['sonne','wolke','regen'];let r=Math.random();for(let i=0;i<3;i++){r-=W[i];if(r<=0)return K[i]}return 'sonne'}
 function suGw(){return suOn()&&G.wx==='gewitter'}
-function suGwPlan(){const S=suS();if(S.gd===G.day)return;S.gd=G.day;S.gw=Math.random()<.12?{h:14.5+Math.random()*2.5,d:1.1+Math.random()*.8,d0:G.day}:null}
+function suGwPlan(){const S=suS();if(S.gd===G.day)return;S.gd=G.day;if(oaDay()){S.gw=G.oa.sm?{h:G.oa.smT,d:1.4,d0:G.day}:null;return}S.gw=Math.random()<.12?{h:14.5+Math.random()*2.5,d:1.1+Math.random()*.8,d0:G.day}:null}
 function suWxStep(dt){const S=suS(),p=phase();suGwPlan();const g=S.gw;
  if(g&&g.d0===G.day&&p>=pAt(g.h)&&p<pAt(g.h+g.d)){if(G.wx!=='gewitter'){S.wx0=G.wx;G.wx='gewitter';G.wxT=0;suGwStart();lg('⛈️','wet','Gewitter! Alle Lifte stehen, die Wanderer suchen Schutz');toast('⛈️ Gewitter – die Lifte stehen')}}
  else if(G.wx==='gewitter'){G.wx='wolke';G.wxN=suNx('wolke');G.wxT=0;suGwEnd();lg('⛅','wet','Das Gewitter ist vorbei, die Lifte fahren wieder')}
@@ -8003,7 +8027,7 @@ function suHm(h){const m=Math.round((h%1)*60/15)*15;return String(Math.floor(h)+
 // --- Ankunft ---
 function suAttr(){const S=suS();return ([0,.42,.62,.82][S.w]||0)+(S.alm?.06:0)+xaAttr()}
 function suDT(){return cl(2-((G.su.pt/suFair('t'))*.45+(G.su.pb/suFair('b'))*.55),0,1.6)}
-function suWxA(){return {sonne:1.1,wolke:.9,regen:.5,gewitter:.75}[G.wx]||1}
+function suWxA(){const r=cOn('srg');return {sonne:1.1,wolke:.9,regen:r?.8:.5,gewitter:r?.9:.75}[G.wx]||1}
 function suRate(){return cmpRF()*WKF[wkD()]*(1+(G.mp||0))*arrW()*.22*suDT()*dP()*(.8+.4*G.areas)*(.45+rufE()/85)*suWxA()*suAttr()*1.05}
 function suArrF(p){return p<pAt(7.8)||p>=pAt(13.6)?0:p<pAt(10)?1.7:p<pAt(12)?1.3:.6}
 let SUDQ=[[],[],[],[],[],[]];
@@ -8036,19 +8060,21 @@ function suPlan(f){if(XATY[f.sut])return xaPlan(f);const k=f.sut,P=[],G1=()=>prj
  return P}
 function suTk(f){const x=xaTk(f);if(x!=null)return x;return SUTY[f.sut]&&SUTY[f.sut].bt?G.su.pt:G.su.pb}
 function suBuy(f){if(f.paid)return;f.paid=1;const pr=suTk(f);G.money+=pr;if(f.sut==='pgt'){G.inc.x=(G.inc.x||0)+pr;G.inc.xpg=(G.inc.xpg||0)+pr}else G.inc.l+=pr;xaBuyCnt(f,pr);G.inc.n=(G.inc.n||0)+1;G.inc['su'+(SUTY[f.sut].bt?'t':'b')]=(G.inc['su'+(SUTY[f.sut].bt?'t':'b')]||0)+1;tyPay(f,pr,1);pop(KX,ky()-50,pr)}
+// V306: am Open-Air-Tag im Sommer gehen die Wanderer östlich am Festivalgelände vorbei
+function suOaP(p){if(!suOn()||!oaDay())return p;const x0=OSZ()[0]-24,y0=OSR()-75,y1=V+8;return p.map(q=>q[0]<226&&q[0]>x0&&q[1]>y0&&q[1]<y1?[236,q[1]]:q)}
 function suNext(f){const st=f.suP&&f.suP[f.suI++];f.hid=0;if(!st){leave(f);return}if(st.k[0]==='x'&&xaStepK(f,st))return;const S=suS();
  if(st.k==='up'){f.mx=st.L;f.st='qu';f.l=1;f.arr=0;queues[0].push(f);return}
- if(st.k==='w'){if(f.lo==null)f.lo=(Math.random()-.5)*5;const Q=suCh([[f.x,f.y]].concat(st.p.map(q=>[q[0]+f.lo,q[1]+f.lo*.4])),2);f.wp=Q.slice(1);f.st='suW';if(st.n){const N=S.S||(S.S={});N.wn=N.wn||{};N.wn[st.n]=(N.wn[st.n]||0)+1}return}
+ if(st.k==='w'){if(f.lo==null)f.lo=(Math.random()-.5)*5;const Q=suCh([[f.x,f.y]].concat(suOaP(st.p).map(q=>[q[0]+f.lo,q[1]+f.lo*.4])),2);f.wp=Q.slice(1);f.st='suW';if(st.n){const N=S.S||(S.S={});N.wn=N.wn||{};N.wn[st.n]=(N.wn[st.n]||0)+1}return}
  if(st.k==='eat'){f.st='suE';f.ew=st.w;f.es=0;if(st.w==='hut'){const h=hutPos();f.ex=h.x+(Math.random()-.5)*10;f.ey=h.y+4}else{const g=GPOS();f.ex=g.x-6+Math.random()*12;f.ey=g.y+24}return}
  if(st.k==='alm'){f.st='suE';f.ew='alm';f.es=0;f.ex=SUSTAND.x-6+Math.random()*12;f.ey=SUSTAND.y+9;f.rx=f.x;f.ry=f.y;return}
  if(st.k==='kreuz'){f.st='suE';f.ew='kreuz';f.es=0;f.ex=474+Math.random()*12;f.ey=-1404+Math.random()*4;return}
  if(st.k==='dn'){const L=st.L,t=ends(L).t;f.dL=L;f.st='suW';f.wp=[[t.x+8+Math.random()*10,t.y+6+Math.random()*4]];f.suDn=1;return}
  leave(f)}
 function suTop(f,L,t){f.x=t.x;f.y=t.y;
- if(L<f.mx){if(!closed()&&!suGw()&&!suOff(L+1)&&L+1<=G.areas){f.st='qu';f.l=L+1;f.arr=0;queues[L].push(f);return}suBail(f,L);return}
+ if(L<f.mx){if(!closed()&&!suGw()&&!suOff(L+1)&&L+1<=G.areas){f.st='qu';f.l=L+1;f.arr=0;if(f.xpp!=null)queues[L].unshift(f);else queues[L].push(f);return}suBail(f,L);return}
  suNext(f)}
 // Kommt nicht weiter hinauf (Liftschluss, Lift aus): mit den Liften wieder ins Tal
-function suBail(f,L){f.suP=[];for(let l=L;l>=1;l--){f.suP.push({k:'dn',L:l});if(l>1){const a=ends(l).b,b=ends(l-1).t;f.suP.push({k:'w',p:[[a.x,a.y],[b.x,b.y]]})}}f.suP.push({k:'out'});f.suI=0;suNext(f)}
+function suBail(f,L){if(f.xpp!=null){const p=XAPIL[f.xpp];if(p){const w=xaPW(p.i);p.x=w[0];p.y=w[1];p.st='idle';p.up=0;p.fe=0;p.rf=null}f.dead=1;return}f.suP=[];for(let l=L;l>=1;l--){f.suP.push({k:'dn',L:l});if(l>1){const a=ends(l).b,b=ends(l-1).t;f.suP.push({k:'w',p:[[a.x,a.y],[b.x,b.y]]})}}f.suP.push({k:'out'});f.suI=0;suNext(f)}
 // Talfahrt: an der Bergstation in die Warteschlange, Sessel/Kabine nimmt sie auf dem Rückweg mit
 function suDnIn(k,L){const q=SUDQ[L-1];if(!q.length||suGw())return;const cap=G.cap[L-1];for(let i=0;i<q.length&&k.r.length<cap;){const f=q[i];if(f.dead||f.st!=='suDq'){q.splice(i,1);continue}if(!f.arr){i++;continue}q.splice(i,1);f.st='lift';f.dnL=L;k.r.push(f)}}
 function suDnOut(k,L){if(!k.r.length)return;const b=ends(L).b,keep=[];for(const f of k.r){if(f.dnL){f.dnL=0;f.x=b.x+(Math.random()-.5)*10;f.y=b.y+8+Math.random()*4;G.inc.sud=(G.inc.sud||0)+1;suNext(f)}else keep.push(f)}k.r=keep}
@@ -8186,11 +8212,11 @@ document.head.insertAdjacentHTML('beforeend','<style>.sbar.su i{background:#7ee2
 // „Alpine Coaster“ (ganzjährig, 8 Tage Baustelle), Klettersteig am Wasserfall (Wand A), Paragleiten (Start unter der Gipfel-Terrasse,
 // Landewiese beim Grandhotel, Tandem-Piloten). Präfix xa…/XA…. Gäste-Zustände 'xa…' laufen in xaFolk (vor suFolk).
 // Neue Sommer-Typen (f.sut): bik (Biker), rod (Rodler), kls (Klettersteig), pgt (Tandemflug), pgs (Paragleiter mit eigenem Schirm).
-function xaS(){const S=suS();if(S.bk==null){S.bk=0;S.co=0;S.kl=0;S.pg=0;S.pgN=2}if(!S.xp)S.xp={bk:42,bl:35,co:9,pg:140,kl:18};return S}
+function xaS(){const S=suS();if(S.bk==null){S.bk=0;S.co=0;S.kl=0;S.pg=0;S.pgN=4;S.p306=1}if(!S.p306){S.p306=1;if(S.pg)S.pgN=Math.min(8,(S.pgN||2)*2)}if(!S.xp)S.xp={bk:42,bl:35,co:9,pg:140,kl:18};return S}
 const xaB=()=>!!(G.su&&G.su.bk!=null);
 function xaCoOk(){return !!(G.su&&G.su.co&&G.su.co.st==='ok')}
 function xaCoBau(){return !!(G.su&&G.su.co&&G.su.co.st==='bau')}
-const XAC={bk:[0,15000,40000,70000],co:150000,kl:45000,pg:60000,pil:10000},XAA={bk:[0,3,4,5],co:4,kl:5,pg:6},XAU={bk:[0,60,90,120],co:250,kl:80,pg:150,pil:60},XACT=8;
+const XAC={bk:[0,15000,40000,70000],co:150000,kl:45000,pg:60000,pil:5000},XAA={bk:[0,3,4,5],co:4,kl:5,pg:6},XAU={bk:[0,60,90,120],co:250,kl:80,pg:150,pil:30},XACT=8;
 const XAF={bk:42,bl:35,co:9,pg:140,kl:18},XAPH=6;
 function xaFair(k){return Math.round(XAF[k]*(k==='bk'?1+.035*(stars()-1):1))}
 function xaDem(k){const S=xaS();return cl(1.45-.45*S.xp[k]/xaFair(k),.15,1.3)}
@@ -8239,7 +8265,7 @@ function xaTree(x,y){const S=G.su;if(!S||S.bk==null)return 0;
  if(S.pg&&Math.hypot((x-676)/56,(y-733)/40)<1)return 1;
  for(const b of xaBoxes())if(x>b[0]&&x<b[1]&&y>b[2]&&y<b[3]+28)return 1;return 0}
 // --- Kosten, Anziehung ---
-function xaU(){const S=G.su;if(!S||S.bk==null)return 0;let u=0;for(let i=1;i<=S.bk;i++)u+=XAU.bk[i];if(S.co)u+=XAU.co;if(S.kl)u+=XAU.kl;if(S.pg)u+=XAU.pg+XAU.pil*Math.max(0,(S.pgN||2)-2);return Math.round(u*CF)}
+function xaU(){const S=G.su;if(!S||S.bk==null)return 0;let u=0;for(let i=1;i<=S.bk;i++)u+=XAU.bk[i];if(S.co)u+=XAU.co;if(S.kl)u+=XAU.kl;if(S.pg)u+=XAU.pg+XAU.pil*Math.max(0,(S.pgN||4)-4);return Math.round(u*CF)}
 function xaUW(){return xaCoOk()?Math.round(XAU.co*CF):0}
 function xaAttr(){const S=G.su;if(!S||S.bk==null)return 0;return [0,.07,.12,.16][S.bk]+(xaCoOk()?.14:0)+(S.kl?.04:0)+(S.pg?.05:0)}
 function xaWarn(){const S=G.su;if(!S||S.bk==null)return '';const off=L=>suOff(L)||G.areas<L;
@@ -8247,16 +8273,16 @@ function xaWarn(){const S=G.su;if(!S||S.bk==null)return '';const off=L=>suOff(L)
  if((S.bk>=3||S.kl)&&off(5))return 'Lift 5 ist aus: '+(S.kl?'Klettersteig':'')+(S.kl&&S.bk>=3?' und ':'')+(S.bk>=3?'Downhill Schwarz':'')+' sind nicht erreichbar.';if(S.pg&&off(6))return 'Lift 6 ist aus: keine Paragleiter am Gipfel.';return ''}
 // --- Plan je Typ (statt suPlan) ---
 function xaPick(f,W,fam){if(!xaB())return;const S=G.su,p=phase(),gwE=S.gw&&S.gw.d0===G.day;
- if(S.bk>=1&&suLiftsOk(3)&&p<pAt(13))W.push(['bik',(fam?.12:.5)*xaDem('bk')*(1+.25*(S.bk-1))*(G.wx==='regen'?.45:1)*(.55+.45*S.wq/100)]);
+ if(S.bk>=1&&suLiftsOk(3)&&p<pAt(13))W.push(['bik',(fam?.12:.5)*xaDem('bk')*(cOn('sbk')?1.7:1)*(1+.25*(S.bk-1))*(G.wx==='regen'?.45:1)*(.55+.45*S.wq/100)]);
  if(xaCoOk())W.push(['rod',(fam?1:.4)*xaDem('co')*(G.wx==='regen'?.6:1)]);
  if(S.kl&&suLiftsOk(5)&&p<pAt(10)&&!(gwE&&S.gw.h<15.5)&&G.wx!=='regen')W.push(['kls',(fam?.04:.22)*xaDem('kl')]);
- const fly=S.pg&&suLiftsOk(6)&&p<pAt(12)&&(G.wx==='sonne'||G.wx==='wolke')&&!(gwE&&S.gw.h<16.5);
- if(fly&&xaPilFree()>0&&!fam)W.push(['pgt',.1*xaDem('pg')]);if(fly&&!fam)W.push(['pgs',.035])}
+ const fly=S.pg&&suLiftsOk(6)&&p<pAt(13)&&(G.wx==='sonne'||G.wx==='wolke')&&!(gwE&&S.gw.h<16.5);
+ if(fly&&xaPgPipe()<(S.pgN||4)&&!fam)W.push(['pgt',.1*xaDem('pg')*(cOn('spg')?2.2:1)]);if(fly&&!fam)W.push(['pgs',.035])}
 function xaInit(f){const k=f.sut;if(!XATY[k])return;const S=xaS();
  if(k==='bik'){const r=Math.random();f.xsk=Math.min(S.bk,r<.35?1:r<.75?2:3);f.xbv=.85+Math.random()*.3;f.xbH=pAt(14.7+Math.random()*1.3);f.bkc=['#2f7de1','#e0402f','#2b2d33','#f07a2a','#7a3fd0','#c7ccd4','#2fa86b'][Math.floor(Math.random()*7)];f.xhc=['#fafafa','#f2c230','#e0402f','#2b2d33','#2f7de1'][Math.floor(Math.random()*5)];
   f.xrent=G.rvw&&Math.random()<.4?1:0;f.bk=f.xrent?0:1;if(!f.xrent&&Math.random()<.12)f.xpk='#2b2d33'}
  if(k==='kls'){f.xhc=['#e0402f','#fafafa','#f2c230','#2f7de1'][Math.floor(Math.random()*4)];f.xset=Math.random()<.3?1:0}
- if(k==='pgt'){if(!xaPilRes(f)){f.sut='son';return}f.xhc='#fafafa'}
+ if(k==='pgt'){f.xhc='#fafafa';f.xpil=null}
  if(k==='pgs'){f.xhc=['#fafafa','#f2c230','#2f7de1'][Math.floor(Math.random()*3)];f.xcc=[['#f07a2a','#ffd08a'],['#2f7de1','#9fd6f5'],['#2fa86b','#a8e6b8'],['#7a3fd0','#c9a4f5'],['#e0402f','#ffb3a6'],['#ff6fa8','#ffd1e3']][Math.floor(Math.random()*6)]}}
 function xaPlan(f){const k=f.sut,P=[];
  if(k==='bik'){const t=xaBkChoose(f,'zb');P.push({k:'up',L:t==='SCHWARZ'?5:t==='ROT'?4:3},{k:'xbk'})}
@@ -8266,12 +8292,13 @@ function xaPlan(f){const k=f.sut,P=[];
  return P}
 function xaTk(f){const S=xaS();if(f.sut==='bik')return S.xp.bk;if(f.sut==='pgt')return S.xp.pg;if(f.sut==='rod')return S.xp.co;return null}
 function xaTkFair(f){if(f.sut==='bik')return xaFair('bk');if(f.sut==='pgt')return xaFair('pg');if(f.sut==='rod')return xaFair('co');return suFair(SUTY[f.sut]&&SUTY[f.sut].bt?'t':'b')}
-function xaBuyCnt(f,pr){if(f.sut==='bik'){G.inc.xbn=(G.inc.xbn||0)+1}else if(f.sut==='pgt'){G.inc.xpn=(G.inc.xpn||0)+1}}
+function xaBuyCnt(f,pr){if(f.sut==='bik'){G.inc.xbn=(G.inc.xbn||0)+1;G.inc.xbm=(G.inc.xbm||0)+pr}else if(f.sut==='pgt'){G.inc.xpn=(G.inc.xpn||0)+1}else if(f.sut==='kls')G.inc.xkm=(G.inc.xkm||0)+pr;else if(f.sut==='pgs')G.inc.xsm=(G.inc.xsm||0)+pr}
 // Schritte, die suNext an xa weitergibt
 function xaStepK(f,st){const k=st.k;
  if(k==='xbk'){xaBkTop(f);return true}
  if(k==='xkl'){xaKlStart(f);return true}
  if(k==='xm'){xaGo(f,[[484,V+72],[XAM.x+(Math.random()-.5)*6,XAM.y+2]],'m',26);return true}
+ if(k==='xpu'){xaGo(f,xaP().PG_WEG.slice(1).concat([xaPW(f.xpp)]),'pu',24);return true}
  if(k==='xpg'){xaGo(f,xaP().PG_WEG.slice(1).map(p=>[p[0]+(Math.random()-.5)*3,p[1]]),'deck',22);return true}
  if(k==='xout'){xaBkOut(f);return true}
  return false}
@@ -8315,7 +8342,10 @@ function xaArr(f,key){
  case 'klD4':suBail(f,4);return;
  // Paragleiten
  case 'm':xaMeet(f);return;
- case 'deck':xaDeckIn(f);return;
+ case 'mOk':suNext(f);return;
+ case 'pgM':xaPgAtt(f);return;
+ case 'pu':{const p=XAPIL[f.xpp];if(p){p.x=f.x;p.y=f.y;p.st='idle';p.up=0;p.fe=0;p.rf=null}f.dead=1;return}
+ case 'deck':if(f.sut==='pgt'){xaPgMeet(f);return}xaDeckIn(f);return;
  case 'pgL':xaPgOutWalk(f);return;
  case 'pgO':xaOut(f,724);return;
  default:suNext(f)}}
@@ -8360,7 +8390,7 @@ function xaBkOut(f){const K=kOut(f),yP=yAt(WAYS.PN,HWX);if(f.xrent===2){xaGo(f,K
 // Leihrad: am Skiverleih West vor der Kassa (wie rntAddW, Stopp 'RB')
 function xaRentIn(f,rt){if(f.sut!=='bik'||!f.xrent||!rt||!G.rvw)return;const i=rt.findIndex(p=>p[0]===HWX&&p[1]===V+100);if(i<1||rt[i-1][1]<990){f.xrent=0;f.bk=1;return}rt.splice(i,0,[524,1011],[524,1006,'RB'],[503,1006])}
 function xaRentWait(f,dt){if(f.rwt==null){f.rwt=1.2+Math.random()*1.4;f.hid=1}f.rwt-=dt;if(f.rwt>0)return false;f.rwt=null;f.hid=0;f.bk=1;f.xrent=2;f.bkc='#2fa86b';f.xhc='#f07a2a';
- const pr=xaS().xp.bl;G.money+=pr;tyPay(f,pr);G.inc.vl=(G.inc.vl||0)+pr;G.inc.xbl=(G.inc.xbl||0)+1;pop(f.x,f.y-18,pr);return true}
+ const pr=xaS().xp.bl;G.money+=pr;tyPay(f,pr);G.inc.vl=(G.inc.vl||0)+pr;G.inc.xbl=(G.inc.xbl||0)+1;G.inc.xblm=(G.inc.xblm||0)+pr;pop(f.x,f.y-18,pr);return true}
 // Pumptrack-Runden
 function xaPuStep(f,dt){const R=xaRes('PUMP',.8),L=xaLen(R);f.xbD+=f.xbv2*dt;const q=xaAt(R,f.xbD%L);f.x=q.x;f.y=q.y;f.xa=q.a;f.xk=q.k;f.xair=Math.max(0,Math.sin(f.xbD/9))*1.2;
  if(f.xbD>=L*f.xpl||suGw()){f.xair=0;xaGo(f,[[200,30]],'bkW',20);f.xbD=0}}
@@ -8403,7 +8433,7 @@ function xaCoUnload(s,storm){let k=0;const p=xaCoP(s.d),ux=cl(p.x,770,850);for(c
   const ph=f.xph&&Math.random()<.2;f.xph=0;xaGo(f,ph?[[850,806],[854,812]]:[[850,808],[850,834],[762,838]],ph?'coPh':'coX',22);k++}s.r=[]}
 function xaCoQIn(f){const C=xaCo();if(!xaCoBoard()||C.q.length>=34){xaRefund(f);xaCoLeave(f);return}C.q.push(f);f.st='xaQ';f.arr=0}
 function xaCoQStep(f,dt){const C=xaCo(),i=C.q.indexOf(f);if(i<0){xaCoLeave(f);return}const P=xaCoQPos(i),d=Math.hypot(P[0]-f.x,P[1]-f.y);if(d>1.5)mv(f,P[0],P[1],d>20?26:20,dt);f.arr=d<4;if(f.arr)f.wt=(f.wt||0)+dt}
-function xaCoPay(f){const C=xaCo(),S=xaS();if(phase()<pAt(9)&&xaCoOk()){xaWait(f,1,'coK');return}if(!xaCoSell()||C.q.length>=30){f.xqf=1;xaCoLeave(f);return}if(Math.random()>cl(xaDem('co'),.15,1)*1.02){xaCoLeave(f);return}
+function xaCoPay(f){const C=xaCo(),S=xaS();if(phase()<pAt(9)&&xaCoOk()){xaWait(f,1,'coK');return}if(!xaCoSell()||C.q.length>=30){f.xqf=1;G.inc.xqf=(G.inc.xqf||0)+1;xaCoLeave(f);return}if(Math.random()>cl(xaDem('co'),.15,1)*1.02){xaCoLeave(f);return}
  const pr=S.xp.co;G.money+=pr;G.inc.x=(G.inc.x||0)+pr;G.inc.xco=(G.inc.xco||0)+pr;G.inc.xcn=(G.inc.xcn||0)+1;tyPay(f,pr,1);f.xpd=pr;pop(742,806,pr);xaGo(f,[[766,834],[788,828]],'coQ',20)}
 function xaCoAfter(f){if((f.xr||0)<4&&xaCoSell()&&xaCo().q.length<22&&Math.random()<.5*xaDem('co')&&phase()<pAt(suOn()?17:16.2)){xaGo(f,[[742,842]],'coK',22);return}xaCoLeave(f)}
 function xaCoLeave(f){f.hid=0;xaGo(f,xaP().C_WEG.slice().reverse().concat([[724,yAt(WAYS.PN,724)]]),'coOut',24)}
@@ -8426,21 +8456,40 @@ function xaBrN(){let n=0;for(const f of folks)if(f.st==='xaKC'&&f.xbr)n++;return
 let XABRN=0;function xaBrSag(x){const f=cl((x+454)/56,0,1);return Math.sin(f*Math.PI)*(7+Math.min(3,XABRN)*.6)}
 // --- Paragleiten: Tandem-Piloten (eigene Figuren), Startplatz, Flug, Landung, Packen ---
 let XAPIL=[],XAGL=[],XAPK=[],XADK={cur:null,q:[]};
-function xaPils(){const S=xaS();if(!S.pg||!suOn()){XAPIL.length=0;return XAPIL}const n=S.pgN||2;while(XAPIL.length<n){const i=XAPIL.length;XAPIL.push({i,x:XAM.x-8+i*6,y:XAM.y+4+(i%2)*3,st:'idle',f:null,res:null,wp:[],col:['#2b2d33','#e0402f','#2f7de1','#f07a2a'][i%4],hc:['#f2c230','#fafafa','#e0402f','#2fa86b'][i%4]})}if(XAPIL.length>n)XAPIL.length=n;return XAPIL}
-function xaPilFree(){return xaPils().filter(p=>p.st==='idle'&&!p.res).length+xaPils().filter(p=>p.st==='walk'&&!p.res).length}
-function xaPilRes(f){const p=xaPils().find(p=>p.st==='idle'&&!p.res)||xaPils().find(p=>p.st==='walk'&&!p.res);if(!p)return null;p.res=f;f.xpil=p.i;return p}
-function xaMeet(f){const p=XAPIL[f.xpil];if(!p||p.res!==f){f.sut='son';f.suP=[{k:'out'}];f.suI=0;suNext(f);return}if(p.st==='idle'){p.st='att';p.f=f;suNext(f);return}f.st='xaM'}
-function xaPilHome(p){const P=xaP(),PN=WAYS.PN,yP=yAt(PN,724);p.st='walk';p.f=null;p.wp=P.PG_LWEG.slice(1).concat(P.C_WEG.slice().reverse(),[[724,yP]],along(PN,724,HWX).slice(1),[[HWX,V+100],[XAM.x-8+p.i*6,XAM.y+4+(p.i%2)*3]])}
-function xaPilStep(dt){for(const p of xaPils()){if(p.st==='att'){const f=p.f;if(!f||f.dead||!XATY[f.sut]||(f.st==='rt'||f.st==='tocar'||f.st==='tohotel'||f.st==='plat')){p.x=f?f.x:p.x;p.y=f?f.y:p.y;p.st='walk';p.res=null;p.f=null;p.wp=[[HWX,V+100],[XAM.x-8+p.i*6,XAM.y+4+(p.i%2)*3]]}else if(!f.hid){p.x=f.x+5;p.y=f.y+1.5}}
- else if(p.st==='walk'){const w=p.wp[0];if(!w){p.st='idle';continue}const dx=w[0]-p.x,dy=w[1]-p.y,d=Math.hypot(dx,dy);if(d<2)p.wp.shift();else{p.x+=dx/d*26*dt;p.y+=dy/d*26*dt;p.mv=1}}
+// V306: Tandem-Piloten warten oben am Startplatz (Plätze xaPW), fahren nach der Landung mit Vorrang (vorne in der Schlange) wieder hinauf.
+// Zustände: pre (vor Dienstbeginn, unsichtbar in der Bergstation), idle (oben bereit), att (mit Gast), fly, pack, walk, ride (als Fahrgast f.xpp unterwegs), off (Feierabend an der Tandem-Hütte), gone (mit der letzten Gondel ins Tal)
+const XAPC=['#2b2d33','#e0402f','#2f7de1','#f07a2a','#2fa86b','#7a3fd0','#c79a2a','#d64f8a'],XAPH2=['#f2c230','#fafafa','#e0402f','#2fa86b','#fafafa','#f2c230','#2f7de1','#fafafa'];
+function xaPW(i){return [410+(i%4)*6.5,-1240+Math.floor(i/4)*5]}
+function xaPils(){const S=xaS();if(!S.pg||!suOn()){XAPIL.length=0;return XAPIL}const n=S.pgN||4;while(XAPIL.length<n){const i=XAPIL.length,w=xaPW(i),pre=phase()<pAt(8.1);XAPIL.push({i,x:w[0],y:w[1],st:pre?'pre':'idle',f:null,res:null,wp:[],up:0,fe:0,col:XAPC[i%8],hc:XAPH2[i%8]})}if(XAPIL.length>n)XAPIL.length=n;return XAPIL}
+function xaPilFree(){return xaPils().filter(p=>p.st==='idle'&&!p.res).length}
+// Tandem-Gäste, die gebucht haben, aber noch keinen Piloten haben (höchstens so viele wie Piloten)
+const XAPQ=[];function xaPgPipe(){let n=0;for(const f of folks)if(f.sut==='pgt'&&!f.xpa)n++;return n}
+function xaPgQP(k){return [398-(k%4)*5,-1229+Math.floor(k/4)*4]}
+function xaPilRes(f){const P=xaPils(),p=P.find(p=>p.st==='idle'&&!p.res)||P.find(p=>p.st==='pre'&&!p.res)||P.find(p=>p.st==='ride'&&!p.res)||P.find(p=>p.st==='walk'&&p.up&&!p.res);if(!p)return null;p.res=f;f.xpil=p.i;return p}
+// Gast bucht an der Tandem-Hütte (kurzer Halt) und fährt allein hinauf
+function xaMeet(f){xaWait(f,1.2+Math.random()*.8,'mOk')}
+// Oben: Gast geht zu seinem Piloten
+function xaPgMeet(f){f.st='xaM';f.xmw=0;f.xpil=null;if(XAPQ.indexOf(f)<0)XAPQ.push(f)}
+function xaPgAtt(f){const p=XAPIL[f.xpil];if(p&&p.st==='idle'&&p.res===f){p.st='att';p.f=f;f.xpa=1;xaDeckIn(f)}else{if(p&&p.res===f)p.res=null;xaPgMeet(f)}}
+function xaPgNoPil(f){const p=f.xpil!=null?XAPIL[f.xpil]:null;if(p&&p.res===f)p.res=null;{const i=XAPQ.indexOf(f);if(i>=0)XAPQ.splice(i,1)}const pr=xaS().xp.pg;G.money-=pr;G.inc.x=(G.inc.x||0)-pr;G.inc.xpg=(G.inc.xpg||0)-pr;lg('🪂','anr','Tandemflug ausgefallen, Geld zurück (−'+fmt(pr)+')');f.sut='son';suBail(f,6)}
+// Nach Landung und Packen: zur Talstation und mit Vorrang hinauf – oder Feierabend an der Tandem-Hütte
+function xaPilHome(p){const P=xaP(),PN=WAYS.PN,yP=yAt(PN,724),up=phase()<pAt(14.5)&&suOn();p.st='walk';p.f=null;p.up=up?1:0;p.fe=up?0:1;
+ p.wp=P.PG_LWEG.slice(1).concat(P.C_WEG.slice().reverse(),[[724,yP]],along(PN,724,HWX).slice(1),up?[[HWX,V+100],[KX+4,ky()+9]]:[[HWX,V+100],[XAM.x-8+(p.i%4)*6,XAM.y+4+Math.floor(p.i/4)*3]])}
+function xaPilRide(p){const f={x:p.x,y:p.y,col:p.col,rides:0,l:1,arr:0,board:false,bc:'#3a3f52',su:1,sut:'pil',paid:1,xhc:p.hc,lunched:1,wl:false,half:false,nt:0,home:pAt(19),sk:1,ty:'pro',xpp:p.i,mx:6,suP:[{k:'xpu'}],suI:0,st:'qu',lc:0,vs:1.1};
+ p.st='ride';p.up=0;p.rf=f;folks.push(f);queues[0].unshift(f)}
+function xaPilStep(dt){const ph=phase();for(const p of xaPils()){if(p.st==='att'){const f=p.f;if(!f||f.dead||!XATY[f.sut]||!(f.st==='xaGW'||f.st==='xaG0'||f.st==='xaG1'||f.st==='xaGF')){p.x=f?f.x:p.x;p.y=f?f.y:p.y;p.st='walk';p.res=null;p.f=null;p.up=0;p.fe=0;p.wp=[xaPW(p.i)]}else if(!f.hid){p.x=f.x+5;p.y=f.y+1.5}}
+ else if(p.st==='walk'){const w=p.wp[0];if(!w){if(p.up)xaPilRide(p);else if(p.fe===2)p.st='gone';else if(p.fe)p.st='off';else p.st='idle';continue}const dx=w[0]-p.x,dy=w[1]-p.y,d=Math.hypot(dx,dy);if(d<2)p.wp.shift();else{p.x+=dx/d*26*dt;p.y+=dy/d*26*dt;p.mv=1}}
  else if(p.st==='pack'){p.t-=dt;if(p.t<=0)xaPilHome(p)}
+ else if(p.st==='pre'){if(ph>=pAt(8.1+p.i*.06)){const t6=ends(6).t;p.x=t6.x+8;p.y=t6.y+5;p.st='walk';p.up=0;p.fe=0;p.wp=[xaPW(p.i)]}}
+ else if(p.st==='idle'&&!p.res&&ph>=pAt(16.6)){const t6=ends(6).t;p.st='walk';p.up=0;p.fe=2;p.wp=[[t6.x+8,t6.y+5],[t6.x+2,t6.y+1]]}
  else p.mv=0}
- for(const f of folks)if(f.st==='xaM'){const p=XAPIL[f.xpil];if(p&&p.st==='idle'&&p.res===f){p.st='att';p.f=f;suNext(f)}else{f.xmw=(f.xmw||0)+dt;if(f.xmw>40){if(p&&p.res===f)p.res=null;f.sut='son';f.suP=[{k:'out'}];f.suI=0;suNext(f)}}}}
+ for(let i=XAPQ.length-1;i>=0;i--){const f=XAPQ[i];if(f.dead||f.st!=='xaM')XAPQ.splice(i,1)}
+ for(const f of XAPQ.slice()){f.xmw=(f.xmw||0)+dt;if(f.xmw>150||ph>=pAt(16.4)){xaPgNoPil(f);continue}const p=xaPils().find(q=>q.st==='idle'&&!q.res);if(!p||XAPQ[0]!==f)continue;XAPQ.shift();p.res=f;f.xpil=p.i;const w=xaPW(p.i);xaGo(f,[[w[0]-5,w[1]+1.5]],'pgM',16)}}
 const XADX=392,XADY=-1272,XADL=[412,-1262];
 function xaDeckIn(f){f.st='xaGW';f.xgw=0;XADK.q.push(f);f.xdi=XADK.q.length-1}
 function xaFlyOk(){const S=xaS(),g=S.gw;if(!(G.wx==='sonne'||G.wx==='wolke'))return false;if(g&&g.d0===G.day&&phase()>pAt(g.h-1.6))return false;return phase()<pAt(16.4)}
 function xaPgStep(dt){const Q=XADK.q;for(let i=Q.length-1;i>=0;i--){const f=Q[i];if(f.dead||f.st!=='xaGW')Q.splice(i,1)}
- Q.forEach((f,i)=>{const P=[XADX+4+(i%3)*4,XADY+6+Math.floor(i/3)*5];if(!f.xga)mv(f,P[0],P[1],14,dt);f.xgw+=dt;if(f.xgw>50&&!xaFlyOk()){Q.splice(Q.indexOf(f),1);f.x=352;f.y=-1300;suBail(f,6)}});
+ Q.forEach((f,i)=>{const P=[XADX+4+(i%3)*4,XADY+6+Math.floor(i/3)*5];if(!f.xga)mv(f,P[0],P[1],14,dt);f.xgw+=dt;if(f.xgw>50&&!xaFlyOk()){Q.splice(Q.indexOf(f),1);f.x=352;f.y=-1300;if(f.sut==='pgt')xaPgNoPil(f);else suBail(f,6)}});
  if(!XADK.cur&&Q.length&&xaFlyOk()){const f=Q.shift();XADK.cur=f;f.st='xaG0';f.xgt=f.sut==='pgt'?2.4:1.9;f.xga=1}
  const c=XADK.cur;if(c){if(c.dead){XADK.cur=null}else{if(c.st==='xaG0'){mv(c,XADL[0],XADL[1],14,dt);c.xgt-=dt;if(c.xgt<=0){c.st='xaG1';c.xgt=1.15}}
   else if(c.st==='xaG1'){c.xgt-=dt;c.y=XADL[1]+(1-c.xgt/1.15)*11;if(c.xgt<=0){XADK.cur=null;xaTakeoff(c)}}}}
@@ -8473,13 +8522,13 @@ function xaFolk(f,dt){const s=f.st;if(!s||s.charCodeAt(0)!==120||s.charCodeAt(1)
  if(s==='xaPT'){xaPuStep(f,dt);return true}
  if(s==='xaWa'){const w=f.xws2;f.xwt-=dt;if(w)w.on=1;if(f.xwt<=0){if(w){w.on=0;w.f=null}xaBkHome(f)}return true}
  if(s==='xaKC'){xaKlStep(f,dt);return true}
- if(s==='xaM'){mv(f,XAM.x+4,XAM.y+8,14,dt);return true}
+ if(s==='xaM'){const w=xaPgQP(Math.max(0,XAPQ.indexOf(f)));mv(f,w[0],w[1],14,dt);return true}
  if(s==='xaGW'||s==='xaG0'||s==='xaG1')return true;
  if(s==='xaGL'){f.xgt-=dt;if(f.xgt<=0)xaPgOutWalk(f);return true}
  f.st='xaWk';f.xwp=[];f.xwn='coOut';return true}
-function xaStep(dt){if(!xaB())return;xaCoStep(dt);if(suOn()){xaPilStep(dt);xaPgStep(dt);XABRN=xaBrN()}else if(XAPIL.length){XAPIL.length=0;XAGL.length=0;XADK.q.length=0;XADK.cur=null}}
+function xaStep(dt){if(!xaB())return;xaCoStep(dt);if(suOn()){xaPilStep(dt);xaPgStep(dt);XABRN=xaBrN()}else if(XAPIL.length){XAPIL.length=0;XAPQ.length=0;XAGL.length=0;XADK.q.length=0;XADK.cur=null}}
 // Tagesende: alle Gäste weg → Schlitten in die Station, Piloten an den Treffpunkt
-function xaReset(){if(XACO){XACO.q.length=0;for(const s of XACO.sl){s.r=[];s.go=0;s.unl=0;s.wb=0;s.bt=null}XACO=null}XAPIL.length=0;XAGL.length=0;XAPK.length=0;XADK.q.length=0;XADK.cur=null;for(const w of XAWS){w.f=null;w.on=0}}
+function xaReset(){if(XACO){XACO.q.length=0;for(const s of XACO.sl){s.r=[];s.go=0;s.unl=0;s.wb=0;s.bt=null}XACO=null}XAPIL.length=0;XAPQ.length=0;XAGL.length=0;XAPK.length=0;XADK.q.length=0;XADK.cur=null;for(const w of XAWS){w.f=null;w.on=0}}
 // --- Rodelbahn-Baustelle (8 Tage, im Sommer 30 % schneller) ---
 function xaCoDay(){const q=G.su&&G.su.co;if(!q||q.st!=='bau')return;if(G.day>=q.d0+XACT){q.st='ok';q.d1=G.day;XACO=null;lg('🛷','anr','Die Sommerrodelbahn „Alpine Coaster“ ist fertig! Sie fährt das ganze Jahr',{s:1});toast('🛷 Alpine Coaster eröffnet!',4500);try{sfx('build')}catch(e){}}}
 function xaCoPc(){const q=G.su&&G.su.co;if(!q||q.st!=='bau')return 1;return kbPc({bt:XACT},q)}
@@ -8706,7 +8755,7 @@ function xaMeetSign(c){const x=XAM.x+14,y=XAM.y+12;c.fillStyle='#fdf6e6';c.begin
 function xaPilDraw(c,p,t){const mv=p.st==='walk';xaFig(c,p.x,p.y,{col:p.col,helmet:1,hcol:p.hc,harness:1,bag:'#3a3f52',big:1,walk:mv?t*10+p.i:0,dir:mv&&p.wp[0]&&p.wp[0][0]<p.x?-1:1})}
 function xaPackDraw(c,k,t){const u=k.t;c.save();c.translate(k.x-10,k.y-1);if(u<1.2){const a=u/1.2;c.rotate(-.5*(1-a)-.2);c.scale(.9,.7*(1-a*.7)+.2);xaCanopy(c,k.c[0],k.c[1],1)}else{const s=Math.max(.15,1-(u-1.2)/4.6);c.scale(.9*s,.32);xaCanopy(c,k.c[0],k.c[1],1)}c.restore()}
 // --- Gast-Figuren (Biker, Kletterer, Paragleiter) ---
-function xaPers(c,f,t){const k=f.sut,s=f.st;if(f._xt!==T){const m=Math.hypot(f.x-(f._xx??f.x),f.y-(f._xy??f.y));f._xd=m>.02?(f.x-(f._xx??f.x)>0?1:f.x-(f._xx??f.x)<0?-1:f._xd||1):f._xd||1;f._xm=(f._xm||0)*.6+(m>.03?.4:0);f._xx=f.x;f._xy=f.y;f._xt=T}const wk=f._xm>.25?t*10:0,d=f._xd||1;
+function xaPers(c,f,t){if(f.sut==='pil'){const mvn=Math.hypot(f.x-(f._px??f.x),f.y-(f._py??f.y))>.02;f._px=f.x;f._py=f.y;xaFig(c,f.x,f.y,{col:f.col,helmet:1,hcol:f.xhc,harness:1,bag:'#3a3f52',big:1,walk:mvn?t*10:0,dir:1});return true}const k=f.sut,s=f.st;if(f._xt!==T){const m=Math.hypot(f.x-(f._xx??f.x),f.y-(f._xy??f.y));f._xd=m>.02?(f.x-(f._xx??f.x)>0?1:f.x-(f._xx??f.x)<0?-1:f._xd||1):f._xd||1;f._xm=(f._xm||0)*.6+(m>.03?.4:0);f._xx=f.x;f._xy=f.y;f._xt=T}const wk=f._xm>.25?t*10:0,d=f._xd||1;
  if(k==='bik'){if(s==='xaB'||s==='xaPT'){const dir=Math.cos(f.xa||0)<0?-1:1;xaRider(c,f.x,f.y,dir,f.col||'#2f7de1',t,{air:f.xair||0,lean:cl((f.xk||0)*1.2,-.35,.35)*dir,dust:s==='xaB'&&f.xbT!=='BLAU',ff:(f.xsk||1)>=2,hcol:f.xhc,pack:f.xpk,frame:f.bkc,ped:t*9,rot:t*8});return true}
   if(f.bk&&!f.xsit){xaFig(c,f.x,f.y,{col:f.col,helmet:1,hcol:f.xhc,bag:f.xpk,arms:'push',walk:wk,dir:d});xaBike(c,f.x+d*4.5,f.y+1.6,d,f.bkc||'#3a3f4a',.82,{rot:wk*.8});return true}
   xaFig(c,f.x,f.y,{col:f.col,helmet:!f.xsit,hcol:f.xhc,walk:wk,dir:d});return true}
@@ -8746,7 +8795,7 @@ function xaLive(c,t){if(!xaB())return;const S=G.su,su=suOn();let q=0;
  if(S.pg){if(inVR(380,-1290,480,-1230)){xaDeckLow(c,t);xaQ(-1268,c=>{xaSock(c,XADX+44,XADY+6,t);xaFlag(c,XADX-2,XADY+4,'#f07a2a',t,16)});xaQ(-1238,c=>xaSign(c,XADX-2,XADY+34,26,8,'#f07a2a','#fff','START · TANDEM',3.4));q=1}
   if(inVR(620,690,760,820)){for(const k of XAPK)xaPackDraw(c,k,t);xaQ(798,c=>xaPgHut(c,t));xaQ(746,c=>xaSock(c,726,746,t));xaQ(772,c=>xaFlag(c,690,772,'#f07a2a',t,16));q=1}
   if(inVR(470,860,510,890))xaQ(XAM.y+12,c=>xaMeetSign(c));
-  for(const p of XAPIL)if(p.st!=='att'&&p.st!=='fly'&&inV(p.x,p.y,20))xaQ(p.y,c=>xaPilDraw(c,p,t));q=1}
+  for(const p of XAPIL)if(p.st!=='att'&&p.st!=='fly'&&p.st!=='ride'&&p.st!=='pre'&&p.st!=='gone'&&inV(p.x,p.y,20))xaQ(p.y,c=>xaPilDraw(c,p,t));q=1}
  if(q)OBAQ.sort((a,b)=>a.k-b.k)}
 function xaRentOut(){let n=0;for(const f of folks)if(f.xrent===2&&!f.dead)n++;return Math.min(5,Math.round(n/3))}
 // Über allem: Gleitschirme in der Luft, aufsteigender Schirm beim Start, Banner am Verleih
@@ -8767,15 +8816,15 @@ function xaCards(cd,dn,m){const S=xaS(),A=G.areas,h=[],btn=(id,p,ok)=>`<button c
  h.push('<div class="bgh">🛷 Sommerrodelbahn</div>');
  {const q=S.co;h.push(cd('🛷','Alpine Coaster',q&&q.st==='ok'?'Heute '+gN(G.inc.xcr||0)+' Fahrten · Umsatz '+fmt(G.inc.xco||0)+' · fährt das ganze Jahr':q&&q.st==='bau'?'🚧 Im Bau – fertig '+wkT(q.d0+XACT):lk(XAA.co)+'Kettenaufzug, Steilkurve, Kreisel und Wellenbahn am Osthang West. Kassa und Schlange am Weg beim Grandhotel. Fährt das ganze Jahr, im Winter weniger Fahrten. Bauzeit '+XACT+' Tage, +'+fmt(Math.round(XAU.co*CF))+'/Tag',q&&q.st==='ok'?dn('✓ Offen'):q?dn('🚧 Im Bau'):btn('co',XAC.co,A>=XAA.co)))}
  h.push('<div class="bgh">🧗 Klettersteig</div>',cd('🧗','Klettersteig am Wasserfall',S.kl?'Heute '+gN(G.inc.xkn||0)+' Begehungen · Verleih '+fmt(G.inc.xkl||0):lk(XAA.kl)+'An der Felswand unter dem Gletscher, mit Hängebrücke über den Wasserfall. Zustieg ab der Bergstation Lift 5, Verleih am Einstieg. +'+fmt(Math.round(XAU.kl*CF))+'/Tag',S.kl?dn('✓ Offen'):btn('kl',XAC.kl,A>=XAA.kl)));
- h.push('<div class="bgh">🪂 Paragleiten</div>',cd('🪂','Paragleiten',S.pg?'Heute '+gN(G.inc.xpf||0)+' Flüge (davon '+gN(G.inc.xps||0)+' mit eigenem Schirm) · '+(S.pgN||2)+' Tandem-Piloten':lk(XAA.pg)+'Startplatz unter der Gipfel-Terrasse, Landewiese neben dem Grandhotel, 2 Tandem-Piloten. Auch Paragleiter mit eigenem Schirm fahren zum Gipfel. Bei Regen und Gewitter wird nicht geflogen. +'+fmt(Math.round(XAU.pg*CF))+'/Tag',S.pg?dn('✓ Offen'):btn('pg',XAC.pg,A>=XAA.pg)));
- if(S.pg)h.push(cd('👨‍✈️','+1 Tandem-Pilot',(S.pgN||2)>=4?'4 Piloten fliegen – mehr geht nicht':'Mehr Tandemflüge am Tag (bis 4 Piloten), +'+fmt(Math.round(XAU.pil*CF))+'/Tag',(S.pgN||2)>=4?dn('✓ 4 Piloten'):btn('pil',XAC.pil,1)));
+ h.push('<div class="bgh">🪂 Paragleiten</div>',cd('🪂','Paragleiten',S.pg?'Heute '+gN(G.inc.xpf||0)+' Flüge (davon '+gN(G.inc.xps||0)+' mit eigenem Schirm) · '+(S.pgN||4)+' Tandem-Piloten':lk(XAA.pg)+'Startplatz unter der Gipfel-Terrasse, Landewiese neben dem Grandhotel, 4 Tandem-Piloten. Die Piloten warten oben am Startplatz und fahren nach jeder Landung mit Vorrang wieder hinauf. Auch Paragleiter mit eigenem Schirm fahren zum Gipfel. Bei Regen und Gewitter wird nicht geflogen. +'+fmt(Math.round(XAU.pg*CF))+'/Tag',S.pg?dn('✓ Offen'):btn('pg',XAC.pg,A>=XAA.pg)));
+ if(S.pg)h.push(cd('👨‍✈️','+1 Tandem-Pilot',(S.pgN||4)>=8?'8 Piloten fliegen – mehr geht nicht':'Mehr Tandemflüge am Tag (bis 8 Piloten, jetzt '+(S.pgN||4)+'), +'+fmt(Math.round(XAU.pil*CF))+'/Tag',(S.pgN||4)>=8?dn('✓ 8 Piloten'):btn('pil',XAC.pil,1)));
  return h.join('')}
 function xaBind(el){el.querySelectorAll('[data-xa]').forEach(b=>b.onclick=()=>{const id=b.dataset.xa,S=xaS();let p=0,msg='';
  if(id[0]==='b'&&id[1]==='k'){const n=+id[2];if(S.bk!==n-1||G.areas<XAA.bk[n])return;p=XAC.bk[n];if(G.money<p)return;spend(p);S.bk=n;msg=['','🔵 Flow-Trail Blau','🔴 Freeride Rot','⚫ Downhill Schwarz'][n]+' ist offen'}
  else if(id==='co'){if(S.co||G.areas<XAA.co)return;p=XAC.co;if(G.money<p)return;spend(p);S.co={st:'bau',d0:G.day};XACO=null;msg='🚧 Baustelle Alpine Coaster: fertig '+wkT(G.day+XACT)}
  else if(id==='kl'){if(S.kl||G.areas<XAA.kl)return;p=XAC.kl;if(G.money<p)return;spend(p);S.kl=1;msg='🧗 Klettersteig am Wasserfall ist offen'}
- else if(id==='pg'){if(S.pg||G.areas<XAA.pg)return;p=XAC.pg;if(G.money<p)return;spend(p);S.pg=1;S.pgN=2;msg='🪂 Paragleiten: Startplatz und Landewiese sind fertig'}
- else if(id==='pil'){if(!S.pg||(S.pgN||2)>=4)return;p=XAC.pil;if(G.money<p)return;spend(p);S.pgN=(S.pgN||2)+1;msg='👨‍✈️ Ein Tandem-Pilot mehr: jetzt '+S.pgN}
+ else if(id==='pg'){if(S.pg||G.areas<XAA.pg)return;p=XAC.pg;if(G.money<p)return;spend(p);S.pg=1;S.pgN=4;msg='🪂 Paragleiten: Startplatz, Landewiese und 4 Tandem-Piloten sind bereit'}
+ else if(id==='pil'){if(!S.pg||(S.pgN||4)>=8)return;p=XAC.pil;if(G.money<p)return;spend(p);S.pgN=(S.pgN||4)+1;msg='👨‍✈️ Ein Tandem-Pilot mehr: jetzt '+S.pgN}
  if(!msg)return;lg(id==='co'?'🚧':'🚵','anr',msg);toast(msg);render();save()})}
 // --- Preise ---
 function xaPreHTML(prC,H){const S=xaS(),A=[];if(S.bk){A.push(prC('🚵','Bike-Tageskarte','','xafB','xagB','xavB','xarB',10,90,1,S.xp.bk));if(G.rvw)A.push(prC('🚲','Bike-Leihe','','xafL','xagL','xavL','xarL',10,80,1,S.xp.bl))}
@@ -8791,13 +8840,13 @@ function xaBil(m,R){if(!m.xbn&&!m.xcr&&!m.xpf&&!m.xkn)return '';return '<div cla
 // --- Leiste: Baustelle ---
 function xaChips(C,A){if(xaCoBau())A('Alpine Coaster',G.su.co.d0,XACT,'xaco')}
 // --- Testbereich ---
-function xaTestAll(){TESTS.find(t=>t.id==='su2').run();const S=xaS();S.bk=3;S.co={st:'ok',d0:G.day-9};S.kl=1;S.pg=1;S.pgN=4;XACO=null;XARS0();buildStatic();G.t=pAt(8.6)*DAY}
+function xaTestAll(){TESTS.find(t=>t.id==='su2').run();const S=xaS();S.bk=3;S.co={st:'ok',d0:G.day-9};S.kl=1;S.pg=1;S.pgN=8;S.p306=1;XACO=null;XARS0();buildStatic();G.t=pAt(8.6)*DAY}
 function XARS0(){XATR=null}
 
 function step(dt){if(wrHold())return;
  const SU=suOn();if(!SU)hxStep(dt);G.t+=dt*timeScale();if(SU)suStep(dt);xaStep(dt);if(!SU){flStep(dt);groomStep(dt);wxStep(dt);evStep(dt)}if(G.ct>5)G.ct/=45;if(G.ct>0)G.ct-=dt*timeScale()/DAY;if(G.tt>0)G.tt-=dt*timeScale()/DAY;if(!SU){const af=arrF(phase())*(evSlow()?.2:1)*(oaDay()&&phase()>=pAt(13.5)?0:1);if(af>0){if(Math.random()<rate()*ARS*af*dt)wrSpawn();if(G.hotels&&Math.random()<G.hotels*20*occ()*.6/(DAY*.724)*ARS*af*dt)spawnHG()}choStep(dt,af);rntStep(dt)}
  {const an=nArr(phase());if(an>0){const sl=pkSlow();if(Math.random()<nRate()*an*dt*sl)spawnCar(1);if(G.hotels&&Math.random()<G.hotels*20*occ()*.25/(DAY*.724)*an*dt*sl)spawnHG(1)}}
- zStep();szStep(dt);ttStep(dt);pcStep(dt);if(!SU){oaStep(dt);showStep();wrStep(dt)}brkStep(dt);arStep(dt);atStep(dt);busStep(dt);sxStep(dt);oxStep(dt);obStep(dt);ob2Step(dt);ocStep(dt);p9Step(dt);obxStep(dt);p9Board();sbStep(dt);trainStep(dt);engStep(dt);tdStep();
+ zStep();szStep(dt);ttStep(dt);pcStep(dt);oaStep(dt);if(!SU){showStep();wrStep(dt)}brkStep(dt);arStep(dt);atStep(dt);busStep(dt);sxStep(dt);oxStep(dt);obStep(dt);ob2Step(dt);ocStep(dt);p9Step(dt);obxStep(dt);p9Board();sbStep(dt);trainStep(dt);engStep(dt);tdStep();
  {const c=closed(),p=phase();if(c&&!wasC){G.lcU=p+.5/hpp(p);for(const q of queues)for(const f of q)if(f.arr&&!(f.nt&&nPending()))f.lc=1}wasC=c;if(G.lcU&&(!c||p>=G.lcU)){G.lcU=0;for(const q of queues)for(const f of q)f.lc=0}}
  if(closed()){const kp=nPending();for(const q of queues)for(let i=q.length-1;i>=0;i--){const f=q[i];if(f.lc||(kp&&f.nt))continue;q.splice(i,1);if(f.su)suBail(f,f.l-1);else leave(f)}}
  if(!plane){pt-=dt;if(pt<=0&&bright()>.5&&!(wxOn()&&G.wx==='sturm')){const d=Math.random()<.5?1:-1,vh=ch/S;plane={d,x:d>0?XL-130:XR+130,y:cl(camY+vh*(.15+Math.random()*.35),-EXT+30,H-40),msg:pick(ADS),hit:0}}}
@@ -8805,7 +8854,7 @@ function step(dt){if(wrHold())return;
  for(const n of cann){if(!G.kan||SU||n.k>G.areas||cOff(n))continue;if(n.on>0){n.on-=dt;const p=cpos(n),m=sn.length<(SET.perf?220:700)?Math.round(dt*140*(G.kup?1.5:1)+Math.random()):0;
   for(let i=0;i<m;i++){const tx=slopeX(p.y+20)+(Math.random()-.5)*slopeW(p.y)-p.x;sn.push({x:p.x+9,y:p.y-9,vx:tx*(.6+Math.random()*.6)+(Math.random()-.5)*14,vy:-30-Math.random()*26,t:1,r:.6+Math.random()*.9,ph:Math.random()*6})}}
   else{n.cd-=dt*(wxOn()?(G.snow<30?6:G.snow<60?3:1):1);if(n.cd<=0){n.on=6+Math.random()*5;n.cd=25+Math.random()*35}}}
- if(G.t>=DAY){for(const f of folks){if(f.seat>=0)seats[f.seat]=null;if(f.car)f.car.back++;else if(!f.byT&&!f.ape){G.guests++;G.gT++}f.dead=1}folks=[];xaReset();for(const k of [...cars,...buses])if(k.st==='stay'&&k.n!=null&&k.back<k.n)k.back=k.n;queues.forEach(q=>q.length=0);OBQ.length=0;for(const k of OBCB)k.r=[];const hi=hInc();if(hi){G.money+=hi;G.inc.h=hi;const ci=Math.round(chInc()*wrGx());for(let i=0;i<G.hotels;i++)pop(HX[i],HDY(i)-34,hIncI(i));if(ci)pop(CHO.x,CHO.y-70,ci)}spNight();const inc=G.inc.l+G.inc.p+hi+(G.inc.g||0)+(G.inc.ev||0)+(G.inc.w||0)+(G.inc.au||0)+(G.inc.atm||0)+(G.inc.vl||0)+(G.inc.sp||0)+(G.inc.x||0),k=cost();G.money-=k;G.last={inc,k,profit:inc-k-(G.inc.wk||0)};{const F=lf(),pr=inc-k-(G.inc.wk||0),g=G.gT;lg('🏁','geld','Tagesabschluss: '+gN(g)+' · Einnahmen '+fmt(inc)+' · Tageskosten '+fmt(k)+' · Saldo '+(pr>=0?'+':'')+fmt(pr),{s:1});if(G.inc.b)lg('🛠️','geld','Gebaut heute: '+fmt(G.inc.b));if(G.inc.wb)lg('📣','geld','Werbung heute: '+fmt(G.inc.wb));if(G.inc.sp)lg('🎿','geld','Sportgeschäft heute: '+gN((G.inc.spn||0)+(G.inc.spon||0))+' mit Einkauf · Umsatz '+fmt(G.inc.sp)+(G.ssL&&(G.spw>=2||G.spo>=2)?' (davon Ski-Service: '+G.ssL+' Paar Ski)':''));if(G.inc.fl>=1)lg('💡','geld','Flutlicht heute: '+fmt(G.inc.fl)+' Stromkosten');if(G.inc.nn||G.inc.nl>=1)lg('🌙','geld','Nachtskilauf heute: '+gN(G.inc.nn||0)+' · Nachtkarten '+fmt(G.inc.nk||0)+' · Abendbetrieb Lifte '+fmt(G.inc.nl||0));if(G.inc.on||G.inc.og)lg('🚠','anr','Ostberg heute: '+gN(G.inc.ou||G.inc.on||0)+' · '+(G.inc.og||0)+' Gondelfahrten'+(G.inc.og2?' · '+G.inc.og2+' bis zum Gipfel':'')+(G.inc.oc?' · '+G.inc.oc+' Sesselfahrten':'')+(G.inc.sxo?' · '+G.inc.sxo+' mit dem Shuttle Ost':''));if(G.inc.ssn||G.inc.p9e||G.inc.p9w||G.inc.sbn)lg('🚡','anr','Skischaukel heute: '+(G.inc.ssn||0)+' Tickets · '+(G.inc.p9e||0)+' Fahrten West → Ost · '+(G.inc.p9w||0)+' Ost → West'+(G.inc.sbn?' · '+G.inc.sbn+' im Skibus':''));if(G.inc.sx)lg('🚌','anr','Shuttlebus heute: '+G.inc.sx+(G.inc.sx===1?' Fahrt':' Fahrten')+' (Parkhäuser ↔ Kassa)');if(G.inc.ab)lg('🅿️','anr','Abgewiesen heute: '+G.inc.ab+(G.inc.ab===1?' Auto':' Autos'));if(F.mw>=1)lg('⏱️','lif','Längste Wartezeit: Lift '+F.mL+', '+wfmt(F.mw)+' um '+F.mt);if(G.rec){if(g>G.rec.g)lg('🏆','geld','Rekord: '+g+' Gäste an einem Tag (bisher '+G.rec.g+')',{s:1});if(pr>G.rec.s&&pr>0)lg('🏆','geld','Rekord: bester Saldo mit +'+fmt(pr)+' (bisher '+fmt(G.rec.s)+')',{s:1});G.rec.g=Math.max(G.rec.g,g);G.rec.s=Math.max(G.rec.s,pr)}else G.rec={g,s:Math.max(pr,...(G.hist||[]).map(x=>hsE(x)-hsA(x)))}}G.gLast=G.gT;G.gT=0;try{gbDay()}catch(e){}AT.inn=AT.way=0;G.hist=(G.hist||[]).concat([{d:G.day,x:G.inc.x||0,th:G.inc.atm||0,vl:G.inc.vl||0,sp:G.inc.sp||0,l:G.inc.l,ss:G.inc.ssm||0,p:G.inc.p,h:hi,g:G.inc.g||0,e:G.inc.ev||0,a:G.inc.au||0,w:G.inc.w||0,wk:G.inc.wk||0,k,b:G.inc.b||0,wb:G.inc.wb||0,z:zins(),n:G.gLast,r:Math.round(rufE())}]).slice(-10);lnDay();rufDay();if(!suOn()){const tg=90-cpen().t;if(tg<G.ruf)G.ruf+=(tg-G.ruf)*.25}obDayEnd();obxDay();ageDay();atDay();showDayEnd();wrDayEnd();seaDay();if(!suOn())wbDay();scnDay();achChk();mpDay();revDay();G.rkL=G.rk&&G.rk.n?G.rk:G.rkL;G.rk={n:0,s:0};G.thdL=G.thd&&Object.keys(G.thd).length?G.thd:G.thdL;G.thd={};G.thw={};G.rtyL=G.rty&&Object.keys(G.rty).length?G.rty:G.rtyL;G.rty={};G.thtL=G.tht&&Object.keys(G.tht).length?G.tht:G.thtL;G.tht={};G.day++;prjDay();if(G.up.s)G.skl=Math.min(12,(G.skl||0)+1);G.t=0;G.inc={l:0,p:0,b:0,h:0,n:0,nh:0,g:0,ev:0};if(!suOn()){evRoll();oaRoll();wrRoll()}arRoll();expDay();sfx('day');if(SET.hint)toast(sTk(G.day-1)+' vorbei: '+(G.last.profit>=0?'+':'')+fmt(G.last.profit))}
+ if(G.t>=DAY){for(const f of folks){if(f.seat>=0)seats[f.seat]=null;if(f.car)f.car.back++;else if(!f.byT&&!f.ape){G.guests++;G.gT++}f.dead=1}folks=[];xaReset();for(const k of [...cars,...buses])if(k.st==='stay'&&k.n!=null&&k.back<k.n)k.back=k.n;queues.forEach(q=>q.length=0);OBQ.length=0;for(const k of OBCB)k.r=[];const hi=hInc();if(hi){G.money+=hi;G.inc.h=hi;const ci=Math.round(chInc()*wrGx());for(let i=0;i<G.hotels;i++)pop(HX[i],HDY(i)-34,hIncI(i));if(ci)pop(CHO.x,CHO.y-70,ci)}spNight();const inc=G.inc.l+G.inc.p+hi+(G.inc.g||0)+(G.inc.ev||0)+(G.inc.w||0)+(G.inc.au||0)+(G.inc.atm||0)+(G.inc.vl||0)+(G.inc.sp||0)+(G.inc.x||0),k=cost();G.money-=k;G.last={inc,k,profit:inc-k-(G.inc.wk||0)};{const F=lf(),pr=inc-k-(G.inc.wk||0),g=G.gT;lg('🏁','geld','Tagesabschluss: '+gN(g)+' · Einnahmen '+fmt(inc)+' · Tageskosten '+fmt(k)+' · Saldo '+(pr>=0?'+':'')+fmt(pr),{s:1});if(G.inc.b)lg('🛠️','geld','Gebaut heute: '+fmt(G.inc.b));if(G.inc.wb)lg('📣','geld','Werbung heute: '+fmt(G.inc.wb));if(G.inc.sp)lg('🎿','geld','Sportgeschäft heute: '+gN((G.inc.spn||0)+(G.inc.spon||0))+' mit Einkauf · Umsatz '+fmt(G.inc.sp)+(G.ssL&&(G.spw>=2||G.spo>=2)?' (davon Ski-Service: '+G.ssL+' Paar Ski)':''));if(G.inc.fl>=1)lg('💡','geld','Flutlicht heute: '+fmt(G.inc.fl)+' Stromkosten');if(G.inc.nn||G.inc.nl>=1)lg('🌙','geld','Nachtskilauf heute: '+gN(G.inc.nn||0)+' · Nachtkarten '+fmt(G.inc.nk||0)+' · Abendbetrieb Lifte '+fmt(G.inc.nl||0));if(G.inc.on||G.inc.og)lg('🚠','anr','Ostberg heute: '+gN(G.inc.ou||G.inc.on||0)+' · '+(G.inc.og||0)+' Gondelfahrten'+(G.inc.og2?' · '+G.inc.og2+' bis zum Gipfel':'')+(G.inc.oc?' · '+G.inc.oc+' Sesselfahrten':'')+(G.inc.sxo?' · '+G.inc.sxo+' mit dem Shuttle Ost':''));if(G.inc.ssn||G.inc.p9e||G.inc.p9w||G.inc.sbn)lg('🚡','anr','Skischaukel heute: '+(G.inc.ssn||0)+' Tickets · '+(G.inc.p9e||0)+' Fahrten West → Ost · '+(G.inc.p9w||0)+' Ost → West'+(G.inc.sbn?' · '+G.inc.sbn+' im Skibus':''));if(G.inc.sx)lg('🚌','anr','Shuttlebus heute: '+G.inc.sx+(G.inc.sx===1?' Fahrt':' Fahrten')+' (Parkhäuser ↔ Kassa)');if(G.inc.ab)lg('🅿️','anr','Abgewiesen heute: '+G.inc.ab+(G.inc.ab===1?' Auto':' Autos'));if(F.mw>=1)lg('⏱️','lif','Längste Wartezeit: Lift '+F.mL+', '+wfmt(F.mw)+' um '+F.mt);if(G.rec){if(g>G.rec.g)lg('🏆','geld','Rekord: '+g+' Gäste an einem Tag (bisher '+G.rec.g+')',{s:1});if(pr>G.rec.s&&pr>0)lg('🏆','geld','Rekord: bester Saldo mit +'+fmt(pr)+' (bisher '+fmt(G.rec.s)+')',{s:1});G.rec.g=Math.max(G.rec.g,g);G.rec.s=Math.max(G.rec.s,pr)}else G.rec={g,s:Math.max(pr,...(G.hist||[]).map(x=>hsE(x)-hsA(x)))}}G.gLast=G.gT;G.gT=0;try{gbDay()}catch(e){}AT.inn=AT.way=0;G.hist=(G.hist||[]).concat([{d:G.day,x:G.inc.x||0,th:G.inc.atm||0,vl:G.inc.vl||0,sp:G.inc.sp||0,l:G.inc.l,ss:G.inc.ssm||0,p:G.inc.p,h:hi,g:G.inc.g||0,e:G.inc.ev||0,a:G.inc.au||0,w:G.inc.w||0,wk:G.inc.wk||0,k,b:G.inc.b||0,wb:G.inc.wb||0,z:zins(),n:G.gLast,r:Math.round(rufE())}]).slice(-10);lnDay();rufDay();if(!suOn()){const tg=90-cpen().t;if(tg<G.ruf)G.ruf+=(tg-G.ruf)*.25}obDayEnd();obxDay();ageDay();atDay();showDayEnd();wrDayEnd();seaDay();if(!suOn())wbDay();scnDay();achChk();mpDay();revDay();G.rkL=G.rk&&G.rk.n?G.rk:G.rkL;G.rk={n:0,s:0};G.thdL=G.thd&&Object.keys(G.thd).length?G.thd:G.thdL;G.thd={};G.thw={};G.rtyL=G.rty&&Object.keys(G.rty).length?G.rty:G.rtyL;G.rty={};G.thtL=G.tht&&Object.keys(G.tht).length?G.tht:G.thtL;G.tht={};G.day++;prjDay();if(G.up.s)G.skl=Math.min(12,(G.skl||0)+1);G.t=0;G.inc={l:0,p:0,b:0,h:0,n:0,nh:0,g:0,ev:0};oaRoll();if(!suOn()){evRoll();wrRoll()}arRoll();expDay();sfx('day');if(SET.hint)toast(sTk(G.day-1)+' vorbei: '+(G.last.profit>=0?'+':'')+fmt(G.last.profit))}
  for(const c of cars){const a0=c.x,b0=c.p,z0=c.zs,s0=c.st;if(c.z&&szCar(c,dt)){stwCar(c,a0,b0,z0,s0,dt);continue}
   if(c.st==='in'){const sx=spotX(c.sp);let nx=c.x+70*c.d*dt;if(c.d>0?nx>=sx:nx<=sx)nx=sx;if(vGo(c,nx,c.p,dt)){c.x=nx;if(nx===sx&&c.z){c.zq=(c.zq||0)+dt;if(szInOK(c)&&(G.sst||vFree(c,'park',dt)||c.zq>15)){if(c.zq>15)G.gh=(G.gh||0)+1;c.st='park'}}else if(nx===sx&&(!c.pz||pzRoom())&&vFree(c,'park',dt))c.st='park'}}
   else if(c.st==='park'){const np=Math.min(1,c.p+dt/(c.z&&G.sst?.45:.7));if(vGo(c,c.x,np,dt))c.p=np;if(c.p>=1){c.p=1;if(c.pz){pzHand(c);continue}if(c.z){c.st='zin';c.zs=0;continue}c.st='stay';G.money+=G.park;G.inc.p+=G.park;G.inc.pn=(G.inc.pn||0)+1;if(G.park>0)pop(spotX(c.sp),spotY(c.sp)-14,G.park);
@@ -8974,7 +9023,7 @@ function hud(){if(!G.tv193){G.tv193=1;if(talS()>=6)lg('🛣️','anr','Talausbau
  lbUpd();expInit();
  {const o=wkI(calD()),cd=calD(),hc=hrOf(Math.min(phase(),.9999))%24;$('day').innerHTML='📅 <b><span'+(o.wd>=5?' style="color:#ffcf5a"':'')+'>'+WKN[o.wd]+'</span> • Woche '+o.w+'<span style="font-weight:400;opacity:.75">/4</span></b> '+wIc()+'<small>'+(suOn()?'Sommer '+G.su.n+(G.su.end?' vorbei':''):'Saison '+(Math.floor((eD(cd)-1)/SL)+1))+' · '+clock(phase())+(nOpen()?' Nachtski':nPending()?' Pause':bright()<.3&&wIc()!=='🌙'?' 🌙':'')+'</small><i class="sbar'+(suOn()?' su':'')+'"><i style="width:'+Math.round(((((eD(cd)-1)%SL+SL)%SL)+hc/24)/SL*100)+'%"></i></i>'}abUpd();auPopTry();$('ff').textContent=evSlow()?'⏭':nIdle()&&speed<5?'🌙':'×'+speed;const m=$('money');m.className='chip'+(G.money<0?' neg':'')+(open==='sta'&&sTab==='fin'?' on':'');m.innerHTML=`<b>${Math.abs(G.money)>=100000?kf(G.money)+' €':fmt(G.money)}</b><small>${G.last?(G.last.profit>=0?'+':'')+fmt(G.last.profit)+' / Tag':sTk(calD())}${G.loan?' · 🏦':''}</small>`;
  if(suOn())suSnb();else{const e=$('snb'),on=G.areas>=2;if(on!==e._on){e._on=on;e.style.display=on?'flex':'none';document.documentElement.style.setProperty('--sbh',on?'24px':'0px')}if(on){const sbFit=b=>{const q=b.children,W=b.clientWidth;if(!W)return;for(let f=11;f>=7.5;f-=.5){q[2].style.fontSize=q[4].style.fontSize=f+'px';q[3].style.fontSize=(f-2.5)+'px';const tw=(()=>{const r=document.createRange();r.selectNodeContents(q[3]);return r.getBoundingClientRect().width})();if(q[2].offsetWidth+q[4].offsetWidth+tw+40<=W)break}};const B=(id,t,v,c,lo)=>{const b=$(id),k=t+v+c;if(b._k===k)return;b._k=k;if(b._m!==1){b._m=1;b.className='sb';b.innerHTML='<i></i><span></span>'}const i=b.firstChild;i.style.width=v+'%';i.style.background=v<lo?'#e8504a':c;b.lastChild.textContent=t+': '+v+' %'},B2=(id,t,vW,vO,c,lo)=>{const b=$(id),k=t+vW+'|'+vO+c;if(b._k===k)return;b._k=k;if(b._m!==2){b._m=2;b.className='sb two';b.innerHTML='<i class="w"></i><i class="o"></i><span class="l"></span><small></small><span class="r"></span>'}const q=b.children;q[0].style.width=vW/2+'%';q[0].style.background=vW<lo?'#e8504a':c;q[1].style.width=vO/2+'%';q[1].style.background=vO<lo?'#e8504a':c;q[2].textContent=vW+'\u202f% West';q[3].textContent=t;q[4].textContent=vO+'\u202f% Ost';sbFit(b)};const sW=cl(Math.round(G.snow),0,100),pW=cl(Math.round(G.pq),0,100);if(ost()){const sO=cl(Math.round(G.snO??G.snow),0,100),pO=cl(Math.round(G.pqO??G.pq),0,100);B2('sbS','Schneehöhe',sW,sO,'#3f8fd2',30);B2('sbP','Pistenzustand',pW,pO,'#3fa865',50)}else{B('sbS','Schneehöhe',sW,'#3f8fd2',30);B('sbP','Pistenzustand',pW,'#3fa865',50)}}}
- if(ost()){let o=0;for(const f of folks)if(f.ost)o++;$('gst').classList.toggle('wo2',folks.length>99);$('gst').innerHTML=`<b>👥 ${folks.length}<span style="font-weight:600;font-size:.82em;opacity:.9;margin-left:6px">${KID()?'':'😊 '+Math.round(rufE())+' %'}</span></b><small class="wo"><span>West: ${folks.length-o}</span><i class="wd"></i><span>Ost: ${o}</span></small>`}else $('gst').innerHTML=`👥 <b>${folks.length}</b><small>${KID()?'+'+G.gT+' heute':'😊 '+Math.round(rufE())+' %'}</small>`;
+ {let o=0,nP=0;for(const f of folks){if(f.xpp!=null)nP++;else if(f.ost)o++}const nF=folks.length-nP;if(ost()){$('gst').classList.toggle('wo2',nF>99);$('gst').innerHTML=`<b>👥 ${nF}<span style="font-weight:600;font-size:.82em;opacity:.9;margin-left:6px">${KID()?'':'😊 '+Math.round(rufE())+' %'}</span></b><small class="wo"><span>West: ${nF-o}</span><i class="wd"></i><span>Ost: ${o}</span></small>`}else $('gst').innerHTML=`👥 <b>${nF}</b><small>${KID()?'+'+G.gT+' heute':'😊 '+Math.round(rufE())+' %'}</small>`}
  {const n=stars();if(KID()){const S=kidSat(),fc=kidFace(S?S.v:null);$('ruf').innerHTML=`<b style="color:#ffd84d">${'★'.repeat(n)}</b><span style="opacity:.45">${'★'.repeat(5-n)}</span><small>${fc[0]} Ruf ${Math.round(rufE())} %</small>`}else{const d=pbTr();$('ruf').innerHTML=`🏆 <b>${pb()}</b>${d?` <span style="color:${d>0?'#7ee2a0':'#ff8a80'}">${d>0?'▲':'▼'}</span>`:''}<small><span style="color:#ffd84d">${'★'.repeat(n)}</span><span style="opacity:.45">${'★'.repeat(5-n)}</span></small>`}}
  fitBar();
  
@@ -9150,11 +9199,45 @@ function infBoxes(){const B=[],P=(k,x0,y0,x1,y1)=>B.push({k,x0,y0,x1,y1});
  if(pao())P('pao',RBXX-12,PGY()+8,PAXO,PGY()+100);
   if(SXL()){P('sxl',496,V+80,580,SXNY());P('sxl',496,PGY()+8,592,PGY()+126)}
   if(OXL())P('sxo',1066,R-192,1146,R-82);
- obBoxes(P);
+ obBoxes(P);xaIB(P);
  return B}
 function pjBox(id){if(id==='arena'){const p=APOS();return [p.x0,p.y0,p.x1,p.y1]}if(id==='therme')return [ATN.x0,ATN.y0,ATN.x1,ATN.y1];if(id==='gipf'){const p=GPOS();return [p.x-104,p.y-74,p.x+66,p.y+100]}return null}
 function infHit(wx,wy){const pd=6/S;let best=null,ba=1e9;for(const b of infBoxes()){if(wx<b.x0-pd||wx>b.x1+pd||wy<b.y0-pd||wy>b.y1+pd)continue;const a=(b.x1-b.x0)*(b.y1-b.y0);if(a<ba){ba=a;best=b}}return best}
-function infDef(k){const m=G.money,pre={l:'Preise einstellen',b:'Preise ›',p:0,ok:()=>1,go:()=>{open='pre';render()}};{const r0=choInf(k,pre);if(r0)return r0}
+// ===== V306: Gebäude-Fenster der Sommer-Attraktionen (xbk Bikepark, xco Alpine Coaster, xkl Klettersteig, xpg Paragleiten) =====
+const xaI=k=>G.inc[k]||0,xaCQ=()=>XACO&&XACO.q?XACO.q.length:0;
+function xaIB(P){const S=G.su;if(xaCoOk()){P('xco',752,738,864,852);P('xco',722,804,762,856)}if(!S||!suOn()||S.bk==null)return;
+ if(S.bk>=1)P('xbk',100,14,232,72);if(S.kl){P('xkl',-562,-736,-480,-680);P('xkl',-264,-906,-230,-866)}if(S.pg){P('xpg',686,768,728,812);P('xpg',392,-1278,444,-1226)}}
+function xaGM(k){const S=G.su||{},U=v=>Math.round(v*CF);
+ if(k==='xbk'){const bk=S.bk||0;let u=0;for(let i=1;i<=bk;i++)u+=XAU.bk[i];return {g:'xa',m:()=>xaI('xbm')+xaI('xblm'),n:()=>xaI('xbn'),gn:()=>folks.filter(f=>f.sut==='bik'&&(f.st==='xaB'||f.st==='xaPT')).length,u:()=>U(u),st:()=>[S.bk,3,['','Blau','Blau · Rot','Blau · Rot · Schwarz'][S.bk]],bau:['Flow-Trail','Freeride Rot','Downhill Schwarz'],mets:[['m','💶 Einnahmen'],['n','🚵 Biker'],['a','🌲 Auf den Trails']]}}
+ if(k==='xco')return {g:'xa',m:()=>xaI('xco')+xaI('xph')*XAPH,n:()=>xaI('xcr'),gn:xaCQ,u:()=>U(XAU.co),bau:['Alpine Coaster'],mets:[['n','🛷 Fahrten'],['m','💶 Einnahmen'],['a','⏳ In der Schlange']]};
+ if(k==='xkl')return {g:'xa',m:()=>xaI('xkl')+xaI('xkm'),n:()=>xaI('xkn'),gn:()=>folks.filter(f=>f.st==='xaKC').length,u:()=>U(XAU.kl),bau:['Klettersteig'],mets:[['m','💶 Einnahmen'],['n','🧗 Kletterer'],['a','🪨 In der Wand']]};
+ if(k==='xpg')return {g:'xa',m:()=>xaI('xpg')+xaI('xsm'),n:()=>xaI('xpf'),gn:()=>XAGL.length,u:()=>U(XAU.pg+XAU.pil*Math.max(0,(S.pgN||4)-4)),bau:['+1 Tandem-Pilot','Paragleiten'],mets:[['m','💶 Einnahmen'],['n','🪂 Flüge'],['a','☁️ In der Luft']]};
+ return null}
+function xaPrice(k){const P={xbk:['Bike-Tageskarte','bk',10,90,1,'pro Tag · alle Lifte für Biker'],xco:['Preis pro Fahrt','co',3,25,1,'pro Person · '+(suOn()?'auch im Winter':'auch im Sommer')],xkl:['Leih-Set','kl',5,50,1,'Helm, Gurt, Klettersteig-Set'],xpg:['Tandemflug','pg',60,300,5,'pro Flug · Bergfahrt inklusive']}[k];if(!P)return null;
+ return {lab:P[0],v:()=>xaS().xp[P[1]],set:v=>xaS().xp[P[1]]=v,min:P[2],max:P[3],st:P[4],fair:()=>xaFair(P[1]),f:fmt,sub:P[5]}}
+function xaCoWt(){return Math.round(xaCQ()*2/2.6)}
+function xaKpi(k,M){const t=(l,v,x)=>`<div><small>${l}</small><b>${v}</b>${x||''}</div>`,mu=x=>`<i style="color:var(--mut)">${x}</i>`,ym=gbY(k,'m'),yn=gbY(k,'n'),L=gbLast(k),m=M.m(),n=M.n(),u=M.u();
+ const gw=(()=>{const p=L?L.m-L.u:m-Math.round(u*gbDf()),uu=L?L.u:Math.round(u*gbDf());return t(L?'Gewinn gestern':'Gewinn heute (bisher)',`<span class="${p>=0?'pos':'neg'}">${p>=0?'+':'−'}${fmt(Math.abs(p))}</span>`,mu('Unterhalt '+fmt(uu)))})(),
+  ein=t('Einnahmen heute',fmt(m),ym!=null?gbArr(m-ym,' €'):''),an=(l)=>t(l,NFDE.format(n),yn!=null?gbArr(n-yn):'');
+ if(k==='xbk')return an('Biker heute')+t('Abfahrten heute',NFDE.format(xaI('xbr')),mu((n?String(Math.round(xaI('xbr')/n*10)/10).replace('.',','):'–')+' pro Biker'))+t('Gerade auf den Trails',NFDE.format(M.gn()))+gw;
+ if(k==='xco'){const q=xaCQ(),w=xaCoWt();return an('Fahrten heute')+ein+t('Wartezeit gerade',(w<8?'🟢':w<15?'🟠':'🔴')+' '+(q?w+' Min':'keine'),mu(q+' von 30 in der Schlange'))+gw}
+ if(k==='xkl')return an('Kletterer heute')+ein+t('Gerade in der Wand',NFDE.format(M.gn()))+gw;
+ if(k==='xpg'){const P=xaPils(),fr=P.filter(p=>p.st==='idle'&&!p.res).length;return t('Flüge heute',NFDE.format(n),mu((n-xaI('xps'))+' Tandem · '+xaI('xps')+' solo'))+ein+t('Piloten oben bereit',fr+' von '+P.length,mu(XAGL.length+' '+(XAGL.length===1?'Schirm':'Schirme')+' in der Luft'))+gw}
+ return ''}
+function xaHints(k){const H=[];
+ if(k==='xco'&&xaI('xqf')>0)H.push(['w','⚠️ Heute '+xaI('xqf')+(xaI('xqf')===1?' Gast':' Gäste')+' wieder gegangen, weil die Schlange voll war. Ein höherer Preis lohnt sich.',null]);
+ if(k==='xpg'&&suOn()){const S=xaS(),gw=S.gw&&S.gw.d0===G.day&&phase()<pAt(S.gw.h+S.gw.d);H.push(G.wx==='gewitter'?['w','⛈️ Gewitter – niemand startet.',null]:G.wx==='regen'?['w','🌧️ Regen – heute keine Starts.',null]:phase()>=pAt(16.4)?['n','🌙 Für heute keine Starts mehr.',null]:gw?['w','⛈️ Gewitter angesagt – ab '+clock(pAt(S.gw.h-1.6))+' keine Starts mehr.',null]:['g','🪂 Gutes Flugwetter – die Piloten starten.',null])}
+ if(k==='xbk'&&suOn()){const w=Math.round(waitMin(3));if(w>=8)H.push(['w','⚠️ Biker warten an Lift 3 gerade '+w+' Min.',null])}
+ return H}
+function xaVoice(k,P){const r=P?P.v()/Math.max(1,P.fair()):1,q=r>1.3?'💸 „Ganz schön teuer!“':r<.85?'😋 „Günstig – gerne wieder!“':k==='xbk'?'🤘 „Der Trail mit den Sprüngen – mega!“':k==='xco'?(xaCQ()>20?'😕 „Die Schlange ist ewig lang…“':'😆 „Nochmal! Der Kreisel war der Hammer!“'):k==='xkl'?'😮 „Die Hängebrücke wackelt ganz schön!“':'🤩 „Über dem Gletscher – unvergesslich!“';
+ return `<div class="gbvo"><span>💬</span><div><span class="q">${q}</span><br><small>So reden die Gäste gerade</small></div></div>`}
+function xaInf(k){if(!/^x(bk|co|kl|pg)$/.test(k))return null;const S=xaS(),R=[];
+ if(k==='xbk')return {ic:'🚵',t:'Bikepark',sub:'',rows:[['Strecken',()=>['🔵 Blau','🔴 Rot','⚫ Schwarz'].slice(0,S.bk).join(' · ')],['Leihräder heute',()=>G.rvw?xaI('xbl')+' · je '+fmt(S.xp.bl):'– (braucht den Skiverleih West)'],['Wartezeit Lift 3',()=>{const w=waitMin(3);return amp(w)+' '+wfmt(w)}],['Pumptrack und Waschplatz',()=>'am Bike-Treff']],btns:S.bk<3?[{l:'Ausbau Stufe '+(S.bk+1)+': '+['','Flow-Trail Blau','Freeride Rot','Downhill Schwarz'][S.bk+1],b:'',p:XAC.bk[S.bk+1],ok:()=>1,go:()=>gbBau('xbk')}]:[],hint:'Die Bike-Tageskarte gilt für alle Lifte, die Biker brauchen. Leihräder gibt es im Skiverleih West.'};
+ if(k==='xco')return {ic:'🛷',t:'Alpine Coaster',sub:'Sommerrodelbahn beim Grandhotel · fährt das ganze Jahr',rows:[['Schlitten unterwegs',()=>(XACO?XACO.sl.filter(s=>s.r&&s.r.length).length:0)+' von '+XACN],['Fotos verkauft',()=>xaI('xph')+' · je '+fmt(XAPH)],['Letzte Fahrt',()=>suOn()?'17:10 Uhr':'16:10 Uhr']],btns:[],hint:''};
+ if(k==='xkl')return {ic:'🧗',t:'Klettersteig',sub:'Wand am Wasserfall · Zustieg ab Lift 5',rows:[['Leih-Sets heute',()=>Math.round(xaI('xkl')/Math.max(1,S.xp.kl))+' · am Verleih'],['Auf der Hängebrücke',()=>folks.filter(f=>f.st==='xaKC'&&f.xbr).length+' Gäste']],btns:[],hint:'Bei den Einnahmen zählt die Bergfahrt der Kletterer mit.'};
+ const P=xaPils(),stx=p=>({idle:'🟢 wartet oben am Startplatz',pre:'⚪ noch nicht im Dienst',att:'🔵 mit Gast am Startplatz',fly:'🪂 fliegt',pack:'🎒 packt den Schirm',walk:p.up?'🚶 geht zur Talstation':'🚶 unterwegs',ride:'🚡 fährt mit Vorrang hinauf',off:'🌙 Feierabend',gone:'🌙 Feierabend'})[p.st]||'–';
+ return {ic:'🪂',t:'Paragleiten',sub:'Startplatz am Gipfel · Tandem-Hütte bei der Landewiese',rows:P.map(p=>['Pilot '+(p.i+1),()=>stx(p)]).concat([['Gäste warten oben auf einen Piloten',()=>String(XAPQ.length)],['Solo-Flieger heute',()=>xaI('xps')+' · zahlen nur die Bergfahrt']]),btns:(S.pgN||4)<8?[{l:'+1 Tandem-Pilot',b:'',p:XAC.pil,ok:()=>1,go:()=>gbBau('xpg')}]:[],hint:'Die Piloten warten oben am Startplatz. Nach der Landung packen sie und fahren mit Vorrang wieder hinauf. Bei Regen und vor Gewittern startet niemand.'}}
+function infDef(k){{const x0=xaInf(k);if(x0)return x0}const m=G.money,pre={l:'Preise einstellen',b:'Preise ›',p:0,ok:()=>1,go:()=>{open='pre';render()}};{const r0=choInf(k,pre);if(r0)return r0}
  if(k==='sxl')return sxInf(pre);
  if(k==='zu')return zuInf();
  if(k==='sxo')return oxInf(pre);
@@ -9206,7 +9289,7 @@ if(k==='gar'||k==='gar2'){const n=k==='gar'?1:2,L=gLv(n),p=GEC[L];return {ic:'�
 // ===== V284: Gebäude-Fenster + Statistik › Gebäude (Präfix gb…/GB…, Daten G.gbs) =====
 // Jedes Gebäude-Fenster: Stufe, Hinweis mit Baumenü-Link, 4 Kacheln mit Vergleich zu gestern, Diagramm (Heute/7 Tage),
 // Preis direkt im Fenster, Gäste-Stimme, darunter die bisherigen Zeilen als Details. Daten: halbstündlich heute + gestern, Tageswerte 7 Tage.
-const GBK0=['l1','l2','l3','l4','l5','l6','zu','obt','obc','h0','h1','h2','cho','kas','obk','rest','kio','hut','aps','obxa','obxr','pj:gipf','pj:therme','rvw','rvo','spw','spo','park'];
+const GBK0=['xbk','xco','xkl','xpg','l1','l2','l3','l4','l5','l6','zu','obt','obc','h0','h1','h2','cho','kas','obk','rest','kio','hut','aps','obxa','obxr','pj:gipf','pj:therme','rvw','rvo','spw','spo','park'];
 const GBPK=/^(park|pk\d|obp|ph|gar2?|psz)$/;
 const GBL={};let gbC=0,gbR='t',gbSort='m',gbAt=0,gbSl=-1,gbKey='';
 const gbU=v=>Math.round(seaK()*CF*v);
@@ -9243,7 +9326,7 @@ function hotSum(){let a=0;for(let i=0;i<G.hotels;i++)a+=Math.round(20*occH(i)*hp
 function hIncI(i){return i<G.hotels?Math.round(20*occH(i)*hpI(i)*suHiF()*CF*wrGx()):0}
 function gbLiftA(n,cap,riders){return n>0?cl(riders/(n*cap/2),0,1):0}
 function gbStage(L){const c=G.cap[L-1];if(G.w10&&wcIn(L))return [5,5,'10er-Gondel (Verbindungsbahn)'];return [{2:1,4:2,6:3,8:4}[c]||1,4,LTN(L)+(wcIn(L)?' · Verbindungsbahn':'')]}
-function gbPrice(k){const fpr=(lab)=>({lab:'Mittagsmenü',v:()=>Math.round(22*fpm()),set:v=>G.fp=v/22*100,min:13,max:40,st:1,fair:()=>Math.round(22*gfr()),f:fmt,sub:'Snacks & Getränke passend · gilt für alle Lokale'});
+function gbPrice(k){{const x0=xaPrice(k);if(x0)return x0}const fpr=(lab)=>({lab:'Mittagsmenü',v:()=>Math.round(22*fpm()),set:v=>G.fp=v/22*100,min:13,max:40,st:1,fair:()=>Math.round(22*gfr()),f:fmt,sub:'Snacks & Getränke passend · gilt für alle Lokale'});
  if(/^h\d$/.test(k)){const i=+k[1];return {lab:'Zimmerpreis',v:()=>hpI(i),set:v=>{G.hpA=G.hpA||[hpI(0),hpI(1),hpI(2)];G.hpA[i]=v},min:20,max:hMax(i),st:1,fair:()=>hFair(i),f:fmt,sub:'pro Nacht · nur dieses Hotel'}}
  if(k==='cho')return {lab:'Preis pro Nacht',v:chp,set:v=>G.chp=v,min:30,max:300,st:2,fair:()=>CHOF,f:fmt,sub:'pro Bett'};
  if(['rest','kio','hut','aps','obxa','obxr'].includes(k))return fpr('Essen & Getränke');
@@ -9255,7 +9338,7 @@ function gbPrice(k){const fpr=(lab)=>({lab:'Mittagsmenü',v:()=>Math.round(22*fp
  if(GBPK.test(k))return {lab:'Parkgebühr',v:()=>G.park,set:v=>G.park=v,min:0,max:20,st:1,fair:pfr,f:fmt,sub:'pro Auto · alle Parkplätze'};
  return null}
 // Meta je Gebäude: g Gruppe, m Geld heute (kumuliert), n Gäste/Fahrten heute (kumuliert), a Füllstand jetzt (0..1), w Wartezeit, u Unterhalt/Tag, st Stufe, bau Suchwörter fürs Baumenü
-function gbM(k){if(GBPK.test(k)&&k!=='park')return gbM('park');
+function gbM(k){{const x0=xaGM(k);if(x0)return x0}if(GBPK.test(k)&&k!=='park')return gbM('park');
  const lm=/^l(\d)$/.exec(k);
  if(lm){const L=+lm[1],c=G.cap[L-1];return {g:'lift',n:()=>G.inc['f'+L]||0,w:()=>closed()?0:waitMin(L),a:()=>{const S=lfs(L);return gbLiftA(S.length,c,S.reduce((a,x)=>a+x.r.length,0))},u:()=>gbU(10*G.lg[L-1]+(c>2?20:0)+(c>4?30:0)+(c>6?45:0)),st:()=>gbStage(L),rel:()=>lrel(L),age:()=>lage(L),bau:'lif|L'+L,thw:L}}
  if(k==='zu')return {g:'lift',n:()=>G.inc.zu||0,w:()=>closed()?0:zuWaitMin(),a:()=>gbLiftA(zuN(),ZUCAP,(ZUK||[]).reduce((a,x)=>a+x.r.length,0)),u:()=>gbU(ZUU+10*(G.zug||0)),rel:zuRel,bau:['Zubringer']};
@@ -9292,7 +9375,7 @@ function gbDay(){const D=G.gbs||(G.gbs={t:{},y:{},h:{}});for(const k of gbKeys()
 function gbArr(v,u,bad){if(v==null||!isFinite(v))return '';const r=Math.round(v*10)/10;if(Math.abs(r)<.05)return '<i>±0</i>';const up=r>0,good=bad?!up:up;return `<i class="${good?'up':'dn'}">${up?'▲':'▼'} ${NFDE.format(Math.abs(r))}${u||''}</i>`}
 function gbY(k,f){const D=G.gbs,i=gbNow();if(!D||!D.y||!D.y[k]||i<0)return null;const a=D.y[k][f];if(!a)return null;for(let j=Math.min(i,a.length-1);j>=0;j--)if(a[j]!=null)return a[j];return null}
 function gbLast(k){const h=G.gbs&&G.gbs.h[k];return h&&h.length?h[h.length-1]:null}
-function gbKpi(k,M){const t=(l,v,x)=>`<div><small>${l}</small><b>${v}</b>${x||''}</div>`;let h='';
+function gbKpi(k,M){if(M.g==='xa')return xaKpi(k,M);const t=(l,v,x)=>`<div><small>${l}</small><b>${v}</b>${x||''}</div>`;let h='';
  if(M.g==='lift'){const w=M.w(),yw=gbY(k,'w'),n=M.n(),yn=gbY(k,'n'),a=M.a?M.a():null,ya=gbY(k,'a');
   h=t('Wartezeit gerade',(w<8?'🟢':w<12?'🟠':'🔴')+' '+(w<1?'keine':Math.round(w)+' Min'),yw!=null?gbArr(w-yw,' Min',1):'')+t('Fahrten heute',NFDE.format(n),yn!=null?gbArr(n-yn):'')
   +t('Auslastung',a==null?'–':Math.round(a*100)+' %',ya!=null&&a!=null?gbArr(a*100-ya,' %'):'')+(M.rel?t('Zustand',(()=>{const r=M.rel();return (r>=80?'🟢':r>=55?'🟠':'🔴')+' '+Math.round(r)+' %'})(),M.age?`<i style="color:var(--mut)">${M.age()} ${M.age()===1?'Tag':'Tage'} alt</i>`:''):t('Unterhalt',fmt(M.u())+'/Tag'))}
@@ -9303,7 +9386,7 @@ function gbKpi(k,M){const t=(l,v,x)=>`<div><small>${l}</small><b>${v}</b>${x||''
   +t(a!=null?'Auslastung':M.g==='park'?'Gerade geparkt':M.g==='kas'?'Gerade an der Kassa':'Gerade drinnen',a!=null?Math.round(a*100)+' %':g==null?'–':NFDE.format(g))
   +(M.g==='kas'?t('Pro Karte',n?fmt(m/n):'–'):(()=>{const L=gbLast(k),p=L?L.m-L.u:m-Math.round(u*gbDf()),uu=L?L.u:Math.round(u*gbDf());return t(L?'Gewinn gestern':'Gewinn heute (bisher)',`<span class="${p>=0?'pos':'neg'}">${p>=0?'+':'−'}${fmt(Math.abs(p))}</span>`,`<i style="color:var(--mut)">Unterhalt ${fmt(uu)}</i>`)})())}
  return h}
-function gbMets(M){return M.g==='lift'?[['w','⏱️ Wartezeit'],['n','👥 Fahrgäste'],['a','📶 Auslastung']]:M.g==='hotel'?[['m','💶 Einnahmen'],['a','🛏️ Belegung'],['n','👥 Gäste']]:M.g==='kas'?[['m','💶 Einnahmen'],['n','🎟️ Karten'],['a','👥 An der Kassa']]:[['m','💶 Einnahmen'],['n','👥 Gäste'],['a',M.a?'📶 Auslastung':M.g==='park'?'🚗 Geparkt':'👥 Drinnen']]}
+function gbMets(M){if(M.mets)return M.mets;return M.g==='lift'?[['w','⏱️ Wartezeit'],['n','👥 Fahrgäste'],['a','📶 Auslastung']]:M.g==='hotel'?[['m','💶 Einnahmen'],['a','🛏️ Belegung'],['n','👥 Gäste']]:M.g==='kas'?[['m','💶 Einnahmen'],['n','🎟️ Karten'],['a','👥 An der Kassa']]:[['m','💶 Einnahmen'],['n','👥 Gäste'],['a',M.a?'📶 Auslastung':M.g==='park'?'🚗 Geparkt':'👥 Drinnen']]}
 function gbChart(k,M){const ms=gbMets(M);if(gbC>=ms.length)gbC=0;const [f,tl]=ms[gbC],hot=M.g==='hotel',rg=hot?'w':gbR,cum=f==='m'||f==='n';
  const seg=(a,on,at)=>`<div class="seg sm">${a.map((x,i)=>`<button ${at}="${i}" class="${i===on?'on':''}">${x}</button>`).join('')}</div>`;
  let h=seg(ms.map(x=>x[1]),gbC,'data-gbc')+(hot?'':seg(['Heute','7 Tage'],rg==='t'?0:1,'data-gbr'));const pct=f==='a'&&(M.a||hot),fm=f==='m'?(v=>v>=1000?Math.round(v/100)/10+'k':Math.round(v)):f==='w'?(v=>Math.round(v)+'′'):pct?(v=>Math.round(v)+'%'):(v=>Math.round(v));
@@ -9315,10 +9398,10 @@ function gbChart(k,M){const ms=gbMets(M);if(gbC>=ms.length)gbC=0;const [f,tl]=ms
  const lab=[];for(let i=0;i<N;i++){const hh=SK0+i/2;lab.push(hh%1?'':String(Math.floor(hh)%24))}const pad=a=>{const o=a.slice(0,N);while(o.length<N)o.push(null);return o};
  const ser=[{v:pad(tv),c:'#2f7fd8',fill:1}];if(yv.some(x=>x!=null))ser.unshift({v:pad(yv),c:'#b9c7d6'});
  return h+chB(tl+' heute'+(cum?' je halbe Stunde':''),svgLine(ser,lab,{f:fm,every:2,h:120,max:pct?100:0})+lgd([['Heute','#2f7fd8']].concat(yv.some(x=>x!=null)?[['Gestern','#b9c7d6']]:[])),'Zahl unten = Uhrzeit.')}
-function gbVoice(k,M,P){let q=null,s='';if(M.g==='lift'){const n=M.thw&&G.thw?G.thw[M.thw]||0:0,w=M.w();if(n>0){q='😤 „Viel zu lange angestanden!“';s=gN(n)+' haben das heute gesagt'}else if(w>=8)q='😤 „Das dauert ja ewig…“';else if(w<3&&!closed())q='😊 „Kaum gewartet, super!“';else q='🙂 „Geht schon, kurz angestanden.“'}
+function gbVoice(k,M,P){if(M.g==='xa')return xaVoice(k,P);let q=null,s='';if(M.g==='lift'){const n=M.thw&&G.thw?G.thw[M.thw]||0:0,w=M.w();if(n>0){q='😤 „Viel zu lange angestanden!“';s=gN(n)+' haben das heute gesagt'}else if(w>=8)q='😤 „Das dauert ja ewig…“';else if(w<3&&!closed())q='😊 „Kaum gewartet, super!“';else q='🙂 „Geht schon, kurz angestanden.“'}
  else{const r=P?P.v()/Math.max(1,P.fair()):1,a=M.a?M.a():null;if(r>1.3)q='💸 „Ganz schön teuer hier!“';else if(a!=null&&a>.95)q=M.g==='hotel'?'😕 „Alles ausgebucht…“':'😕 „Kein Platz mehr frei…“';else if(r<.85)q='😋 „Günstig – gerne wieder!“';else q=M.g==='hotel'?'😊 „Schöne Zimmer, fairer Preis.“':'🙂 „Passt alles.“'}
  return q?`<div class="gbvo"><span>💬</span><div><span class="q">${q}</span><br><small>${s||'So reden die Gäste gerade'}</small></div></div>`:''}
-function gbHint(k,M,D,P){const H=[];
+function gbHint(k,M,D,P){const H=M.g==='xa'?xaHints(k):[];
  const bz=k==='cho'&&choBau()?[G.cho.d0+(G.cho.s>1?CHOT2:CHOT),G.cho.s>1?'Ausbau Stufe 2':'Chalet-Hotel']:k==='pj:gipf'&&gz2Bau()?[G.gz2.d0+GZ2T,'Ausbau Stufe 2']:null;
  if(bz){const r=bz[0]-G.day;H.push(['b','🚧 <b>'+bz[1]+' im Bau</b> – '+(r<=1?'fertig morgen früh':'fertig '+wkT(bz[0])),null])}
  else{const pd=b=>b.p&&!b.full&&!/Generalüberholung|Störung/.test(b.l),st=M.st?M.st():null,bb=(st&&st[0]<st[1]&&D.btns.find(b=>pd(b)&&/Ausbau/.test(b.l)))||D.btns.find(pd);if(bb)H.push(['b','🏗️ <b>'+bb.l.replace(/\s*\([^)]*Bauzeit\)/,'')+'</b>','Baumenü ›']);else if(st&&st[0]<st[1]&&M.bau)H.push(['b','🏗️ <b>Ausbau auf Stufe '+(st[0]+1)+'</b> möglich','Baumenü ›'])}
