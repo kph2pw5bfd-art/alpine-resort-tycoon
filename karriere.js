@@ -1,4 +1,4 @@
-// Alpine Resort Tycoon – Karriere (Bergbahn-Karriere, K1)
+// Alpine Resort Tycoon – Karriere (Bergbahn-Karriere, K1 + K2)
 (function(){'use strict';
 // ===== Karriere (K1): eigene Berg-Engine für Karriere-Berge =====
 // Läuft getrennt vom Freien Spiel (Heimatberg bleibt unverändert). Benutzt die Zeichenteile des Spiels
@@ -51,7 +51,7 @@ const KBERGE=[
  {id:'alt',n:'Altberg',sub:'der Sanierungsfall',lv:'Schwer',lc:'#e8504a',st:4,sea:2,start:-8000},
  {id:'seek',n:'Seekar',sub:'der Berg hinter dem See',lv:'Schwer',lc:'#e8504a',st:5,sea:2,start:1000},
  {id:'eis',n:'Eisspitz',sub:'der Gipfelsturm',lv:'Sehr schwer',lc:'#7d3bd0',st:6,sea:3,start:300}];
-const KV={}; // Berg-Vorlagen (Sonnleiten in K1)
+const KV={}; // Berg-Vorlagen (K1 Sonnleiten, K2 Bichlberg)
 
 // ===== Zustand =====
 let KG=null;      // Spielstand des laufenden Berges
@@ -63,7 +63,8 @@ const KKEY='art-karriere',KBK=id=>'art-kberg-'+id;
 const KW={folks:[],cars:[],buses:[],pops:[],fx:[],chairs:{},q:{},groom:null,res:null,tech:null,school:[],win:[],T:0,acc:0,id:1,snow:[],last:0,raf:0,flk:0};
 
 // ===== Berg-Vorlage 1: Sonnleiten – kurzer, breiter, flacher Familienhang =====
-KV.sonn={id:'sonn',n:'Sonnleiten',bounds:{x0:-140,x1:1140,y0:150,y1:2140},home:{x:120,y:1060,S:1.0},
+KV.sonn={id:'sonn',n:'Sonnleiten',bounds:{x0:-140,x1:1140,y0:150,y1:2140},home:{x:120,y:1060,S:1.0,cx:320,cy:1400},parkY:1530,valleyY:1480,famGoal:1,
+ welcome:'Willkommen in Sonnleiten! Baue zuerst den Tellerlift (🔨 Bauen › Lifte).',tip:'Tipp: Baue zuerst den Tellerlift – 🔨 Bauen › Lifte',tipIf:()=>!KG.l.tl.on,preHint:'Sonnleiten-Gäste achten stark auf den Preis. Fair heißt: so viel wie die Gegend gerade wert ist.',
  desc:'Ein kurzer, breiter und flacher Hang über einem Dorf mit Kirche, Bauernhöfen und Obstwiesen. Viele Familien und Anfänger kommen her – sie achten stark auf den Preis.',
  stages:3,seasons:1,start:2500,
  // Gästemix: Familien, Anfänger, Profis, Snowboarder
@@ -82,11 +83,13 @@ KV.sonn={id:'sonn',n:'Sonnleiten',bounds:{x0:-140,x1:1140,y0:150,y1:2140},home:{
  kassa:{x:500,y:1458},
  lots:[{id:'pw',n:'Parkplatz West',x0:-96,x1:420,y0:1500,y1:1556,base:1},{id:'po',n:'Parkplatz Ost',x0:580,x1:1096,y0:1500,y1:1556,cost:4000}],
  road:{y:1600},walkY:1492,bus:{x:470,y:1591},zebra:540,
- hut:{x:800,y:760,in:[[612,804],[690,796],[766,778]],cost:8000,days:2,st:2,n:'Sonnalm'},
+ hut:{x:800,y:760,in:[[612,804],[690,796],[766,778]],cost:8000,days:2,st:2,n:'Sonnalm',pid:'main'},
+ bwHut:{x:808,y:1426},
  kinder:{x:148,y:1310,rx:74,ry:64,gate:[196,1362],cost:6000,days:2,st:1},
  school:{x:430,y:1404,cost:3500,days:1,st:1},
  garage:{x:868,y:1404},
- hotel:{x:700,y:1720,w:62,h:30,k:1,cost:15000,days:3,st:2,rooms:24,n:'Gasthof Sonnleiten'},
+ hotel:{x:700,y:1720,w:62,h:30,k:1,cost:15000,days:3,st:2,rooms:24,n:'Gasthof Sonnleiten',sign:'GASTHOF SONNLEITEN ★★',
+  pin:()=>[[670,1724],[640,1724],[560,1690]].concat(KW.paths.zebra),pout:()=>kRev(KW.paths.zebra).concat([[560,1690],[640,1724],[680,1724]])},
  cannons:{n:8,cost:10000,st:2},
  // Ziele (Pflicht, Zusatz, Meister)
  goals:[
@@ -118,6 +121,7 @@ KV.sonn.bg=function(c){
  c.fillStyle='#2e9e5b';c.fillRect(450,1564,1.6,14);c.beginPath();c.roundRect(444,1556,14,9,2);c.fill();c.fillStyle='#fff';c.font='700 6px Fredoka,sans-serif';c.textAlign='center';c.fillText('H',451,1563);
  kSign(c,451,1548,'🚌 Sonnleiten Dorf','#2e9e5b','#fff',5);
 };
+KV.sonn.lamps=function(){const o=[];for(let x=96;x<=920;x+=82)o.push([x,1488]);for(let x=-100;x<=1100;x+=120)o.push([x,1576]);return o};
 KV.sonn.paths=function(){const V=KV.sonn,k=V.kassa,W=V.walkY;return {
  kTl:kQuad([k.x,k.y+8],[392,1474],[356,1392],12).concat([[352,1380]]),
  kSes:kQuad([k.x,k.y+8],[630,1474],[690,1398],12),
@@ -146,6 +150,262 @@ KV.sonn.blocks=function(B){
  B.box(660,1640,740,1740); // Gasthof
  B.line([[540,1630],[560,1700],[640,1730]],6);
 };
+
+// ===== Berg-Vorlage 2: Bichlberg – langer, schmaler Waldhang mit S-Kurven, Engstellen, Speicherteich =====
+KV.bich={id:'bich',n:'Bichlberg',am:'am Bichlberg',bounds:{x0:-120,x1:1120,y0:-30,y1:2200},home:{x:300,y:1700,S:1.0,cx:330,cy:1760},
+ desc:'Ein langer, schmaler Hang in S-Kurven durch dichten Mischwald. Der Schnee ist hier knapp – ohne Schneekanonen geht es nicht. An zwei Engstellen stauen sich die Gäste.',
+ stages:4,seasons:2,start:600,snow0:34,kioskAlways:1,runRef:700,
+ welcome:'Willkommen am Bichlberg! Der untere Sessel läuft schon. Der Schnee ist knapp – spare auf Schneekanonen (🔨 Bauen › Piste).',
+ tip:'Tipp: Ohne Schneekanonen wird die Piste bei Tauwetter schnell grün – 🔨 Bauen › Piste',
+ preHint:'Am Bichlberg kommen viele Könner – sie zahlen für eine lange Abfahrt etwas mehr. Fair heißt: so viel wie die Gegend gerade wert ist.',
+ mix:{fam:.32,anf:.16,pro:.30,sb:.22},priceSens:1.05,
+ // Tauwetter 1,7-mal so oft, Neuschnee nur 60 % von Sonnleiten
+ wx:{sonne:.466,neuschnee:.144,tau:.32,sturm:.07},
+ snowDW:{neuschnee:15,sturm:4,tau:-9,sonne:-1.5},tauPQ:.001,
+ rivals:['Hochwaldlift','Gaisberg-Bahnen','Lifte am Kreuzjoch','Schattseit-Lift','Rauchkogel','Zwieselalm','Brandnerhang','Tauernblick-Lifte','Waldegg','Schlossberglift'],
+ rivS:[740,680,630,580,530,480,440,400,350,300],rivG:1.3,
+ parkY:1902,valleyY:1700,walkY:1864,road:{y:1972},bus:{x:380,y:1963},zebra:null,starTh:[0,0,340,460,580,700],
+ // Pisten: lange Abfahrt in Abschnitten (Stufe nach Höhe), Zubringer von den Stationen, Umfahrung der unteren Engstelle
+ pistes:[
+  {id:'main',n:'Bichlberg-Abfahrt',col:'b',st:1,wear:.05,sec:[[1462,1],[960,2],[642,3],[-1e9,4]],
+   pts:[[520,182,28],[598,300,33],[640,430,35],[566,560,34],[440,650,35],[364,760,33],[372,850,24],[384,890,15],[400,930,24],[430,980,34],[560,1070,36],[648,1170,32],[648,1235,22],[640,1275,14],[620,1318,22],[566,1390,34],[452,1480,38],[418,1600,44],[452,1690,44],[400,1740,30],[324,1758,16]]},
+  {id:'umf',n:'Umfahrung',col:'r',st:2,need:'umf',via:'main',wear:.055,pts:[[636,1126,22],[690,1160,26],[736,1200,27],[764,1290,27],[732,1380,27],[650,1430,27],[560,1452,26]]},
+  {id:'c1',n:'Zubringer',col:'b',st:1,conn:1,pts:[[278,1398,9],[344,1438,10],[414,1468,12]]},
+  {id:'c2',n:'Zubringer',col:'b',st:2,conn:1,pts:[[264,1012,9],[331,994,10],[402,968,12]]},
+  {id:'c3',n:'Zubringer',col:'b',st:3,conn:1,pts:[[276,632,9],[339,644,10],[406,650,12]]},
+  {id:'c4',n:'Zubringer',col:'b',st:4,conn:1,pts:[[452,196,9],[473,194,10],[496,186,12]]}],
+ // Lift-Kette: jede Ausbaustufe ein Abschnitt, Mittelstationen teilen sich die Station
+ lifts:[
+  {id:'l1',n:'Talsessel',sh:'Sessel 1',typ:'s2',st:1,b:[236,1770],t:[252,1390],nx:'l2',conn:'c1',pistes:['c1','main'],exit:[270,1402],bn:'Talstation',tn:'Mittelstation 1',ovh:1500,up:1,upF:.6},
+  {id:'l2',n:'Mittelsessel',sh:'Sessel 2',typ:'s2',st:2,b:[252,1390],t:[238,1006],nx:'l3',conn:'c2',pistes:['c2','main'],exit:[256,1016],bn:'Mittelstation 1',tn:'Mittelstation 2',ovh:1500,up:1,upF:.6},
+  {id:'l3',n:'Waldsessel',sh:'Sessel 3',typ:'s2',st:3,b:[238,1006],t:[250,624],nx:'l4',conn:'c3',pistes:['c3','main'],exit:[268,636],bn:'Mittelstation 2',tn:'Mittelstation 3',ovh:1500,up:1,upF:.6},
+  {id:'l4',n:'Gipfelsessel',sh:'Sessel 4',typ:'s2',st:4,b:[250,624],t:[428,192],nx:null,conn:'c4',pistes:['c4','main'],exit:[446,204],bn:'Mittelstation 3',tn:'Bergstation',ovh:1500,up:1,upF:.6}],
+ kassa:{x:360,y:1830},
+ lots:[{id:'p1',n:'Parkplatz',x0:-96,x1:300,y0:1872,y1:1928,base:1},{id:'p2',n:'Parkplatz Ost',x0:440,x1:944,y0:1872,y1:1928,cost:3000}],
+ hut:{x:790,y:560,in:[[602,552],[690,562],[766,566]],cost:9000,days:2,st:4,n:'Waldhütte',pid:'main'},
+ garage:{x:604,y:1792},bwHut:{x:530,y:1810},bwStart:[554,1818],resPre:[[520,1772],[440,1756]],
+ hotel:{x:770,y:1836,w:62,h:30,k:1,cost:15000,days:3,st:2,rooms:24,n:'Gasthof Bichl',sign:'GASTHOF BICHL ★★',
+  pin:()=>[[740,1846],[740,1864],[360,1864],[360,1838]],pout:()=>[[360,1838],[360,1864],[740,1864],[740,1846],[752,1840]]},
+ cannons:{cost:6000,st:1},can2:{cost:8000,st:3},
+ teich:{cost:12000,days:3,st:2,poly:[[740,930],[800,900],[880,912],[918,960],[900,1020],[830,1046],[756,1030],[724,982]],pump:[890,1050]},
+ umf:{cost:8000,days:2,st:2},
+ goals:[
+  {k:'pf',t:'Schneekanonen in Betrieb und 2 Sterne',sh:'Kanonen + 2 ★',prog:()=>(KG.canEver?'Kanonen ✓':KG.b.cannons?'Kanonen gekauft':'keine Kanonen')+' · '+kStars()+' ★',ok:()=>!!KG.canEver&&kStars()>=2,lock:1},
+  {k:'zu',t:'Platz 6 oder besser in der Rangliste',sh:'Platz 6',prog:()=>'jetzt Platz '+kRank(),ok:()=>kRank()<=6,lock:1},
+  {k:'me',t:'Pistenzustand in der letzten Woche nie unter 60 %',sh:'Piste ≥ 60 %',prog:()=>kBichLW(),ok:()=>!!KG.lwSeen&&(KG.lwMin==null||KG.lwMin>=60),end:1}],
+ stageInfo:[null,
+  {n:'Talabfahrt',d:'2er-Sessel bis zur Mittelstation 1 und der untere Teil der Bichlberg-Abfahrt.'},
+  {n:'Mittelstation 2',d:'Zweiter Sessel bis zur Mittelstation 2. Die Abfahrt wird doppelt so lang – mit der unteren Engstelle.',cost:5000,days:2,req:[['ruf',52,'Ruf mindestens 52 %'],['gst',120,'120 Gäste insgesamt']]},
+  {n:'Mittelstation 3',d:'Dritter Sessel bis zur Mittelstation 3 – die Abfahrt führt jetzt auch durch die obere Engstelle.',cost:12000,days:2,req:[['can',1,'Schneekanonen gekauft'],['ruf',58,'Ruf mindestens 58 %']]},
+  {n:'Gipfel',d:'Gipfelsessel bis ganz oben – die ganze Bichlberg-Abfahrt in S-Kurven. Die Waldhütte kann gebaut werden.',cost:20000,days:3,req:[['stars',2,'2 Sterne'],['ruf',62,'Ruf mindestens 62 %']]}],
+ fair:{ticket:[0,22,28,33,38],park:3,food:13,kids:7,school:24,hotel:50}
+};
+// Pistenzustand in der letzten Woche (Meister-Ziel)
+function kBichLW(){const last=kSeaN()===KVOR.seasons&&kSeaD()>=KSL-6;if(KG.lwSeen)return 'tiefster Wert bisher: '+Math.round(KG.lwMin)+' %';return last?'zählt ab heute':'zählt ab MO • Woche 4 der Saison '+KVOR.seasons}
+KV.bich.init=function(s){s.l.l1.on=1;s.snow=34;s.b.can2=0;s.b.teich=0;s.b.umf=0;s.b.bus2=0;s.wat=100};
+KV.bich.lamps=function(){const o=[];for(let x=-40;x<=960;x+=82)o.push([x,1860]);for(let x=-100;x<=1100;x+=120)o.push([x,1948]);return o};
+// Ausbau-Abschnitte und Zubringer verknüpfen, Engstellen finden
+KV.bich.world=function(){const M=KW.pmap.main;const near=(P,x,y)=>{let b=0,bd=1e9;for(const q of P.d){const d=Math.hypot(q[0]-x,q[1]-y);if(d<bd){bd=d;b=q[3]}}return b};
+ for(const id of ['c1','c2','c3','c4']){const C=KW.pmap[id],e=C.d[C.d.length-1];C.next={p:'main',s:near(M,e[0],e[1])}}
+ const U=KW.pmap.umf,u0=U.d[0],u1=U.d[U.d.length-1];U.next={p:'main',s:near(M,u1[0],u1[1])};M.br={s:near(M,u0[0],u0[1]),p:'umf'};
+ // Engstellen: wo die Abfahrt schmaler als 24 ist
+ const E=[];let cur=null;for(const q of M.d){if(q[2]<=23.5&&q[1]<1600){if(!cur){cur={s0:q[3],s1:q[3],w:q[2],y:q[1]}}cur.s1=q[3];if(q[2]<cur.w){cur.w=q[2];cur.y=q[1]}}else if(cur){E.push(cur);cur=null}}if(cur)E.push(cur);
+ E.sort((a,b)=>a.s0-b.s0);E.forEach((e,i)=>{e.id='e'+(i+1);e.n='Engstelle '+(i+1);e.h=i===0?.36:.3;e.vf=.62;e.q=[];e.last=-1e9});M.eng=E;KW.eng=E};
+KV.bich.paths=function(){const k=KV.bich.kassa,W=KV.bich.walkY;return {
+ kL1:[[k.x,k.y+8],[328,1848],[292,1834]],
+ busUp:[[380,1948],[372,1906],[366,W],[k.x,W],[k.x,k.y+8]],
+ zebra:[]}};
+KV.bich.drawPaths=function(c){const k=KVOR.kassa,W=KVOR.walkY;
+ kPathLine(c,[[k.x,k.y+8],[328,1848],[292,1834],[262,1816]],9);kPathLine(c,[[k.x,k.y+6],[k.x,W]],9);
+ kPathLine(c,[[380,1946],[372,1906],[366,W]],7);
+ if(KG.b.hut){c.strokeStyle='#e9dcc4';c.lineWidth=6;c.lineCap='round';c.beginPath();KVOR.hut.in.forEach((p,i)=>i?c.lineTo(p[0],p[1]):c.moveTo(p[0],p[1]));c.stroke()}
+ if(KG.hotel)kPathLine(c,[[740,1846],[740,W]],7)};
+// Wer ist wo? kas = Tal/Kassa · l1..l4 = am Fuß dieses Liftes (Talstation, Mittelstationen)
+KV.bich.where=function(f){const K=KVOR.kassa;if(Math.hypot(f.x-K.x,f.y-K.y)<70||f.y>1840)return 'kas';
+ for(const L of KVOR.lifts){if(Math.hypot(f.x-L.b[0],f.y-L.b[1])<120)return L.id}return f.y>1650?'kas':'x'};
+KV.bich.route=function(from,to,f){const P=KW.paths,K=KVOR.kassa;
+ if(from===to)return to==='l1'&&f&&f.x>270&&f.y<1800?[[292,1798]]:[];
+ if(from==='kas'&&to==='l1')return P.kL1.slice();
+ if(from==='l1'&&to==='kas')return (f&&f.x>270&&f.y<1800?[[292,1800]]:[]).concat(kRev(P.kL1));
+ return [[K.x,K.y+8]]};
+KV.bich.chooseLift=function(f){return 'l1'};
+// Aussteigen oben: weiter mit dem nächsten Sessel oder über den Zubringer abfahren
+KV.bich.unload=function(o,f){const L=o.L,nx=L.nx;
+ if(nx&&KG.l[nx].on&&kLiftOpen(nx)&&KG.t<15.3&&!f.leaving){const p0={pro:.86,sb:.82,fam:.55,anf:.3}[f.ty]||.6;let p=f.kid?p0*.8:p0;const w=kWait(nx);if(w>18)p*=.55;else if(w>10)p*=.8;
+  if(kR()<p){kToQueue(f,nx);return}}
+ kSkiStart(f,L.conn)};
+// Umfahrung: Könner nehmen sie gern, bei Stau an der Engstelle auch andere
+KV.bich.branch=function(f,br){if(!KG.b.umf)return 0;const E=KW.eng&&KW.eng[1];const jam=E?E.q.length:0;let p={pro:.8,sb:.72,fam:.28,anf:.08}[f.ty]||.4;if(f.kid)p*=.5;if(jam>=3)p+=.25;if(jam>=7)p+=.2;return kR()<Math.min(.95,p)};
+// Lift geschlossen, Gast steht an einer Mittelstation: auf Skiern hinunter
+KV.bich.descend=function(f){if(f.st==='hurt'&&f.pid){f.st='ski';f.v=Math.min(f.v||20,20);f.leaveT=0;f.engIn=null;f.engQ=null;f.engHold=0;return true}
+ if(f.st==='ski')return false;const w=KV.bich.where(f);if(w==='kas'||w==='l1')return false;const lo=kLowerOf(w);if(!lo)return false;
+ f.leaveT=0;f.x=lo.exit[0];f.y=lo.exit[1];kSkiStart(f,lo.conn);return true};
+// Nebel am Morgen
+KV.bich.busT=function(){return KG.b.bus2?[8.4,8.9,9.4,9.9,10.4]:[8.65,9.65,10.65]};
+KV.bich.morning=function(){if(KG.b.bus2&&KG.dem>0)KG.busShare=Math.min(.45,150/KG.dem);KG.fog=(KG.wx==='sonne'||KG.wx==='tau')&&kR()<.38?1:0;if(KG.fog)kLog('🌫️','Morgennebel im Tal – die Gäste kommen heute etwas später.');for(const e of KW.eng||[])e.q=[]};
+// Speicherteich, Meister-Ziel, Stau aufräumen
+KV.bich.tick=function(dt,dth){// Tauwetter weicht die Piste tagsüber auf (die Raupe richtet sie nachts wieder her)
+ if(KG.wx==='tau'&&KG.t>=10&&KG.t<16)for(const k in KG.pq)KG.pq[k]=Math.max(0,KG.pq[k]-dth*2.4);
+ if(KG.b.teich){if(KW.canOn)KG.wat=Math.max(0,KG.wat-dth*6);else KG.wat=Math.min(100,KG.wat+dth*4)}
+ if(kSeaN()===KVOR.seasons&&kSeaD()>=KSL-6&&KG.t>=8.6&&KG.t<16.25&&!KG.done){const q=kPQavg();KG.lwSeen=1;KG.lwMin=KG.lwMin==null?q:Math.min(KG.lwMin,q)}
+ for(const e of KW.eng||[])if(e.q.length)e.q=e.q.filter(f=>f.st==='ski'&&f.engQ===e&&!f.dead)};
+// Schneekanonen: Abdeckung (unten/oben) und Wasser (Bach allein reicht nur halb)
+function kBichCov(){const M=KW.pmap.main,L=M.d[M.d.length-1][3],s0=kOpenS(M),y0=960;let lo=0,hi=0;const sMid=(()=>{for(const q of M.d)if(q[1]>=y0)return q[3];return L})();
+ lo=L-Math.max(s0,sMid);hi=Math.max(0,sMid-s0);const tot=L-s0;let c=KG.b.cannons?lo:0;if(KG.b.can2)c+=hi;return tot>0?kcl(c/tot,0,1):0}
+KV.bich.canF=function(){return kBichCov()*(KG.b.teich&&KG.wat>0?1:.5)};
+KV.bich.canCost=function(){return 150+(KG.b.can2?150:0)};
+KV.bich.costs=function(c,tm){if(KG.b.teich)c.teich=Math.round(60*tm);if(KG.b.bus2)c.bus=(c.bus||0)+100};
+KV.bich.canPos=function(){const M=KW.pmap.main,out=[];let acc=0,side=1;const r=kRNG(7);
+ const ok=(x,y)=>{if(kOnP(x,y,4)||kOnP(x,y-12,7)||kOnP(x+(x<0?0:0),y-20,4))return 0;for(const L of KVOR.lifts){const dx=L.t[0]-L.b[0],dy=L.t[1]-L.b[1],l2=dx*dx+dy*dy,u=kcl(((x-L.b[0])*dx+(y-L.b[1])*dy)/l2,0,1);if(Math.hypot(x-L.b[0]-dx*u,y-L.b[1]-dy*u)<30)return 0}for(const b of KST.blocks)if(x>b[0]&&x<b[2]&&y>b[1]&&y<b[3])return 0;return 1};
+ for(let i=1;i<M.d.length;i++){const a=M.d[i-1],q=M.d[i];acc+=Math.hypot(q[0]-a[0],q[1]-a[1]);if(acc<92)continue;if(q[1]>1700)continue;const up=q[1]<960;if(up&&!KG.b.can2||!up&&!KG.b.cannons)continue;if(!kPtOpen(M,q))continue;
+  for(const sg of [side,-side]){const x=q[0]+q[4]*(q[2]+12)*sg,y=q[1]+q[5]*(q[2]+12)*sg;if(ok(x,y)){out.push({x,y,sd:sg,ph:r()*20});acc=0;side=-side;break}}}
+ return out};
+// Angebot (für die Sterne)
+KV.bich.offer=function(){let o=0;const b=KG.b;for(const id in KG.l){const l=KG.l[id];if(!l.on)continue;o+=45+(l.typ==='s4'?25:l.typ==='s6'?45:0)+(l.lg||0)*10}
+ o+=(KG.stage-1)*40;o+=30;if(b.umf)o+=30;
+ o+=(b.cannons?35:0)+(b.can2?25:0)+(b.teich?45:0)+(b.raupe?30:0)+(b.kiosk?15:0)+(b.hut?50:0)+(KG.hotel?45:0)+(b.bus?20:0)+(b.bus2?10:0)+(b.bw?15:0)+(b.lw?10:0)+(KG.paved?15:0);
+ for(const L of KVOR.lots)if(!L.base&&KG.lots[L.id])o+=15;return o};
+KV.bich.att=function(){return (KG.b.umf?.03:0)+(KG.hotel?.02:0)};
+// Pistenraupe: Abfahrt hinauf und hinunter, Umfahrung über die Abfahrt erreichen (nie quer durch den Wald)
+KV.bich.groomPlan=function(){const M=KW.pmap.main,L=M.d[M.d.length-1][3],s0=kOpenS(M),off=(P,s,k)=>{const q=kAt(P.d,s);return [q[0]+q[3]*q[2]*k,q[1]+q[4]*q[2]*k]};const run=(P,a,b,k)=>{const o=[];if(a>b)for(let s=a;s>=b;s-=12)o.push(off(P,s,k));else for(let s=a;s<=b;s+=12)o.push(off(P,s,k));return o};
+ const A=[[560,1786],[480,1762],[400,1756]];const out=[{p:'x',pts:A},{p:'main',pts:run(M,L,s0,.42)},{p:'main',pts:run(M,s0,L,-.42),fin:1}];
+ if(KG.b.umf&&kPisteOpen(KW.pmap.umf)){const U=KW.pmap.umf,UL=U.d[U.d.length-1][3];out.push({p:'x',pts:run(M,L,U.next.s,0)},{p:'umf',pts:run(U,UL,0,.4)},{p:'umf',pts:run(U,0,UL,-.4),fin:1},{p:'x',pts:run(M,U.next.s,L,0)})}
+  out.push({p:'x',pts:kRev(A)});return out};
+// Bauen
+KV.bich.items=function(){const V=KVOR,st=KG.stage,l=KG.l,b=KG.b,lf=KPK('lift')?.9:1,sf=KPK('schnee')?.85:1,bau=id=>KG.bau.find(x=>x.id===id||x.lift===id);
+ const I=[];const add=(tab,o)=>{o.tab=tab;I.push(o)};
+ for(const s of [2,3,4]){const S=V.stageInfo[s];const rq=S.req.map(r=>({t:r[r.length-1],ok:kReq(r)}));add('aus',{id:'st'+s,ic:['','','🚡','🌲','🏔️'][s],n:'Ausbau Stufe '+s+': '+S.n,d:S.d,c:Math.round(S.cost*lf),days:kBauDays(S.days),done:st>=s,bau:KG.bau.find(x=>x.k==='stage'&&x.st===s),lock:st<s-1?'erst Stufe '+(s-1):rq.some(r=>!r.ok)?'Voraussetzungen fehlen':'',rq})}
+ for(const L of V.lifts){if(st<L.st)continue;const s=l[L.id],on=s.on,nm=L.n,rt=L.bn+' → '+L.tn+'. ',lk=!on?'im Bau':'';
+  const t4=s.typ==='s4'||s.typ==='s6',b4=KG.bau.find(x=>x.k==='up'&&x.lift===L.id);
+  if(L.id==='l1'&&t4)add('lif',{id:'up6_l1',ic:'🚡',n:nm+': 6er-Sessel',d:rt+'Noch mehr Plätze am Talsessel – hier steigen alle Gäste ein.',c:Math.round(18000*lf),days:kBauDays(1),done:s.typ==='s6',bau:b4});
+  else add('lif',{id:'up4_'+L.id,ic:'🚡',n:nm+': 4er-Sessel',d:rt+'Doppelt so viele Plätze je Sessel – die Schlange wird kürzer. Der Lift steht bis zum nächsten Morgen.',c:Math.round(6000*lf),days:kBauDays(1),done:t4,bau:b4,lock:lk});
+  add('lif',{id:'lg_'+L.id,ic:'💺',n:nm+': mehr Sessel',d:rt+'Zusätzliche Sessel am Seil – mehr Gäste pro Stunde.',c:Math.round(2500*lf),done:(s.lg||0)>=2,lock:lk,lv:(s.lg||0)+' / 2'})}
+ add('pis',{id:'can',ic:'❄️',n:'Schneekanonen unten',d:'Beschneien nachts die Abfahrt bis zur Mittelstation 2. Ohne Speicherteich reicht das Bachwasser nur für halbe Leistung.',c:Math.round(V.cannons.cost*sf),done:!!b.cannons,up:'Strom je Nacht'});
+ add('pis',{id:'can2',ic:'❄️',n:'Schneekanonen oben',d:'Weitere Kanonen bis zum Gipfel – dann wird die ganze Abfahrt beschneit.',c:Math.round(V.can2.cost*sf),done:!!b.can2,lock:st<3?'erst Stufe 3':!b.cannons?'erst Kanonen unten':''});
+ add('pis',{id:'teich',ic:'💧',n:'Speicherteich',d:'Besonderes Gebäude: Teich mit Pumpenhaus am Hang. Die Kanonen bekommen genug Wasser und schaffen die volle Leistung.',c:V.teich.cost,days:kBauDays(V.teich.days),done:!!b.teich,bau:bau('teich'),lock:st<2?'erst Stufe 2':'',up:'60 €/Tag'});
+ add('pis',{id:'umf',ic:'🔴',n:'Umfahrung der unteren Engstelle',d:'Rote Piste durch den Wald um die Engstelle 2 herum. Könner fahren lieber außen herum – der Stau wird kleiner.',c:V.umf.cost,days:kBauDays(V.umf.days),done:!!b.umf,bau:bau('umf'),lock:st<2?'erst Stufe 2':''});
+ add('pis',{id:'raupe',ic:'🚜',n:'Pistenraupe mit Garage',d:'Präpariert nachts die ganze offene Abfahrt. Ohne Raupe werden die Pisten immer schlechter.',c:5000,done:!!b.raupe});
+ add('gas',{id:'kiosk',ic:'🌭',n:'Kiosk an der Kassa',d:'Würstel, Tee und Kakao – die einfachste Mittagspause.',c:1500,days:0,done:!!b.kiosk});
+ add('gas',{id:'hut',ic:'🛖',n:'Waldhütte',d:'Hütte oberhalb der Engstellen. Wer vom Gipfel abfährt, kehrt mittags gern ein.',c:V.hut.cost,days:kBauDays(V.hut.days),done:!!b.hut,bau:bau('hut'),lock:st<4?'erst Stufe 4':''});
+ add('gas',{id:'hotel',ic:'🏨',n:'Gasthof Bichl',d:'24 Zimmer direkt am Gehweg: Hotelgäste kommen ohne Auto und bringen jede Nacht Geld.',c:V.hotel.cost,days:kBauDays(V.hotel.days),done:!!KG.hotel,bau:bau('hotel'),lock:st<2?'erst Stufe 2':''});
+ add('anr',{id:'p2',ic:'🅿️',n:'Parkplatz Ost',d:'28 weitere Stellplätze rechts der Kassa – ist der Parkplatz voll, drehen die Gäste um.',c:3000,done:!!KG.lots.p2});
+ add('anr',{id:'paved',ic:'🛣️',n:'Parkplätze asphaltieren',d:'Kein Schotter mehr – sieht ordentlicher aus und bringt etwas Ansehen.',c:4000,done:!!KG.paved});
+ add('anr',{id:'bus',ic:'🚌',n:'Skibus',d:'Morgens bringen 3 Busse je bis zu 30 Gäste ohne Auto, nachmittags holen sie sie wieder ab.',c:3000,done:!!b.bus,up:'150 €/Tag'});
+ add('anr',{id:'bus2',ic:'🚌',n:'Skibus alle 30 Minuten',d:'5 Busse am Morgen statt 3 – bis zu 150 Gäste ohne Auto. Hilft, wenn die Parkplätze voll sind.',c:4000,done:!!b.bus2,lock:!b.bus?'erst Skibus':st<3?'erst Stufe 3':'',up:'+100 €/Tag'});
+ add('per',{id:'lw',ic:'🔧',n:'Liftwart',d:'Repariert Störungen in kurzer Zeit. Ohne Liftwart kommt ein Techniker von außen (650 €, über 1 Stunde).',c:2500,done:!!b.lw,up:'130 €/Tag'});
+ add('per',{id:'bw',ic:'⛑️',n:'Bergwacht',d:'Holt Verletzte mit dem Motorschlitten und Akja von der langen Abfahrt. Ohne Bergwacht leidet der Ruf.',c:KPK('bw')?0:4000,done:!!b.bw,up:KPK('bw')?'Verein · ohne Lohn':'140 €/Tag'});
+ return I};
+KV.bich.buy=function(id,I,pay){
+ if(/^st[234]$/.test(id)){const s=+id[2];pay();kBauStart({k:'stage',st:s,n:'Ausbau Stufe '+s,days:I.days,lift:'l'+s,id:'st'+s});return true}
+ if(id.startsWith('up4_')||id==='up6_l1'){const L=id.slice(4),typ=id.startsWith('up6')?'s6':'s4';pay();if(I.days>0){KG.bau.push({k:'up',id,lift:L,typ,n:kLC(L).n+': '+KLT[typ].n,d0:KG.day,days:I.days});kLog('🚧','Umbau '+kLC(L).n+' auf '+KLT[typ].n+' – der Lift steht bis zum Morgen.');KG.l[L].on=0;if(KW.lift[L])for(const f of KW.lift[L].q.splice(0))kGoHome(f)}else kUpLift(L,typ);return true}
+ if(id.startsWith('lg_')){const L=id.slice(3);pay();KG.l[L].lg=(KG.l[L].lg||0)+1;kLiftSetup(L);kLog('💺','Mehr Sessel am '+kLC(L).n+'.');return true}
+ if(id==='can2'){pay();KG.b.can2=1;kLog('❄️','Schneekanonen oben – gekauft.');return true}
+ if(id==='teich'||id==='umf'){pay();kBauStart({k:'b',id,n:I.n,days:I.days});return true}
+ if(id==='p2'){pay();KG.lots.p2=1;kLog('🅿️','Parkplatz Ost ist offen.');return true}
+ if(id==='bus2'){pay();KG.b.bus2=1;kLog('🚌','Ab morgen fährt der Skibus alle 30 Minuten.');return true}
+ return false};
+// Gebäude zeichnen
+KV.bich.drawB=function(add,t){const V=KVOR;
+ const K=V.kassa;add(K.y,c=>kKassaDraw(c,K.x,K.y));if(KG.b.kiosk)add(K.y+8,c=>kKioskDraw(c,K.x+38,K.y+8,t));
+ // Lift-Stationen: Talstation, Mittelstationen (eine Station für zwei Sessel), Bergstation
+ for(const L of V.lifts){const s=KG.l[L.id],bau=KG.bau.find(b=>b.lift===L.id&&b.k!=='up'),lo=kLowerOf(L.id);
+  if(bau){if(!lo)add(L.b[1]+20,c=>kSite(c,L.b[0],L.b[1]+10,60,t));add(L.t[1]+20,c=>kSite(c,L.t[0],L.t[1]+10,50,t));continue}
+  const up=KG.bau.find(b=>b.k==='up'&&b.lift===L.id);
+  if(!s.on&&!up)continue;const co=KLT[s.typ].co;
+  if(!lo)add(L.b[1]+22,c=>{liftStation(c,L.b[0],L.b[1],co,true);kBrkSign(c,L,t);if(up)kSign(c,L.b[0],L.b[1]-48,'🚧 UMBAU','#f2701f','#fff',6)});
+  else if(up)add(L.b[1]+30,c=>kSign(c,L.b[0],L.b[1]-56,'🚧 UMBAU','#f2701f','#fff',6));
+  const nx=L.nx&&KG.l[L.nx]&&KG.l[L.nx].on;
+  add(L.t[1]+18,c=>{liftStation(c,L.t[0],L.t[1],nx?KLT[KG.l[L.nx].typ].co:co,false);kSign(c,L.t[0],L.t[1]-36,L.tn.toUpperCase(),'#fff','#2b3a55',5.5);if(nx){const N=kLC(L.nx);kBrkSign(c,N,t)}})}
+ // Waldhütte
+ if(KG.b.hut)add(V.hut.y,c=>{kHutDraw(c,V.hut.x,V.hut.y,t);kSign(c,V.hut.x,V.hut.y-56,'WALDHÜTTE','#8f5a34','#fff',6)});else if(KG.bau.find(b=>b.id==='hut'))add(V.hut.y,c=>kSite(c,V.hut.x,V.hut.y,64,t));
+ // Speicherteich: Pumpenhaus
+ const T=V.teich,[px,py]=T.pump;if(KG.b.teich)add(py,c=>kPumpDraw(c,px,py,t));else if(KG.bau.find(b=>b.id==='teich'))add(py-40,c=>kSite(c,830,980,90,t));
+ // Umfahrung im Bau: Holzfäller
+ if(KG.bau.find(b=>b.id==='umf'))for(const [x,y] of [[736,1200],[740,1370]])add(y,c=>kSite(c,x,y,50,t));
+ // Garage + Bergwacht
+ if(KG.b.raupe)add(V.garage.y+8,c=>kGarage(c,V.garage.x,V.garage.y,t));
+ if(KG.b.bw)add(V.bwHut.y,c=>kBwHut(c,V.bwHut.x,V.bwHut.y,t));
+ // Gasthof
+ const H=V.hotel;if(KG.hotel)add(H.y,c=>kHotelDraw(c,H,t));else if(KG.bau.find(b=>b.id==='hotel'))add(H.y,c=>{chalet(c,H.x,H.y,H.w,H.h,H.k);kSign(c,H.x,H.y-H.h-24,H.sign,'#8f5a34','#fff',5.4);kSite(c,H.x,H.y+6,80,t,1)});
+ // neue Abschnitte im Bau: Holzfäller auf der Trasse
+ const sb=KG.bau.find(b=>b.k==='stage');if(sb){const S={2:[[560,1070],[620,1318]],3:[[364,760],[400,930]],4:[[598,300],[566,560]]}[sb.st]||[];for(const [x,y] of S)add(y,c=>kSite(c,x,y,50,t))}
+ // Engstellen: Warnschilder, Stau-Anzeige
+ for(const E of KW.eng||[]){if(!kPtOpen(KW.pmap.main,kAt(KW.pmap.main.d,E.s0)))continue;const M=KW.pmap.main,q=kAt(M.d,E.s0-6);for(const sd of [-1,1]){const x=q[0]+q[3]*(q[2]+10)*sd,y=q[1]+q[4]*(q[2]+10)*sd;add(y,c=>kEngSign(c,x,y))}
+  if(E.q.length>=4){const m=kAt(M.d,E.s0-8),sd=m[3]>0?1:-1,x=m[0]+m[3]*(m[2]+34)*sd,y=m[1]+m[4]*(m[2]+34)*sd;add(y+30,c=>kSign(c,x,y-26,'⏳ STAU · '+E.q.length,'#e8504a','#fff',6.5))}}};
+function kEngSign(c,x,y){c.fillStyle='rgba(110,140,180,.25)';c.beginPath();c.ellipse(x+1.5,y+1,3.5,1.2,0,0,7);c.fill();c.fillStyle='#5d667a';c.fillRect(x-.6,y-12,1.2,12);
+ c.fillStyle='#f2c53b';c.beginPath();c.moveTo(x,y-19);c.lineTo(x+5,y-11);c.lineTo(x-5,y-11);c.closePath();c.fill();c.strokeStyle='#2b3040';c.lineWidth=.5;c.stroke();c.fillStyle='#2b3040';c.fillRect(x-.45,y-17,.9,3.4);c.fillRect(x-.45,y-12.8,.9,.9)}
+function kPumpDraw(c,x,y,t){c.fillStyle='rgba(110,140,180,.25)';c.beginPath();c.ellipse(x+4,y+2,20,4,0,0,7);c.fill();c.fillStyle='#cfd6df';c.fillRect(x-16,y-18,32,20);c.fillStyle='#aab3c0';c.fillRect(x+4,y-18,12,20);c.fillStyle='#3a78d0';c.fillRect(x-12,y-10,8,12);
+ c.fillStyle='#5b6578';c.beginPath();c.moveTo(x-19,y-17);c.lineTo(x-13,y-26);c.lineTo(x+13,y-26);c.lineTo(x+19,y-17);c.closePath();c.fill();c.fillStyle='#fff';c.fillRect(x-14,y-26,28,3);
+ c.fillStyle='#a8dcf5';c.fillRect(x+6,y-13,7,6);kWin(x+6,y-13,7,6);if(KW.canOn)hSmoke(c,x+10,y-24,t,1);kSign(c,x,y-34,'💧 SPEICHERTEICH','#2f86cf','#fff',5.5)}
+// Teich: Wasserspiegel sinkt, wenn die Kanonen laufen
+KV.bich.drawDyn=function(c,t){kBichGreen(c);kBichTeich(c,t,0)};
+function kBichTeich(c,t,force){const T=KVOR.teich,P=T.poly,cx=820,cy=972;if(!force&&!kInV(cx,cy,200))return;
+ if(!KG.b.teich){if(KG.stage>=2&&!KG.bau.find(b=>b.id==='teich')){c.strokeStyle='rgba(120,150,190,.55)';c.lineWidth=1;c.setLineDash([5,4]);c.beginPath();P.forEach((q,i)=>i?c.lineTo(q[0],q[1]):c.moveTo(q[0],q[1]));c.closePath();c.stroke();c.setLineDash([]);kSign(c,cx,cy,'💧 Speicherteich · im Baumenü','rgba(43,58,85,.65)','#fff',8)}else if(KG.bau.find(b=>b.id==='teich')){c.fillStyle='rgba(185,171,147,.5)';c.beginPath();P.forEach((q,i)=>i?c.lineTo(q[0],q[1]):c.moveTo(q[0],q[1]));c.closePath();c.fill()}return}
+ const sc=(k,dy=0)=>{c.beginPath();P.forEach((q,i)=>{const x=cx+(q[0]-cx)*k,y=cy+(q[1]-cy)*k+dy;i?c.lineTo(x,y):c.moveTo(x,y)});c.closePath()};
+ // Damm/Ufer und Zaun
+ c.fillStyle='#d9e6f3';sc(1.1);c.fill();c.fillStyle='#c9b9a0';sc(1.0);c.fill();
+ const lv=.62+.38*KG.wat/100;const g=c.createLinearGradient(0,900,0,1046);g.addColorStop(0,'#7cc4e4');g.addColorStop(1,'#4f9fcf');c.fillStyle=g;sc(lv,(1-lv)*14);c.fill();
+ // Eisrand oben und Glanz
+ c.save();sc(lv,(1-lv)*14);c.clip();c.fillStyle='rgba(235,247,255,.92)';c.beginPath();c.moveTo(700,880);c.lineTo(940,880);c.lineTo(940,930);c.lineTo(870,934);c.lineTo(810,930);c.lineTo(760,952);c.lineTo(700,960);c.closePath();c.fill();
+ c.strokeStyle='rgba(255,255,255,.55)';c.lineWidth=1;const o=Math.sin(t*.6)*3;for(const [x,y,w] of [[800,975,40],[840,1000,30],[780,1010,22]]){c.beginPath();c.moveTo(x-w/2+o,y);c.lineTo(x+w/2+o,y);c.stroke()}c.restore();
+ c.strokeStyle='#8f5a34';c.lineWidth=.9;sc(1.18);c.stroke();c.fillStyle='#8f5a34';for(const q of P){const x=cx+(q[0]-cx)*1.18,y=cy+(q[1]-cy)*1.18;c.fillRect(x-.6,y-5,1.2,5)}
+ // Leitung zu den Kanonen
+ c.strokeStyle='rgba(90,110,140,.35)';c.lineWidth=1.4;c.setLineDash([4,3]);c.beginPath();c.moveTo(726,990);c.quadraticCurveTo(690,1060,686,1120);c.stroke();c.setLineDash([])}
+// aper Stellen bei Tauwetter / wenig Schnee (unten zuerst)
+KV.bich.drawOver=function(c,t){
+ // Morgennebel im Tal
+ if(KG.fog&&KG.t>=5.5&&KG.t<10.8){const a=KG.t<9.6?1:1-(KG.t-9.6)/1.2;const r=kRNG(4);for(let i=0;i<30;i++){const x=-80+r()*1180,y=1560+r()*520,w=110+r()*170;if(!kInV(x,y,w))continue;const g=c.createRadialGradient(x,y,4,x,y,w);g.addColorStop(0,'rgba(248,251,255,'+(.5*a).toFixed(2)+')');g.addColorStop(1,'rgba(255,255,255,0)');c.fillStyle=g;c.beginPath();c.ellipse(x,y,w,w*.3,0,0,7);c.fill()}}};
+function kBichGreen(c){const M=KW.pmap.main,pq=KG.pq.main,sn=KG.snow;let k=0;if(pq<62)k=(62-pq)/62;if(sn<14)k=Math.max(k,(14-sn)/14*.8);if(KG.wx==='tau'&&sn<30)k=Math.max(k,.18);if(k<=0)return;
+ const r=kRNG(9);for(const P of [M,KW.pmap.umf]){if(!kPisteOpen(P))continue;for(const q of P.d){const rv=r(),a=r()*6.28,u=.45+r()*.55,wr=6+r()*12;if(q[1]<1150||!kPtOpen(P,q))continue;const lowF=kcl((q[1]-1150)/500,0,1);if(rv>.07*k*(.3+lowF))continue;if(!kInV(q[0],q[1],40))continue;
+  const x=q[0]+Math.cos(a)*q[2]*u,y=q[1]+Math.sin(a)*q[2]*.6*u,w=wr*(.6+k*.6);c.fillStyle='rgba(205,215,200,.9)';c.beginPath();c.ellipse(x,y,w+2.5,(w+2.5)*.5,0,0,7);c.fill();c.fillStyle='#8fae6a';c.beginPath();for(let j=0;j<9;j++){const tt=j/9*6.283,rr=w*(.7+.3*Math.sin(j*2.3+x));c.lineTo(x+Math.cos(tt)*rr,y+Math.sin(tt)*rr*.48)}c.closePath();c.fill();c.fillStyle='#a9c27e';c.beginPath();c.ellipse(x-w*.15,y-w*.08,w*.45,w*.18,0,0,7);c.fill()}}}
+// Tippen
+KV.bich.hit=function(x,y,hit,d){if((KG.b.teich||KG.bau.find(b=>b.id==='teich'))&&(kInPoly(x,y,KVOR.teich.poly)||d(KVOR.teich.pump[0],KVOR.teich.pump[1]-10)<26))hit.push({k:'tei',d:0});
+ for(const E of KW.eng||[]){const m=kAt(KW.pmap.main.d,(E.s0+E.s1)/2);if(kPtOpen(KW.pmap.main,m)&&d(m[0],m[1])<34)hit.push({k:'eng:'+E.id,d:1})}
+ if(KG.b.bw&&d(KVOR.bwHut.x,KVOR.bwHut.y-10)<20)hit.push({k:'bwh',d:0})};
+KV.bich.infHTML=function(k){
+ if(k==='tei'){if(!KG.b.teich)return kHead('💧 Speicherteich')+'<p class="hint">🚧 Im Bau.</p>';return kHead('💧 Speicherteich')+`<div class="kpi"><div><small>Wasserstand</small><b>${Math.round(KG.wat)} %</b><div class="kbar2"><i style="width:${Math.round(KG.wat)}%;background:linear-gradient(90deg,#7cc4e4,#2f86cf)"></i></div></div><div><small>Kanonen-Leistung</small><b>${Math.round(KV.bich.canF()*100)} %</b></div></div><p class="hint">Nachts holen die Schneekanonen das Wasser aus dem Teich, tagsüber füllt ihn der Bach wieder auf. Ist er leer, schaffen die Kanonen nur halbe Leistung.</p>`}
+ if(k.startsWith('eng:')){const E=(KW.eng||[]).find(e=>'eng:'+e.id===k);if(!E)return '';const lower=E.id==='e2';return kHead('🚧 '+E.n)+`<div class="kpi"><div><small>Warten gerade</small><b>${E.q.length}</b></div><div><small>Breite</small><b>${Math.round(E.w*2)} m</b></div></div><p class="hint">Hier wird die Abfahrt so schmal, dass die Gäste nur einzeln durchfahren. Wenn viele kommen, entsteht Stau – das kostet Laune.${lower?(KG.b.umf?' Die Umfahrung entlastet die Stelle.':' Abhilfe: die rote Umfahrung (🔨 Bauen › Piste).'):' Abhilfe: Gäste verteilen – mehr Sessel unten, damit nicht alle zum Gipfel fahren, oder Preise und Werbung.'}</p>`+(lower&&!KG.b.umf&&KG.stage>=2?'<div class="row"><span>Umfahrung</span><button class="btn" data-a="go" data-v="bau|pis">Baumenü ›</button></div>':'')}
+ if(k==='bwh')return kHead('⛑️ Bergwacht')+`<p class="hint">Die Bergwacht holt Verletzte mit Motorschlitten und Akja von der Abfahrt.${KW.res?' Gerade im Einsatz.':''}</p>`;
+ return ''};
+KV.bich.pisteInfo=function(p){if(p.id!=='main')return '';let h='<div class="bgh">Engstellen</div>';for(const E of KW.eng||[]){const op=kPtOpen(p,kAt(p.d,E.s0));h+=`<div class="row"><span>🚧 ${E.n}</span><b>${op?(E.q.length?E.q.length+' warten':'frei'):'noch gesperrt'}</b></div>`}return h};
+KV.bich.staExtra=function(){let h='';for(const E of KW.eng||[]){if(!kPtOpen(KW.pmap.main,kAt(KW.pmap.main.d,E.s0)))continue;h+=`<div class="row"><span>🚧 ${E.n}</span><b>${E.q.length?E.q.length+' warten':'frei'}</b></div>`}
+ if(KG.b.cannons)h+=`<div class="row"><span>❄️ Schneekanonen</span><b>${Math.round(KV.bich.canF()*100)} % Leistung</b></div>`;if(KG.b.teich)h+=`<div class="row"><span>💧 Speicherteich</span><b>${Math.round(KG.wat)} % voll</b></div>`;return h};
+KV.bich.voices=function(out){const n=(KW.eng||[]).reduce((a,e)=>a+e.q.length,0);if(n>=5)out.push(['🚧','„An der Engstelle steht man ewig!“']);
+ if(KG.pq.main<55||KG.snow<12)out.push(['🌱','„Unten wird die Piste schon grün.“']);if(KG.stage>=3&&kPQavg()>78)out.push(['🌲','„Die lange Abfahrt durch den Wald ist herrlich!“'])};
+KV.bich.thumbPrep=function(G){G.b.cannons=1;G.b.can2=1;G.b.teich=1;G.b.umf=1};
+KV.bich.thumbObjs=function(O){O.push({y:880,f:c2=>kBichTeich(c2,0,1)});O.push({y:1050,f:c2=>kPumpDraw(c2,890,1050,0)})};
+KV.bich.thumbR={x:-60,y:850,w:1120};
+// Landschaft: Voralpen-Hügel, weißer Hang, Straße und Gehweg
+KV.bich.bg=function(c){
+ kSky(c,170,'#79b6df','#e3eef6');
+ const hill=(base,amp,sd,col)=>{c.fillStyle=col;c.beginPath();c.moveTo(-160,base+60);for(let x=-160;x<=1180;x+=20)c.lineTo(x,base-amp*(.55+.45*Math.sin(x/140+sd))-amp*.25*Math.sin(x/53+sd*2));c.lineTo(1180,base+80);c.closePath();c.fill()};
+ hill(110,40,1,'#c7d6e4');hill(140,36,2.6,'#b4c8da');
+ const r=kRNG(3);for(let i=0;i<260;i++){const x=-140+r()*1300,y=96+r()*60;c.fillStyle='rgba(60,110,90,'+(.18+r()*.15)+')';c.beginPath();c.moveTo(x-3,y);c.lineTo(x,y-8);c.lineTo(x+3,y);c.fill()}
+ c.fillStyle='#ffffff';c.beginPath();c.moveTo(-160,214);c.bezierCurveTo(200,190,420,150,520,158);c.bezierCurveTo(660,150,860,190,1180,204);c.lineTo(1180,2400);c.lineTo(-160,2400);c.closePath();c.fill();
+ kSnowGround(c,170,2280);
+ c.strokeStyle='#7b5236';c.lineWidth=2.2;c.beginPath();c.moveTo(556,160);c.lineTo(556,134);c.moveTo(548,142);c.lineTo(564,142);c.stroke();
+ const W=KVOR.walkY,RY=KVOR.road.y;
+ c.fillStyle='#e2d4bb';c.fillRect(-110,W-6,1220,12);c.fillStyle='#ead9be';c.fillRect(-110,W-5,1220,3);
+ kRoad(c,RY,-160,1160,34);c.fillStyle='#d9dee6';c.fillRect(-160,RY-24,1320,7);c.fillRect(-160,RY+17,1320,7);
+ const bx=KVOR.bus.x-20;c.fillStyle='#2e9e5b';c.fillRect(bx,RY-36,1.6,14);c.beginPath();c.roundRect(bx-6,RY-44,14,9,2);c.fill();c.fillStyle='#fff';c.font='700 6px Fredoka,sans-serif';c.textAlign='center';c.fillText('H',bx+1,RY-37);
+ kSign(c,bx+1,RY-52,'🚌 Bichl Dorf','#2e9e5b','#fff',5)};
+KV.bich.staticExtra=function(c){// Ortsschild und Wegweiser an der Talstation
+ kSign(c,-70,1940,'BICHL','#f2c53b','#2b3040',7)};
+// Dorf südlich der Straße, dichter Mischwald am ganzen Hang
+KV.bich.decor=function(D){
+ for(const [x,y,w,h,k] of [[60,2060,52,28,1],[230,2096,56,30,0],[420,2060,48,26,2],[600,2104,58,30,1],[780,2064,50,28,0],[960,2100,54,28,2],[-80,2110,48,26,0],[1080,2050,46,26,1]])D.house(x,y,w,h,k);
+ const mix=r=>r()<.22?'l':'p';
+ D.scatter(-140,176,1140,1868,6200,51,(x,y)=>y<178?0:y>1700?.55:.97,mix);D.scatter(-140,2010,1140,2260,520,52,()=>.55,mix);
+ for(const [x,y,ra,n,s] of [[900,300,120,160,61],[60,300,110,120,62],[960,1300,120,150,63],[-60,1100,100,120,64],[880,1640,90,80,65]])D.grove(x,y,ra,n,s,mix)};
+KV.bich.blocks=function(B){
+ B.box(150,1730,300,1862);B.box(318,1780,446,1862);B.box(560,1752,648,1818);B.box(500,1776,580,1820);B.box(700,1760,840,1860);
+ B.box(-200,1856,1200,2000);
+ // Anstell-Bereiche an den Mittelstationen
+ for(const [x,y] of [[252,1390],[238,1006],[250,624]])B.box(x-80,y-6,x+4,y+84);
+ // Speicherteich, Waldhütte, Hüttenweg
+ B.box(696,870,946,1074);B.box(740,500,850,590);B.line([[602,552],[690,562],[766,566]],8);
+ // Gehwege im Tal
+ B.line([[360,1838],[328,1848],[292,1834],[262,1816]],8);B.line([[380,1946],[372,1906],[366,1866]],6);B.line([[740,1846],[740,1864]],6)};
 
 // ===== Landschaftsteile =====
 function kSky(c,y1,top='#5fb8ee',bot='#d6f0ff'){const g=c.createLinearGradient(0,-200,0,y1);g.addColorStop(0,top);g.addColorStop(1,bot);c.fillStyle=g;c.fillRect(-600,-600,2400,y1+600)}
@@ -186,19 +446,19 @@ function kInBlock(x,y,m=0){for(const b of KST.blocks)if(x>b[0]-m&&x<b[2]+m&&y>b[
  for(const L of KVOR.lifts){const dx=L.t[0]-L.b[0],dy=L.t[1]-L.b[1],l2=dx*dx+dy*dy,u=Math.max(0,Math.min(1,((x-L.b[0])*dx+(y-L.b[1])*dy)/l2)),px=L.b[0]+dx*u,py=L.b[1]+dy*u;if(Math.hypot(x-px,y-py)<(L.typ==='teller'?8:14)+16+m)return true}return false}
 function kBuildWorld(){const V=KVOR;
  // Pisten: dichte Linien
- KW.pistes=V.pistes.map(p=>Object.assign({},p,{d:kDense(p.pts,3)}));KW.pmap={};for(const p of KW.pistes)KW.pmap[p.id]=p;
+ KW.pistes=V.pistes.map(p=>Object.assign({},p,{d:kDense(p.pts,3)}));KW.pmap={};for(const p of KW.pistes)KW.pmap[p.id]=p;if(V.world)V.world();
  kPisteGrid();
  KST.blocks=[];const B={box:(a,b,c2,d)=>KST.blocks.push([a,b,c2,d]),line:(P,w)=>{for(let i=0;i<P.length-1;i++){const a=P[i],b=P[i+1],n=Math.ceil(Math.hypot(b[0]-a[0],b[1]-a[1])/8);for(let j=0;j<=n;j++){const x=a[0]+(b[0]-a[0])*j/n,y=a[1]+(b[1]-a[1])*j/n;KST.blocks.push([x-w,y-w,x+w,y+w*1.6])}}}};
  V.blocks(B);
  for(const L of V.lifts){for(const e of [L.b,L.t]){const big=e===L.b;if(L.typ==='teller')B.box(e[0]-22,e[1]-26,e[0]+22,e[1]+30);else B.box(e[0]-(big?52:44),e[1]-34,e[0]+(big?52:44),e[1]+44)}}
  // Bäume und Häuser
- KST.trees=[];KST.tg={};KST.houses=[];KST.objs=[];
+ KST.trees=[];KST.tg={};KST.houses=[];KST.objs=[];KST.churchW=[];
  const D={tree:(x,y,s,t='p',force)=>{if(!force){if(kOnP(x,y,12)||kInBlock(x,y,4))return 0;const gx=Math.round(x/10),gy=Math.round(y/10);for(let a=-1;a<=1;a++)for(let b=-1;b<=1;b++){const L=KST.tg[(gx+a)+','+(gy+b)];if(L)for(const q of L)if(Math.hypot(q[0]-x,q[1]-y)<(t==='p'?6:9))return 0}}
    const k=Math.round(x/10)+','+Math.round(y/10);(KST.tg[k]||(KST.tg[k]=[])).push([x,y]);KST.trees.push({x,y,s,t});return 1},
   grove:(cx,cy,rad,n,sd,t)=>{const r=kRNG(sd);for(let i=0;i<n;i++){const a=r()*6.283,u=Math.sqrt(r()),x=cx+Math.cos(a)*rad*u,y=cy+Math.sin(a)*rad*u*.8;D.tree(x,y,.55+r()*.4+.6*(1-u),typeof t==='function'?t(r):t)}},
   scatter:(x0,y0,x1,y1,n,sd,dens,t)=>{const r=kRNG(sd);for(let i=0;i<n;i++){const x=x0+r()*(x1-x0),y=y0+r()*(y1-y0),d=dens?dens(x,y):1;if(r()<d)D.tree(x,y,.55+r()*.7,typeof t==='function'?t(r,x,y):t)}},
   house:(x,y,w,h,k)=>{KST.blocks.push([x-w/2-10,y-h-30,x+w/2+10,y+14]);KST.houses.push({x,y,w,h,k})},
-  church:(x,y)=>{KST.objs.push({y,f:c=>kChurch(c,x,y)})},
+  church:(x,y)=>{KST.objs.push({y,f:c=>kChurch(c,x,y)});KST.churchW.push([x,y])},
   orchard:(x0,y0,nx,ny)=>{KST.blocks.push([x0-20,y0-34,x0+nx*26+12,y0+ny*24-2]);KST.objs.push({y:y0-30,f:c=>{c.strokeStyle='#8f5a34';c.lineWidth=1;c.strokeRect(x0-14,y0-28,nx*26+6,ny*24+12)}});for(let i=0;i<nx;i++)for(let j=0;j<ny;j++)D.tree(x0+i*26+(j%2)*6,y0+j*24,.7,'o',1)}};
  // Häuser zuerst eintragen (Blockflächen), dann Bäume
  const hs=[];const D0=Object.assign({},D,{scatter:()=>{},grove:()=>{},orchard:(...a)=>hs.push(['o',a])});V.decor(D0);
@@ -216,28 +476,37 @@ function kBuildStatic(){const V=KVOR,b=V.bounds,rs=kStaticRes();const cv=KST.c&&
   for(const h of KST.houses){if(KG.hotel&&V.hotel&&h.x===V.hotel.x&&h.y===V.hotel.y)continue;O.push({y:h.y,f:c2=>chalet(c2,h.x,h.y,h.w,h.h,h.k)})}
   O.sort((a,b)=>a.y-b.y);for(const o of O)o.f(c);
   // Laternen (Masten) am Gehweg und an der Straße
-  for(let x=96;x<=920;x+=82)kLampPost(c,x,1488);for(let x=-100;x<=1100;x+=120)kLampPost(c,x,1576)});
+  for(const [x,y] of KVOR.lamps())kLampPost(c,x,y);if(V.staticExtra)V.staticExtra(c)});
  // Fenster der Dorfhäuser für die Nacht
  KST.winS=[];for(const h of KST.houses){if(KG.hotel&&V.hotel&&h.x===V.hotel.x&&h.y===V.hotel.y)continue;const r=kRNG(h.x*3+h.y);for(const [wx,wy] of chWin(h.x,h.y,h.w,h.h))if(r()<.7)KST.winS.push([wx,wy,6,6])}
- for(const q of [2,16,30])KST.winS.push([500+q,1790-26,7,14])}
+ for(const [cx,cy] of KST.churchW)for(const q of [2,16,30])KST.winS.push([cx+q,cy-26,7,14])}
 function kLampPost(c,x,y){c.fillStyle='rgba(110,140,180,.25)';c.beginPath();c.ellipse(x+3,y+1,4,1.4,0,0,7);c.fill();c.fillStyle='#5b6578';c.fillRect(x-.8,y-22,1.6,22);c.fillStyle='#2b3040';c.beginPath();c.roundRect(x-3,y-25,6,4,1.5);c.fill();c.fillStyle='#ffe9a8';c.fillRect(x-2,y-21.5,4,1.1)}
 // Wege (Gehwege im Schnee)
-function kDrawPaths(c){const P=KW.paths;c.lineCap='round';c.lineJoin='round';
+function kPathLine(c,L,w){c.lineCap='round';c.lineJoin='round';c.strokeStyle='#d8c4a4';c.lineWidth=w;c.beginPath();L.forEach((p,i)=>i?c.lineTo(p[0],p[1]):c.moveTo(p[0],p[1]));c.stroke();c.strokeStyle='#e6d6bb';c.lineWidth=w-3;c.stroke()}
+function kDrawPaths(c){if(KVOR.drawPaths)return KVOR.drawPaths(c);const P=KW.paths;c.lineCap='round';c.lineJoin='round';
  const draw=(L,w)=>{c.strokeStyle='#d8c4a4';c.lineWidth=w;c.beginPath();L.forEach((p,i)=>i?c.lineTo(p[0],p[1]):c.moveTo(p[0],p[1]));c.stroke();c.strokeStyle='#e6d6bb';c.lineWidth=w-3;c.stroke()};
  draw(P.kTl,9);draw(P.kSes,9);if(KG.b.kinder)draw(P.kKid,8);if(KG.b.school)draw(P.kSchool,7);
  if(KG.b.hut){c.strokeStyle='#e9dcc4';c.lineWidth=6;c.beginPath();const H=KVOR.hut.in;H.forEach((p,i)=>i?c.lineTo(p[0],p[1]):c.moveTo(p[0],p[1]));c.stroke()}
  if(KG.hotel){draw([[540,1636],[560,1690],[640,1724],[676,1724]],7)}
  c.strokeStyle='#d8c4a4';c.lineWidth=9;c.beginPath();c.moveTo(KVOR.kassa.x,KVOR.walkY);c.lineTo(KVOR.kassa.x,KVOR.kassa.y+6);c.stroke();c.strokeStyle='#e6d6bb';c.lineWidth=6;c.stroke()}
 // Pisten zeichnen: offen (gespurt, Stangen) oder noch gesperrt (unberührter Schnee)
-function kPisteOpen(p){return KG.stage>=p.st&&kLiftFor(p)}
-function kLiftFor(p){for(const L of KVOR.lifts)if(L.pistes.includes(p.id)&&KG.l[L.id]&&KG.l[L.id].on)return 1;return 0}
+function kPisteOpen(p){return KG.stage>=p.st&&(!p.need||KG.b[p.need])&&kLiftFor(p)}
+// Abschnitte einer langen Piste: Stufe nach Höhe (p.sec = [[yAb,Stufe],…] von unten nach oben)
+function kSecSt(p,y){if(!p.sec)return p.st;for(const [y0,st] of p.sec)if(y>=y0)return st;return p.sec[p.sec.length-1][1]}
+function kPtOpen(p,q){return !p.sec||KG.stage>=kSecSt(p,q[1])}
+// erste offene Stelle (Bogenlänge) einer Piste
+function kOpenS(p){if(!p.sec)return 0;for(const q of p.d)if(kPtOpen(p,q))return q[3];return p.d[p.d.length-1][3]}
+function kLiftFor(p){if(p.via)return kPisteOpen(KW.pmap[p.via]);for(const L of KVOR.lifts)if(L.pistes.includes(p.id)&&KG.l[L.id]&&KG.l[L.id].on)return 1;return 0}
 function kDrawPistes(c){const PS=KW.pistes;
- for(let pass=0;pass<2;pass++)for(const p of PS){const op=kPisteOpen(p);c.fillStyle=pass?(op?'#ffffff':'#fbfdff'):(op?'#d9e6f3':'#e9f0f8');for(let i=0;i<p.d.length;i+=2){const q=p.d[i];c.beginPath();c.arc(q[0],q[1],q[2]+(pass?0:1.4),0,7);c.fill()}}
- c.strokeStyle='rgba(165,185,215,.32)';c.lineWidth=.7;for(const p of PS){if(!kPisteOpen(p))continue;for(const f of [-.62,-.3,0,.3,.62]){c.beginPath();const n0=p.d.length;let st=0;p.d.forEach((q,i)=>{if(i<n0*.04||i>n0*.93)return;const x=q[0]+q[4]*q[2]*f+Math.sin(q[1]/37+f*5)*3,y=q[1]+q[5]*q[2]*f;st?c.lineTo(x,y):c.moveTo(x,y);st=1});c.stroke()}}
- const PC={b:'#3a78d0',r:'#e8504a',s:'#2b3040'};for(const p of PS){if(!kPisteOpen(p))continue;let acc=0;for(let i=1;i<p.d.length;i++){const a=p.d[i-1],q=p.d[i];acc+=Math.hypot(q[0]-a[0],q[1]-a[1]);if(acc<34)continue;acc=0;
+ for(let pass=0;pass<2;pass++)for(const p of PS){const op0=kPisteOpen(p);for(let i=0;i<p.d.length;i+=2){const q=p.d[i],op=op0&&kPtOpen(p,q);c.fillStyle=pass?(op?'#ffffff':'#fbfdff'):(op?'#d9e6f3':'#e9f0f8');c.beginPath();c.arc(q[0],q[1],q[2]+(pass?0:1.4),0,7);c.fill()}}
+ c.strokeStyle='rgba(165,185,215,.32)';c.lineWidth=.7;for(const p of PS){if(!kPisteOpen(p))continue;for(const f of [-.62,-.3,0,.3,.62]){c.beginPath();const n0=p.d.length;let st=0;p.d.forEach((q,i)=>{if(i<n0*.04||i>n0*.93||!kPtOpen(p,q)){st=0;return}const x=q[0]+q[4]*q[2]*f+Math.sin(q[1]/37+f*5)*3,y=q[1]+q[5]*q[2]*f;st?c.lineTo(x,y):c.moveTo(x,y);st=1});c.stroke()}}
+ const PC={b:'#3a78d0',r:'#e8504a',s:'#2b3040'};for(const p of PS){if(!kPisteOpen(p))continue;let acc=0;for(let i=1;i<p.d.length;i++){const a=p.d[i-1],q=p.d[i];acc+=Math.hypot(q[0]-a[0],q[1]-a[1]);if(acc<34||!kPtOpen(p,q))continue;acc=0;
   for(const sd of [-1,1]){const x=q[0]+q[4]*(q[2]+4)*sd,y=q[1]+q[5]*(q[2]+4)*sd;if(kOnP(x,y,-1)||kInBlock(x,y,-6))continue;c.fillStyle=PC[p.col];c.fillRect(x,y-8,1.6,9);c.fillStyle=p.col==='s'?'#f2c53b':'#fff';c.fillRect(x,y-5,1.6,1.4)}}}
  // gesperrte Pisten: Schild
- for(const p of PS){if(kPisteOpen(p)||p.id==='ueb')continue;const q=p.d[Math.floor(p.d.length*.42)];kSign(c,q[0],q[1],'🔒 '+p.n+' · Stufe '+p.st,'rgba(43,58,85,.78)','#fff',10)}}
+ for(const p of PS){if(p.id==='ueb'||p.conn)continue;
+  if(p.sec&&kPisteOpen(p)){// gesperrte Abschnitte einzeln beschriften
+   for(let st=KG.stage+1;st<=KVOR.stages;st++){const Q=p.d.filter(q=>kSecSt(p,q[1])===st);if(!Q.length)continue;const q=Q[Math.floor(Q.length*.5)];kSign(c,q[0],q[1],'🔒 Ausbau Stufe '+st,'rgba(43,58,85,.78)','#fff',10)}continue}
+  if(kPisteOpen(p))continue;const q=p.d[Math.floor(p.d.length*.42)];kSign(c,q[0],q[1],(p.need&&KG.bau.find(b=>b.id===p.need)?'🚧 '+p.n+' · im Bau':'🔒 '+p.n+(p.need&&KG.stage>=p.st?' · im Baumenü':' · Stufe '+p.st)),'rgba(43,58,85,.78)','#fff',10)}}
 // Zeichenteile des Spiels auf Winter/Karriere einstellen (Uhrzeit für Fenster, Jahreszeit, Ausbau-Optik)
 function kWithGame(fn){const g=(typeof G!=='undefined')?G:null;const sv={t:g&&g.t,kup:g&&g.kup,rupg:g&&g.rupg,su:g&&g.su,T:typeof T!=='undefined'?T:0,NW:window.NWIN};
  let s0,s1,s2;try{s0=SEAV;s1=SEAB;s2=SEAD;SEAV='w';SEAB=0;SEAD='w'}catch(e){}
@@ -252,14 +521,14 @@ function kBrightT(){const b=kBright();// bright(): p<.58→1, .58–.72 fällt a
 function kNewState(id,perks){const V=KV[id],B=KBERGE.find(b=>b.id===id);
  const s={id,v:1,firm:KC&&KC.firm||'',perks:(perks||[]).slice(),day:1,t:6.5,money:V.start+((perks||[]).includes('kap')?5000:0),stage:1,
   l:{},b:{kinder:0,school:0,hut:0,kiosk:0,raupe:(perks||[]).includes('raupe')?1:0,bw:(perks||[]).includes('bw')?1:0,lw:0,cannons:0,bus:0},
-  lots:{},paved:0,hotel:0,bau:[],
+  lots:{},paved:0,hotel:0,bau:[],wat:100,
   price:{ticket:V.fair.ticket[1],park:V.fair.park,food:V.fair.food,kids:V.fair.kids,school:V.fair.school,hotel:V.fair.hotel},
   ruf:50+((perks||[]).includes('name')?10:0),wx:'sonne',wxN:'sonne',snow:42,pq:{},inc:{},cost:{},hist:[],gT:0,gDay:0,rej:0,famOK:0,
   sat:{},cmp:[],rv:V.rivS.slice(),seaM0:0,seaInc:0,seaCost:0,goals:{},done:0,pleite:0,lg:[],buzz:0,res:{},sea:1,kupg:0,dem:0,stars:1,seaHist:[],tu:0};
  for(const L of V.lifts)s.l[L.id]={on:0,typ:L.typ,lg:0,cond:100,brk:null};
  for(const L of V.lots)s.lots[L.id]=L.base?1:0;
  for(const p of V.pistes)s.pq[p.id]=100;
- s.wxN=kWxRoll(V);s.seaM0=s.money;return s}
+ if(V.init)V.init(s);s.wxN=kWxRoll(V);s.seaM0=s.money;return s}
 function kWxRoll(V){const w=V.wx;let r=kR(),acc=0;for(const k in w){acc+=w[k];if(r<acc)return k}return 'sonne'}
 function kSave(){if(!KG)return;try{localStorage.setItem(KBK(KG.id),JSON.stringify(KG))}catch(e){}}
 function kLoad(id){try{const o=JSON.parse(localStorage.getItem(KBK(id))||'null');if(o&&o.id===id)return o}catch(e){}return null}
@@ -273,6 +542,8 @@ function kBright(){const t=KG?KG.t:12;if(t<6)return 0;if(t<7.5)return (t-6)/1.5;
 // Lift-Daten
 const KLT={teller:{n:'Tellerlift',cap:1,sp:15,v:30,co:4,up:110},s2:{n:'2er-Sessel',cap:2,sp:36,v:40,co:8,up:260},s4:{n:'4er-Sessel',cap:4,sp:40,v:46,co:8,up:380},s6:{n:'6er-Sessel',cap:6,sp:44,v:50,co:9,up:520}};
 const kLC=(id)=>{const L=KVOR.lifts.find(x=>x.id===id);return L};
+// Lift, dessen Bergstation am Fuß dieses Liftes liegt (Lift-Kette)
+const kLowerOf=(id)=>KVOR.lifts.find(x=>x.nx===id);
 
 // ===== Simulation =====
 function kLog(ic,tx){if(!KG)return;KG.lg.unshift({d:KG.day,t:KG.t,ic,tx});if(KG.lg.length>80)KG.lg.length=80;KW.lgNew=1}
@@ -289,46 +560,68 @@ function kLiftOpen(id){const st=KG.l[id];if(!st||!st.on)return 0;if(st.brk)retur
 function kLiftPos(o,u,side){// u 0..1 bergauf (rechte Seite), 1..2 bergab
  const up=u<1,a=up?u:2-u,co=o.T.co,px=-o.uy,py=o.ux;const sd=up?1:-1;return [o.bx+(o.tx-o.bx)*a+px*co*sd,o.by+(o.ty-o.by)*a+py*co*sd]}
 function kLiftStep(o,dt){const id=o.L.id,open=kLiftOpen(id),st=KG.l[id];
- const riders=o.ch.some(c=>c.r.length);o.run=st.on&&!st.brk&&!(KG.wx==='sturm'&&st.typ!=='teller')&&(open||riders);
+ const riders=o.ch.some(c=>c.r.length);o.run=(st.on||riders)&&!st.brk&&!(KG.wx==='sturm'&&st.typ!=='teller')&&(open||riders);
  if(!o.run)return;const du=o.T.v*dt/o.len;
  for(const c of o.ch){const u0=c.u;c.u+=du;if(c.u>=2)c.u-=2;
   // Ankunft oben
   if(u0<1&&c.u>=1){for(const f of c.r)kUnload(o,f);c.r=[]}
   // Einstieg unten
   if((u0>1.6&&c.u<.4&&c.u<u0)||(u0<0&&c.u>=0)){if(open)kBoard(o,c)}}}
-function kBoard(o,c){const cap=o.T.cap;let n=0;while(o.q.length&&n<cap){const f=o.q[0];const s0=kQSlot(o,0);if(Math.hypot(f.x-s0[0],f.y-s0[1])>9)break;o.q.shift();f.st='ride';f.ch=c;f.lid=o.L.id;c.r.push(f);n++;
+function kBoard(o,c){const cap=o.T.cap;let n=0,k=0;// die ersten Plätze der Schlange steigen gemeinsam ein (alle, die schon an ihrem Platz stehen)
+ const s0=kQSlot(o,0),lim=cap>1?9+7*cap:9;for(;k<Math.min(cap,o.q.length);k++){const f=o.q[k];if(Math.hypot(f.x-s0[0],f.y-s0[1])>lim)break}
+ while(o.q.length&&n<k){const f=o.q[0];o.q.shift();f.st='ride';f.ch=c;f.lid=o.L.id;c.r.push(f);n++;
   const w=(KG.t-(f.qT||KG.t))*60;f.waits=(f.waits||0)+1;f.wsum=(f.wsum||0)+w;o.wait.push(w);if(o.wait.length>20)o.wait.shift();f.sat-=Math.max(0,w-7)*.55;if(w>25)f.sat-=3;
   if(!f.ins&&!f.kid&&f.ty!=='staff'){}o.cnt++;KG.res.rides=(KG.res.rides||0)+1}}
 function kQSlot(o,i){const L=o.L,bx=L.b[0],by=L.b[1];if(o.T.cap===1){const r=Math.floor(i/6),j=i%6;return [bx-15+(r%2?5-j:j)*6,by+18+r*7]}
  const r=Math.floor(i/9),j=i%9;return [bx-14-(r%2?8-j:j)*7,by+16+r*8]}
 function kUnload(o,f){f.ch=null;const L=o.L;f.x=L.exit[0]+(kR()-.5)*6;f.y=L.exit[1]+(kR()-.5)*4;
  if(f.grp&&f.grp.st==='run'&&f.grp.lid===o.L.id){kSkiStart(f,'ueb',f.grp);return}
+ if(KVOR.unload){KVOR.unload(o,f);return}
  const ps=L.pistes.filter(pid=>kPisteOpen(KW.pmap[pid]));let pid=ps[0];
  if(ps.length>1){const w=ps.map(p=>{const P=KW.pmap[p];if(P.col==='r')return f.ty==='pro'?2.2:f.ty==='sb'?1.8:f.ty==='fam'?.35:.08;return 1});let s=w.reduce((a,b)=>a+b,0),r=kR()*s;for(let i=0;i<ps.length;i++){r-=w[i];if(r<=0){pid=ps[i];break}}}
  kSkiStart(f,pid)}
 // --- Skifahren ---
 const KSPD={fam:46,anf:32,pro:72,sb:64,kid:30,ins:24};
-function kSkiStart(f,pid,grp){const P=KW.pmap[pid];f.st='ski';f.pid=pid;f.s=0;f.grpRun=grp||null;
+function kSkiStart(f,pid,grp,s0){const P=KW.pmap[pid];f.st='ski';f.pid=pid;f.s=s0||0;f.runS=0;f.s0r=f.s;f.grpRun=grp||null;f.engIn=null;f.engQ=null;f.engHold=0;f.brCk=0;
  f.v=(f.kid?KSPD.kid:KSPD[f.ty]||45)*(.85+kR()*.3)*(pid==='ueb'?.62:1)*(P.col==='r'?1.1:1);if(grp){f.v=17;f.o=0}else{f.o=(kR()*2-1)*.7}
  f.ph=kR()*6.28;f.amp=f.ty==='sb'?.9:f.ty==='pro'?.7:f.ty==='anf'?.25:.5;f.ateCk=0}
 function kSkiPos(f){const P=KW.pmap[f.pid],q=kAt(P.d,f.s);let o;if(f.grpRun){o=Math.sin(f.s/34)*.55}else{const sw=Math.sin(f.s/(26+f.amp*14)+f.ph)*f.amp*.32;o=kcl(f.o+sw,-.88,.88)}
  return [q[0]+q[3]*q[2]*o,q[1]+q[4]*q[2]*o,q,o]}
 function kSkiStep(f,dt){const P=KW.pmap[f.pid],Ld=P.d[P.d.length-1][3];
  // Hütte unterwegs
- if(f.pid==='main'&&KG.b.hut&&!f.ate&&!f.kid&&!f.grpRun&&KG.t>=11.2&&KG.t<14.2&&!f.ateCk){const sH=KW.hutS;if(f.s<sH&&f.s+f.v*dt>=sH){f.ateCk=1;if(kR()<.72){f.st='walk';f.path=KVOR.hut.in.map(p=>[p[0],p[1]]);f.pi=0;f.wsp=12;f.nx='hut';f.board0=1;return}}}
+ if(KVOR.hut&&f.pid===KVOR.hut.pid&&KG.b.hut&&!f.ate&&!f.kid&&!f.grpRun&&KG.t>=11.2&&KG.t<14.2&&!f.ateCk){const sH=KW.hutS;if(f.s<sH&&f.s+f.v*dt>=sH){f.ateCk=1;if(kR()<.72){f.st='walk';f.path=KVOR.hut.in.map(p=>[p[0],p[1]]);f.pi=0;f.wsp=12;f.nx='hut';f.board0=1;return}}}
  // Ausweichen: langsamer, wenn vorne dicht (einfach)
- f.s+=f.v*dt;const [x,y,q,o]=kSkiPos(f);f.sv=(x-f.x)*20;f.x=x;f.y=y;f.lo=o;
+ if(P.eng&&kEngStep(f,P,dt))return;
+ if(P.br&&!f.brCk&&f.s<P.br.s&&f.s+f.v*dt>=P.br.s){f.brCk=1;if(KVOR.branch&&KVOR.branch(f,P.br)){kSkiSwitch(f,P.br.p,0);return}}
+ if(!f.engHold)f.s+=f.v*dt*(f.engIn?f.engIn.vf:1);const [x,y,q,o]=kSkiPos(f);f.sv=(x-f.x)*20;f.x=x;f.y=y;f.lo=o;
  if(f.hurtAt&&f.s>=f.hurtAt){f.hurtAt=0;kHurt(f);return}
- if(f.s>=Ld){KG.pq[f.pid]=Math.max(0,KG.pq[f.pid]-(f.pid==='ueb'?.06:.035));f.runs=(f.runs||0)+1;f.sat+=((KG.pq[f.pid]||100)-68)/30*1.4+(f.pid==='wald'&&(f.ty==='pro'||f.ty==='sb')?1.6:0);kAfterRun(f)}}
+ if(f.s>=Ld){if(P.next){// Übergang auf die nächste Piste (Zubringer → Abfahrt, Umfahrung → Abfahrt)
+   if(!P.conn){KG.pq[f.pid]=Math.max(0,KG.pq[f.pid]-(P.wear||.035));if(P.col==='r'&&(f.ty==='pro'||f.ty==='sb'))f.sat+=1.2}
+   kSkiSwitch(f,P.next.p,P.next.s);return}
+  KG.pq[f.pid]=Math.max(0,KG.pq[f.pid]-(P.wear||(f.pid==='ueb'?.06:.035)));f.runs=(f.runs||0)+1;const rl=KVOR.runRef?kcl(((f.runS||0)+Math.max(0,f.s-(f.s0r||0)))/KVOR.runRef,.6,2.2):1;f.sat+=(((KG.pq[f.pid]||100)-68)/30*1.4+(P.col==='r'&&(f.ty==='pro'||f.ty==='sb')?1.6:0))*rl;kAfterRun(f)}}
+// auf eine andere Piste wechseln, ohne Sprung (seitliche Lage aus der echten Position)
+function kSkiSwitch(f,pid,s){const P=KW.pmap[pid],P0=KW.pmap[f.pid];f.runS=(f.runS||0)+Math.max(0,f.s-(f.s0r||0));f.s0r=s;f.pid=pid;f.s=s;f.engIn=null;f.engQ=null;f.engHold=0;f.brCk=0;const q=kAt(P.d,s);const o=((f.x-q[0])*q[3]+(f.y-q[1])*q[4])/Math.max(4,q[2]);f.o=kcl(o,-.8,.8)}
+// Engstellen: nur einer nach dem anderen hinein, sonst warten (Stau)
+function kEngStep(f,P,dt){if(f.engIn){if(f.s>=f.engIn.s1)f.engIn=null;return 0}
+ const E=P.eng.find(e=>e.s1>f.s&&e.s0>f.s-2);if(!E)return 0;
+ const free=()=>KW.T-E.last>=E.h;
+ if(f.engQ===E){const i=E.q.indexOf(f);if(i<0){f.engQ=null;f.engHold=0;return 0}
+  if(i===0&&free()){E.q.shift();f.engQ=null;f.engHold=0;f.engIn=E;E.last=KW.T;f.o=kcl(f.o,-.5,.5);KG.res.engW=(KG.res.engW||0)+(KW.T-(f.engT||KW.T));return 0}
+  // zum Warteplatz rutschen und stehen bleiben
+  const ts=E.s0-4-Math.floor(i/3)*7.5-(i%3?2:0),lane=[0,-.5,.5][i%3];f.engHold=1;if(f.s<ts)f.s=Math.min(ts,f.s+Math.min(f.v,16)*dt);f.o+=(lane-f.o)*Math.min(1,dt*3);
+  f.sat-=dt/KRT*60*.3;const [x,y,q,o]=kSkiPos(f);f.sv=(x-f.x)*20;f.x=x;f.y=y;f.lo=o;return 1}
+ if(f.s+f.v*dt>=E.s0-2){if(!E.q.length&&free()){f.engIn=E;E.last=KW.T;f.o=kcl(f.o,-.5,.5);return 0}
+  E.q.push(f);f.engQ=E;f.engT=KW.T;f.engHold=1;KG.res.engN=(KG.res.engN||0)+1;return 0}
+ return 0}
 // nach einer Abfahrt / Liftfahrt: weiter?
 function kAfterRun(f){f.st='walk';f.path=null;
  if(f.grpRun){const g=f.grpRun;f.grpRun=null;if(g.st==='run'&&KG.t<g.end){kToQueue(f,'tl');return}}
  if(f.ins)return kInsHome(f);
  if(KG.t>=f.leaveT||!kAnyLiftFor(f))return kGoHome(f);
  // Kiosk am Mittag (wenn keine Hütte erreichbar)
- if(!f.ate&&KG.b.kiosk&&KG.t>=11.4&&KG.t<13.8&&(f.pid==='ueb'||!KG.b.hut)&&kR()<.7)return kGoKiosk(f);
+ if(!f.ate&&KG.b.kiosk&&KG.t>=11.4&&KG.t<13.8&&(f.pid==='ueb'||!KG.b.hut||KVOR.kioskAlways&&!f.ateCk)&&kR()<.7)return kGoKiosk(f);
  // Wechsel zwischen Übungshang und Sessel
- const lid=kChooseLift(f);kToQueue(f,lid)}
+ const lid=KVOR.chooseLift?KVOR.chooseLift(f):kChooseLift(f);kToQueue(f,lid)}
 function kAnyLiftFor(f){for(const L of KVOR.lifts)if(KG.l[L.id].on&&KG.t<16.25&&(L.typ==='teller'||KG.wx!=='sturm'))return 1;return 0}
 function kChooseLift(f){const ses=KG.l.ses&&KG.l.ses.on&&KG.wx!=='sturm'&&KG.stage>=2,tl=KG.l.tl&&KG.l.tl.on;
  if(!ses)return 'tl';if(!tl)return 'ses';
@@ -336,20 +629,21 @@ function kChooseLift(f){const ses=KG.l.ses&&KG.l.ses.on&&KG.wx!=='sturm'&&KG.sta
 // Wege zwischen Orten
 function kRev(P){return P.slice().reverse()}
 function kWhere(f){// Bereich, an dem der Gast gerade ist: kas | tl | ses | kid | sch
- const K=KVOR.kassa;if(Math.hypot(f.x-K.x,f.y-(K.y+8))<70||f.y>1480)return 'kas';
+ if(KVOR.where)return KVOR.where(f);
+ const K=KVOR.kassa;if(Math.hypot(f.x-K.x,f.y-(K.y+8))<70||f.y>KVOR.valleyY)return 'kas';
  if(f.st==='kidin'||Math.hypot(f.x-KVOR.kinder.x,f.y-KVOR.kinder.y)<90)return 'kid';
  if(Math.hypot(f.x-KVOR.school.x,f.y-KVOR.school.y)<26)return 'sch';
  if(f.x>560&&f.y>1300)return 'ses';return 'tl'}
 // Weg von Bereich zu Bereich (immer über die Kassa)
-function kRoute(from,to){const P=KW.paths,toK={tl:P.kTl,ses:P.kSes,kid:P.kKid,sch:P.kSchool};let path=[];if(from===to)return path;if(from!=='kas'&&toK[from])path=kRev(toK[from]);if(to!=='kas'&&toK[to])path=path.concat(toK[to]);else path.push([KVOR.kassa.x,KVOR.kassa.y+8]);return path}
-function kToQueue(f,lid){const o=KW.lift[lid],here=kWhere(f);const path=here===lid?[]:kRoute(here,lid);
+function kRoute(from,to,f){if(KVOR.route)return KVOR.route(from,to,f);const P=KW.paths,toK={tl:P.kTl,ses:P.kSes,kid:P.kKid,sch:P.kSchool};let path=[];if(from===to)return path;if(from!=='kas'&&toK[from])path=kRev(toK[from]);if(to!=='kas'&&toK[to])path=path.concat(toK[to]);else path.push([KVOR.kassa.x,KVOR.kassa.y+8]);return path}
+function kToQueue(f,lid){const o=KW.lift[lid],here=kWhere(f);const path=here===lid?(KVOR.route?KVOR.route(here,lid,f):[]):kRoute(here,lid,f);
  const end=kQSlot(o,o.q.length+1);path.push(end);f.path=path;f.pi=0;f.st='walk';f.wsp=path.length>2?11:14;f.nx='q:'+lid}
-function kJoinQ(f,lid){const o=KW.lift[lid];if(!o||!KG.l[lid].on||KG.t>=16.25||(lid==='ses'&&KG.wx==='sturm')){return f.ins?kInsHome(f):kGoHome(f)}f.st='q';f.qT=KG.t;f.lid=lid;o.q.push(f)}
-function kQStep(o,dt){for(let i=0;i<o.q.length;i++){const f=o.q[i],[sx,sy]=kQSlot(o,i),dx=sx-f.x,dy=sy-f.y,d=Math.hypot(dx,dy);if(d>.3){const m=Math.min(d,14*dt);f.x+=dx/d*m;f.y+=dy/d*m;f.sv=0}}
+function kJoinQ(f,lid){const o=KW.lift[lid];if(!o||!KG.l[lid].on||KG.t>=16.25||(KG.l[lid].typ!=='teller'&&KG.wx==='sturm')){return f.ins?kInsHome(f):kGoHome(f)}f.st='q';f.qT=KG.t;f.lid=lid;o.q.push(f)}
+function kQStep(o,dt){const qv=o.T.cap>1?30:14;for(let i=0;i<o.q.length;i++){const f=o.q[i],[sx,sy]=kQSlot(o,i),dx=sx-f.x,dy=sy-f.y,d=Math.hypot(dx,dy);if(d>.3){const m=Math.min(d,qv*dt);f.x+=dx/d*m;f.y+=dy/d*m;f.sv=0}}
  // Liftschluss: wer noch steht, geht heim
  if(KG.t>=16.25||!KG.l[o.L.id].on){while(o.q.length){const f=o.q.shift();if(f.ins)kInsHome(f);else kGoHome(f)}}}
 // --- Gehen ---
-function kZebraWait(f,p){const zb=KVOR.zebra;if(Math.abs(f.x-zb)>16)return 0;const Y0=1581,Y1=1619;const onRoad=f.y>Y0&&f.y<Y1;if(onRoad)return 0;if(!((f.y<=Y0&&p[1]>Y0)||(f.y>=Y1&&p[1]<Y1)))return 0;
+function kZebraWait(f,p){const zb=KVOR.zebra;if(zb==null||Math.abs(f.x-zb)>16)return 0;const Y0=KVOR.road.y-19,Y1=KVOR.road.y+19;const onRoad=f.y>Y0&&f.y<Y1;if(onRoad)return 0;if(!((f.y<=Y0&&p[1]>Y0)||(f.y>=Y1&&p[1]<Y1)))return 0;
  for(const c of KW.cars){if(c.st!=='in'&&c.st!=='leave')continue;const d=(zb-c.x)*c.dir;if(d>-14&&d<58)return 1}for(const b of KW.buses){const d=(zb-b.x)*b.dir;if(b.st!=='stop'&&d>-20&&d<70)return 1}return 0}
 function kWalkStep(f,dt){if(!f.path||f.pi>=f.path.length){return kArrive(f)}if(kZebraWait(f,f.path[f.pi]))return;const p=f.path[f.pi],dx=p[0]-f.x,dy=p[1]-f.y,d=Math.hypot(dx,dy),m=(f.wsp||11)*2.3*(f.kid?.85:1)*dt;
  if(d<=m){f.x=p[0];f.y=p[1];f.pi++;if(f.pi>=f.path.length)kArrive(f)}else{f.x+=dx/d*m;f.y+=dy/d*m}}
@@ -358,7 +652,7 @@ function kArrive(f){const nx=f.nx||'';f.nx='';f.path=null;
  if(nx.startsWith('q:'))return kJoinQ(f,nx.slice(2));
  if(nx==='car')return kAtCar(f);
  if(nx==='hut'){f.st='hut';f.tEnd=KG.t+.55+kR()*.4;kHutSeat(f);return}
- if(nx==='hutback'){f.ate=1;kSkiStart(f,'main');f.s=KW.hutS+2;return}
+ if(nx==='hutback'){f.ate=1;kSkiStart(f,KVOR.hut.pid||'main',null,KW.hutS+2);return}
  if(nx==='kiosk'){f.st='kiosk';f.tEnd=KG.t+.3+kR()*.2;return}
  if(nx==='kioskback'){kAfterRun(f);return}
  if(nx==='kid')return kKidIn(f);
@@ -380,13 +674,15 @@ function kKassaDone(f){const V=KVOR,P=KG.price,F=V.fair;if(!kAnyLiftFor(f)){f.sa
  kAfterRun(f)}
 function kWalk(f,path,nx,sp){f.st='walk';f.path=path.map(p=>[p[0],p[1]]);f.pi=0;f.nx=nx;f.wsp=sp||11}
 // --- Heimgehen ---
-function kGoHome(f,noRide){const P=KW.paths,V=KVOR;f.leaving=1;
+function kGoHome(f,noRide){const P=KW.paths,V=KVOR;if(V.descend&&V.descend(f))return;f.leaving=1;
  if(f.kid&&f.st==='kidin'){kWalk(f,kRev(P.kKid).concat(kHomeTail(f)),f.hotelG?'hotelin':f.busG?'busw':'car',10);return}
  let path=[];const here=kWhere(f);
  if(!noRide)path=kRoute(here,'kas');
  path=path.concat(kHomeTail(f));kWalk(f,path,f.hotelG?'hotelin':f.busG?'busw':'car',11)}
-function kHomeTail(f){const V=KVOR,k=V.kassa,W=V.walkY;if(f.hotelG)return kRev(KW.paths.zebra).concat([[560,1690],[640,1724],[V.hotel.x-20,V.hotel.y+4]]);if(f.busG)return kRev(KW.paths.busUp);
- const c=f.car;if(!c)return [[k.x,W]];return [[k.x,k.y+8],[k.x,W],[c.sx+9,W],[c.sx+9,1520]]}
+// Parkplatz-Geometrie aus der Vorlage
+const kPY=()=>KVOR.parkY,kLN=()=>KVOR.road.y-9,kLS=()=>KVOR.road.y+9;
+function kHomeTail(f){const V=KVOR,k=V.kassa,W=V.walkY;if(f.hotelG)return V.hotel.pout();if(f.busG)return kRev(KW.paths.busUp);
+ const c=f.car;if(!c)return [[k.x,W]];return [[k.x,k.y+8],[k.x,W],[c.sx+9,W],[c.sx+9,V.parkY-10]]}
 function kAtCar(f){f.st='gone';const c=f.car;if(c){c.back++;if(c.back>=c.n&&c.st==='park'){c.st='out';c.tw=.4+kR()*.6}}}
 // --- Hütte ---
 function kHutSeat(f){const H=KVOR.hut,i=(KW.hutN=(KW.hutN||0)+1)%10;const sp=[[-26,6],[-20,6],[-12,6],[10,6],[14,6],[18,6],[-8,14],[-2,14],[4,14],[8,14]][i];f.x=H.x+sp[0];f.y=H.y+sp[1];f.sit=1}
@@ -418,13 +714,14 @@ function kSchoolStep(){const t=KG.t,S=KVOR.school;for(const g of KW.school){
 function kInsHome(f){const path=kRoute(kWhere(f),'sch');kWalk(f,path,'inshome',11);if(f.grp)f.grp.st='end'}
 // --- Unfälle und Bergwacht ---
 function kHurt(f){f.st='hurt';f.hT=KG.t;KG.res.hurt=(KG.res.hurt||0)+1;f.sat-=25;
- if(KG.b.bw){KW.res={f,st:'go',x:KVOR.garage.x-40,y:KVOR.garage.y+8,t:0,path:kResPath(f)};kLog('⛑️','Unfall auf der Piste '+KW.pmap[f.pid].n+' – die Bergwacht ist unterwegs.')}
+ if(KG.b.bw){const B0=KVOR.bwStart||[KVOR.garage.x-40,KVOR.garage.y+8];KW.res={f,st:'go',x:B0[0],y:B0[1],t:0,path:(KVOR.resPre||[]).concat(kResPath(f))};kLog('⛑️','Unfall auf der Piste '+KW.pmap[f.pid].n+' – die Bergwacht ist unterwegs.')}
  else{kLog('🤕','Unfall auf der Piste '+KW.pmap[f.pid].n+' – ohne Bergwacht dauert die Hilfe lange. Ruf −3.');KG.ruf=Math.max(5,KG.ruf-3)}}
-function kResPath(f){const P=KW.pmap[f.pid],pts=[];for(let s=P.d[P.d.length-1][3];s>f.s;s-=40){const q=kAt(P.d,s);pts.push([q[0]+q[3]*q[2]*.82,q[1]+q[4]*q[2]*.82])}pts.push([f.x+10,f.y+4]);return pts}
+function kResPath(f){const pts=[],segs=[];let P=KW.pmap[f.pid],s0=f.s,g=0;while(P&&g++<6){segs.push([P,s0]);if(!P.next)break;s0=P.next.s;P=KW.pmap[P.next.p]}
+ for(let i=segs.length-1;i>=0;i--){const [Q,a]=segs[i];for(let s=Q.d[Q.d.length-1][3];s>a;s-=40){const q=kAt(Q.d,s);pts.push([q[0]+q[3]*q[2]*.82,q[1]+q[4]*q[2]*.82])}}pts.push([f.x+10,f.y+4]);return pts}
 function kResStep(dt){const R=KW.res;if(!R)return;const sp=56;
  if(R.st==='go'||R.st==='back'){const p=R.path[R.pi||0];if(!p){if(R.st==='go'){R.st='load';R.t=0}else{KW.res=null;const f=R.f;f.st='gone';return}return}
   const dx=p[0]-R.x,dy=p[1]-R.y,d=Math.hypot(dx,dy),m=sp*dt;R.a=Math.atan2(dy,dx);if(d<=m){R.x=p[0];R.y=p[1];R.pi=(R.pi||0)+1}else{R.x+=dx/d*m;R.y+=dy/d*m}if(R.st==='back'){R.f.x=R.x-Math.cos(R.a)*12;R.f.y=R.y-Math.sin(R.a)*12}return}
- if(R.st==='load'){R.t+=dt;if(R.t>2.4){R.st='back';R.path=kRev(R.path).concat([[KVOR.garage.x-40,KVOR.garage.y+8]]);R.pi=1;R.f.st='akja'}}}
+ if(R.st==='load'){R.t+=dt;if(R.t>2.4){const B0=KVOR.bwStart||[KVOR.garage.x-40,KVOR.garage.y+8];R.st='back';R.path=kRev(R.path).concat([B0]);R.pi=1;R.f.st='akja'}}}
 // --- Gäste erzeugen ---
 const KCOL=['#e8504a','#3a78d0','#f2a63b','#6cc07a','#b177e0','#2fb3b8','#ff7fae','#4b5ad8','#f06a2e'];
 function kMkFolk(ty,kid){return {id:KW.id++,ty,kid:kid?1:0,col:kpick(KCOL),board:ty==='sb'&&!kid,x:0,y:0,st:'walk',sat:72,paid:0,runs:0,sv:0}}
@@ -440,23 +737,23 @@ function kSetupFolk(f,arr,lt){f.leaveT=lt;f.arr=arr;f.hungry=kR()<.85;if(f.kid&&
 function kSpots(){const out=[];for(const L of KVOR.lots){if(!KG.lots[L.id])continue;const n=Math.floor((L.x1-L.x0)/kLotW);for(let i=0;i<n;i++)out.push({lot:L.id,i,x:L.x0+kLotW*i+kLotW/2})}return out}
 function kFreeSpot(){const sp=kSpots(),used=new Set(KW.cars.filter(c=>c.spot).map(c=>c.spot.lot+':'+c.spot.i));const free=sp.filter(s=>!used.has(s.lot+':'+s.i));if(!free.length)return null;
  // nahe am Weg zur Kassa bevorzugen
- free.sort((a,b)=>Math.abs(a.x-500)-Math.abs(b.x-500));return free[Math.floor(kR()*Math.min(4,free.length))]}
+ free.sort((a,b)=>Math.abs(a.x-KVOR.kassa.x)-Math.abs(b.x-KVOR.kassa.x));return free[Math.floor(kR()*Math.min(4,free.length))]}
 function kSpawnCar(ty){const sp=kFreeSpot();if(!sp){KG.rej++;KG.res.rej=(KG.res.rej||0)+1;return 0}
- const fromW=kR()<.5,y=fromW?1609:1591,x=fromW?KVOR.bounds.x0-40:KVOR.bounds.x1+40;
+ const fromW=kR()<.5,y=fromW?kLS():kLN(),x=fromW?KVOR.bounds.x0-40:KVOR.bounds.x1+40;
  const g=kGroup(ty),arr=KG.t,lt=kLeaveT(ty,arr);for(const f of g)kSetupFolk(f,arr,lt);
  const car={x,y,a:fromW?0:Math.PI,dir:fromW?1:-1,v:0,st:'in',spot:sp,sx:sp.x,col:kpick(['#e8504a','#3a78d0','#f2f2f2','#6cc07a','#f2c53b','#ff8fb8','#8e93b8','#2fb3b8']),ppl:g,n:g.length,back:0,ty};
  for(const f of g)f.car=car;KW.cars.push(car);return g.length}
 function kCarStep(c,dt){const zb=KVOR.zebra;
- const blockedZ=()=>{for(const f of KW.folks){if(f.st==='walk'&&Math.abs(f.x-zb)<13&&f.y>1580&&f.y<1620)return 1}return 0};
+ const RY=KVOR.road.y,PY=kPY();const blockedZ=()=>{if(zb==null)return 0;for(const f of KW.folks){if(f.st==='walk'&&Math.abs(f.x-zb)<13&&f.y>RY-20&&f.y<RY+20)return 1}return 0};
  const ahead=(v)=>{for(const o of KW.cars){if(o===c||o.dir!==c.dir||Math.abs(o.y-c.y)>6||o.st==='park'||o.st==='turn'&&false)continue;const d=(o.x-c.x)*c.dir;if(d>0&&d<36)v=Math.min(v,Math.max(0,(d-26)*2))}const nz=(zb-c.x)*c.dir;if(nz>4&&nz<40&&blockedZ())v=0;return v};
  if(c.st==='in'){const tx=c.sx-c.dir*16,dist=(tx-c.x)*c.dir;let v=46;if(dist<60)v=Math.max(12,dist*.8);v=ahead(v);c.x+=c.dir*v*dt;if(dist<=1){c.x=tx;c.st='turn';c.tt=0;c.y0=c.y}return}
- if(c.st==='turn'){c.tt+=dt/1.7;const t=Math.min(1,c.tt),h=Math.PI/2;c.x=c.sx-c.dir*16+c.dir*16*Math.sin(t*h);c.y=c.y0+(1530-c.y0)*(1-Math.cos(t*h));c.a=(c.dir>0?0:Math.PI)+(c.dir>0?-1:1)*t*h;if(t>=1){c.st='park';c.a=-h;c.x=c.sx;c.y=1530;kUnloadCar(c)}return}
+ if(c.st==='turn'){c.tt+=dt/1.7;const t=Math.min(1,c.tt),h=Math.PI/2;c.x=c.sx-c.dir*16+c.dir*16*Math.sin(t*h);c.y=c.y0+(PY-c.y0)*(1-Math.cos(t*h));c.a=(c.dir>0?0:Math.PI)+(c.dir>0?-1:1)*t*h;if(t>=1){c.st='park';c.a=-h;c.x=c.sx;c.y=PY;kUnloadCar(c)}return}
  if(c.st==='out'){c.tw-=dt;if(c.tw>0)return;c.st='back';c.tt=0;c.dir=kR()<.5?1:-1;return}
  if(c.st==='back'){// nur ausparken, wenn die Spur frei ist
-  const ty2=c.dir>0?1609:1591;if(c.tt===0){for(const o of KW.cars){if(o===c||o.st==='park')continue;if(Math.abs(o.y-ty2)<6&&Math.abs(o.x-c.x)<46)return}}
-  c.tt+=dt/1.9;const t=Math.min(1,c.tt),h=Math.PI/2;c.x=c.sx+c.dir*16*(1-Math.cos(t*h));c.y=1530+(ty2-1530)*Math.sin(t*h);c.a=-h+(c.dir>0?t*h:-t*h);if(t>=1){c.st='leave';c.y=ty2;c.a=c.dir>0?0:Math.PI;c.spot=null}return}
+  const ty2=c.dir>0?kLS():kLN();if(c.tt===0){for(const o of KW.cars){if(o===c||o.st==='park')continue;if(Math.abs(o.y-ty2)<6&&Math.abs(o.x-c.x)<46)return}}
+  c.tt+=dt/1.9;const t=Math.min(1,c.tt),h=Math.PI/2;c.x=c.sx+c.dir*16*(1-Math.cos(t*h));c.y=PY+(ty2-PY)*Math.sin(t*h);c.a=-h+(c.dir>0?t*h:-t*h);if(t>=1){c.st='leave';c.y=ty2;c.a=c.dir>0?0:Math.PI;c.spot=null}return}
  if(c.st==='leave'){let v=ahead(48);c.x+=c.dir*v*dt;if(c.x<KVOR.bounds.x0-60||c.x>KVOR.bounds.x1+60)c.st='gone'}}
-function kUnloadCar(c){const V=KVOR,W=V.walkY,k=V.kassa;let i=0;for(const f of c.ppl){f.x=c.sx+(i%2?-10:10);f.y=1530+(i>>1)*6;i++;const path=[[f.x,1514],[c.sx+9,W],[k.x,W],[k.x,k.y+8]];kWalk(f,path,'kassa',11);KW.folks.push(f);KG.gDay++;KG.gT++}
+function kUnloadCar(c){const V=KVOR,W=V.walkY,k=V.kassa,PY=kPY();let i=0;for(const f of c.ppl){f.x=c.sx+(i%2?-10:10);f.y=PY+(i>>1)*6;i++;const path=[[f.x,PY-16],[c.sx+9,W],[k.x,W],[k.x,k.y+8]];kWalk(f,path,'kassa',11);KW.folks.push(f);KG.gDay++;KG.gT++}
  kEarn('pk',KG.price.park,c.sx,1512);
  const r=KG.price.park/Math.max(1,V.fair.park);if(r>1.3)for(const f of c.ppl)f.sat-=(r-1.3)*10}
 // Bus
@@ -465,14 +762,14 @@ function kBusStep(b,dt){const X=KVOR.bus.x;if(b.st==='in'){let v=40;const d=(X-b
    const W=KW.folks.filter(f=>f.st==='busw');for(const f of W.slice(0,40)){f.st='gone';kAtBus(f)}b.st='leave'}return}
  if(b.st==='leave'){b.x+=b.dir*44*dt;if(b.x<KVOR.bounds.x0-80||b.x>KVOR.bounds.x1+80)b.st='gone'}}
 function kAtBus(f){}
-function kBusUnload(b){const V=KVOR,n=b.n||0;for(let i=0;i<n;i++){const ty=kMix(),f=kMkFolk(ty,0);const lt=kLeaveT(ty,KG.t);kSetupFolk(f,KG.t,Math.min(16.2,lt));f.busG=1;f.x=V.bus.x-14+(i%5)*6;f.y=1576+Math.floor(i/5)*2;kWalk(f,KW.paths.busUp,'kassa',11);KW.folks.push(f);KG.gDay++;KG.gT++}}
-function kSpawnBus(n,pick){KW.buses.push({x:KVOR.bounds.x1+60,y:1591,dir:-1,st:'in',n,a:0,pick});}
+function kBusUnload(b){const V=KVOR,n=b.n||0;for(let i=0;i<n;i++){const ty=kMix(),f=kMkFolk(ty,0);const lt=kLeaveT(ty,KG.t);kSetupFolk(f,KG.t,Math.min(16.2,lt));f.busG=1;f.x=V.bus.x-14+(i%5)*6;f.y=V.road.y-24+Math.floor(i/5)*2;kWalk(f,KW.paths.busUp,'kassa',11);KW.folks.push(f);KG.gDay++;KG.gT++}}
+function kSpawnBus(n,pick){KW.buses.push({x:KVOR.bounds.x1+60,y:kLN(),dir:-1,st:'in',n,a:0,pick});}
 // Hotelgäste (morgens aus dem Gasthof)
 function kSpawnHotelG(n){const V=KVOR,H=V.hotel;for(let i=0;i<n;i++){const ty=kMix(),f=kMkFolk(ty,0);f.hotelG=1;kSetupFolk(f,KG.t,kLeaveT(ty,KG.t));f.x=H.x-20+kR()*6;f.y=H.y+4;
- const path=[[H.x-30,H.y+4],[640,1724],[560,1690]].concat(KW.paths.zebra);kWalk(f,path,'kassa',11);f.delay=Math.floor(i/4)*2.2+(i%4)*.35;KW.folks.push(f);KG.gDay++;KG.gT++}}
+ const path=V.hotel.pin();kWalk(f,path,'kassa',11);f.delay=Math.floor(i/4)*2.2+(i%4)*.35;KW.folks.push(f);KG.gDay++;KG.gT++}}
 
 // ===== Tagesablauf, Wirtschaft =====
-const KBASE={sonn:[0,110,260,380]};
+const KBASE={sonn:[0,110,260,380],bich:[0,120,190,270,380]};
 const KWXF={sonne:1.12,neuschnee:1.22,tau:.82,sturm:.5};
 const KWI={sonne:'☀️',neuschnee:'🌨️',tau:'🌡️',sturm:'🌪️'},KWNM={sonne:'Sonne',neuschnee:'Neuschnee',tau:'Tauwetter',sturm:'Sturm'};
 function kFairT(){return KVOR.fair.ticket[KG.stage]+(kStars()-1)*1.5}
@@ -480,22 +777,23 @@ function kDemand(){const V=KVOR,base=KBASE[V.id]||KBASE.sonn,st=KG.stage;if(!Obj
  // neue Stufe spricht sich herum
  let b=base[st];if(KG.buzzD&&KG.day-KG.buzzD<KG.buzzN){const u=(KG.day-KG.buzzD+1)/(KG.buzzN+1);b=base[st-1]+(base[st]-base[st-1])*u}
  const r=KG.price.ticket/kFairT(),priceF=kcl(1.15-(r-.85)*V.priceSens*.9,.3,1.3);
- const q=kPQavg();let att=1+(KG.b.kinder?.07:0)+(KG.b.school?.05:0)+(KG.b.hut&&st>=2?.06:0)+(KG.b.kiosk?.02:0);
+ const q=kPQavg();let att=1+(KG.b.kinder?.07:0)+(KG.b.school?.05:0)+(KG.b.hut&&st>=(V.hut?V.hut.st:2)?.06:0)+(KG.b.kiosk?.02:0)+(V.att?V.att():0);
  let cmp=0;for(const c of KG.cmp)cmp+=c.eff;
  const d=b*KWF[kWd()]*(KWXF[KG.wx]||1)*(.35+KG.ruf/100*.95)*(.8+.1*kStars())*priceF*att*(.72+.28*q/100)*(1+cmp);
  return Math.round(d)}
-function kPQavg(){let s=0,n=0;for(const p of KW.pistes){if(!kPisteOpen(p))continue;s+=KG.pq[p.id];n++}return n?s/n:100}
+function kPQavg(){let s=0,n=0;for(const p of KW.pistes){if(p.conn||!kPisteOpen(p))continue;s+=KG.pq[p.id];n++}return n?s/n:100}
 function kArrRate(t){if(t<8||t>=13.1)return 0;return t<9?1:t<10.6?1.6:t<12?.8:.62}
 const KARRI=1*1+1.6*1.6+.8*1.4+.62*1.1;
 // --- Wertung ---
-function kOffer(){let o=0;const l=KG.l,b=KG.b;if(l.tl&&l.tl.on)o+=40;if(l.ses&&l.ses.on){o+=90;if(l.ses.typ==='s4')o+=40;if(l.ses.typ==='s6')o+=70}
+function kOffer(){if(KVOR.offer)return KVOR.offer();let o=0;const l=KG.l,b=KG.b;if(l.tl&&l.tl.on)o+=40;if(l.ses&&l.ses.on){o+=90;if(l.ses.typ==='s4')o+=40;if(l.ses.typ==='s6')o+=70}
  for(const k in l)o+=(l[k].lg||0)*10;
  for(const p of KW.pistes)if(kPisteOpen(p))o+=p.id==='ueb'?15:30;
  o+=(b.kinder?45:0)+(b.school?30:0)+(b.hut?50:0)+(b.kiosk?15:0)+(b.raupe?30:0)+(b.cannons?35:0)+(KG.hotel?45:0)+(b.bus?20:0)+(b.bw?15:0)+(b.lw?10:0)+(KG.paved?15:0)+(KG.stage-1)*40;
  for(const L of KVOR.lots)if(!L.base&&KG.lots[L.id])o+=15;return o}
 function kScore(){return Math.round(kOffer()*.6+KG.ruf*2.2+kPQavg()*.8)}
 const KSTH=[0,0,300,420,540,660];
-function kStars(){if(!KG)return 1;const s=kScore();let n=1;for(let i=2;i<=5;i++)if(s>=KSTH[i])n=i;return n}
+const kSTH=()=>KVOR&&KVOR.starTh||KSTH;
+function kStars(){if(!KG)return 1;const s=kScore(),TH=kSTH();let n=1;for(let i=2;i<=5;i++)if(s>=TH[i])n=i;return n}
 function kRank(){const me=kScore();return 1+KG.rv.filter(v=>v>me).length}
 function kCredit(){const H=KG.hist.slice(-7);let avg=0;if(H.length)avg=H.reduce((a,h)=>a+h.inc,0)/H.length;return Math.round(Math.max(5000,avg*8)*(KPK('bank')?1.5:1)/100)*100}
 function kSeaRes(){return Math.round((KG.seaInc||0)-(KG.seaCost||0))}
@@ -509,9 +807,10 @@ function kStep(dt){if(!KG||KG.done)return;
  if(t0<6&&KG.t>=6)kMorning();
  if(KG.t>=24){KG.t-=24;kMidnight()}
  // Ankunft
- const ar=kArrRate(KG.t);if(ar>0&&KG.dem>0){const car=KG.dem*(1-(KG.busShare||0))-KW.hotelN;KW.arrAcc=(KW.arrAcc||0)+Math.max(0,car)*ar/KARRI*dth/2.9;while(KW.arrAcc>=1){KW.arrAcc-=1;kSpawnCar(kMix())}}
+ if(KVOR.tick)KVOR.tick(dt,dth);
+ const ar=kArrRate(KG.fog?KG.t-.6:KG.t);if(ar>0&&KG.dem>0){const car=KG.dem*(1-(KG.busShare||0))-KW.hotelN;KW.arrAcc=(KW.arrAcc||0)+Math.max(0,car)*ar/KARRI*dth/2.9;while(KW.arrAcc>=1){KW.arrAcc-=1;kSpawnCar(kMix())}}
  // Busse
- if(KG.b.bus){for(const bt of [8.65,9.65,10.65])if(t0<bt&&KG.t>=bt){kSpawnBus(Math.round(KG.dem*(KG.busShare||0)/3))}for(const bt of [15.3,16.05,16.7])if(t0<bt&&KG.t>=bt)kSpawnBus(0,1)}
+ if(KG.b.bus){const BT=KVOR.busT?KVOR.busT():[8.65,9.65,10.65];for(const bt of BT)if(t0<bt&&KG.t>=bt){kSpawnBus(Math.round(KG.dem*(KG.busShare||0)/BT.length))}for(const bt of [15.3,16.05,16.7])if(t0<bt&&KG.t>=bt)kSpawnBus(0,1)}
  // Hotelgäste
  if(KG.hotel&&t0<8.1&&KG.t>=8.1){kSpawnHotelG(KW.hotelN||0)}
  // Lifte
@@ -522,14 +821,14 @@ function kStep(dt){if(!KG||KG.done)return;
   switch(f.st){case 'walk':kWalkStep(f,dt);break;case 'ski':kSkiStep(f,dt);break;case 'ride':kRidePos(f);break;
    case 'kas':if(KG.t>=f.tEnd)kKassaDone(f);break;case 'hut':if(KG.t>=f.tEnd)kHutDone(f);break;case 'kiosk':if(KG.t>=f.tEnd)kKioskDone(f);break;
    case 'kidin':kKidStep(f,dt);break;case 'sw':if(!f.grp||f.grp.st==='end'){f.grp=null;kAfterRun(f)}break;
-   case 'hurt':if(!KG.b.bw&&KG.t>f.hT+.7){f.sat-=5;kGoHome(f,1)}break;
+   case 'hurt':if(!KG.b.bw&&KG.t>f.hT+.7){f.sat-=5;f.hurtOK=1;kGoHome(f,1)}break;
    case 'busw':if(KG.t>17.2){f.st='gone'}break}
   if(f.st==='gone'&&!f.dead){f.dead=1;kGuestDone(f)}}
  if(KW.folks.some(f=>f.dead))KW.folks=KW.folks.filter(f=>!f.dead);
  for(const c of KW.cars)kCarStep(c,dt);if(KW.cars.some(c=>c.st==='gone'))KW.cars=KW.cars.filter(c=>c.st!=='gone');
  for(const b of KW.buses)kBusStep(b,dt);if(KW.buses.some(b=>b.st==='gone'))KW.buses=KW.buses.filter(b=>b.st!=='gone');
  // Unfälle
- if(KW.acc&&KW.acc.length&&KG.t>=KW.acc[0]){KW.acc.shift();const S=KW.folks.filter(f=>f.st==='ski'&&!f.grpRun&&f.pid!=='ueb');if(S.length&&!KW.res){const f=kpick(S);f.hurtAt=f.s+20}}
+ if(KW.acc&&KW.acc.length&&KG.t>=KW.acc[0]){KW.acc.shift();const S=KW.folks.filter(f=>f.st==='ski'&&!f.grpRun&&f.pid!=='ueb'&&!KW.pmap[f.pid].conn&&!f.engHold);if(S.length&&!KW.res){const f=kpick(S);f.hurtAt=f.s+20}}
  kResStep(dt);kGroomStep(dt);kCanStep(dt,dth);
  // Sicherheitsnetz: abends alle weg
  if(KG.t>=19&&KG.t<19+dth*2){for(const f of KW.folks){if(f.st!=='gone'&&!f.dead){f.st='gone'}}for(const c of KW.cars)if(c.st==='park'){c.st='out';c.tw=kR()}}
@@ -547,14 +846,15 @@ function kMorning(){KG.wx=KG.wxN||'sonne';KG.dem=kDemand();KG.gDay=0;KG.rej=0;KG
  // Pannen und Unfälle planen
  for(const id in KG.l){const s=KG.l[id];if(!s.on)continue;const p=.025+(1-s.cond/100)*.32;if(kR()<p){s.brkAt=9.4+kR()*5.6}else s.brkAt=0}
  const lam=.3+(KG.stage>=2?.35:0)+(kPQavg()<55?.4:0);KW.acc=[];let n=lam>1?1:0;if(kR()<lam%1)n++;for(let i=0;i<n;i++)KW.acc.push(9.6+kR()*5.5);KW.acc.sort((a,b)=>a-b);
- if(KG.wx==='sturm')kLog('🌪️','Sturm – der Sessellift bleibt heute zu.');
+ KG.fog=0;if(KVOR.morning)KVOR.morning();
+ if(KG.wx==='sturm')kLog('🌪️',KVOR.lifts.filter(L=>L.typ!=='teller').length>1?'Sturm – die Sessellifte bleiben heute zu.':'Sturm – der Sessellift bleibt heute zu.');
  kSave()}
 // --- Mitternacht: Tagesabschluss ---
 function kMidnight(){const V=KVOR,d=KG.day;
  // laufende Kosten
- const tm=KPK('team')?.8:1,c={};let up=0;for(const id in KG.l){const s=KG.l[id];if(!s.on)continue;up+=KLT[s.typ].up+(s.lg||0)*30}c.lift=up*(KPK('team')?.9:1);
+ const tm=KPK('team')?.8:1,c={};let up=0;for(const id in KG.l){const s=KG.l[id];if(!s.on)continue;up+=KLT[s.typ].up*(kLC(id).upF||1)+(s.lg||0)*30}c.lift=up*(KPK('team')?.9:1);
  c.kassa=90*tm;if(KG.b.hut)c.hut=110*tm;if(KG.b.kinder)c.kinder=80*tm;if(KG.b.school)c.school=70*tm;if(KG.b.kiosk)c.kiosk=30*tm;
- if(KG.b.raupe)c.raupe=130;if(KG.canRan)c.can=Math.round(260*(KPK('schnee')?.9:1));KG.canRan=0;
+ if(KG.b.raupe)c.raupe=130;if(KG.canRan)c.can=Math.round((V.canCost?V.canCost():260)*(KPK('schnee')?.9:1));KG.canRan=0;if(V.costs)V.costs(c,tm);
  let lots=0;for(const L of V.lots)if(KG.lots[L.id])lots++;c.lots=lots*25+(KG.paved?lots*10:0);
  if(KG.b.bus)c.bus=150;if(KG.hotel)c.hotel=170*tm;if(KG.b.lw)c.lw=130*tm;if(KG.b.bw&&!KPK('bw'))c.bw=140*tm;else if(KG.b.bw>1)c.bw=140*tm;
  // Hotel-Einnahmen der Nacht
@@ -569,17 +869,17 @@ function kMidnight(){const V=KVOR,d=KG.day;
  const r0=KG.ruf;if(satA!=null)KG.ruf+=(satA-KG.ruf)*.3;else KG.ruf-=1;
  if(KG.rej>5)KG.ruf-=Math.min(4,KG.rej/12);for(const cm of KG.cmp)KG.ruf+=cm.ruf||0;KG.ruf=kcl(KG.ruf,5,100);
  // Familien zufrieden?
- const fs=KG.sat.fam;let famA=null;if(fs&&fs.n>=5){famA=fs.s/fs.n;if(famA>=75){KG.famOK=(KG.famOK||0)+1;kLog('👨‍👩‍👧','Familien heute zu '+Math.round(famA)+' % zufrieden – Ziel: '+Math.min(5,KG.famOK)+' von 5 Tagen.')}}
+ const fs=KG.sat.fam;let famA=null;if(fs&&fs.n>=5){famA=fs.s/fs.n;if(famA>=75&&V.famGoal){KG.famOK=(KG.famOK||0)+1;kLog('👨‍👩‍👧','Familien heute zu '+Math.round(famA)+' % zufrieden – Ziel: '+Math.min(5,KG.famOK)+' von 5 Tagen.')}}
  KG.hist.push({d,inc:Math.round(inc),cost:cs,g,rej:KG.rej,sat:satA==null?null:Math.round(satA),fam:famA==null?null:Math.round(famA),ruf:Math.round(KG.ruf),m:Math.round(KG.money),wx:KG.wx,st:kStars()});if(KG.hist.length>60)KG.hist.shift();
  KG.seaInc=(KG.seaInc||0)+inc;KG.seaCost=(KG.seaCost||0)+cs;
  KG.lastDay={inc:Math.round(inc),cost:cs,g,sat:satA,c,i:Object.assign({},KG.inc)};
  // Schnee und Pisten
- const dw={neuschnee:16,sturm:5,tau:-8,sonne:-1.5}[KG.wx]||0;KG.snow=Math.max(0,KG.snow+dw);
- for(const p of V.pistes){if(KG.wx==='tau')KG.pq[p.id]-=12;if(KG.wx==='neuschnee')KG.pq[p.id]=Math.max(KG.pq[p.id],82);KG.pq[p.id]=kcl(KG.pq[p.id],0,kSnowCap())}
+ const dw=(V.snowDW||{neuschnee:16,sturm:5,tau:-8,sonne:-1.5})[KG.wx]||0;KG.snow=Math.max(0,KG.snow+dw);
+ for(const p of V.pistes){if(KG.wx==='tau')KG.pq[p.id]-=(V.tauPQ||12);if(KG.wx==='neuschnee')KG.pq[p.id]=Math.max(KG.pq[p.id],82);KG.pq[p.id]=kcl(KG.pq[p.id],0,kSnowCap())}
  // Lifte altern
  for(const id in KG.l){const s=KG.l[id];if(!s.on)continue;s.cond=Math.max(15,s.cond-(.9+(KW.lift[id]?KW.lift[id].cnt:0)/500));if(KW.lift[id])KW.lift[id].cnt=0}
  // Konkurrenz
- KG.rv=KG.rv.map(v=>Math.round(v+.8+kR()*2.2));
+ KG.rv=KG.rv.map(v=>Math.round(v+(.8+kR()*2.2)*(V.rivG||1)));
  // Kampagnen
  KG.cmp=KG.cmp.filter(cm=>cm.end>d);
  // Baustellen fertig
@@ -599,10 +899,10 @@ function kBauApply(b,late){if(b.k==='stage'){KG.stage=b.st;KG.buzzD=KG.day;KG.bu
  else if(b.k==='lift'){KG.l[b.id].on=1;kLiftSetup(b.id)}
  else if(b.k==='b'){KG.b[b.id]=1;if(b.id==='hotel')KG.hotel=1}
  else if(b.k==='hotel'){KG.hotel=1}
- else if(b.k==='up'){kUp4()}
+ else if(b.k==='up'){if(b.typ)kUpLift(b.lift,b.typ);else kUp4()}
  kLog('✅',b.n+' ist fertig.');if(KG.t<13)KG.dem=kDemand();kRebuild();kUIdirty();kSave()}
 // --- Pistenraupe ---
-function kGroomPlan(){const out=[];const ps=KW.pistes.filter(p=>kPisteOpen(p)).sort((a,b)=>(b.id==='main')-(a.id==='main'));
+function kGroomPlan(){if(KVOR.groomPlan)return KVOR.groomPlan();const out=[];const ps=KW.pistes.filter(p=>!p.conn&&kPisteOpen(p)).sort((a,b)=>(b.id==='main')-(a.id==='main'));
  for(const p of ps){const L=p.d[p.d.length-1][3],up=[],dn=[];for(let s=L;s>=0;s-=12){const q=kAt(p.d,s);up.push([q[0]+q[3]*q[2]*.42,q[1]+q[4]*q[2]*.42])}for(let s=0;s<=L;s+=12){const q=kAt(p.d,s);dn.push([q[0]-q[3]*q[2]*.42,q[1]-q[4]*q[2]*.42])}out.push({p:p.id,pts:up},{p:p.id,pts:dn,fin:1})}
  return out}
 function kGroomStep(dt){if(!KG.b.raupe)return;const t=KG.t;let R=KW.groom;
@@ -616,12 +916,12 @@ function kGroomStep(dt){if(!KG.b.raupe)return;const t=KG.t;let R=KW.groom;
  const dx=p[0]-R.x,dy=p[1]-R.y,d=Math.hypot(dx,dy),m=sp*dt;if(d>0.01){const ta=Math.atan2(dy,dx);let da=ta-R.a;while(da>Math.PI)da-=2*Math.PI;while(da<-Math.PI)da+=2*Math.PI;R.a+=da*Math.min(1,dt*6)}
  if(d<=m){R.x=p[0];R.y=p[1];R.pi++}else{R.x+=dx/d*m;R.y+=dy/d*m}}
 // --- Schneekanonen ---
-function kCanPos(){if(KW.canP)return KW.canP;const out=[];const p=KW.pmap.main,L=p.d[p.d.length-1][3];let sd=1;const n=KVOR.cannons.n;
+function kCanPos(){if(KW.canP)return KW.canP;if(KVOR.canPos)return KW.canP=KVOR.canPos();const out=[];const p=KW.pmap.main,L=p.d[p.d.length-1][3];let sd=1;const n=KVOR.cannons.n;
  const okP=(x,y)=>{if(kOnP(x,y,6))return 0;for(const L of KVOR.lifts){const dx=L.t[0]-L.b[0],dy=L.t[1]-L.b[1],l2=dx*dx+dy*dy,u=kcl(((x-L.b[0])*dx+(y-L.b[1])*dy)/l2,0,1);if(Math.hypot(x-L.b[0]-dx*u,y-L.b[1]-dy*u)<30)return 0}for(const b of KST.blocks)if(x>b[0]&&x<b[2]&&y>b[1]&&y<b[3])return 0;return 1};
  for(let i=0;i<n*2&&out.length<n;i++){const s=L*(.1+.82*(i%n)/(n-1))+(i>=n?18:0),q=kAt(p.d,s);for(const sg of [sd,-sd]){const x=q[0]+q[3]*(q[2]+13)*sg,y=q[1]+q[4]*(q[2]+13)*sg;if(okP(x,y)){out.push({x,y,sd:sg,ph:kR()*20});break}}sd=-sd}
  const u=KW.pmap.ueb;for(const s of [40,120]){const q=kAt(u.d,s);const sg=q[3]<0?1:-1;const x=q[0]+q[3]*(q[2]+12)*sg,y=q[1]+q[4]*(q[2]+12)*sg;if(okP(x,y))out.push({x,y,sd:sg,ph:kR()*20})}
  return KW.canP=out}
-function kCanStep(dt,dth){if(!KG.b.cannons)return;const t=KG.t,night=t>=20||t<5;KW.canOn=night&&KG.canAuto!==0&&KG.snow<75;if(KW.canOn){KG.canRan=1;KG.snow+=dth*.85}}
+function kCanStep(dt,dth){if(!KG.b.cannons)return;const t=KG.t,night=t>=20||t<5;KW.canOn=night&&KG.canAuto!==0&&KG.snow<75;if(KW.canOn){KG.canRan=1;KG.canEver=1;KG.snow+=dth*.85*(KVOR.canF?KVOR.canF(dth):1)}}
 // --- Pannen ---
 function kBrkStep(){const t=KG.t;for(const id in KG.l){const s=KG.l[id];if(!s.on)continue;
  if(s.brkAt&&t>=s.brkAt&&!s.brk&&kLiftOpen(id)){const lw=KG.b.lw,dur=lw?(KPK('team')?.3:.45):1.2;s.brk={t0:t,end:t+dur,lw};s.brkAt=0;
@@ -631,14 +931,14 @@ function kBrkStep(){const t=KG.t;for(const id in KG.l){const s=KG.l[id];if(!s.on
 function kSeasonEnd(){KG.seaHist.push({n:kSeaN()-1,inc:Math.round(KG.seaInc),cost:Math.round(KG.seaCost),res:kSeaRes(),st:kStars(),rank:kRank()});
  kGoalCheck(1);const last=kSeaN()-1>=KVOR.seasons;if(last){KG.done=1;kSave();kBergEnd(0);return}
  // weitere Saison (für spätere Berge): Ruf vergisst etwas, Saisonwerte zurücksetzen
- KG.ruf=Math.max(20,KG.ruf-15);KG.seaInc=0;KG.seaCost=0;KG.snow=40;kSave();kSeaWin()}
+ KG.ruf=Math.max(20,KG.ruf-15);KG.seaInc=0;KG.seaCost=0;KG.seaBau=0;KG.seaWer=0;KG.snow=KVOR.snow0||40;KG.wat=100;kSave();kSeaWin()}
 // --- Ziele ---
 function kGoalCheck(fin){if(!KG||!KVOR)return;for(const g of KVOR.goals){if(KG.goals[g.k])continue;if(g.end&&!fin)continue;if(g.ok()){KG.goals[g.k]=1;if(!fin){kLog('🎯','Ziel geschafft: '+g.t);kToast('🎯 Ziel geschafft: '+g.sh,4000)}}}}
 function kBergStars(){const g=KG.goals;if(!g.pf)return 0;return 1+(g.zu?1:0)+(g.me?1:0)}
 // --- Neu freigeschaltet ---
 function kNeu(st){const I=KVOR.stageInfo[st];KW.neu={st,n:I.n,d:I.d};kUIdirty()}
 function kRebuild(){KW.canP=null;KW.hutS=kHutS();kBuildStatic()}
-function kHutS(){const p=KW.pmap.main,H=KVOR.hut.in[0];let best=0,bd=1e9;for(const q of p.d){const d=Math.hypot(q[0]-H[0],q[1]-H[1]);if(d<bd){bd=d;best=q[3]}}return best}
+function kHutS(){if(!KVOR.hut)return 0;const p=KW.pmap[KVOR.hut.pid||'main'],H=KVOR.hut.in[0];let best=0,bd=1e9;for(const q of p.d){const d=Math.hypot(q[0]-H[0],q[1]-H[1]);if(d<bd){bd=d;best=q[3]}}return best}
 
 // ===== Zeichnen =====
 const kZ={S:1,camX:0,camY:0,dpr:2,cw:430,ch:900,cv:null,c:null};
@@ -652,7 +952,7 @@ function kDraw(){const cv=kZ.cv,c=kZ.c;if(!cv||!KG)return;const k=kZ.S*kZ.dpr;c.
  KW.win=[];KW.winOn=kBright()<.7;const T0=KW.T;
  kWithGame(()=>{
   // Pistenzustand: abgefahrene Stellen (dezent)
-  kDrawWear(c);
+  kDrawWear(c);if(KVOR.drawDyn)KVOR.drawDyn(c,T0);
   const O=[];const add=(y,f)=>O.push({y,f});
   kDrawFences(c);
   for(const car of KW.cars)if(kInV(car.x,car.y))add(car.y+(car.st==='park'?-4:6),c2=>car2(c2,car));
@@ -666,7 +966,7 @@ function kDraw(){const cv=kZ.cv,c=kZ.c;if(!cv||!KG)return;const k=kZ.S*kZ.dpr;c.
   kDrawLifts(c,T0);
   if(KW.canOn&&KG.b.cannons)kCanSpray(c,T0);
  });
- kDrawNight(c);kDrawWeather(c);
+ kDrawNight(c);if(KVOR.drawOver)KVOR.drawOver(c,T0);kDrawWeather(c);
  // Geldbeträge
  c.textAlign='center';for(const p of KW.pops){const a=1-p.t/1.1;c.globalAlpha=Math.max(0,a);c.font='700 9px Fredoka,sans-serif';c.strokeStyle='rgba(40,40,40,.55)';c.lineWidth=2.4;const s='+'+knum(p.v)+' €';c.strokeText(s,p.x,p.y-p.t*16);c.fillStyle=p.col;c.fillText(s,p.x,p.y-p.t*16)}c.globalAlpha=1}
 function car2(c,cr){car(c,cr.x,cr.y,cr.a,cr.col)}
@@ -684,7 +984,7 @@ function kSled(c,R,t){c.save();c.translate(R.x,R.y);const a=R.a||0;c.fillStyle='
  c.fillStyle='rgba(190,230,255,.85)';c.beginPath();c.roundRect(5,-3,3,6,1);c.fill();c.fillStyle='#d8433d';c.beginPath();c.arc(-3,0,2.6,0,7);c.fill();c.fillStyle='#ffd9b5';c.beginPath();c.arc(-2.4,0,1.5,0,7);c.fill();
  c.restore()}
 // abgefahrene Piste: hellgraue Flecken je nach Zustand
-function kDrawWear(c){for(const p of KW.pistes){if(!kPisteOpen(p))continue;const q=KG.pq[p.id];if(q>85)continue;const a=(85-q)/85;const r=kRNG(p.d.length);c.fillStyle='rgba(170,185,205,'+(.28*a).toFixed(3)+')';for(let i=0;i<p.d.length;i+=6){const d=p.d[i];if(!kInV(d[0],d[1],60))continue;if(r()>a*.9)continue;const o=(r()*2-1)*.8;c.beginPath();c.ellipse(d[0]+d[3]*d[2]*o,d[1]+d[4]*d[2]*o,6+r()*10,2+r()*3,0,0,7);c.fill()}}}
+function kDrawWear(c){for(const p of KW.pistes){if(p.conn||!kPisteOpen(p))continue;const q=KG.pq[p.id];if(q>85)continue;const a=(85-q)/85;const r=kRNG(p.d.length);c.fillStyle='rgba(170,185,205,'+(.28*a).toFixed(3)+')';for(let i=0;i<p.d.length;i+=6){const d=p.d[i];if(!kInV(d[0],d[1],60)||!kPtOpen(p,d))continue;if(r()>a*.9)continue;const o=(r()*2-1)*.8;c.beginPath();c.ellipse(d[0]+d[3]*d[2]*o,d[1]+d[4]*d[2]*o,6+r()*10,2+r()*3,0,0,7);c.fill()}}}
 // Anstell-Gitter + Wartezeit-Schild
 function kDrawFences(c){for(const id in KW.lift){const o=KW.lift[id];if(!KG.l[id].on)continue;const L=o.L,bx=L.b[0],by=L.b[1];c.strokeStyle='#8a94a8';c.lineWidth=1;
  if(o.T.cap===1){for(let r=-1;r<4;r++){const y=by+14.5+r*7;let a=bx-19,b=bx+19;if(r>=0&&r<3){if(r%2===0)b=bx+12;else a=bx-12}c.beginPath();c.moveTo(a,y);c.lineTo(b,y);c.stroke();c.fillStyle='#5d667a';for(let x=a;x<=b;x+=12)c.fillRect(x-.7,y-1.4,1.4,2.8)}}
@@ -693,8 +993,8 @@ function kDrawFences(c){for(const id in KW.lift){const o=KW.lift[id];if(!KG.l[id
 function kWait(id){const o=KW.lift[id];if(!o)return 0;// Schätzung aus Schlangenlänge und Förderleistung
  const perS=o.T.v/(o.len*2/o.n)*o.T.cap;const s=o.q.length/Math.max(.1,perS);return s/KRT*60}
 // Lifte: Seile, Stützen, Sessel/Teller
-function kDrawLifts(c,t){for(const id in KW.lift){const o=KW.lift[id];if(!KG.l[id].on)continue;const {bx,by,tx,ty,len,ux,uy}=o,co=o.T.co;
- if(!kInV(Math.min(bx,tx),Math.min(by,ty),Math.abs(tx-bx)+400)&&!kInV(bx,by,100))continue;
+function kDrawLifts(c,t){const vw=kViewW(),vh=kViewH();for(const id in KW.lift){const o=KW.lift[id];if(!KG.l[id].on&&!o.run)continue;const {bx,by,tx,ty,len,ux,uy}=o,co=o.T.co;
+ if(Math.max(bx,tx)<kZ.camX-80||Math.min(bx,tx)>kZ.camX+vw+80||Math.max(by,ty)<kZ.camY-80||Math.min(by,ty)>kZ.camY+vh+80)continue;
  if(o.T.cap===1){c.strokeStyle='#2a2e44';c.lineWidth=.8;c.beginPath();c.moveTo(bx,by-14);c.lineTo(tx,ty-14);c.stroke();
   const n=Math.max(2,Math.ceil(len/70));for(let i=1;i<n;i++){const px=bx+(tx-bx)*i/n,py=by+(ty-by)*i/n;c.fillStyle='rgba(110,140,180,.25)';c.beginPath();c.ellipse(px+3,py+2,5,1.6,0,0,7);c.fill();c.fillStyle='#6a6890';c.fillRect(px-1,py-17,2,18);c.fillStyle='#3a3f58';c.fillRect(px-4,py-17,8,1.6)}
   for(const ch of o.ch){if(ch.u>=1)continue;const x=bx+(tx-bx)*ch.u,y=by+(ty-by)*ch.u-14;c.strokeStyle='#2a2e44';c.lineWidth=.6;c.beginPath();c.moveTo(x,y);c.lineTo(x,y+9);c.stroke();c.fillStyle='#f2c53b';c.beginPath();c.arc(x,y+10,1.6,0,7);c.fill()}
@@ -704,7 +1004,7 @@ function kDrawLifts(c,t){for(const id in KW.lift){const o=KW.lift[id];if(!KG.l[i
  const cap=o.T.cap;for(const ch of o.ch){if(ch.u<.03||ch.u>1.97||Math.abs(ch.u-1)<.03)continue;const [x,y]=kLiftPos(o,ch.u);if(!kInV(x,y,30))continue;const k={r:ch.r.map(f=>({col:f.col}))};c.save();c.translate(x,y);c.rotate(Math.sin(ch.u*40+t*.8)*.04);gondola(c,k,cap);c.restore()}
  }}
 // Gebäude
-function kDrawBuildings(add,t){const V=KVOR;
+function kDrawBuildings(add,t){const V=KVOR;if(V.drawB)return V.drawB(add,t);
  // Kassa
  const K=V.kassa;add(K.y,c=>kKassaDraw(c,K.x,K.y));
  if(KG.b.kiosk)add(K.y+8,c=>kKioskDraw(c,K.x+38,K.y+8,t));
@@ -722,7 +1022,7 @@ function kDrawBuildings(add,t){const V=KVOR;
  const SC=V.school;if(KG.b.school)add(SC.y,c=>kSchoolDraw(c,SC.x,SC.y,t));else if(KG.bau.find(b=>b.id==='school'))add(SC.y,c=>kSite(c,SC.x,SC.y,46,t));
  // Garage + Bergwacht
  if(KG.b.raupe)add(V.garage.y+8,c=>kGarage(c,V.garage.x,V.garage.y,t));
- if(KG.b.bw)add(1426,c=>kBwHut(c,808,1426,t));
+ if(KG.b.bw)add(V.bwHut.y,c=>kBwHut(c,V.bwHut.x,V.bwHut.y,t));
  // Gasthof
  const H=V.hotel;if(KG.hotel)add(H.y,c=>kHotelDraw(c,H,t));else if(KG.bau.find(b=>b.id==='hotel'))add(H.y,c=>{chalet(c,H.x,H.y,H.w,H.h,H.k);kSite(c,H.x,H.y+6,80,t,1)});
  // Stufen-Baustelle (Waldabfahrt): Holzfäller
@@ -771,7 +1071,7 @@ function kGarage(c,x,y,t){const out=KW.groom&&KW.groom.st!=='home';c.fillStyle='
  kSign(c,x,y-14,'PISTENRAUPE','#2f6fb5','#fff',3.6);c.fillStyle=out&&Math.sin(t*8)>0?'#ffb02e':'#d9862a';c.beginPath();c.arc(x+20,y-24,1.6,0,7);c.fill()}
 function kBwHut(c,x,y,t){c.fillStyle='rgba(110,140,180,.25)';c.beginPath();c.ellipse(x+2,y+3,16,3,0,0,7);c.fill();c.fillStyle='#f4ede2';c.fillRect(x-12,y-14,24,15);c.fillStyle='#d8433d';c.beginPath();c.moveTo(x-15,y-13);c.lineTo(x,y-24);c.lineTo(x+15,y-13);c.closePath();c.fill();c.fillStyle='#fff';c.fillRect(x-14,y-15,28,2);
  c.fillStyle='#d8433d';c.fillRect(x-2,y-11,4,9);c.fillRect(x-5.5,y-8,11,3);kSign(c,x,y-28,'BERGWACHT','#d8433d','#fff',4.4);if(!KW.res){kSled(c,{x:x+24,y:y+6,a:0,st:'park'},t)}}
-function kHotelDraw(c,H,t){chalet(c,H.x,H.y,H.w,H.h,H.k);kSign(c,H.x,H.y-H.h-24,'GASTHOF SONNLEITEN ★★','#8f5a34','#fff',5.4);for(const [wx,wy] of chWin(H.x,H.y,H.w,H.h))kWin(wx,wy,6,6);
+function kHotelDraw(c,H,t){chalet(c,H.x,H.y,H.w,H.h,H.k);kSign(c,H.x,H.y-H.h-24,H.sign||H.n.toUpperCase(),'#8f5a34','#fff',5.4);for(const [wx,wy] of chWin(H.x,H.y,H.w,H.h))kWin(wx,wy,6,6);
  const occ=KG.hOcc||0;if(kBright()<.6&&occ>0){}}
 function kSite(c,x,y,w,t,noFence){const h=w*.5;if(!noFence){c.fillStyle='rgba(185,171,147,.55)';c.beginPath();c.ellipse(x,y,w*.55,h*.45,0,0,7);c.fill();try{kbFence(c,x-w/2,x+w/2,y+h*.4,t)}catch(e){}}
  // Container, Kran-Mast, Arbeiter
@@ -784,7 +1084,7 @@ function kCanSpray(c,t){for(const p of kCanPos()){if(!kInV(p.x,p.y))continue;for
 function kDrawNight(c){const b=kBright();if(b>=1)return;const a=(1-b)*.58;const vw=kViewW(),vh=kViewH();c.fillStyle='rgba(16,26,62,'+a.toFixed(3)+')';c.fillRect(kZ.camX-10,kZ.camY-10,vw+20,vh+20);
  if(b<.75){const g=Math.min(1,(.75-b)*2.2);c.fillStyle='rgba(255,214,130,'+(.9*g).toFixed(2)+')';for(const w of KW.win){if(!kInV(w[0],w[1]))continue;c.fillRect(w[0],w[1],w[2],w[3])}if(KST.winS)for(const w of KST.winS){if(!kInV(w[0],w[1]))continue;c.fillRect(w[0],w[1],w[2],w[3])}
   // Laternen am Gehweg und an der Straße
-  for(let x=96;x<=920;x+=82){kLamp(c,x,1466,g)}for(let x=-100;x<=1100;x+=120){kLamp(c,x,1554,g)}
+  for(const [x,y] of KVOR.lamps())kLamp(c,x,y-22,g)
   if(KW.groom&&KW.groom.st!=='home'){const R=KW.groom,a2=R.a;const gr=c.createRadialGradient(R.x+Math.cos(a2)*26,R.y+Math.sin(a2)*26,2,R.x+Math.cos(a2)*26,R.y+Math.sin(a2)*26,34);gr.addColorStop(0,'rgba(255,240,190,'+(.55*g)+')');gr.addColorStop(1,'rgba(255,240,190,0)');c.fillStyle=gr;c.beginPath();c.arc(R.x+Math.cos(a2)*26,R.y+Math.sin(a2)*26,34,0,7);c.fill()}
   for(const car of KW.cars){if(car.st==='park')continue;const a2=car.a;c.fillStyle='rgba(255,240,190,'+(.35*g)+')';c.beginPath();c.moveTo(car.x+Math.cos(a2)*14,car.y+Math.sin(a2)*14);c.lineTo(car.x+Math.cos(a2+.35)*48,car.y+Math.sin(a2+.35)*48);c.lineTo(car.x+Math.cos(a2-.35)*48,car.y+Math.sin(a2-.35)*48);c.fill()}}}
 function kLamp(c,x,y,g){if(!kInV(x,y))return;const gr=c.createRadialGradient(x,y+6,1,x,y+10,30);gr.addColorStop(0,'rgba(255,226,150,'+(.42*g).toFixed(2)+')');gr.addColorStop(1,'rgba(255,226,150,0)');c.fillStyle=gr;c.beginPath();c.ellipse(x,y+12,30,16,0,0,7);c.fill();c.fillStyle='rgba(255,236,170,'+(.95*g).toFixed(2)+')';c.beginPath();c.arc(x,y-1,2.2,0,7);c.fill()}
@@ -808,17 +1108,18 @@ function kInput(cv){const P=new Map();let drag=null,pin=null,moved=0,t0=0;
  cv.addEventListener('wheel',e=>{e.preventDefault();kZoomAt(e.clientX,e.clientY,e.deltaY<0?1.12:1/1.12)},{passive:false})}
 function kTap(sx,sy){const x=kZ.camX+sx/kZ.S,y=kZ.camY+sy/kZ.S;if(KW.open){kClose();return}const h=kHit(x,y);if(h)kOpenInfo(h)}
 function kHit(x,y){const V=KVOR,hit=[];const d=(a,b)=>Math.hypot(x-a,y-b);
- for(const L of V.lifts){if(!KG.l[L.id].on&&!KG.bau.find(b=>b.lift===L.id))continue;if(d(L.b[0],L.b[1])<40||d(L.t[0],L.t[1]+6)<34)hit.push({k:'l:'+L.id,d:0});
+ for(const L of V.lifts){if(!KG.l[L.id].on&&!KG.bau.find(b=>b.lift===L.id))continue;if(d(L.b[0],L.b[1])<40)hit.push({k:'l:'+L.id,d:0});else if(d(L.t[0],L.t[1]+6)<34)hit.push({k:'l:'+L.id,d:.5});
   // Seil antippen
   const dx=L.t[0]-L.b[0],dy=L.t[1]-L.b[1],l2=dx*dx+dy*dy,u=kcl(((x-L.b[0])*dx+(y-L.b[1])*dy)/l2,0,1);if(KG.l[L.id].on&&d(L.b[0]+dx*u,L.b[1]+dy*u)<14)hit.push({k:'l:'+L.id,d:1})}
  if(d(V.kassa.x,V.kassa.y-14)<32)hit.push({k:'kas',d:0});if(KG.b.kiosk&&d(V.kassa.x+38,V.kassa.y)<16)hit.push({k:'kio',d:0});
  if(KG.b.hut&&d(V.hut.x,V.hut.y-12)<40)hit.push({k:'hut',d:0});
- if(KG.b.kinder&&Math.hypot((x-V.kinder.x)/V.kinder.rx,(y-V.kinder.y)/V.kinder.ry)<1.1)hit.push({k:'kid',d:0});
- if(KG.b.school&&d(V.school.x,V.school.y-12)<30)hit.push({k:'sch',d:0});
+ if(KG.b.kinder&&V.kinder&&Math.hypot((x-V.kinder.x)/V.kinder.rx,(y-V.kinder.y)/V.kinder.ry)<1.1)hit.push({k:'kid',d:0});
+ if(KG.b.school&&V.school&&d(V.school.x,V.school.y-12)<30)hit.push({k:'sch',d:0});
+ if(V.hit)V.hit(x,y,hit,d);
  if(KG.b.raupe&&d(V.garage.x,V.garage.y-10)<32)hit.push({k:'rau',d:0});
  if(KG.hotel&&d(V.hotel.x,V.hotel.y-14)<40)hit.push({k:'hot',d:0});
  for(const L of V.lots)if(KG.lots[L.id]&&x>L.x0&&x<L.x1&&y>L.y0-6&&y<L.y1+6)hit.push({k:'park',d:2});
- for(const p of KW.pistes)if(kPisteOpen(p)){for(let i=0;i<p.d.length;i+=4){const q=p.d[i];if(d(q[0],q[1])<q[2]){hit.push({k:'p:'+p.id,d:3});break}}}
+ for(const p of KW.pistes)if(!p.conn&&kPisteOpen(p)){for(let i=0;i<p.d.length;i+=4){const q=p.d[i];if(kPtOpen(p,q)&&d(q[0],q[1])<q[2]){hit.push({k:'p:'+p.id,d:3});break}}}
  hit.sort((a,b)=>a.d-b.d);return hit[0]?hit[0].k:null}
 // Schleife
 function kLoop(n){if(!KON)return;KW.raf=requestAnimationFrame(kLoop);const dt=Math.min(.05,(n-(KW.last||n))/1000);KW.last=n;
@@ -906,8 +1207,8 @@ function kSheetClick(e){const b=e.target.closest('[data-a]');if(!b)return;const 
 function kLook(x,y,S){kZ.S=S||Math.max(kZ.S,1.2);kZ.camX=x-kViewW()/2;kZ.camY=y-kViewH()/2;kClamp()}
 // --- Bauen ---
 function kCosts(){const V=KVOR,lf=KPK('lift')?.9:1,sf=KPK('schnee')?.85:1;return {tl:Math.round(V.lifts[0].cost*lf),s4:Math.round(16000*lf),lgS:Math.round(3500*lf),lgT:Math.round(800*lf),can:Math.round(V.cannons.cost*sf),raupe:5000,kiosk:1500,kinder:V.kinder.cost,school:V.school.cost,hut:V.hut.cost,hotel:V.hotel.cost,po:4000,paved:4000,bus:3000,lw:2500,bw:4000,st2:Math.round(V.stageInfo[2].cost*lf),st3:V.stageInfo[3].cost}}
-function kReq(r){const [k,a]=r;if(k==='tl')return !!KG.l.tl.on;if(k==='ruf')return KG.ruf>=a;if(k==='gst')return KG.gT>=a;if(k==='stars')return kStars()>=a;if(k==='ses4')return KG.l.ses.typ==='s4';return false}
-function kBuildItems(){const C=kCosts(),V=KVOR,st=KG.stage,l=KG.l,b=KG.b,bau=id=>KG.bau.find(x=>x.id===id||x.lift===id);
+function kReq(r){const [k,a]=r;if(k==='can')return !!KG.b.cannons;if(k==='tl')return !!KG.l.tl.on;if(k==='ruf')return KG.ruf>=a;if(k==='gst')return KG.gT>=a;if(k==='stars')return kStars()>=a;if(k==='ses4')return KG.l.ses.typ==='s4';return false}
+function kBuildItems(){if(KVOR.items)return KVOR.items();const C=kCosts(),V=KVOR,st=KG.stage,l=KG.l,b=KG.b,bau=id=>KG.bau.find(x=>x.id===id||x.lift===id);
  const I=[];const add=(tab,o)=>{o.tab=tab;I.push(o)};
  // Ausbau
  for(const s of [2,3]){const S=V.stageInfo[s];const rq=S.req.map(r=>({t:r[r.length-1],ok:kReq(r)}));add('aus',{id:'st'+s,ic:s===2?'🚡':'🌲',n:'Ausbau Stufe '+s+': '+S.n,d:S.d,c:s===2?C.st2:C.st3,days:kBauDays(S.days),done:st>=s,bau:KG.bau.find(x=>x.k==='stage'&&x.st===s),lock:st<s-1?'erst Stufe '+(s-1):rq.some(r=>!r.ok)?'Voraussetzungen fehlen':'',rq})}
@@ -946,7 +1247,8 @@ function kCardHTML(i){let btn='';if(i.done)btn=`<span class="kchip g">✓ ${i.lv
  return `<div class="kcard ${i.done?'done':''}"><span class="ic">${i.ic}</span><span class="tx"><b>${i.n}${i.lv?' <span style="font-weight:400;color:var(--mut);font-size:13px">'+i.lv+'</span>':''}</b><small>${i.d}</small>${rq}</span><span class="bt">${btn}</span></div>`}
 function kBuy(id){const I=kBuildItems().find(i=>i.id===id);if(!I||I.done||I.lock||I.bau)return;if(!kCanPay(I.c)){kToast('Zu wenig Geld – der Kreditrahmen reicht nicht.');return}
  const pay=()=>{KG.money-=I.c;KG.inc.bau=(KG.inc.bau||0);KG.cost.bau=(KG.cost.bau||0)+I.c;KG.seaBau=(KG.seaBau||0)+I.c};
- if(id==='st2'||id==='st3'){const s=+id[2];pay();kBauStart({k:'stage',st:s,n:'Ausbau Stufe '+s,days:I.days,lift:s===2?'ses':null,id:'st'+s})}
+ if(KVOR.buy&&KVOR.buy(id,I,pay)){}
+ else if(id==='st2'||id==='st3'){const s=+id[2];pay();kBauStart({k:'stage',st:s,n:'Ausbau Stufe '+s,days:I.days,lift:s===2?'ses':null,id:'st'+s})}
  else if(id==='tl'){pay();kBauStart({k:'lift',id:'tl',n:'Tellerlift',days:0})}
  else if(id==='lgT'||id==='lgS'){pay();const L=id==='lgT'?'tl':'ses';KG.l[L].lg=(KG.l[L].lg||0)+1;kLiftSetup(L);kLog('💺',(id==='lgT'?'Mehr Teller':'Mehr Sessel')+' eingebaut.')}
  else if(id==='s4'){pay();if(I.days>0){KG.bau.push({k:'up',id:'s4',lift:'ses',n:'4er-Sessel',d0:KG.day,days:I.days});kLog('🚧','Umbau auf 4er-Sessel – der Lift steht bis zum Morgen.');KG.l.ses.on=0}else kUp4()}
@@ -956,13 +1258,14 @@ function kBuy(id){const I=kBuildItems().find(i=>i.id===id);if(!I||I.done||I.lock
  else if(id==='paved'){pay();KG.paved=1}
  if(KG.t<13)KG.dem=kDemand();kSfx();kRebuild();kUI();kHud(1);kSave()}
 function kUp4(){KG.l.ses.typ='s4';KG.l.ses.on=1;kLiftSetup('ses');kLog('🚡','Der Sonnenhang-Sessel ist jetzt ein 4er-Sessel.')}
+function kUpLift(id,typ){KG.l[id].typ=typ;KG.l[id].on=1;kLiftSetup(id);kLog('🚡',kLC(id).n+' ist jetzt ein '+KLT[typ].n+'.')}
 function kSfx(){try{if(typeof sfx==='function')sfx('build',300)}catch(e){}}
 // --- Preise ---
 function kPreItems(){const F=KVOR.fair,b=KG.b;const I=[{k:'ticket',ic:'🎫',n:'Tageskarte',f:Math.round(kFairT()),min:5,max:80,st:1,sub:'Halbtag ab 12 Uhr: 60 % · Kinder: 50 %'},{k:'park',ic:'🅿️',n:'Parken',f:F.park,min:0,max:20,st:1}];
- I.push({k:'food',ic:'🍲',n:'Mittagsmenü',f:F.food,min:5,max:40,st:1,sub:b.hut?'Sonnalm · Kiosk-Snack: 55 %':'Kiosk-Snack: 55 % davon',hide:!b.hut&&!b.kiosk});
- I.push({k:'kids',ic:'⭐',n:'Kinderland Eintritt',f:F.kids,min:0,max:30,st:1,hide:!b.kinder});I.push({k:'school',ic:'⛷️',n:'Skikurs (2 Stunden)',f:F.school,min:5,max:80,st:1,hide:!b.school});I.push({k:'hotel',ic:'🏨',n:'Gasthof je Nacht',f:F.hotel,min:20,max:150,st:2,hide:!KG.hotel});
+ I.push({k:'food',ic:'🍲',n:'Mittagsmenü',f:F.food,min:5,max:40,st:1,sub:b.hut?KVOR.hut.n+' · Kiosk-Snack: 55 %':'Kiosk-Snack: 55 % davon',hide:!b.hut&&!b.kiosk});
+ I.push({k:'kids',ic:'⭐',n:'Kinderland Eintritt',f:F.kids,min:0,max:30,st:1,hide:!b.kinder});I.push({k:'school',ic:'⛷️',n:'Skikurs (2 Stunden)',f:F.school,min:5,max:80,st:1,hide:!b.school});I.push({k:'hotel',ic:'🏨',n:(KVOR.hotel?KVOR.hotel.n:'Gasthof')+' je Nacht',f:F.hotel,min:20,max:150,st:2,hide:!KG.hotel});
  return I.filter(i=>!i.hide)}
-function kPreHTML(){let h=kHead('💰 Preise')+'<p class="hint" style="margin:8px 0 4px">Sonnleiten-Gäste achten stark auf den Preis. Fair heißt: so viel wie die Gegend gerade wert ist.</p>';
+function kPreHTML(){let h=kHead('💰 Preise')+'<p class="hint" style="margin:8px 0 4px">'+KVOR.preHint+'</p>';
  for(const i of kPreItems()){const v=KG.price[i.k],r=v/Math.max(1,i.f);const cl=r>1.15?'hi':r<.9?'lo':'';const tx=r>1.3?'viel zu teuer':r>1.15?'zu teuer':r<.75?'sehr günstig':r<.9?'günstig':'fair';
   h+=`<div class="kpr"><span style="font-size:22px">${i.ic}</span><span class="tx"><b>${i.n}</b><small>fair ca. ${i.f} € · <span class="${cl}">${tx}</span>${i.sub?' · '+i.sub:''}</small></span><button data-a="pr" data-v="${i.k}|-${i.st}">−</button><span class="v">${v} €</span><button data-a="pr" data-v="${i.k}|${i.st}">+</button></div>`}
  return h}
@@ -978,11 +1281,11 @@ function kWerHTML(){const tabs=[['ruf','😊','Ruf'],['wer','📣','Werbung']];i
   for(const c of KCMP){const run=KG.cmp.find(x=>x.id===c.id),lk=c.st&&KG.stage<c.st,cost=kCmpCost(c);h+=`<div class="kcard"><span class="ic">${c.ic}</span><span class="tx"><b>${c.n}</b><small>${c.d} · ${c.days} Tage</small></span><span class="bt">${run?`<span class="kchip g">läuft<br>bis ${KWN[(run.end-1)%7]}</span>`:lk?`<button class="btn" disabled>${kfmt(cost)}</button><small>ab Stufe ${c.st}</small>`:`<button class="btn" data-a="cmp" data-v="${c.id}" ${kCanPay(cost)?'':'disabled'}>${kfmt(cost)}</button>`}</span></div>`}}
  return h}
 function kCmp(id){const c=KCMP.find(x=>x.id===id),cost=kCmpCost(c);if(!kCanPay(cost)||KG.cmp.find(x=>x.id===id))return;KG.money-=cost;KG.cost.wer=(KG.cost.wer||0)+cost;KG.seaWer=(KG.seaWer||0)+cost;KG.cmp.push({id,end:KG.day+c.days,eff:c.eff,ruf:c.ruf,ty:c.ty||null});kLog(c.ic,c.n+' läuft '+c.days+' Tage.');KG.dem=kDemand();kUI();kHud(1)}
-function kVoices(){const out=[];const w=KW.lift&&KW.lift.ses?kWait('ses'):0,wt=KW.lift&&KW.lift.tl?kWait('tl'):0;const r=KG.price.ticket/kFairT();
+function kVoices(){const out=[];let w=0;for(const id in KW.lift)if(KG.l[id].on)w=Math.max(w,kWait(id));const wt=0;const r=KG.price.ticket/kFairT();if(KVOR.voices)KVOR.voices(out);
  if(Math.max(w,wt)>15)out.push(['⏳','„Die Schlange am Lift ist viel zu lang!“']);if(r>1.15)out.push(['💸','„Die Tageskarte ist hier ganz schön teuer.“']);else if(r<.9)out.push(['💶','„So günstig – toll für Familien!“']);
- if(kPQavg()<60)out.push(['🧊','„Die Piste ist ganz zerfahren.“']);if(!KG.b.kinder)out.push(['👧','„Für die Kleinen gibt es hier nicht viel.“']);else out.push(['⭐','„Das Kinderland ist super!“']);
+ if(kPQavg()<60)out.push(['🧊','„Die Piste ist ganz zerfahren.“']);if(KVOR.kinder){if(!KG.b.kinder)out.push(['👧','„Für die Kleinen gibt es hier nicht viel.“']);else out.push(['⭐','„Das Kinderland ist super!“'])}
  if(!KG.b.hut&&!KG.b.kiosk)out.push(['🍽️','„Wo kann man hier etwas essen?“']);if(KG.rej>3)out.push(['🅿️','„Kein Parkplatz mehr frei – wir sind umgedreht.“']);if(KG.res.hurt&&!KG.b.bw)out.push(['⛑️','„Nach dem Unfall hat lange niemand geholfen.“']);
- if(KG.stage<2&&KG.gT>40)out.push(['🚡','„Ein richtiger Lift auf den Berg wäre schön.“']);if(!out.length)out.push(['😊','„Schöner Tag in Sonnleiten!“']);return out.slice(0,5)}
+ if(KVOR.id==='sonn'&&KG.stage<2&&KG.gT>40)out.push(['🚡','„Ein richtiger Lift auf den Berg wäre schön.“']);if(!out.length)out.push(['😊','„Schöner Tag '+(KVOR.am||'in '+KVOR.n)+'!“']);return out.slice(0,5)}
 // --- Statistik ---
 function kStaHTML(){const tabs=[['heu','📅','Heute'],['ver','📈','Verlauf'],['gst','👥','Gäste'],['fin','💶','Finanzen']];if(!KW.tab||!tabs.some(t=>t[0]===KW.tab))KW.tab='heu';let h=kHead('📊 Statistik',tabs);
  if(KW.tab==='heu'){const g=KG.gDay,inc=KG.inc;const L=[['tk','🎫 Tageskarten'],['pk','🅿️ Parken'],['food','🍲 Essen'],['kid','⭐ Kinderland'],['sch','⛷️ Skischule'],['hot','🏨 Gasthof']];let tot=0;for(const [k] of L)tot+=inc[k]||0;
@@ -990,15 +1293,16 @@ function kStaHTML(){const tabs=[['heu','📅','Heute'],['ver','📈','Verlauf'],
   h+=`<div class="wx wx2"><div><small>Heute</small>${KWI[KG.wx]} ${KWNM[KG.wx]}</div><div><small>Morgen</small>${KWI[KG.wxN]} ${KWNM[KG.wxN]}</div><div><small>Schnee</small>❄️ ${Math.round(KG.snow)} cm</div></div>`;
   h+='<div class="bgh">Einnahmen nach Quelle</div>'+L.filter(([k])=>inc[k]).map(([k,n])=>`<div class="row"><span>${n}</span><b>${kfmt(inc[k])}</b></div>`).join('')+(tot?'':'<p class="hint">Noch keine Einnahmen heute.</p>');
   h+='<div class="bgh">Lifte und Pisten</div>';for(const L2 of KVOR.lifts){if(!KG.l[L2.id].on)continue;h+=`<div class="row"><span>${L2.typ==='teller'?'🎿':'🚡'} ${L2.n}</span><b>Warten ${Math.round(kWait(L2.id))} Min.</b></div>`}
-  for(const p of KW.pistes)if(kPisteOpen(p))h+=`<div class="row"><span>${p.col==='r'?'🔴':'🔵'} ${p.n}</span><b>Zustand ${Math.round(KG.pq[p.id])} %</b></div>`}
+  for(const p of KW.pistes)if(!p.conn&&kPisteOpen(p))h+=`<div class="row"><span>${p.col==='r'?'🔴':'🔵'} ${p.n}</span><b>Zustand ${Math.round(KG.pq[p.id])} %</b></div>`;
+  if(KVOR.staExtra)h+=KVOR.staExtra()}
  if(KW.tab==='ver'){const H=KG.hist.slice(-14);const mx=Math.max(1,...H.map(x=>Math.max(x.inc,x.cost)));h+='<div class="bgh">Einnahmen 🟩 und Kosten 🟥 je Tag</div><div class="kbars">'+H.map(x=>`<div><i style="height:${Math.round(x.inc/mx*80)}px;background:#5fc27a"></i><i style="height:${Math.round(x.cost/mx*80)}px;background:#e8806f"></i><small>${KWN[(x.d-1)%7][0]}${KWN[(x.d-1)%7][1].toLowerCase()}</small></div>`).join('')+'</div>';
   const gm=Math.max(1,...H.map(x=>x.g));h+='<div class="bgh">Gäste je Tag</div><div class="kbars">'+H.map(x=>`<div><i style="height:${Math.round(x.g/gm*80)}px;background:#5aa7e6"></i><small>${x.g}</small></div>`).join('')+'</div>';
   if(!H.length)h+='<p class="hint">Nach dem ersten Tag erscheinen hier die Balken.</p>'}
  if(KW.tab==='gst'){const S=KG.sat,N={fam:'👨‍👩‍👧 Familien',anf:'🔰 Anfänger',pro:'⛷️ Profis',sb:'🏂 Snowboarder'};h+='<div class="bgh">Heute abgereiste Gäste · Zufriedenheit</div>';
   for(const k in N){const s=S[k];h+=`<div class="row"><span>${N[k]}</span><b>${s&&s.n?Math.round(s.s/s.n)+' % · '+s.n:'–'}</b></div>`}
-  h+=`<div class="bgh">Ziel Familien</div><div class="row"><span>Tage mit Familien ≥ 75 % zufrieden</span><b>${Math.min(5,KG.famOK||0)} / 5</b></div><p class="hint">Familien mögen faire Preise, kurze Wartezeiten, das Kinderland und ein Mittagessen. Gezählt wird ein Tag ab 5 Familien-Gästen.</p>`}
+  if(KVOR.famGoal)h+=`<div class="bgh">Ziel Familien</div><div class="row"><span>Tage mit Familien ≥ 75 % zufrieden</span><b>${Math.min(5,KG.famOK||0)} / 5</b></div><p class="hint">Familien mögen faire Preise, kurze Wartezeiten, das Kinderland und ein Mittagessen. Gezählt wird ein Tag ab 5 Familien-Gästen.</p>`}
  if(KW.tab==='fin'){const inc=KG.seaInc||0,cost=KG.seaCost||0;h+=`<div class="kpi"><div><small>Saison: Einnahmen</small><b>${kfmt(inc)}</b></div><div><small>Saison: laufende Kosten</small><b>${kfmt(cost)}</b></div><div><small>Betriebsergebnis</small><b class="${inc-cost>=0?'pos':'neg'}">${kfmt(inc-cost)}</b></div><div><small>Gebaut + Werbung</small><b>${kfmt((KG.seaBau||0)+(KG.seaWer||0))}</b></div></div>`;
-  const L=KG.lastDay;if(L){h+='<div class="bgh">Kosten gestern</div>';const N={lift:'🚡 Lifte',kassa:'🎫 Kassa',hut:'🛖 Sonnalm',kinder:'⭐ Kinderland',school:'⛷️ Skischule',kiosk:'🌭 Kiosk',raupe:'🚜 Pistenraupe',can:'❄️ Schneekanonen (Strom)',lots:'🅿️ Parkplätze',bus:'🚌 Skibus',hotel:'🏨 Gasthof',lw:'🔧 Liftwart',bw:'⛑️ Bergwacht',zins:'🏦 Zinsen'};for(const k in L.c)h+=`<div class="row"><span>${N[k]||k}</span><b>${kfmt(L.c[k])}</b></div>`}
+  const L=KG.lastDay;if(L){h+='<div class="bgh">Kosten gestern</div>';const N={teich:'💧 Speicherteich',lift:'🚡 Lifte',kassa:'🎫 Kassa',hut:'🛖 '+(KVOR.hut?KVOR.hut.n:'Hütte'),kinder:'⭐ Kinderland',school:'⛷️ Skischule',kiosk:'🌭 Kiosk',raupe:'🚜 Pistenraupe',can:'❄️ Schneekanonen (Strom)',lots:'🅿️ Parkplätze',bus:'🚌 Skibus',hotel:'🏨 '+(KVOR.hotel?KVOR.hotel.n:'Gasthof'),lw:'🔧 Liftwart',bw:'⛑️ Bergwacht',zins:'🏦 Zinsen'};for(const k in L.c)h+=`<div class="row"><span>${N[k]||k}</span><b>${kfmt(L.c[k])}</b></div>`}
   h+=`<div class="bgh">Kredit</div><div class="row"><span>Kreditrahmen</span><b>${kfmt(kCredit())}</b></div><p class="hint">Die Kassa darf bis zum Kreditrahmen ins Minus gehen. Auf das Minus fallen jeden Tag Zinsen an${KPK('bank')?' (Hausbank: ein Drittel weniger)':''}. Liegt die Kassa 7 Tage hintereinander unter dem Rahmen, ist der Berg verloren.${KG.pleite?' <b style="color:#e8504a">Schon '+KG.pleite+' Tage darunter!</b>':''}</p>`}
  return h}
 // --- Ziele, Sterne, Rangliste ---
@@ -1007,8 +1311,8 @@ function kZielHTML(){const tabs=[['zi','🎯','Ziele'],['st','⭐','Sterne'],['r
   KVOR.goals.forEach((g,i)=>{const ok=KG.goals[g.k];h+=`<div class="kgoal"><span class="s">${'★'.repeat(i+1)}<i>${'★'.repeat(2-i)}</i></span><span><b>${['Pflicht','Zusatz','Meister'][i]}:</b> ${g.t}<small>${ok?'<span class="ok">✓ geschafft</span>':g.prog?'Stand: '+g.prog():g.k==='pf'?'Sterne jetzt: '+kStars()+' · Stufe '+KG.stage:''}${g.end&&!ok?' · zählt am Saisonende':''}</small></span></div>`});
   h+=`<div class="bgh">Saison</div><div class="row"><span>Tag</span><b>${kSeaD()} von ${KSL}</b></div>`;
   if(KG.goals.pf)h+=`<p class="hint">Das Pflichtziel ist geschafft. Du kannst bis zum Saisonende weiterspielen, um die anderen Ziele zu holen – oder den Berg jetzt abschließen.</p><button class="btn" data-a="endnow" style="width:100%;margin-top:6px">${KW.endAsk?'Wirklich jetzt abschließen? Nochmal tippen':'🏁 Berg jetzt abschließen'}</button>`}
- if(KW.tab==='st'){const st=kStars(),sc=kScore(),nx=KSTH[Math.min(5,st+1)];h+=`<div class="kpi"><div><small>Sterne</small><b style="color:#e8a33a">${'★'.repeat(st)}<span style="opacity:.25">${'★'.repeat(5-st)}</span></b></div><div><small>Punkte</small><b>${sc}</b>${st<5?`<i>nächster Stern ab ${nx}</i>`:''}</div></div>`;
-  h+=`<div class="bgh">Woraus die Punkte bestehen</div><div class="row"><span>🏗️ Angebot (Lifte, Pisten, Gebäude)</span><b>${Math.round(kOffer()*.6)}</b></div><div class="row"><span>😊 Ruf ${Math.round(KG.ruf)} %</span><b>${Math.round(KG.ruf*2.2)}</b></div><div class="row"><span>❄️ Pistenzustand ${Math.round(kPQavg())} %</span><b>${Math.round(kPQavg()*.8)}</b></div><p class="hint">Sterne: 2 ab ${KSTH[2]}, 3 ab ${KSTH[3]}, 4 ab ${KSTH[4]}, 5 ab ${KSTH[5]} Punkten.</p>`}
+ if(KW.tab==='st'){const st=kStars(),sc=kScore(),TH=kSTH(),nx=TH[Math.min(5,st+1)];h+=`<div class="kpi"><div><small>Sterne</small><b style="color:#e8a33a">${'★'.repeat(st)}<span style="opacity:.25">${'★'.repeat(5-st)}</span></b></div><div><small>Punkte</small><b>${sc}</b>${st<5?`<i>nächster Stern ab ${nx}</i>`:''}</div></div>`;
+  h+=`<div class="bgh">Woraus die Punkte bestehen</div><div class="row"><span>🏗️ Angebot (Lifte, Pisten, Gebäude)</span><b>${Math.round(kOffer()*.6)}</b></div><div class="row"><span>😊 Ruf ${Math.round(KG.ruf)} %</span><b>${Math.round(KG.ruf*2.2)}</b></div><div class="row"><span>❄️ Pistenzustand ${Math.round(kPQavg())} %</span><b>${Math.round(kPQavg()*.8)}</b></div><p class="hint">Sterne: 2 ab ${TH[2]}, 3 ab ${TH[3]}, 4 ab ${TH[4]}, 5 ab ${TH[5]} Punkten.</p>`}
  if(KW.tab==='rk'){const L=KVOR.rivals.map((n,i)=>({n,s:KG.rv[i]})).concat([{n:KG.firm?kesc(KG.firm):'Dein Skigebiet',s:kScore(),me:1}]).sort((a,b)=>b.s-a.s);h+='<div class="bgh">Skigebiete der Gegend</div>'+L.map((r,i)=>`<div class="row" style="${r.me?'font-weight:600;color:var(--ac)':''}"><span>${i+1}. ${r.n}</span><b>${r.s}</b></div>`).join('')}
  return h}
 // --- Optionen ---
@@ -1026,12 +1330,14 @@ function kSeaHTML(){const S=KG.seaHist.slice(-1)[0];if(!S)return '';return `<h3>
 function kOpenInfo(k){KW.inf=k;kOpen('inf')}
 function kInfHTML(){const k=KW.inf||'',V=KVOR;
  if(k.startsWith('l:')){const id=k.slice(2),L=kLC(id),s=KG.l[id],o=KW.lift[id];if(!s.on){const b=KG.bau.find(x=>x.lift===id);return kHead((L.typ==='teller'?'🎿 ':'🚡 ')+L.n)+(b?`<p class="hint">🚧 Im Bau – fertig ${kDayT(b.d0+b.days)} früh.</p>`:'<p class="hint">Noch nicht gebaut.</p>')}
-  const w=kWait(id),T0=KLT[s.typ];const ovh=Math.round((id==='tl'?600:3000)*(KPK('lift')?.9:1));
+  const w=kWait(id),T0=KLT[s.typ];const ovh=kOvhC(id);
   let h=kHead((s.typ==='teller'?'🎿 ':'🚡 ')+L.n)+`<div style="margin:4px 0"><span class="kchip b">${T0.n}</span>${s.lg?`<span class="kchip">+${s.lg} Ausbau</span>`:''}${s.brk?'<span class="kchip r">⚠️ Störung</span>':kLiftOpen(id)?'<span class="kchip g">in Betrieb</span>':'<span class="kchip">steht</span>'}</div>`;
   h+=`<div class="kpi"><div><small>Wartezeit</small><b>${w<1?'keine':Math.round(w)+' Min.'}</b></div><div><small>In der Schlange</small><b>${o?o.q.length:0}</b></div><div><small>Fahrten heute</small><b>${o?o.cnt:0}</b></div><div><small>Zustand</small><b>${Math.round(s.cond)} %</b></div></div>`;
+  if(L.tn)h+=`<div class="row"><span>Strecke</span><b>${L.bn||'Talstation'} → ${L.tn}</b></div>`;
   if(KG.wx==='sturm'&&s.typ!=='teller')h+='<p class="hint">🌪️ Bei Sturm steht der Sessellift.</p>';
   h+=`<div class="row"><span>🔧 Generalüberholung (Zustand 100 %, weniger Störungen)</span><button class="btn" data-a="ovh" data-v="${id}" ${s.cond>92||!kCanPay(ovh)?'disabled':''}>${kfmt(ovh)}</button></div><div class="row"><span>Ausbau</span><button class="btn" data-a="go" data-v="bau|lif">Baumenü ›</button></div>`;return h}
- const Hd={kas:'🎫 Kassa',kio:'🌭 Kiosk',hut:'🛖 Sonnalm',kid:'⭐ Kinderland',sch:'⛷️ Skischule',rau:'🚜 Pistenraupe',hot:'🏨 Gasthof Sonnleiten',park:'🅿️ Parkplätze'};
+ if(V.infHTML){const r=V.infHTML(k);if(r)return r}
+ const Hd={kas:'🎫 Kassa',kio:'🌭 Kiosk',hut:'🛖 '+(V.hut?V.hut.n:'Hütte'),kid:'⭐ Kinderland',sch:'⛷️ Skischule',rau:'🚜 Pistenraupe',hot:'🏨 '+(V.hotel?V.hotel.n:'Gasthof'),park:'🅿️ Parkplätze'};
  if(Hd[k]){let h=kHead(Hd[k]);const inc=KG.inc;
   if(k==='kas')h+=`<div class="kpi"><div><small>Gäste heute</small><b>${KG.gDay}</b></div><div><small>Tageskarten heute</small><b>${kfmt(inc.tk||0)}</b></div></div><div class="row"><span>Tageskarte</span><button class="btn" data-a="go" data-v="pre">${KG.price.ticket} € ›</button></div>${KG.res.prRej?`<p class="hint">${KG.res.prRej} Gäste fanden die Karte zu teuer und sind umgekehrt.</p>`:''}`;
   if(k==='kio'||k==='hut')h+=`<div class="kpi"><div><small>Essen heute (alle)</small><b>${kfmt(inc.food||0)}</b></div><div><small>Mittagsmenü</small><b>${KG.price.food} €</b></div></div><p class="hint">Mittagszeit ist zwischen 11 und 14 Uhr.</p>`;
@@ -1041,9 +1347,10 @@ function kInfHTML(){const k=KW.inf||'',V=KVOR;
   if(k==='hot')h+=`<div class="kpi"><div><small>Belegung</small><b>${Math.round((KG.hOcc||0)*100)} %</b></div><div><small>Zimmerpreis</small><b>${KG.price.hotel} €</b></div></div>`;
   if(k==='park'){const sp=kSpots().length,used=KW.cars.filter(c=>c.spot).length;h+=`<div class="kpi"><div><small>Belegt</small><b>${used} / ${sp}</b></div><div><small>Heute abgewiesen</small><b>${KG.rej}</b></div></div><div class="row"><span>Parken</span><button class="btn" data-a="go" data-v="pre">${KG.price.park} € ›</button></div>`}
   return h}
- if(k.startsWith('p:')){const p=KW.pmap[k.slice(2)];return kHead((p.col==='r'?'🔴 ':'🔵 ')+p.n)+`<div class="kpi"><div><small>Zustand</small><b>${Math.round(KG.pq[p.id])} %</b></div><div><small>Gäste darauf</small><b>${KW.folks.filter(f=>f.st==='ski'&&f.pid===p.id).length}</b></div></div>`}
+ if(k.startsWith('p:')){const p=KW.pmap[k.slice(2)];return kHead((p.col==='r'?'🔴 ':'🔵 ')+p.n)+`<div class="kpi"><div><small>Zustand</small><b>${Math.round(KG.pq[p.id])} %</b></div><div><small>Gäste darauf</small><b>${KW.folks.filter(f=>f.st==='ski'&&f.pid===p.id).length}</b></div></div>`+(V.pisteInfo?V.pisteInfo(p):'')}
  return kHead('Info')}
-function kOverhaul(id){const c=Math.round((id==='tl'?600:3000)*(KPK('lift')?.9:1));if(!kCanPay(c))return;KG.money-=c;KG.cost.bau=(KG.cost.bau||0)+c;KG.seaBau=(KG.seaBau||0)+c;KG.l[id].cond=100;kLog('🔧',kLC(id).n+' generalüberholt.');kUI()}
+function kOvhC(id){const L=kLC(id);return Math.round((L.ovh||(id==='tl'?600:3000))*(KPK('lift')?.9:1))}
+function kOverhaul(id){const c=kOvhC(id);if(!kCanPay(c))return;KG.money-=c;KG.cost.bau=(KG.cost.bau||0)+c;KG.seaBau=(KG.seaBau||0)+c;KG.l[id].cond=100;kLog('🔧',kLC(id).n+' generalüberholt.');kUI()}
 
 // ===== Karriere: Titel, Firmenname, Landkarte, Berg-Fenster, Vorteile, Bilanz =====
 function kOvCSS(){kCloneCSS();if(document.getElementById('kocss'))return;const s=document.createElement('style');s.id='kocss';s.textContent=`
@@ -1159,26 +1466,26 @@ function kOvClick(e){const b=e.target.closest('[data-o]');if(!b)return;const o=b
 function kToTitle(){kOvHide();const n=document.getElementById('kname');if(n)n.remove();document.body.classList.remove('kmode');try{showTitle()}catch(e){}}
 // Vorschaubild eines Berges (aus der Vorlage gezeichnet)
 const KTH={};function kThumb(id){if(KTH[id])return KTH[id];const g0=KG,v0=KVOR,on0=KON,st0={c:KST.c,rs:KST.rs},pist0=KW.pistes,pm0=KW.pmap,paths0=KW.paths,z0=Object.assign({},kZ);let url='';
- try{KVOR=KV[id];KG=kNewState(id,[]);KG.stage=3;for(const k in KG.l)KG.l[k].on=1;KG.l.ses.typ='s4';KG.b.hut=1;KG.b.kinder=1;KG.b.school=1;KG.b.kiosk=1;KW.paths=KVOR.paths();kBuildWorld();kZ.S=.5;kZ.dpr=1;KST.c=null;
+ try{KVOR=KV[id];KG=kNewState(id,[]);KG.stage=KVOR.stages;for(const k in KG.l)KG.l[k].on=1;if(KVOR.thumbPrep)KVOR.thumbPrep(KG);else{KG.l.ses.typ='s4';KG.b.kinder=1;KG.b.school=1}KG.b.hut=1;KG.b.kiosk=1;KW.paths=KVOR.paths();kBuildWorld();kZ.S=.5;kZ.dpr=1;KST.c=null;
   const b=KVOR.bounds,rs=.62;const cv=document.createElement('canvas');cv.width=Math.ceil((b.x1-b.x0)*rs);cv.height=Math.ceil((b.y1-b.y0)*rs);const c=cv.getContext('2d');c.setTransform(rs,0,0,rs,-b.x0*rs,-b.y0*rs);
   kWithGame(()=>{KW.winOn=0;KVOR.bg(c);for(const L of KVOR.lots)kLot(c,L,0);kDrawPaths(c);kDrawPistes(c);const O=KST.objs.slice();for(const t of KST.trees)O.push({y:t.y,f:c2=>t.t==='p'?pineN(c2,t.x,t.y,t.s):kDecid(c2,t.x,t.y,t.s,t.t==='o')});for(const h of KST.houses)O.push({y:h.y,f:c2=>chalet(c2,h.x,h.y,h.w,h.h,h.k)});
-   for(const L of KVOR.lifts){const co=L.typ==='teller'?0:8;O.push({y:L.b[1]+22,f:c2=>L.typ==='teller'?stationN(c2,L.b[0]+14,L.b[1],0):liftStation(c2,L.b[0],L.b[1],co,true)});O.push({y:L.t[1]+18,f:c2=>L.typ==='teller'?stationN(c2,L.t[0]+14,L.t[1],0):liftStation(c2,L.t[0],L.t[1],co,false)});
+   for(const L of KVOR.lifts){const co=L.typ==='teller'?0:8;if(!kLowerOf(L.id))O.push({y:L.b[1]+22,f:c2=>L.typ==='teller'?stationN(c2,L.b[0]+14,L.b[1],0):liftStation(c2,L.b[0],L.b[1],co,true)});O.push({y:L.t[1]+18,f:c2=>L.typ==='teller'?stationN(c2,L.t[0]+14,L.t[1],0):liftStation(c2,L.t[0],L.t[1],co,false)});
     O.push({y:3000,f:c2=>{c2.strokeStyle='#161a28';c2.lineWidth=1.2;for(const sd of [-1,1]){c2.beginPath();c2.moveTo(L.b[0]+sd*co,L.b[1]-(co?0:14));c2.lineTo(L.t[0]+sd*co,L.t[1]-(co?0:14));c2.stroke()}}})}
-   O.push({y:KVOR.hut.y,f:c2=>hut(c2,0)});O.push({y:KVOR.kassa.y,f:c2=>kKassaDraw(c2,KVOR.kassa.x,KVOR.kassa.y)});O.push({y:KVOR.kinder.y-60,f:c2=>kKidBack(c2,0)});O.push({y:KVOR.kinder.y+40,f:c2=>kKidCarpet(c2,0)});
+   O.push({y:KVOR.hut.y,f:c2=>hut(c2,0)});O.push({y:KVOR.kassa.y,f:c2=>kKassaDraw(c2,KVOR.kassa.x,KVOR.kassa.y)});if(KVOR.kinder){O.push({y:KVOR.kinder.y-60,f:c2=>kKidBack(c2,0)});O.push({y:KVOR.kinder.y+40,f:c2=>kKidCarpet(c2,0)})}if(KVOR.thumbObjs)KVOR.thumbObjs(O);
    O.sort((a,b)=>a.y-b.y);for(const o of O)o.f(c)});
   // Ausschnitt: Hang und Tal
-  const out=document.createElement('canvas');out.width=640;out.height=520;const oc=out.getContext('2d');const x0=-40,y0=660,w=1080,h=w*520/640;oc.drawImage(cv,(x0-b.x0)*rs,(y0-b.y0)*rs,w*rs,h*rs,0,0,640,520);url=out.toDataURL('image/jpeg',.82)}
+  const out=document.createElement('canvas');out.width=640;out.height=520;const oc=out.getContext('2d');const TR=KVOR.thumbR||{x:-40,y:660,w:1080},x0=TR.x,y0=TR.y,w=TR.w,h=w*520/640;oc.drawImage(cv,(x0-b.x0)*rs,(y0-b.y0)*rs,w*rs,h*rs,0,0,640,520);url=out.toDataURL('image/jpeg',.82)}
  catch(e){console.error(e)}
  finally{KG=g0;KVOR=v0;KON=on0;KST.c=st0.c;KST.rs=st0.rs;KW.pistes=pist0;KW.pmap=pm0;KW.paths=paths0;Object.assign(kZ,z0);if(KVOR){kBuildWorld()}}
  return KTH[id]=url}
 // Berg starten / verlassen
 function kStart(id,fresh){kCareerLoad();KVOR=KV[id];if(!KVOR)return;let s=fresh?null:kLoad(id);if(!s||s.done){s=kNewState(id,KC.perks||[]);s.firm=KC.firm}KG=s;
- KW.folks=[];KW.cars=[];KW.buses=[];KW.pops=[];KW.lift={};KW.school=[];KW.groom=null;KW.res=null;KW.neu=null;KW.open=null;KW.paused=false;KW.modal=0;KW.speed=1;KW.endAsk=0;KW.rsAsk=0;KW.canP=null;KW.acc=[];
+ KW.folks=[];KW.cars=[];KW.buses=[];KW.pops=[];KW.lift={};KW.school=[];KW.groom=null;KW.res=null;KW.neu=null;KW.open=null;KW.paused=false;KW.modal=0;KW.speed=1;KW.endAsk=0;KW.rsAsk=0;KW.canP=null;KW.acc=[];KW.lgNew=0;
  KW.paths=KVOR.paths();kBuildWorld();for(const id2 in KG.l)if(KG.l[id2].on)kLiftSetup(id2);KW.hutS=kHutS();
- if(fresh||!KG.dem){KG.dem=kDemand();if(KG.t>=6&&KG.day===1&&!KG.started){KG.wx='sonne';KG.started=1;kLog('🏔️','Willkommen in '+KVOR.n+'! Baue zuerst den Tellerlift (🔨 Bauen › Lifte).')}}
+ if(fresh||!KG.dem){KG.dem=kDemand();if(KG.t>=6&&KG.day===1&&!KG.started){KG.wx='sonne';KG.started=1;kLog('🏔️',KVOR.welcome)}}
  KW.hotelN=0;kOvCSS();kOvHide();const n=document.getElementById('kname');if(n)n.remove();document.body.classList.add('kmode');kUIbuild();kCanvas();kZ.cv.style.display='block';document.getElementById('kui').hidden=false;
- const H=KVOR.home;kZ.S=H.S;kZ.camX=H.x-kViewW()/2+200;kZ.camY=1400-kViewH()*.55;kClamp();kBuildStatic();KON=true;KW.last=0;cancelAnimationFrame(KW.raf);KW.raf=requestAnimationFrame(kLoop);kHud(1);kUI();
- if(KG.day===1&&KG.t<7&&!KG.l.tl.on)setTimeout(()=>kToast('Tipp: Baue zuerst den Tellerlift – 🔨 Bauen › Lifte',5000),900);kSave()}
+ const H=KVOR.home;kZ.S=H.S;kZ.camX=H.cx-kViewW()/2;kZ.camY=H.cy-kViewH()*.55;kClamp();kBuildStatic();KON=true;KW.last=0;cancelAnimationFrame(KW.raf);KW.raf=requestAnimationFrame(kLoop);kHud(1);kUI();
+ if(KG.day===1&&KG.t<7&&KVOR.tip&&(KVOR.tipIf?KVOR.tipIf():true))setTimeout(()=>kToast(KVOR.tip,5000),900);kSave()}
 function kLeave(to){kSave();KON=false;cancelAnimationFrame(KW.raf);if(kZ.cv)kZ.cv.style.display='none';const u=document.getElementById('kui');if(u)u.hidden=true;KW.open=null;
  if(to==='map')kMap();else kToTitle()}
 function kRestartBerg(){const id=KG.id;KW.rsAsk=0;try{localStorage.removeItem(KBK(id))}catch(e){}KG=null;kStart(id,1)}
@@ -1202,6 +1509,8 @@ function kEndHTML(){const R=KW.endR||{st:0,before:0,xp:kXP()};const i=KBERGE.fin
 // Test-Zugang
 window.KAR={get G(){return KG},get V(){return KVOR},W:KW,Z:kZ,ST:KST,step:kStep,start:kStart,leave:kLeave,open:kOpen,map:kMap,career:()=>KC,careerOpen:kCareerOpen,buy:kBuy,stars:kStars,score:kScore,demand:kDemand,ui:kUI,draw:kDraw,build:kBuildStatic,
  setCam:(x,y,S)=>{if(S)kZ.S=S;kZ.camX=x;kZ.camY=y;kClamp()},thumb:kThumb,end:kBergEnd,seaRes:kSeaRes,mid:kMidnight,morning:kMorning,credit:kCredit,offer:kOffer,pq:kPQavg,wait:kWait,perkWin:kPerkWin,bergWin:kBergWin,fairT:kFairT,items:kBuildItems,canPos:kCanPos,
+ liftSetup:kLiftSetup,bauApply:kBauApply,eng:()=>KW.eng,
+ allX:()=>{KG.money=1e6;KG.ruf=80;KG.gT=500;KG.canEver=1;KG.stage=KVOR.stages;for(const L of KVOR.lifts){KG.l[L.id].on=1;kLiftSetup(L.id)}for(let k=0;k<12;k++){let any=0;for(const it of kBuildItems()){if(it.done||it.lock||it.bau)continue;kBuy(it.id);any=1}KG.bau.slice().forEach(b=>kBauApply(b));KG.bau=[];if(!any)break}KW.neu=null;KG.money=50000;kRebuild();kUI()},
  all:()=>{KG.money=1e6;KG.stage=3;KG.ruf=80;KG.gT=500;for(const id of ['tl','kiosk','po','raupe','can','kinder','school','hut','hotel','bus','lw','bw','paved','lgT','lgS'])kBuy(id);KG.l.ses.on=1;kUp4();KG.bau.slice().forEach(b=>kBauApply(b));KG.bau=[];KW.neu=null;KG.money=50000;kRebuild();kUI()}};
 
 })();
