@@ -1,4 +1,4 @@
-// Alpine Resort Tycoon – Karriere (Bergbahn-Karriere, K1 + K2 + K3)
+// Alpine Resort Tycoon – Karriere (Bergbahn-Karriere, K1 + K2 + K3 + K4)
 (function(){'use strict';
 // ===== Karriere (K1): eigene Berg-Engine für Karriere-Berge =====
 // Läuft getrennt vom Freien Spiel (Heimatberg bleibt unverändert). Benutzt die Zeichenteile des Spiels
@@ -765,6 +765,518 @@ KV.alt.blocks=function(B){
  B.line([[440,1594],[466,1632]],7);B.line([[652,1616],[642,1700],[572,1732]],7);B.line([[352,1612],[262,1680],[176,1708]],7);B.line([[690,1606],[790,1700]],7);B.line([[884,1704],[884,1770]],6);
  B.line([[626,656],[648,660],[668,652]],8);B.line([[60,1716],[260,1700],[372,1612]],10)};
 
+// ===== Berg-Vorlage 4: Seekar – Berg hinter dem See: Brücke, Seeschiff, Seebahn, Seehotel, Felsweg mit Galerie =====
+// Anreise: kleiner Parkplatz Nord (8 Plätze, über die Brücke) · großer Parkplatz Süd (3 Reihen) → zu Fuß über die Brücke, mit dem Seeschiff oder (Stufe 5) mit der Seebahn.
+// Zwei Kassen: West (Anleger, Seehotel) und Ost (Brücke, Parkplatz Nord, Skibus, Seebahn) – jeder Gast kauft dort, wo er ankommt.
+const kSN=x=>1562+8*Math.sin(x/70)+5*Math.sin(x/23),kSS=x=>1846+12*Math.sin(x/60+1)+6*Math.sin(x/19);
+const kWL=y=>200-60*Math.sin((y-300)/1100*Math.PI),kWR=y=>810+50*Math.sin((y-300)/1100*Math.PI);
+const KSLAKE=[];for(let x=-160;x<=1160;x+=20)KSLAKE.push([x,kSN(x)]);for(let x=1160;x>=-160;x-=20)KSLAKE.push([x,kSS(x)]);
+const KSE={WY:1544,KO:[726,1532],BX:879,PX:500,SBX:790,SBS:1952,SBN:1474,GY:1922,F1:1999,F2:2077,
+ dockN:1602,dockS:1810,lane:[522,478],cap:60,sbV:80,goalG:500};
+KV.seek={id:'seek',n:'Seekar',am:'am Seekar',bounds:{x0:-140,x1:1140,y0:150,y1:2260},home:{x:640,y:1560,S:1.0,cx:640,cy:1640},
+ desc:'Ein steiles Kar zwischen hellen Felswänden – direkt hinter einem See. Im Tal ist kaum Platz: nur 8 Parkplätze an der Talstation. Der große Parkplatz liegt am anderen Ufer – ohne Schiff gehen die Gäste zu Fuß über die Brücke.',
+ stages:5,seasons:2,start:1000,snow0:44,kioskAlways:1,runRef:760,arrShift:.45,
+ welcome:'Willkommen am Seekar! Der Talsessel läuft. Die meisten Gäste parken am anderen Ufer und gehen zu Fuß über die Brücke – mit einem Seeschiff ginge es viel schneller (🔨 Bauen › Anreise).',
+ tip:'Tipp: Das Seeschiff bringt die Gäste schnell über den See – 🔨 Bauen › Anreise',tipIf:()=>!KG.b.ship,
+ preHint:'Am Seekar ist die Fahrt mit Schiff und Seebahn in der Tageskarte enthalten. Fair heißt: so viel wie die Gegend gerade wert ist.',
+ mix:{fam:.3,anf:.18,pro:.3,sb:.22},priceSens:1.0,
+ wx:{sonne:.5,neuschnee:.22,tau:.18,sturm:.1},
+ rivals:['Zinnenbahnen','Seeblick-Lifte','Dolomitenhang','Felsenkar','Rosengarten-Lifte','Seiser Hang','Kristallkar','Marmolata-Lifte','Lago Bianco','Sellaritt'],
+ rivS:[790,730,670,610,560,510,460,410,360,310],rivG:1.2,
+ parkY:1960,valleyY:1500,walkY:KSE.WY,road:{y:2216},bus:{x:990,y:1530},zebra:null,starTh:[0,0,300,430,560,690],
+ pistes:[
+  {id:'ka',n:'Karabfahrt',col:'b',st:1,sec:[[1090,1],[-1e9,2]],pts:[[508,420,92],[488,560,112],[452,720,86],[420,880,58],[432,1040,46],[476,1190,44],[506,1330,50],[520,1440,56]]},
+  {id:'fw',n:'Felsweg',col:'r',st:3,wear:.05,pts:[[420,610,40],[338,652,30],[250,722,28],[204,800,28],[230,880,28],[320,990,30],[410,1054,32]]},
+  {id:'zr',n:'Zackenrinne',col:'s',st:4,wear:.055,pts:[[624,336,12],[668,356,16],[722,400,20],[758,470,20],[784,560,22],[772,660,22],[744,780,24],[724,880,26],[684,946,24],[610,984,22],[540,1012,26],[470,1034,30]]},
+  {id:'zm',n:'Zubringer',col:'b',st:1,conn:1,pts:[[606,1104,10],[560,1112,11],[512,1120,14]]},
+  {id:'zk',n:'Zubringer',col:'b',st:2,conn:1,pts:[[656,656,10],[612,654,11],[566,650,14]]},
+  {id:'zg',n:'Zubringer',col:'b',st:4,conn:1,pts:[[598,334,10],[560,360,12],[526,398,16]]}],
+ lifts:[
+  {id:'ts',n:'Talsessel',sh:'Talsessel',typ:'s4',st:1,b:[656,1468],t:[640,1092],nx:'ks',exit:[606,1100],py:[.3,.62],pistes:['zm','ka'],bn:'Talstation',tn:'Mittelstation',ovh:2500,up:1,upF:.7},
+  {id:'ks',n:'Karsessel',sh:'Karsessel',typ:'s6',st:2,b:[640,1092],t:[688,640],nx:'gg',exit:[656,652],py:[.15,.42,.7],pistes:['zk','ka','fw'],bn:'Mittelstation',tn:'Karstation',ovh:3000,up:1,upF:.7},
+  {id:'gg',n:'Gipfelgondel',sh:'Gipfelgondel',typ:'g8',st:4,b:[688,640],t:[612,318],exit:[612,336],pistes:['zg','zr','ka','fw'],bn:'Karstation',tn:'Gipfel',ovh:3500,up:1,upF:.7}],
+ kassa:{x:420,y:1532},
+ lots:[{id:'pn',n:'Parkplatz Nord',x0:926,x1:1070,y0:1446,y1:1494,base:1},{id:'r1',n:'Parkplatz Süd · Reihe 1',x0:40,x1:634,y0:1932,y1:1988,base:1},
+  {id:'r2',n:'Reihe 2',x0:40,x1:634,y0:2010,y1:2066},{id:'r3',n:'Reihe 3',x0:40,x1:634,y0:2088,y1:2144,st:3}],
+ hut:{x:330,y:522,in:[[396,540],[372,534],[352,530]],cost:9000,days:2,st:2,n:'Karhütte',pid:'ka'},
+ garage:{x:380,y:1440},bwHut:{x:1102,y:1470},bwStart:[1102,1486],
+ hotel:{x:210,y:1522,w:118,h:76,k:2,cost:25000,days:3,st:2,rooms:40,n:'Seehotel',sign:'SEEHOTEL ★★★★',
+  pin:()=>[[214,1528],[260,1544],[400,1544],[420,1540]],pout:()=>[[400,1544],[260,1544],[214,1528]]},
+ cannons:{cost:9000,st:2},
+ goals:[
+  {k:'pf',t:'3 Sterne',sh:'3 ★',prog:()=>kStars()+' ★',ok:()=>kStars()>=3,lock:1},
+  {k:'zu',t:'Einmal '+knum(KSE.goalG)+' Gäste an einem Tag',sh:knum(KSE.goalG)+' Gäste',prog:()=>'bester Tag: '+knum(Math.max(KG.maxG||0,KG.gDay||0)),ok:()=>Math.max(KG.maxG||0,KG.gDay||0)>=KSE.goalG,lock:1},
+  {k:'me',t:'Platz 3 oder besser in der Rangliste',sh:'Platz 3',prog:()=>'jetzt Platz '+kRank(),ok:()=>kRank()<=3,end:1}],
+ stageInfo:[null,
+  {n:'Talabfahrt',d:'Der Talsessel bis zur Mittelstation und der untere Teil der Karabfahrt.'},
+  {n:'Kar',d:'Der 6er-Karsessel fährt von der Mittelstation ins breite Kar. Die ganze Karabfahrt ist offen, die Karhütte kann gebaut werden.',cost:12000,days:2,req:[['ruf',52,'Ruf mindestens 52 %'],['gst',150,'150 Gäste insgesamt']]},
+  {n:'Felsweg',d:'Die rote Abfahrt zweigt im Kar ab und führt durch eine Felsgalerie an der Wand entlang – ein Erlebnis für Könner.',cost:10000,days:2,req:[['stars',2,'2 Sterne'],['ruf',56,'Ruf mindestens 56 %']]},
+  {n:'Gipfel',d:'Eine 8er-Gondelbahn bis zum Gipfel und die schwarze Zackenrinne zwischen den Felsen.',cost:30000,days:4,req:[['stars',3,'3 Sterne'],['ruf',60,'Ruf mindestens 60 %']]},
+  {n:'Seebahn',d:'Eine 8er-Gondelbahn über den See vom großen Parkplatz zur Talstation – sie fährt den ganzen Tag in beide Richtungen.',cost:45000,days:5,req:[['ship',1,'Seeschiff fährt'],['stars',3,'3 Sterne'],['ruf',64,'Ruf mindestens 64 %']]}],
+ fair:{ticket:[0,21,25,29,32,35],park:4,food:14,kids:7,school:24,hotel:95}
+};
+KV.seek.init=function(s){s.l.ts.on=1;s.snow=44;s.b.ship=0;s.b.ship2=0;s.b.bus2=0;s.shipD=0;s.ship2D=0;s.maxG=0;s.sbLg=0};
+KV.seek.req=function(r){if(r[0]==='ship')return !!KG.b.ship;return null};
+KV.seek.lamps=function(){const o=[];for(let x=20;x<=1060;x+=90){if(Math.abs(x-KSE.PX)<24||Math.abs(x-330)<40||x>140&&x<300||Math.abs(x-KSE.BX)<30)continue;o.push([x,Math.min(1556,kSN(x)-6)])}
+ for(let y=1600;y<=1840;y+=80){o.push([868,y]);o.push([926,y])}for(let x=40;x<=1080;x+=110){if(x>440&&x<560)continue;o.push([x,Math.max(1868,kSS(x)+16)])}for(let x=-80;x<=1080;x+=120)o.push([x,2192]);return o};
+KV.seek.world=function(){const P=KW.pmap,K=P.ka,near=(Q,x,y)=>{let b=0,bd=1e9;for(const q of Q.d){const d=Math.hypot(q[0]-x,q[1]-y);if(d<bd){bd=d;b=q[3]}}return b};
+ for(const id of ['zm','zk','zg','fw','zr']){const C=P[id],e=C.d[C.d.length-1];C.next={p:'ka',s:near(K,e[0],e[1])}}
+ K.brs=[{s:near(K,420,610),p:'fw',k:'fw'}]};
+KV.seek.paths=function(){return {busUp:[],zebra:[]}};
+// Wo ist der Gast? kw/ko Kassen · end Ende der Karabfahrt · ts Talstation · mit/kar/gip Stationen · sud Südufer · pro Promenade
+KV.seek.where=function(f){const d=(x,y)=>Math.hypot(f.x-x,f.y-y);if(f.y>1600)return 'sud';
+ if(d(420,1540)<60)return 'kw';if(d(KSE.KO[0],KSE.KO[1]+8)<46)return 'ko';
+ if(d(520,1450)<90&&f.y<1500)return 'end';if(f.x>500&&f.x<660&&f.y>1470&&f.y<1540)return 'ts';
+ if(d(640,1092)<90)return 'mit';if(d(688,640)<80)return 'kar';if(d(612,318)<70)return 'gip';
+ if(f.y>1490)return 'pro';return 'x'};
+KV.seek.route=function(from,to,f){const W=KSE.WY;if(from===to)return [];if(!f)f={x:420,y:1540};
+ if(to==='ts'){if(from==='end')return [[552,1470],[574,1494]];if(from==='kw')return [[440,1544],[560,1544]];if(from==='ko')return [[700,1544],[650,1544]];if(from==='pro')return [[f.x,W],[f.x<600?560:650,W]];return [[574,1494]]}
+ if(to==='ks'||to==='gg')return [];
+ if(to==='kas'){if(from==='end')return [[552,1478],[560,1510],[540,W],[440,W],[420,1540]];if(from==='ko')return [[700,W],[440,W],[420,1540]];return [[f.x,W],[440,W],[420,1540]]}
+ return KVOR.route(from,'kas',f)};
+KV.seek.chooseLift=function(){return 'ts'};
+// Aussteigen oben: weiter mit dem nächsten Lift oder abfahren
+KV.seek.unload=function(o,f){const id=o.L.id,ty=f.ty,up=(nx,p0)=>{if(!KG.l[nx].on||!kLiftOpen(nx)||KG.t>=15.3||f.leaving)return 0;let p=p0[ty]||.5;if(f.kid)p*=.7;const w=kWait(nx);if(w>20)p*=.45;else if(w>10)p*=.75;if(kR()<p){kToQueue(f,nx);return 1}return 0};
+ if(id==='ts'){if(KG.stage>=2&&up('ks',{pro:.88,sb:.84,fam:.62,anf:.3}))return;kSkiStart(f,'zm');return}
+ if(id==='ks'){if(KG.stage>=4&&up('gg',{pro:.8,sb:.74,fam:.36,anf:.1}))return;kSkiStart(f,'zk');return}
+ const zr=kPisteOpen(KW.pmap.zr),p={pro:.46,sb:.36,fam:.03,anf:0}[ty]||.2;kSkiStart(f,zr&&!f.kid&&kR()<p?'zr':'zg')};
+// Abzweig Felsweg: nur wer auf der linken Hälfte fährt (kein Sprung über die Piste)
+KV.seek.branch=function(f,b){if(!kPisteOpen(KW.pmap.fw))return 0;if((f.lo||0)<-.05)return 0;let p={pro:.85,sb:.78,fam:.25,anf:.04}[f.ty]||.4;if(f.kid)p*=.4;return kR()<p};
+KV.seek.descend=function(f){if(f.st==='hurt'&&f.pid){f.st='ski';f.v=Math.min(f.v||20,20);f.leaveT=0;f.engIn=null;f.engQ=null;f.engHold=0;return true}
+ if(f.st==='ski')return false;const m={mit:['zm',[606,1100]],kar:['zk',[656,652]],gip:['zg',[612,336]]}[KVOR.where(f)];if(!m)return false;
+ f.leaveT=0;f.x=m[1][0];f.y=m[1][1];kSkiStart(f,m[0]);return true};
+KV.seek.hideF=function(f){return f.st==='ski'&&f.pid==='fw'&&f.y>748&&f.y<834};
+KV.seek.resPre=function(){return [[1080,1440],[960,1428],[860,1428],[740,1424],[620,1418],[560,1420]]};
+// Warteschlangen: Talstation (zwei Blöcke links), Mittel- und Karstation (rechts)
+KV.seek.qSlot=function(o,i){const id=o.L.id;
+ if(id==='ts'){if(i<63){const r=Math.floor(i/9),j=i%9;return [642-(r%2?8-j:j)*7,1484+r*8]}const k=Math.min(i-63,39),r=Math.floor(k/8),j=k%8;return [570-(r%2?7-j:j)*7.4,1532-r*8]}
+ if(id==='ks'){const k=Math.min(i,62),r=Math.floor(k/9),j=k%9;return [666+(r%2?8-j:j)*7,1108+r*7]}
+ if(id==='gg'){const k=Math.min(i,41),r=Math.floor(k/7),j=k%7;return [704+(r%2?6-j:j)*6.5,656+r*7]}return null};
+function kSeeFenceBlock(c,x0,x1,ys,dir){c.strokeStyle='#8a94a8';c.lineWidth=1;for(let r=0;r<ys.length;r++){const y=ys[r];let a=x0,b=x1;if(r>0&&r<ys.length-1){if(r%2===dir)a=x0+8;else b=x1-8}c.beginPath();c.moveTo(a,y);c.lineTo(b,y);c.stroke();c.fillStyle='#5d667a';for(let x=a;x<=b;x+=12)c.fillRect(x-.7,y-1.4,1.4,2.8)}}
+function kSeeWaitSign(c,id,x,y){const w=kWait(id);c.fillStyle='#5d667a';c.fillRect(x-.8,y,1.6,12);c.fillStyle=w>22?'#e8504a':w>8?'#f2a63b':'#2e9e5b';c.beginPath();c.roundRect(x-16,y-12,32,13,2.5);c.fill();c.fillStyle='#fff';c.font='700 5.6px Fredoka,sans-serif';c.textAlign='center';c.fillText('WARTEZEIT',x,y-6.4);c.font='600 5px Fredoka,sans-serif';c.fillText(w<1?'keine':Math.round(w)+' Min.',x,y-1.4)}
+KV.seek.fence=function(c,o,id){const n=o.q.length;
+ if(id==='ts'){const R=Math.max(3,Math.min(7,Math.ceil(n/9)+1)),ys=[];for(let r=0;r<=R;r++)ys.push(1480+r*8);kSeeFenceBlock(c,580,648,ys,0);
+  if(n>60){const R2=Math.min(5,Math.ceil((n-63)/8)+1),y2=[];for(let r=0;r<=R2;r++)y2.push(1536-r*8);kSeeFenceBlock(c,508,576,y2,1)}kSeeWaitSign(c,id,700,1462);return true}
+ if(id==='ks'){const R=Math.max(3,Math.min(7,Math.ceil(n/9)+1)),ys=[];for(let r=0;r<=R;r++)ys.push(1104+r*7);kSeeFenceBlock(c,660,728,ys,1);kSeeWaitSign(c,id,744,1100);return true}
+ if(id==='gg'){const R=Math.max(3,Math.min(6,Math.ceil(n/7)+1)),ys=[];for(let r=0;r<=R;r++)ys.push(652+r*7);kSeeFenceBlock(c,698,748,ys,1);kSeeWaitSign(c,id,762,700);return true}return false};
+// Lifte zeichnen: eigene Stützenplätze (nie auf einer Piste)
+KV.seek.liftLook=function(c,o,t){const s=KG.l[o.L.id],T0=o.T,{bx,by,tx,ty,len,ux,uy}=o,co=T0.co,PY=kAPy(o.L,len,0);
+ c.strokeStyle='#161a28';c.lineWidth=1.2;const px=-uy,py=ux;for(const sd of [-1,1]){c.beginPath();c.moveTo(bx+px*co*sd,by+py*co*sd);c.lineTo(tx+px*co*sd,ty+py*co*sd);c.stroke()}
+ for(const u of PY){const x=bx+(tx-bx)*u,y=by+(ty-by)*u;if(kInV(x,y))pylonN(c,x,y,co+3)}
+ const cap=T0.cap;for(const ch of o.ch){if(ch.u<.03||ch.u>1.97||Math.abs(ch.u-1)<.03)continue;const [x,y]=kLiftPos(o,ch.u);if(!kInV(x,y,30))continue;const k={r:ch.r.map(f=>({col:f.col}))};
+  c.save();c.translate(x,y);c.rotate(Math.sin(ch.u*40+t*.8)*.04);if(s.typ==='g8')kACabin(c,k);else gondola(c,k,cap);c.restore()}return true};
+
+// ---------- Anreise: Wege, Seeschiff, Seebahn, Autos, Skibus ----------
+function kSeeCarX(c){return c.sx+9}
+// Weg vom Auto zum Gehweg oberhalb von Reihe 1 (zwischen den Autos hindurch) bzw. auf die Promenade
+function kSeeFromCar(c){const x=kSeeCarX(c);if(c.lot==='pn')return [[x,c.py+6],[x,1500],[x,KSE.WY]];return [[x,c.py],[x,KSE.GY]]}
+function kSeeToCar(c){return kRev(kSeeFromCar(c))}
+const KSW={ // Teilstrecken
+ sToShip:[[KSE.PX,KSE.GY],[KSE.PX,1884]],
+ sToSb:[[700,KSE.GY],[728,1946]],
+ sToBridgeN:[[700,KSE.GY],[740,1900],[870,1890],[KSE.BX,1880],[KSE.BX,KSE.WY]],
+ nToKO:[[760,KSE.WY],[KSE.KO[0],KSE.WY],[KSE.KO[0],KSE.KO[1]+8]],
+ nToKW:[[440,KSE.WY],[420,1540]]};
+function kSeePathLen(P,x,y){let L=0,px=x,py=y;for(const p of P){L+=Math.hypot(p[0]-px,p[1]-py);px=p[0];py=p[1]}return L}
+// Seeschiff: Fahrplan (zwei Schiffe, je 30 Minuten; das zweite 15 Minuten versetzt)
+function kSeeShipOn(i){return !!KG.b.ship&&(i===0||!!KG.b.ship2)&&KG.day>=(i?KG.ship2D:KG.shipD)&&KG.wx!=='sturm'}
+function kSeeT0(i){return 7.5+i*.25}
+function kSeeK(i){return Math.floor((18-kSeeT0(i))/.5)}
+function kSeePh(i,t){const T0=kSeeT0(i),K=kSeeK(i);if(!kSeeShipOn(i)||t<T0||t>=T0+(K+1)*.5)return {st:'S',k:-1};const z=(t-T0)/.5,k=Math.floor(z),p=(z-k)*.5;
+ if(p<.2)return {st:'go',u:p/.2,k};if(p<.25)return {st:'N',k};if(p<.45)return {st:'back',u:(p-.25)/.2,k};return {st:'S',k}}
+function kSeeDeps(i,side){const out=[];if(!kSeeShipOn(i))return out;const T0=kSeeT0(i);for(let k=0;k<=kSeeK(i);k++)out.push(side==='S'?T0+k*.5:T0+k*.5+.25);return out}
+function kSeeNextDep(side,t){let b=null;for(const i of [0,1])for(const d of kSeeDeps(i,side))if(d>=t&&(b==null||d<b))b=d;return b}
+function kSeeShipN(){return (kSeeShipOn(0)?1:0)+(kSeeShipOn(1)?1:0)}
+function kSeeShipPos(i){const sh=KW.ships&&KW.ships[i],ph=kSeePh(i,KG.t),e=u=>u*u*(3-2*u);let y=KSE.dockS,mv=0,dir=0;
+ if(ph.st==='N')y=KSE.dockN;else if(ph.st==='go'){y=KSE.dockS+(KSE.dockN-KSE.dockS)*e(ph.u);mv=1;dir=-1}else if(ph.st==='back'){y=KSE.dockN+(KSE.dockS-KSE.dockN)*e(ph.u);mv=1;dir=1}
+ return {x:KSE.lane[i],y,mv,dir,ph}}
+// Seebahn
+function kSeeSbOn(){return KG.stage>=5&&KG.wx!=='sturm'}
+function kSeeSbLen(){return KSE.SBS-KSE.SBN}
+function kSeeSbSetup(){const len=kSeeSbLen(),sp=62*Math.pow(.86,KG.sbLg||0),n=Math.max(6,Math.floor(2*len/sp));const old=KW.sbw;const o={n,len,ch:Array.from({length:n},(_,i)=>({u:i*2/n,r:[]})),q:old?old.q:{S:[],N:[]},cnt:old?old.cnt:0};
+ if(old)for(const c of old.ch)for(const f of c.r)o.ch[0].r.push(f);KW.sbw=o;return o}
+function kSeeSbRate(){const o=KW.sbw||kSeeSbSetup(),sp=2*o.len/o.n;return KRT*KSE.sbV/sp*8}   // Gäste je Spielstunde und Richtung
+function kSeeSbPos(u){const up=u<1,a=up?u:2-u,x=KSE.SBX+(up?10:-10);return [x,KSE.SBS-(KSE.SBS-KSE.SBN)*a]}
+// geschätzte Dauer bis zur Kassa (Spielstunden) – danach entscheidet sich die Gruppe
+function kSeeEst(m,side,from){const t=KG.t,x=from[0],y=from[1];
+ if(m==='walk')return (side==='S'?Math.abs(y-KSE.GY)+kSeePathLen(KSW.sToBridgeN,x,KSE.GY)+kSeePathLen(KSW.nToKO,KSE.BX,KSE.WY):Math.abs(x-KSE.BX)+kSeePathLen(kRev(KSW.sToBridgeN),KSE.BX,KSE.WY)+300)/(13*2.3*KRT)*1.25;
+ if(m==='ship'){if(!kSeeShipN())return null;const d=side==='S'?Math.abs(x-KSE.PX)+Math.abs(y-1884)+80:Math.abs(x-KSE.PX)+80,ta=t+d/(11*2.3*KRT),nd=kSeeNextDep(side,ta);if(nd==null)return null;
+  const q=(KW.shipQ?KW.shipQ[side].length:0)+KW.folks.filter(g=>g.nx==='shipq'&&(g.y>1700)===(side==='S')).length;const per=KSE.cap,iv=.5/kSeeShipN();let w=nd-t+Math.floor(q/per)*iv;if(side==='N'&&nd+Math.floor(q/per)*iv>18.3)return null;return w+.2+.1}
+ if(m==='sb'){if(!kSeeSbOn()||t>18.3)return null;const d=side==='S'?Math.abs(x-728)+Math.abs(y-KSE.GY)+60:Math.abs(x-812)+60;const q=KW.sbw?KW.sbw.q[side].length:0;return d/(11*2.3*KRT)+q/kSeeSbRate()+kSeeSbLen()/KSE.sbV/KRT+.06}
+ return null}
+function kSeeChoose(side,from){const o=[['walk',kSeeEst('walk',side,from)]];for(const m of ['ship','sb']){const v=kSeeEst(m,side,from);if(v!=null)o.push([m,v])}
+ let best='walk',bv=1e9;for(const [m,v] of o){const vv=v*(.85+kR()*.3);if(vv<bv){bv=vv;best=m}}return best}
+// Unterwegs zur Kassa (Ankunft) bzw. heim (abends)
+function kSeeCount(m,n){const A=KG.res.arr||(KG.res.arr={});A[m]=(A[m]||0)+n}
+function kSeeGoKassa(f,path,ko,sp){f.kasP=ko?[KSE.KO[0],KSE.KO[1]]:[KVOR.kassa.x,KVOR.kassa.y];kWalk(f,path,'kassa',sp||11)}
+function kSeeDepart(f,m,from){// Südufer → Nordufer
+ const P=from.slice();if(m==='walk'){f.sat-=5;kSeeGoKassa(f,P.concat(KSW.sToBridgeN,KSW.nToKO),1,13);return}
+ if(m==='ship'){kWalk(f,P.concat(KSW.sToShip),'shipq',11);return}
+ if(m==='sb'){kWalk(f,P.concat(KSW.sToSb),'sbq',11);return}}
+// abends: zurück zum Auto, zum Bus, ins Hotel
+KV.seek.goHome=function(f){const w=KVOR.where(f),W=KSE.WY;let P=[];
+ if(w==='end')P=[[552,1478],[560,1510],[560,W]];else if(w==='sud'){f.st='gone';return}else P=[[f.x,Math.max(f.y,W)]];
+ const here=P[P.length-1];
+ if(f.hotelG){kWalk(f,P.concat(KVOR.hotel.pout()),'hotelin',11);return}
+ if(f.busG){kWalk(f,P.concat([[990+(kR()-.5)*30,W+6]]),'busw',11);return}
+ const c=f.car;if(!c){kWalk(f,P,'inshome',11);return}
+ if(c.lot==='pn'){kWalk(f,P.concat([[kSeeCarX(c),W]],kSeeToCar(c)),'car',11);return}
+ let m=kSeeChoose('N',here);f.retM=m;
+ if(m==='ship'){kWalk(f,P.concat([[KSE.PX,W]]),'shipq',11);return}
+ if(m==='sb'){kWalk(f,P.concat([[812,W]]),'sbq',11);return}
+ kSeeWalkHome(f,P)};
+function kSeeWalkHome(f,P){const c=f.car;f.retM='walk';kWalk(f,P.concat([[KSE.BX,KSE.WY]],kRev(KSW.sToBridgeN),[[kSeeCarX(c),KSE.GY]],kSeeToCar(c).slice(1)),'car',13)}
+// Ankunft am Anleger oder an der Seebahn: anstellen (fährt nichts mehr → zu Fuß)
+KV.seek.arrive=function(f,nx){if(nx==='shipq'||nx==='sbq'){const side=f.y>1700?'S':'N',ship=nx==='shipq';
+  const ok=ship?(kSeeNextDep(side,KG.t)!=null&&(side==='S'||KG.t<18.25)):kSeeSbOn()&&KG.t<18.5;
+  if(!ok){kSeeFallback(f,side);return true}
+  f.st=ship?'shipw':'sbw';f.qs=side;f.qT=KG.t;(ship?(KW.shipQ||(KW.shipQ={S:[],N:[]})):(KW.sbw||kSeeSbSetup()).q)[side].push(f);return true}
+ if(nx==='busw'){f.st='busw';return true}
+ return false};
+function kSeeFallback(f,side){if(side==='S'){kSeeCount('walk',1);kSeeGoKassa(f,[[KSE.PX,KSE.GY]].concat(KSW.sToBridgeN,KSW.nToKO),1,13);f.sat-=5;return}
+ if(f.car)kSeeWalkHome(f,[[f.x,KSE.WY]]);else f.st='gone'}
+function kSeeQSlot(kind,side,i){
+ if(kind==='ship'){if(side==='S'){if(i<30)return [KSE.PX+[0,-6,6][i%3],1790+Math.floor(i/3)*6.4];const j=i-30;return [488-Math.floor(j/2)*7,1866+(j%2)*8]}
+  if(i<33)return [KSE.PX+[0,-6,6][i%3],1624-Math.floor(i/3)*6.6];const j=i-33;return [486-Math.floor(j/2)*7,1552+(j%2)*7]}
+ if(side==='S'){const k=Math.min(i,71),r=Math.floor(k/9),j=k%9;return [776-(r%2?8-j:j)*7,1968+r*7]}
+ const k=Math.min(i,48),r=Math.floor(k/7),j=k%7;return [812+(r%2?6-j:j)*7,1486+r*7]}
+KV.seek.folkStep=function(f,dt){const st=f.st;
+ if(st==='shipw'||st==='sbw'){const Q=st==='shipw'?KW.shipQ[f.qs]:KW.sbw.q[f.qs],i=Q.indexOf(f);if(i<0)return;const [sx,sy]=kSeeQSlot(st==='shipw'?'ship':'sb',f.qs,i),dx=sx-f.x,dy=sy-f.y,d=Math.hypot(dx,dy);if(d>.3){const m=Math.min(d,26*dt);f.x+=dx/d*m;f.y+=dy/d*m}f.sv=0;return}
+ if(st==='shipb'){const sh=KW.ships[f.shipI],g=f.gang,dx=g[0]-f.x,dy=g[1]-f.y,d=Math.hypot(dx,dy),m=60*dt;if(d<=m){kSeeAboard(sh,f)}else{f.x+=dx/d*m;f.y+=dy/d*m}}};
+function kSeeAboard(sh,f){f.st='ship';f.hide=1;const i=sh.bd.indexOf(f);if(i>=0)sh.bd.splice(i,1);sh.load.push(f)}
+// Schiffe bewegen, ein- und aussteigen
+function kSeeShipTick(t0,t1){if(!KW.ships)KW.ships=[{load:[],bd:[]},{load:[],bd:[]}];if(!KW.shipQ)KW.shipQ={S:[],N:[]};
+ for(const i of [0,1]){const sh=KW.ships[i],a=kSeePh(i,t0),b=kSeePh(i,t1);const gx=KSE.lane[i]+(i?12:-12);
+  if(a.st!==b.st||a.k!==b.k){
+   if((a.st==='S'||a.st==='N')&&(b.st==='go'||b.st==='back')){for(const f of sh.bd.slice())kSeeAboard(sh,f);sh.dep={t:t1,dir:b.st==='go'?'N':'S',n:sh.load.length};(KW.shipLog||(KW.shipLog=[])).push({t:t1,i,dir:sh.dep.dir,n:sh.load.length});KG.res.shipN=(KG.res.shipN||0)+sh.load.length;sh.used=(sh.used||0)+sh.load.length;sh.trips=(sh.trips||0)+1}
+   if(a.st==='go'&&b.st==='N')kSeeShipUnload(sh,'N',[gx,KSE.dockN]);
+   if(a.st==='back'&&b.st==='S')kSeeShipUnload(sh,'S',[gx,KSE.dockS])}
+  // einsteigen, solange das Schiff liegt und noch fährt
+  const side=b.st==='N'?'N':b.st==='S'?'S':null;if(!side||b.k<0&&!(kSeeShipOn(i)&&t1>=kSeeT0(i)-.08&&t1<kSeeT0(i)))continue;
+  const Q=KW.shipQ[side];while(Q.length&&sh.load.length+sh.bd.length<KSE.cap){const f=Q.shift();f.st='shipb';f.shipI=i;f.gang=[gx,side==='N'?KSE.dockN:KSE.dockS];sh.bd.push(f)}}
+ // nach der letzten Abfahrt: wer noch am Anleger Nord wartet, geht zu Fuß
+ if(KG.t>18.26&&KW.shipQ.N.length)for(const f of KW.shipQ.N.splice(0))kSeeFallback(f,'N')}
+function kSeeShipUnload(sh,side,g){let k=0;for(const f of sh.load){f.hide=0;f.x=g[0];f.y=g[1]+(k%3-1)*5;f.delay=k*.035;k++;
+  if(side==='N')kSeeGoKassa(f,[[KSE.PX,g[1]-6],[KSE.PX,1550]].concat(KSW.nToKW),0,11);
+  else if(f.car)kWalk(f,[[KSE.PX,g[1]+6],[KSE.PX,1884],[KSE.PX,KSE.GY],[kSeeCarX(f.car),KSE.GY]].concat(kSeeToCar(f.car).slice(1)),'car',11);else f.st='gone'}
+ sh.load=[]}
+// Seebahn: Kabinen im Kreis, Einstieg an beiden Stationen
+function kSeeSbTick(dt){if(KG.stage<5)return;const o=KW.sbw||kSeeSbSetup();const riders=o.ch.some(c=>c.r.length),on=kSeeSbOn()&&KG.t>=7.4&&KG.t<18.6;o.run=on||riders&&KG.wx!=='sturm';if(!o.run)return;
+ const du=KSE.sbV*dt/o.len;for(const c of o.ch){const u0=c.u;c.u+=du;
+  if(u0<1&&c.u>=1){kSeeSbOut(c,'N');if(on)kSeeSbIn(o,c,'N')}
+  if(c.u>=2){c.u-=2;kSeeSbOut(c,'S');if(on)kSeeSbIn(o,c,'S')}}
+ if(!on&&KG.t>=18.6)for(const s of ['S','N'])for(const f of o.q[s].splice(0))kSeeFallback(f,s)}
+function kSeeSbIn(o,c,side){const Q=o.q[side],s0=kSeeQSlot('sb',side,0);let n=0;while(Q.length&&c.r.length<8&&n<8){const f=Q[0];if(Math.hypot(f.x-s0[0],f.y-s0[1])>40)break;Q.shift();f.st='sbr';f.hide=1;f.sbTo=side==='S'?'N':'S';c.r.push(f);n++;o.cnt++;KG.res.sbN=(KG.res.sbN||0)+1}}
+function kSeeSbOut(c,side){const keep=[];let k=0;for(const f of c.r){if(f.sbTo!==side){keep.push(f);continue}f.hide=0;f.delay=k*.05;k++;
+  if(side==='N'){f.x=772;f.y=1500;kSeeGoKassa(f,[[772,1524],[760,KSE.WY]].concat(KSW.nToKO.slice(1)),1,11)}
+  else{f.x=764;f.y=1938;if(f.car)kWalk(f,[[730,1930],[700,KSE.GY],[kSeeCarX(f.car),KSE.GY]].concat(kSeeToCar(f.car).slice(1)),'car',11);else f.st='gone'}}
+ c.r=keep}
+// Autos: Parkplatz Nord über die Brücke, Parkplatz Süd über die Zufahrt und die Fahrgassen
+function kSeeRnd(P,r=12){const out=[P[0]];for(let i=1;i<P.length-1;i++){const a=P[i-1],b=P[i],c=P[i+1],l1=Math.hypot(b[0]-a[0],b[1]-a[1]),l2=Math.hypot(c[0]-b[0],c[1]-b[1]),rr=Math.min(r,l1/2,l2/2);if(rr<1){out.push(b);continue}
+  const p1=[b[0]+(a[0]-b[0])/l1*rr,b[1]+(a[1]-b[1])/l1*rr],p2=[b[0]+(c[0]-b[0])/l2*rr,b[1]+(c[1]-b[1])/l2*rr];for(let k=0;k<=6;k++){const t=k/6,u=1-t;out.push([u*u*p1[0]+2*u*t*b[0]+t*t*p2[0],u*u*p1[1]+2*u*t*b[1]+t*t*p2[1]])}}
+ out.push(P[P.length-1]);return kPoly(out)}
+function kSeeSpots(){const out=[];for(const L of KVOR.lots){if(!KG.lots[L.id])continue;const n=Math.floor((L.x1-L.x0)/kLotW);for(let i=0;i<n;i++){const x=L.x0+kLotW*i+kLotW/2;
+  out.push({lot:L.id,i,x,y:L.id==='pn'?1470:L.id==='r1'?1960:L.id==='r2'?2038:2116,nose:L.id==='pn'||L.id==='r1'?-Math.PI/2:Math.PI/2})}}return out}
+function kSeeFreeSpot(){const used=new Set(KW.cars.filter(c=>c.spot).map(c=>c.spot.lot+':'+c.spot.i));const free=kSeeSpots().filter(s=>!used.has(s.lot+':'+s.i));if(!free.length)return null;
+ const rk={pn:0,r1:1,r2:2,r3:3};free.sort((a,b)=>rk[a.lot]-rk[b.lot]||b.x-a.x);return free[Math.floor(kR()*Math.min(3,free.length))]}
+const kSeeFY=c=>c.lot==='r3'?KSE.F2:KSE.F1;
+function kSeeInPts(c){const W=KVOR.bounds.x0-40,E=KVOR.bounds.x1+40,s=c.fromW?[W,2225]:[E,2207],sx=c.sx;
+ if(c.lot==='pn')return [s,[912,s[1]],[912,1508],[sx-16,1508],[sx,1492],[sx,1470]];
+ const F=kSeeFY(c)-4,dn=c.nose>0;return [s,[678,s[1]],[678,F],[sx+18,F],[sx,F+(dn?14:-14)],[sx,c.py]]}
+function kSeeRevPts(c){const sx=c.sx;if(c.lot==='pn')return [[sx,1470],[sx,1494],[sx-14,1508]];const F=kSeeFY(c)+4;return [[sx,c.py],[sx,c.py<F?F-12:F+12],[sx-14,F]]}
+function kSeeOutPts(c){const W=KVOR.bounds.x0-80,E=KVOR.bounds.x1+80,east=kR()<.5,sx=c.sx;
+ if(c.lot==='pn')return [[sx-14,1508],[1078,1508],[1090,1519],[1078,1530],[896,1530],[896,east?2225:2207],east?[E,2225]:[W,2207]];
+ const F=kSeeFY(c)+4;return [[sx-14,F],[664,F],[664,east?2225:2207],east?[E,2225]:[W,2207]]}
+// Fahrzeug folgt seinem Weg; hält, wenn vorne jemand fährt
+function kSeeMove(v,dt,sp){const L=v.d[v.d.length-1][3];
+ if(!v.prio){let blk=0;const ma=v.rev?v.a+Math.PI:v.a,mx=Math.cos(ma),my=Math.sin(ma);for(const o of KW.cars.concat(KW.buses)){if(o===v||o.st==='park'||o.st==='gone'||o.x==null||o.st==='in'&&o.turnS!=null&&o.s>o.turnS+4)continue;const dx=o.x-v.x,dy=o.y-v.y,al=dx*mx+dy*my,la=Math.abs(dx*my-dy*mx);if(al>0&&al<((v.bus||o.bus)?42:30)&&la<8){blk=1;break}}
+  if(blk){v.wt=(v.wt||0)+dt;if(v.wt<2.5)return 0}else v.wt=0}
+ const rem=L-v.s;let s2=sp;if(v.slow&&rem<36)s2=Math.max(7,sp*rem/36);v.s=Math.min(L,v.s+s2*dt);
+ const p=kAt(v.d,v.s),q1=kAt(v.d,Math.min(L,v.s+3)),q0=kAt(v.d,Math.max(0,v.s-3));v.x=p[0];v.y=p[1];if(Math.hypot(q1[0]-q0[0],q1[1]-q0[1])>.5){let a=Math.atan2(q1[1]-q0[1],q1[0]-q0[0]);if(v.rev)a+=Math.PI;v.a=a}return v.s>=L}
+KV.seek.spawnCar=function(ty){const sp=kSeeFreeSpot();if(!sp){KG.rej++;KG.res.rej=(KG.res.rej||0)+1;return 0}
+ const g=kGroup(ty),arr=KG.t,lt=kLeaveT(ty,arr);for(const f of g)kSetupFolk(f,arr,lt);
+ const c={st:'in',spot:sp,sx:sp.x,py:sp.y,lot:sp.lot,nose:sp.nose,fromW:kR()<.5,col:kpick(['#e8504a','#3a78d0','#f2f2f2','#6cc07a','#f2c53b','#ff8fb8','#8e93b8','#2fb3b8']),ppl:g,n:g.length,back:0,ty,slow:1};
+ c.d=kSeeRnd(kSeeInPts(c),14);c.s=0;{const P=kSeeInPts(c),tp=P[P.length-3];let bd=1e9;for(const q of c.d){const d=Math.hypot(q[0]-tp[0],q[1]-tp[1]);if(d<bd){bd=d;c.turnS=q[3]}}}const p=kAt(c.d,0);c.x=p[0];c.y=p[1];c.a=c.fromW?0:Math.PI;for(const f of g)f.car=c;KW.cars.push(c);return g.length};
+KV.seek.carStep=function(c,dt){
+ if(c.st==='in'){if(kSeeMove(c,dt,c.y>2190?170:c.lot==='pn'&&c.y>1540?110:84)){c.st='park';c.x=c.sx;c.y=c.py;c.a=c.nose;kSeeUnloadCar(c)}return}
+ if(c.st==='park')return;
+ if(c.st==='out'){c.tw-=dt;if(c.tw>0)return;// rückwärts ausparken, wenn die Fahrgasse frei ist
+  const P=kSeeRevPts(c),e=P[2];for(const o of KW.cars){if(o===c||o.st==='park')continue;if(Math.hypot(o.x-e[0],o.y-e[1])<34)return}
+  c.st='rev';c.d=kSeeRnd(P,10);c.s=0;c.rev=1;c.prio=1;c.slow=0;return}
+ if(c.st==='rev'){if(kSeeMove(c,dt,16)){c.st='leave';c.rev=0;c.prio=0;c.d=kSeeRnd(kSeeOutPts(c),14);c.s=0;c.spot=null}return}
+ if(c.st==='leave'){if(kSeeMove(c,dt,c.y>2190?170:c.lot==='pn'&&c.y>1540?110:84))c.st='gone'}};
+function kSeeUnloadCar(c){const g=c.ppl;let i=0;const m=c.lot==='pn'?'pn':kSeeChoose('S',[kSeeCarX(c),c.py]);
+ for(const f of g){f.x=c.sx+(i%2?-7:7);f.y=c.py+(c.nose<0?6:-6)+(i>>1)*4;f.delay=i*.3;f.mode=m;KW.folks.push(f);KG.gDay++;KG.gT++;i++;
+  const P=kSeeFromCar(c);if(m==='pn')kSeeGoKassa(f,P.concat(KSW.nToKO),1,11);else kSeeDepart(f,m,P)}
+ kSeeCount(m,g.length);kEarn('pk',KG.price.park,c.sx,c.py-20);const r=KG.price.park/Math.max(1,KVOR.fair.park);if(r>1.3)for(const f of g)f.sat-=(r-1.3)*10}
+// Skibus: über die Brücke zur Haltestelle am Wendeplatz Nord
+KV.seek.spawnBus=function(n,pick){const E=KVOR.bounds.x1+70,W=KVOR.bounds.x0-90,P=[[E,2207],[912,2207],[912,1508],[1078,1508],[1090,1519],[1078,1530],[KVOR.bus.x,1530],[896,1530],[896,2207],[W,2207]];
+ const b={st:'in',n,pick,bus:1,d:kSeeRnd(P,16),s:0};b.stopS=0;let best=1e9;for(const q of b.d){const d=Math.abs(q[0]-KVOR.bus.x)+Math.abs(q[1]-1530);if(d<best){best=d;b.stopS=q[3]}}const p=kAt(b.d,0);b.x=p[0];b.y=p[1];b.a=Math.PI;KW.buses.push(b)};
+KV.seek.busStep=function(b,dt){
+ if(b.st==='in'){const sp=b.y>2190?100:b.y>1540?70:40;if(b.s+sp*dt>=b.stopS){b.s=b.stopS;const q=kAt(b.d,b.s);b.x=q[0];b.y=q[1];b.st='stop';b.tw=3.5;if(b.n)kSeeBusUnload(b);return}kSeeMove(b,dt,sp);return}
+ if(b.st==='stop'){b.tw-=dt;if(b.tw<=0){if(b.pick){const Wt=KW.folks.filter(f=>f.st==='busw');for(const f of Wt.slice(0,44))f.st='gone'}b.st='leave'}return}
+ if(b.st==='leave'){if(kSeeMove(b,dt,b.y>2190?100:b.y>1540?70:40))b.st='gone'}};
+function kSeeBusUnload(b){const n=b.n||0;for(let i=0;i<n;i++){const ty=kMix(),f=kMkFolk(ty,0);kSetupFolk(f,KG.t,Math.min(16.2,kLeaveT(ty,KG.t)));f.busG=1;f.mode='bus';f.x=b.x+18-(i%6)*7;f.y=KSE.WY+3+Math.floor(i/6)*2;f.delay=i*.07;
+  kSeeGoKassa(f,[[f.x,KSE.WY]].concat(KSW.nToKO),1,11);KW.folks.push(f);KG.gDay++;KG.gT++}kSeeCount('bus',n)}
+KV.seek.busPickT=function(){return KG.b.bus2?[15.1,15.5,15.9,16.3,16.7,17.05]:[15.3,15.8,16.3,16.8]};
+KV.seek.busT=function(){return KG.b.bus2?[8.4,8.9,9.4,9.9,10.4]:[8.65,9.65,10.65]};
+// Tagesablauf
+KV.seek.morning=function(){KW.shipQ={S:[],N:[]};KW.ships=[{load:[],bd:[]},{load:[],bd:[]}];KW.shipLog=[];if(KG.stage>=5){KW.sbw=null;kSeeSbSetup()}
+ KG.res.arr={pn:0,walk:0,ship:0,sb:0,bus:0,hot:0};if(KG.b.bus&&KG.dem>0)KG.busShare=Math.min(KG.b.bus2?.42:.35,(KG.b.bus2?200:120)/KG.dem);
+ if(KG.wx==='sturm'&&(KG.b.ship||KG.stage>=5))kLog('⛴️','Sturm – '+(KG.stage>=5?'Schiff und Seebahn bleiben':'das Schiff bleibt')+' heute im Hafen. Die Gäste gehen über die Brücke.')};
+KV.seek.midnight=function(){KG.maxG=Math.max(KG.maxG||0,KG.gDay||0)};
+KV.seek.tick=function(dt,dth){const t0=KG.t-dth,t1=KG.t;if(t0<8.1&&t1>=8.1&&KG.hotel)kSeeCount('hot',KW.hotelN||0);
+ kSeeShipTick(t0,t1);kSeeSbTick(dt)};
+KV.seek.costs=function(c,tm){c.kassa=(c.kassa||0)+60*tm;if(KG.b.ship)c.ship=180+(KG.b.ship2?180:0);if(KG.stage>=5)c.sb=450+(KG.sbLg||0)*40;if(KG.b.bus2)c.bus=(c.bus||0)+100};
+KV.seek.att=function(){return (KG.hotel?.02:0)+(KG.stage>=3?.02:0)+(KG.b.ship?.02:0)};
+KV.seek.offer=function(){let o=0;const b=KG.b;for(const id in KG.l){const s=KG.l[id];if(!s.on)continue;o+=45+({s4:25,s6:45,g8:60}[s.typ]||0)+(s.lg||0)*10}
+ o+=(KG.stage-1)*40;for(const p of KW.pistes)if(!p.conn&&kPisteOpen(p))o+=30;
+ o+=(b.cannons?35:0)+(b.raupe?30:0)+(b.kiosk?15:0)+(b.hut?50:0)+(KG.hotel?60:0)+(b.bus?20:0)+(b.bus2?10:0)+(b.bw?15:0)+(b.lw?10:0)+(KG.paved?15:0)+(b.ship?40:0)+(b.ship2?20:0)+(KG.stage>=5?60+(KG.sbLg||0)*10:0);
+ for(const L of KVOR.lots)if(!L.base&&KG.lots[L.id])o+=15;return o};
+// Schneekanonen am unteren Teil der Karabfahrt
+KV.seek.canPos=function(){const out=[],r=kRNG(7),P=KW.pmap.ka;const ok=(x,y)=>{if(kOnP(x,y,4)||kOnP(x,y-12,7))return 0;for(const L of KVOR.lifts){const dx=L.t[0]-L.b[0],dy=L.t[1]-L.b[1],l2=dx*dx+dy*dy,u=kcl(((x-L.b[0])*dx+(y-L.b[1])*dy)/l2,0,1);if(Math.hypot(x-L.b[0]-dx*u,y-L.b[1]-dy*u)<30)return 0}for(const b of KST.blocks)if(x>b[0]&&x<b[2]&&y>b[1]&&y<b[3])return 0;return 1};
+ let acc=0,side=1;for(let i=1;i<P.d.length;i++){const a=P.d[i-1],q=P.d[i];acc+=Math.hypot(q[0]-a[0],q[1]-a[1]);if(acc<100)continue;if(q[1]<700||q[1]>1410||!kPtOpen(P,q))continue;
+  for(const sg of [side,-side]){const x=q[0]+q[4]*(q[2]+12)*sg,y=q[1]+q[5]*(q[2]+12)*sg;if(ok(x,y)){out.push({x,y,sd:sg,ph:r()*20});acc=0;side=-side;break}}}return out};
+// Pistenraupe: Karabfahrt hinauf, Zackenrinne und Felsweg, wieder hinunter
+KV.seek.groomPlan=function(){const P=KW.pmap,L=Q=>Q.d[Q.d.length-1][3],off=(Q,s,k)=>{const q=kAt(Q.d,s);return [q[0]+q[3]*q[2]*k,q[1]+q[4]*q[2]*k]},run=(Q,a,b,k)=>{const o=[];if(a>b)for(let s=a;s>=b;s-=12)o.push(off(Q,s,k));else for(let s=a;s<=b;s+=12)o.push(off(Q,s,k));o.push(off(Q,b,k));return o};
+ const K=P.ka,F=P.fw,Z=P.zr,G=P.zg,k0=kOpenS(K),fb=K.brs[0].s;const out=[{p:'x',pts:[[440,1446],[490,1440]]},{p:'ka',pts:run(K,L(K),k0,.42)}];
+ if(kPisteOpen(Z))out.push({p:'x',pts:run(G,L(G),0,0)},{p:'zr',pts:run(Z,0,L(Z),.4)},{p:'zr',pts:run(Z,L(Z),0,-.4),fin:1},{p:'x',pts:run(G,0,L(G),0)});
+ if(kPisteOpen(F)){out.push({p:'ka',pts:run(K,k0,fb,-.42)},{p:'fw',pts:run(F,0,L(F),.4)},{p:'fw',pts:run(F,L(F),0,-.4),fin:1},{p:'ka',pts:run(K,fb,L(K),-.42),fin:1})}
+ else out.push({p:'ka',pts:run(K,k0,L(K),-.42),fin:1});
+ out.push({p:'x',pts:[[490,1440],[440,1446]]});return out};
+// ---------- Bauen ----------
+KV.seek.items=function(){const V=KVOR,st=KG.stage,l=KG.l,b=KG.b,lf=KPK('lift')?.9:1,sf=KPK('schnee')?.85:1,bau=id=>KG.bau.find(x=>x.id===id);
+ const I=[];const add=(tab,o)=>{o.tab=tab;I.push(o);return o};const S=V.stageInfo;
+ for(const s of [2,3,4,5]){const rq=S[s].req.map(r=>({t:r[r.length-1],ok:kReq(r)}));add('aus',{id:'st'+s,ic:['','','🚡','🔴','🚠','⛴️'][s],n:'Ausbau Stufe '+s+': '+S[s].n,d:S[s].d,c:Math.round(S[s].cost*lf),days:kBauDays(S[s].days),done:st>=s,bau:KG.bau.find(x=>x.k==='stage'&&x.st===s),lock:st<s-1?'erst Stufe '+(s-1):rq.some(r=>!r.ok)?'Voraussetzungen fehlen':'',rq})}
+ const T=l.ts,upB=L=>KG.bau.find(x=>x.k==='up'&&x.lift===L);
+ add('lif',{id:'up6_ts',ic:'🚡',n:'Talsessel: 6er-Sessel',d:'Talstation → Mittelstation. Mehr Plätze je Sessel – hier steigen alle Gäste ein. Der Lift steht bis zum nächsten Morgen.',c:Math.round(16000*lf),days:kBauDays(1),done:T.typ==='s6',bau:upB('ts')});
+ add('lif',{id:'lg_ts',ic:'💺',n:'Talsessel: mehr Sessel',d:'Zusätzliche Sessel am Seil – mehr Gäste pro Stunde.',c:Math.round(2500*lf),done:(T.lg||0)>=2,lock:upB('ts')?'Umbau läuft':'',lv:(T.lg||0)+' / 2'});
+ if(st>=2&&l.ks.on)add('lif',{id:'lg_ks',ic:'💺',n:'Karsessel: mehr Sessel',d:'Mittelstation → Karstation. Zusätzliche Sessel am Seil.',c:Math.round(3000*lf),done:(l.ks.lg||0)>=2,lv:(l.ks.lg||0)+' / 2'});
+ if(st>=4&&l.gg.on)add('lif',{id:'lg_gg',ic:'🚠',n:'Gipfelgondel: mehr Kabinen',d:'Karstation → Gipfel. Zusätzliche Kabinen am Seil.',c:Math.round(3500*lf),done:(l.gg.lg||0)>=2,lv:(l.gg.lg||0)+' / 2'});
+ if(st>=5)add('lif',{id:'lg_sb',ic:'🚠',n:'Seebahn: mehr Kabinen',d:'Parkplatz Süd ⇄ Talstation. Mehr Kabinen am Seil – mehr Gäste pro Stunde in beide Richtungen.',c:Math.round(4000*lf),done:(KG.sbLg||0)>=2,lv:(KG.sbLg||0)+' / 2'});
+ add('pis',{id:'raupe',ic:'🚜',n:'Pistenraupe mit Garage',d:'Präpariert nachts alle offenen Pisten – auch den Felsweg und die Zackenrinne. Ohne Raupe werden die Pisten immer schlechter.',c:5000,done:!!b.raupe});
+ add('pis',{id:'can',ic:'❄️',n:'Schneekanonen',d:'Beschneien nachts den unteren Teil der Karabfahrt, wenn der Schnee knapp wird.',c:Math.round(V.cannons.cost*sf),done:!!b.cannons,lock:st<2?'erst Stufe 2':'',up:'Strom je Nacht'});
+ add('gas',{id:'kiosk',ic:'🌭',n:'Kiosk an der Kassa West',d:'Würstel, Tee und Kakao direkt an der Promenade.',c:1500,days:0,done:!!b.kiosk});
+ add('gas',{id:'hut',ic:'🛖',n:'Karhütte',d:'Hütte im Kar mit Sonnenterrasse. Wer die Karabfahrt fährt, kehrt mittags gern ein.',c:V.hut.cost,days:kBauDays(V.hut.days),done:!!b.hut,bau:bau('hut'),lock:st<2?'erst Stufe 2':''});
+ add('gas',{id:'hotel',ic:'🏨',n:'Seehotel ★★★★',d:'Besonderes Gebäude: 4 Stockwerke mit Balkonen, Spa unter dem Glasdach und eigenem Steg. 40 Zimmer – die Hotelgäste kommen ohne Auto und bringen jede Nacht Geld.',c:V.hotel.cost,days:kBauDays(V.hotel.days),done:!!KG.hotel,bau:bau('hotel'),lock:st<2?'erst Stufe 2':''});
+ add('anr',{id:'ship',ic:'⛴️',n:'Seeschiff „Seekar“',d:'Pendelt mit 60 Plätzen zwischen dem Parkplatz Süd und der Talstation – alle 30 Minuten, Überfahrt 12 Minuten. Mit den beiden Anlegern.',c:8000,days:kBauDays(1),done:!!b.ship,bau:bau('ship'),up:'180 €/Tag'});
+ add('anr',{id:'ship2',ic:'⛴️',n:'Zweites Schiff „Zinne“',d:'Fährt 15 Minuten versetzt – dann geht alle 15 Minuten ein Schiff. Ab dem nächsten Morgen.',c:12000,done:!!b.ship2,lock:!b.ship?'erst Seeschiff':st<3?'erst Stufe 3':'',up:'180 €/Tag'});
+ add('anr',{id:'r2',ic:'🅿️',n:'Parkplatz Süd · Reihe 2',d:'33 weitere Stellplätze am anderen Ufer. Ist alles voll, drehen die Gäste um.',c:4000,done:!!KG.lots.r2});
+ add('anr',{id:'r3',ic:'🅿️',n:'Parkplatz Süd · Reihe 3',d:'Noch einmal 33 Stellplätze, mit eigener Fahrgasse.',c:6000,done:!!KG.lots.r3,lock:st<3?'erst Stufe 3':''});
+ add('anr',{id:'paved',ic:'🛣️',n:'Parkplätze asphaltieren',d:'Kein Schotter mehr – sieht ordentlicher aus und bringt etwas Ansehen.',c:4000,done:!!KG.paved});
+ add('anr',{id:'bus',ic:'🚌',n:'Skibus über die Brücke',d:'Morgens bringen 3 Busse Gäste aus den Hotels am See bis zur Haltestelle an der Talstation, nachmittags holen sie sie wieder ab.',c:3000,done:!!b.bus,up:'150 €/Tag'});
+ add('anr',{id:'bus2',ic:'🚌',n:'Skibus alle 30 Minuten',d:'5 Busse am Morgen statt 3 – deutlich mehr Gäste ohne Auto. Hilft, wenn die Parkplätze voll sind.',c:4000,done:!!b.bus2,lock:!b.bus?'erst Skibus':st<3?'erst Stufe 3':'',up:'+100 €/Tag'});
+ add('per',{id:'lw',ic:'🔧',n:'Liftwart',d:'Repariert Störungen in kurzer Zeit. Ohne Liftwart kommt ein Techniker von außen (650 €, über 1 Stunde).',c:2500,done:!!b.lw,up:'130 €/Tag'});
+ add('per',{id:'bw',ic:'⛑️',n:'Bergwacht',d:'Holt Verletzte mit Motorschlitten und Akja – auch aus der Felsgalerie und der Zackenrinne. Ohne Bergwacht leidet der Ruf.',c:KPK('bw')?0:4000,done:!!b.bw,up:KPK('bw')?'Verein · ohne Lohn':'140 €/Tag'});
+ return I};
+KV.seek.buy=function(id,I,pay){
+ if(/^st[2345]$/.test(id)){const s=+id[2];pay();kBauStart({k:'stage',st:s,n:'Ausbau Stufe '+s+': '+KVOR.stageInfo[s].n,days:I.days,lift:{2:'ks',4:'gg'}[s]||null,id});return true}
+ if(id==='up6_ts'){pay();KG.bau.push({k:'up',id,lift:'ts',typ:'s6',n:'Talsessel: 6er-Sessel',d0:KG.day,days:I.days});kLog('🚧','Umbau Talsessel auf 6er-Sessel – der Lift steht bis zum Morgen.');KG.l.ts.on=0;if(KW.lift.ts)for(const f of KW.lift.ts.q.splice(0))kGoHome(f);return true}
+ if(id==='lg_sb'){pay();KG.sbLg=(KG.sbLg||0)+1;kSeeSbSetup();kLog('🚠','Mehr Kabinen an der Seebahn.');return true}
+ if(id.startsWith('lg_')){const L=id.slice(3);pay();KG.l[L].lg=(KG.l[L].lg||0)+1;kLiftSetup(L);kLog('💺','Mehr '+(KG.l[L].typ==='g8'?'Kabinen':'Sessel')+' am '+kLC(L).n+'.');return true}
+ if(id==='ship'){pay();kBauStart({k:'b',id:'ship',n:'Seeschiff „Seekar“ mit Anlegern',days:I.days});return true}
+ if(id==='ship2'){pay();KG.b.ship2=1;KG.ship2D=KG.t<7.3?KG.day:KG.day+1;kLog('⛴️','Das zweite Schiff „Zinne“ fährt '+(KG.ship2D===KG.day?'ab heute':'ab morgen früh')+' – dann alle 15 Minuten.');return true}
+ if(id==='r2'||id==='r3'){pay();KG.lots[id]=1;kLog('🅿️','Parkplatz Süd · Reihe '+id[1]+' ist offen.');return true}
+ if(id==='bus2'){pay();KG.b.bus2=1;kLog('🚌','Ab morgen fährt der Skibus alle 30 Minuten.');return true}
+ return false};
+KV.seek.applied=function(b){if(b.k==='b'&&b.id==='ship'){KG.shipD=KG.day;kLog('⛴️','Das Seeschiff „Seekar“ legt ab heute alle 30 Minuten ab.')}if(b.k==='stage'&&b.st===5){KW.sbw=null;kSeeSbSetup()}};
+// ---------- Zeichnen ----------
+// Dolomiten-Zacken (hinten)
+function kSeeDolo(c,x0,x1,base,top,sd,P){const r=kRNG(sd);
+ const tower=(x,w,t,b,L,D,sn)=>{const sx=x+w*(.38+r()*.2),n1=t+w*(.15+r()*.3),n2=t+w*(.1+r()*.4);
+  c.fillStyle=L;c.beginPath();c.moveTo(x,b);c.lineTo(x+w*.06,n1+w*.6);c.lineTo(x+w*.18,n1);c.lineTo(sx-w*.08,t+w*.12);c.lineTo(sx,t);c.lineTo(sx,b);c.closePath();c.fill();
+  c.fillStyle=D;c.beginPath();c.moveTo(sx,b);c.lineTo(sx,t);c.lineTo(sx+w*.1,t+w*.08);c.lineTo(x+w*.82,n2);c.lineTo(x+w*.95,n2+w*.7);c.lineTo(x+w,b);c.closePath();c.fill();
+  c.strokeStyle='rgba(90,80,70,.16)';c.lineWidth=1;for(let k=0;k<3;k++){const q=x+w*(.15+r()*.7),y=t+w*.4+r()*30;c.beginPath();c.moveTo(q,y);c.lineTo(q+(r()-.5)*4,b-10);c.stroke()}
+  if(sn){c.fillStyle='rgba(255,255,255,.95)';for(let y=t+w*.5;y<b-6;y+=18+r()*26){const q=x+w*(.08+r()*.55),l=6+r()*w*.35;c.beginPath();c.moveTo(q,y);c.lineTo(q+l,y-1.5);c.lineTo(q+l-2,y+2);c.lineTo(q+2,y+2.5);c.closePath();c.fill()}}};
+ for(const lay of [0,1]){let x=x0-30;while(x<x1){const w=(lay?22:18)+r()*(lay?44:30),h=top(x+w/2)*(lay?1:1.12)+(r()-.4)*(lay?70:50),b=base-(lay?0:30)+r()*18,t=b-h;
+  if(lay&&r()<.18){x+=w*.6;continue}tower(x,w,t,b,lay?P[Math.floor(r()*2)]:'#dfe3ea',lay?P[2+Math.floor(r()*2)]:'#c9cfd9',lay);x+=w*(lay?.62+r()*.3:.7)}}}
+// helle Felswand entlang des Tals (Facetten)
+function kSeeWall(c,edge,y0,y1,side,sd){const r=kRNG(sd),P=['#ece6dc','#e0d8cb','#d1c7b6','#bfb3a0'];
+ for(let y=y0;y<y1;y+=22){const e0=edge(y)+(r()-.5)*14,e1=edge(y+22)+(r()-.5)*14,far=side<0?-180:1180;
+  for(let k=0;k<6;k++){const u0=k/6,u1=(k+1)/6,xa=far+(e0-far)*u0,xb=far+(e0-far)*u1,xc=far+(e1-far)*u1,xd=far+(e1-far)*u0;c.fillStyle=P[Math.floor(r()*3)];c.beginPath();c.moveTo(xa,y-r()*6);c.lineTo(xb,y-r()*6);c.lineTo(xc,y+24);c.lineTo(xd,y+24);c.closePath();c.fill()}
+  c.fillStyle=P[3];c.beginPath();c.moveTo(e0,y);c.lineTo(e0-side*7,y);c.lineTo(e1-side*7,y+23);c.lineTo(e1,y+23);c.closePath();c.fill();
+  c.fillStyle='rgba(255,255,255,.9)';for(let k=0;k<2;k++){const x=far+(e0-far)*(.15+r()*.75);c.beginPath();c.ellipse(x,y+6+r()*10,7+r()*10,2.4,0,0,7);c.fill()}}
+ // Fuß der Wand: Schutt
+ c.fillStyle='rgba(205,190,165,.5)';const yb=y1;c.beginPath();c.moveTo(edge(yb-80),yb-80);c.lineTo(edge(yb)+side*-40,yb+30);c.lineTo(edge(yb)+side*30,yb+30);c.closePath();c.fill()}
+function kSeeSteg(c,x,y0,y1,w){c.fillStyle='rgba(20,60,80,.25)';c.fillRect(x-w/2+3,y0,w,y1-y0+3);c.fillStyle='#a8774c';c.fillRect(x-w/2,y0,w,y1-y0);c.fillStyle='#8f5a34';for(let y=y0;y<y1;y+=5)c.fillRect(x-w/2,y,w,.8);c.fillStyle='#6e4426';for(let y=y0+6;y<y1;y+=16){c.fillRect(x-w/2-1,y,2,4);c.fillRect(x+w/2-1,y,2,4)}}
+KV.seek.bg=function(c){
+ kSky(c,420,'#3f9be0','#cfeafb');
+ kSeeDolo(c,-120,1140,340,x=>110+150*Math.exp(-Math.pow((x-230)/120,2))+190*Math.exp(-Math.pow((x-780)/130,2))+50*Math.exp(-Math.pow((x-500)/60,2)),11,['#f1ebe2','#e6ddcf','#cfc4b2','#bdb09b']);
+ c.fillStyle='#ffffff';c.beginPath();c.moveTo(-160,360);c.bezierCurveTo(200,330,380,300,520,310);c.bezierCurveTo(680,300,860,330,1160,350);c.lineTo(1160,2320);c.lineTo(-160,2320);c.closePath();c.fill();
+ kSnowGround(c,300,1560);
+ kSeeWall(c,kWL,290,1370,-1,31);kSeeWall(c,kWR,290,1370,1,32);
+ // Promenade Nord
+ const W=KSE.WY;c.fillStyle='#e4d7c4';c.beginPath();c.moveTo(-160,1496);for(let x=-160;x<=1160;x+=20)c.lineTo(x,kSN(x)-3);c.lineTo(1160,1496);c.closePath();c.fill();
+ c.fillStyle='#d8c9b3';for(let x=-160;x<=1160;x+=20)c.fillRect(x,kSN(x)-5,10,3);c.fillStyle='rgba(255,255,255,.35)';c.fillRect(-160,W-2,1320,4);
+ // See
+ const g=c.createLinearGradient(0,1550,0,1860);g.addColorStop(0,'#5fd3d4');g.addColorStop(.5,'#2fb3c0');g.addColorStop(1,'#1f8fb0');c.fillStyle=g;c.beginPath();KSLAKE.forEach((q,i)=>i?c.lineTo(q[0],q[1]):c.moveTo(q[0],q[1]));c.closePath();c.fill();
+ c.save();c.beginPath();KSLAKE.forEach((q,i)=>i?c.lineTo(q[0],q[1]):c.moveTo(q[0],q[1]));c.closePath();c.clip();const r2=kRNG(5);c.fillStyle='rgba(255,255,255,.18)';for(let i=0;i<90;i++){const x=-120+r2()*1260,y=1590+r2()*240;c.fillRect(x,y,10+r2()*30,1.2)}
+ c.fillStyle='rgba(230,248,255,.8)';for(let x=-160;x<1160;x+=14){c.beginPath();c.ellipse(x,kSS(x)-3,9,3,0,0,7);c.fill();c.beginPath();c.ellipse(x+7,kSN(x)+3,7,2.4,0,0,7);c.fill()}c.restore();
+ // Ufer Süd und Promenade Süd
+ c.fillStyle='#e4d7c4';c.beginPath();for(let x=-160;x<=1160;x+=20)c.lineTo(x,kSS(x)+2);for(let x=1160;x>=-160;x-=20)c.lineTo(x,kSS(x)+32);c.closePath();c.fill();
+ // Anleger und Stege
+ kSeeSteg(c,330,kSN(330)-6,1600,20);
+ if(KG.hotel){kSeeSteg(c,236,kSN(236)-4,1612,10);c.fillStyle='#a8774c';c.fillRect(224,1602,24,10)}
+ if(KG.b.ship||KG.bau.find(b=>b.id==='ship')){const bau=!KG.b.ship;c.globalAlpha=bau?.55:1;kSeeSteg(c,KSE.PX,kSN(KSE.PX)-6,1630,16);c.fillStyle='#a8774c';c.fillRect(KSE.PX-16,1616,32,14);kSeeSteg(c,KSE.PX,1782,kSS(KSE.PX)+4,16);c.fillStyle='#a8774c';c.fillRect(KSE.PX-16,1782,32,14);c.globalAlpha=1;
+  kSign(c,584,1566,'⚓ ANLEGER TALSTATION','#1f6fb0','#fff',5);kSign(c,590,1866,'⚓ ANLEGER PARKPLATZ','#1f6fb0','#fff',5)}
+ else{c.strokeStyle='rgba(255,255,255,.7)';c.lineWidth=1;c.setLineDash([4,4]);c.strokeRect(KSE.PX-16,1556,32,74);c.strokeRect(KSE.PX-16,1782,32,66);c.setLineDash([]);kSign(c,KSE.PX,1706,'⚓ Anleger · kommt mit dem Seeschiff','rgba(31,111,176,.75)','#fff',6)}
+ // Ruderboote am Bootshaus
+ for(const [x,y,col,a] of [[316,1590,'#e8504a',0],[346,1594,'#3a78d0',.15]]){c.save();c.translate(x,y);c.rotate(a);c.fillStyle='rgba(20,60,80,.25)';c.beginPath();c.ellipse(2,2,4.6,11,0,0,7);c.fill();c.fillStyle=col;c.beginPath();c.ellipse(0,0,4,10,0,0,7);c.fill();c.fillStyle='#fff';c.fillRect(-3,-2,6,1.2);c.fillRect(-3,3,6,1.2);c.restore()}
+ // Uferstraße Süd
+ kRoad(c,KVOR.road.y,-160,1160,34);c.fillStyle='#d9dee6';c.fillRect(-160,KVOR.road.y-24,1320,7);
+ // Zufahrt und Fahrgassen
+ c.fillStyle='#c3c9d3';c.fillRect(653,1987,36,KVOR.road.y-1987-14);c.fillStyle='#5a6170';c.fillRect(656,1990,30,KVOR.road.y-1990-17);
+ c.fillStyle='#5a6170';c.fillRect(40,1990,616,18);if(KG.lots.r3)c.fillRect(40,2068,616,18);
+ c.strokeStyle='rgba(255,255,255,.6)';c.lineWidth=1;c.setLineDash([6,6]);c.beginPath();c.moveTo(48,KSE.F1);c.lineTo(650,KSE.F1);c.moveTo(671,1998);c.lineTo(671,KVOR.road.y-20);if(KG.lots.r3){c.moveTo(48,KSE.F2);c.lineTo(650,KSE.F2)}c.stroke();c.setLineDash([]);
+ c.fillStyle='#fff';c.beginPath();c.moveTo(674,2150);c.lineTo(678,2140);c.lineTo(682,2150);c.closePath();c.fill();c.beginPath();c.moveTo(660,2140);c.lineTo(664,2150);c.lineTo(668,2140);c.closePath();c.fill();
+ // Gehweg über Reihe 1 und zur Brücke
+ kPathLine(c,[[30,KSE.GY],[700,KSE.GY],[740,1900],[870,1890],[KSE.BX,1880]],8);kPathLine(c,[[KSE.PX,KSE.GY],[KSE.PX,kSS(KSE.PX)+8]],7);kPathLine(c,[[700,KSE.GY],[730,1944]],7);
+ // Brücke (Fahrbahn, Gehsteig links, Geländer) und Brückenauffahrt
+ const y0=1540,y1=KVOR.road.y-17;c.fillStyle='rgba(20,60,80,.28)';for(let y=1600;y<1840;y+=60)c.fillRect(880,y+12,50,8);
+ c.fillStyle='#4b5160';c.fillRect(887,y0,34,y1-y0);c.strokeStyle='#fff';c.lineWidth=1.4;c.setLineDash([12,10]);c.beginPath();c.moveTo(904,y0+6);c.lineTo(904,y1-4);c.stroke();c.setLineDash([]);
+ c.fillStyle='#d9dee6';c.fillRect(872,y0,15,1880-y0);c.fillStyle='#cfd6df';c.fillRect(868,1552,4,310);c.fillRect(921,1552,4,310);c.fillStyle='#9aa3b2';for(let y=1552;y<1862;y+=12){c.fillRect(868,y,4,1.2);c.fillRect(921,y,4,1.2)}
+ kSign(c,964,1700,'BRÜCKE','#5b6578','#fff',6);
+ // Zebrastreifen am Brückenkopf Nord, Wendeplatz mit Bushaltestelle
+ c.fillStyle='#5a6170';c.beginPath();c.roundRect(884,1494,210,46,[0,14,14,0]);c.fill();c.fillStyle='#fff';for(let i=0;i<5;i++)c.fillRect(888+i*7,W-4,4,9);
+ c.strokeStyle='rgba(255,255,255,.55)';c.lineWidth=1;c.setLineDash([6,6]);c.beginPath();c.moveTo(926,1519);c.lineTo(1074,1519);c.stroke();c.setLineDash([]);
+ c.fillStyle='#d9dee6';c.fillRect(884,1540,214,6);const hx=KVOR.bus.x+18;c.fillStyle='#2e9e5b';c.fillRect(hx,W-14,1.6,14);c.beginPath();c.roundRect(hx-6,W-22,14,9,2);c.fill();c.fillStyle='#fff';c.font='700 6px Fredoka,sans-serif';c.textAlign='center';c.fillText('H',hx+1,W-15);kSign(c,hx+1,W-30,'🚌 Seekar · Talstation','#2e9e5b','#fff',5);
+ // Gipfelkreuz
+ c.strokeStyle='#7b5236';c.lineWidth=2.2;c.beginPath();c.moveTo(560,316);c.lineTo(560,290);c.moveTo(552,298);c.lineTo(568,298);c.stroke()};
+KV.seek.staticExtra=function(c){kSign(c,-60,2196,'SEEKAR','#f2c53b','#2b3040',7);
+ // Bänke an der Promenade
+ for(const x of [540,620,960])c.fillStyle='#8f5a34',c.fillRect(x-9,kSN(x)-12,18,2.4),c.fillRect(x-8,kSN(x)-10,1.4,4),c.fillRect(x+6.6,kSN(x)-10,1.4,4)};
+KV.seek.drawPaths=function(c){if(KG.b.hut){c.strokeStyle='#e9dcc4';c.lineWidth=6;c.lineCap='round';c.beginPath();KVOR.hut.in.forEach((p,i)=>i?c.lineTo(p[0],p[1]):c.moveTo(p[0],p[1]));c.stroke()}
+ kPathLine(c,[[552,1478],[560,1510],[560,KSE.WY]],7)};
+KV.seek.decor=function(D){const mix=r=>r()<.45?'l':'p';
+ D.scatter(150,780,880,1476,1300,81,(x,y)=>{if(x<kWL(y)+12||x>kWR(y)-12)return 0;return y<1000?.32:.66},mix);
+ D.scatter(-140,1300,1140,1486,420,82,()=>.6,mix);
+ for(const [x,y] of [[320,1100],[600,1250],[580,960],[300,1290],[770,1240],[770,1000],[240,1410],[1000,1380]])D.grove(x,y,40,22,x+y,mix);
+ for(const [x,y] of [[10,1930],[0,2010],[14,2100],[-90,1960],[-100,2080],[1060,2250],[60,2252],[980,2010],[1010,1940],[980,2110],[1090,1960],[1100,2080],[760,2120],[800,2160],[860,2060]])D.tree(x,y,.9,'p',1)};
+KV.seek.blocks=function(B){
+ B.box(-200,1488,1200,1620);B.box(-200,1540,1200,1880);B.box(-200,1850,1200,2300); // Promenade, See, Südufer
+ B.box(872,1420,1120,1500);B.box(354,1396,412,1456);B.box(1080,1440,1124,1494); // Parkplatz Nord, Garage, Bergwacht
+ B.box(120,1400,310,1530); // Seehotel
+ B.box(290,476,376,546);B.box(660,1098,734,1176);B.box(694,640,756,706);B.box(500,1466,700,1540); // Karhütte, Anstellbereiche
+ B.line(KV.seek.resPre(),8);B.line([[440,1446],[490,1440]],8);B.line([[396,540],[372,534],[352,530]],8);B.line([[552,1478],[560,1510]],7)};
+// Gebäude, Stationen, Galerie, Seebahn, Schiffe
+function kSeeKassaOst(c,x,y){const nt=kBright()<.5;c.fillStyle='rgba(110,140,180,.25)';c.beginPath();c.ellipse(x+3,y+3,24,4,0,0,7);c.fill();c.fillStyle='#e9e1d2';c.fillRect(x-20,y-20,40,22);c.fillStyle='#d6cbb7';c.fillRect(x+8,y-20,12,22);
+ for(const q of [-16,-4]){c.fillStyle=nt?'#ffd98a':'#a8dcf5';c.fillRect(x+q,y-13,9,8);kWin(x+q,y-13,9,8);c.fillStyle='#8f5a34';c.fillRect(x+q-1,y-5,11,1.4)}
+ c.fillStyle='#2f6f78';c.beginPath();c.moveTo(x-24,y-19);c.lineTo(x-17,y-30);c.lineTo(x+17,y-30);c.lineTo(x+24,y-19);c.closePath();c.fill();c.fillStyle='#fff';c.beginPath();c.moveTo(x-20,y-22);c.lineTo(x-15,y-28);c.lineTo(x+15,y-28);c.lineTo(x+20,y-22);c.closePath();c.fill();kSign(c,x,y-37,'🎫 KASSA OST','#2b3040','#fff',5.4)}
+function kSeeHotel(c,H,t){const x=H.x,y=H.y,nt=kBright()<.55;c.fillStyle='rgba(110,140,180,.25)';c.beginPath();c.ellipse(x+8,y+3,80,7,0,0,7);c.fill();
+ // Spa-Anbau mit Glasdach
+ c.fillStyle='#e9e1d2';c.fillRect(x+58,y-20,34,22);c.fillStyle='rgba(170,220,245,.9)';c.beginPath();c.moveTo(x+56,y-20);c.quadraticCurveTo(x+75,y-36,x+94,y-20);c.closePath();c.fill();c.strokeStyle='rgba(255,255,255,.8)';c.lineWidth=.6;for(let i=1;i<5;i++){c.beginPath();c.moveTo(x+56+i*7.6,y-20);c.lineTo(x+56+i*7.6,y-30+Math.abs(i-2.5)*3);c.stroke()}
+ c.fillStyle='#5fd3d4';c.fillRect(x+62,y-8,26,6);if(nt){c.fillStyle='rgba(120,230,255,.5)';c.fillRect(x+62,y-8,26,6)}hSmoke(c,x+80,y-26,t,1);
+ // Haupthaus
+ c.fillStyle='#f6efe2';c.fillRect(x-60,y-74,118,76);c.fillStyle='#e3d6c3';c.fillRect(x+22,y-74,36,76);
+ const occ=KG.hOcc||.5,r=kRNG(KG.day*7+3);for(let f=0;f<4;f++){for(let i=0;i<7;i++){const wx=x-54+i*15.4,wy=y-66+f*17;c.fillStyle='#a8dcf5';c.fillRect(wx,wy,9,10);c.fillStyle='rgba(255,255,255,.5)';c.fillRect(wx,wy,3,10);if(r()<occ)kWin(wx,wy,9,10)}
+  c.fillStyle='#8f5a34';c.fillRect(x-62,y-55+f*17,122,2.2);c.fillStyle='#a8774c';for(let i=0;i<14;i++)c.fillRect(x-60+i*8.6,y-58+f*17,1,4)}
+ c.fillStyle='#3a404e';c.beginPath();c.roundRect(x-8,y-14,16,16,[7,7,0,0]);c.fill();
+ c.fillStyle='#2f6f78';c.beginPath();c.moveTo(x-68,y-72);c.lineTo(x-52,y-94);c.lineTo(x+52,y-94);c.lineTo(x+66,y-72);c.closePath();c.fill();c.fillStyle='#fff';c.beginPath();c.moveTo(x-64,y-75);c.lineTo(x-50,y-92);c.lineTo(x+50,y-92);c.lineTo(x+62,y-75);c.closePath();c.fill();
+ for(const dx of [-30,0,30]){c.fillStyle='#f6efe2';c.fillRect(x+dx-5,y-104,10,12);c.fillStyle='#2f6f78';c.beginPath();c.moveTo(x+dx-7,y-102);c.lineTo(x+dx,y-110);c.lineTo(x+dx+7,y-102);c.fill();c.fillStyle='#a8dcf5';c.fillRect(x+dx-2.5,y-100,5,5);kWin(x+dx-2.5,y-100,5,5)}
+ kSign(c,x,y-118,H.sign,'#2f6f78','#fff',6.5)}
+function kSeeBootshaus(c,x,y){c.fillStyle='rgba(20,60,80,.3)';c.fillRect(x-22,y+2,48,6);c.fillStyle='#6e4426';for(const dx of [-18,-4,10,20])c.fillRect(x+dx,y-2,2.4,10);
+ c.fillStyle='#8f5a34';c.fillRect(x-22,y-24,44,26);c.fillStyle='#6e4426';c.fillRect(x+6,y-24,16,26);c.fillStyle='#2b3040';c.fillRect(x-12,y-12,18,14);c.fillStyle='#b9764a';c.beginPath();c.moveTo(x-27,y-22);c.lineTo(x,y-40);c.lineTo(x+27,y-22);c.closePath();c.fill();
+ c.fillStyle='#fff';c.beginPath();c.moveTo(x-23,y-24);c.lineTo(x,y-38);c.lineTo(x+4,y-36);c.lineTo(x-16,y-23);c.closePath();c.fill();kSign(c,x,y-47,'BOOTSHAUS','#8f5a34','#fff',5)}
+// Doppelender-Fähre von oben (fährt vorwärts wie rückwärts)
+function kSeeShipDraw(c,x,y,n,mv,dir,name,t){const L=36,Wd=12,nt=kBright()<.55;c.save();c.translate(x,y);
+ if(mv){c.strokeStyle='rgba(255,255,255,.75)';c.lineWidth=1.1;const s=-dir;for(let i=1;i<5;i++){const yy=s*(L+i*9),w=4+i*4;c.beginPath();c.moveTo(-w,yy+s*i*2);c.lineTo(0,yy-s*4);c.lineTo(w,yy+s*i*2);c.stroke()}
+  c.fillStyle='rgba(255,255,255,.55)';c.beginPath();c.ellipse(0,dir*(L-2),5,3,0,0,7);c.fill()}
+ c.fillStyle='rgba(15,55,75,.28)';c.beginPath();c.ellipse(4,4,Wd+3,L+3,0,0,7);c.fill();
+ const hull=()=>{c.beginPath();c.moveTo(0,-L);c.quadraticCurveTo(Wd,-L+6,Wd,-L+16);c.lineTo(Wd,L-16);c.quadraticCurveTo(Wd,L-6,0,L);c.quadraticCurveTo(-Wd,L-6,-Wd,L-16);c.lineTo(-Wd,-L+16);c.quadraticCurveTo(-Wd,-L+6,0,-L);c.closePath()};
+ c.fillStyle='#d5dde8';hull();c.fill();c.save();c.translate(-1,-1.5);c.fillStyle='#ffffff';hull();c.fill();c.strokeStyle='#1f6fb0';c.lineWidth=1.6;c.stroke();
+ // Deck vorne/hinten mit Fahrgästen, Kabine in der Mitte
+ c.fillStyle='#c9a77a';c.beginPath();c.roundRect(-Wd+3,-L+9,2*Wd-6,10,3);c.fill();c.beginPath();c.roundRect(-Wd+3,L-19,2*Wd-6,10,3);c.fill();
+ c.fillStyle='#eef2f7';c.beginPath();c.roundRect(-Wd+2.5,-L+20,2*Wd-5,2*L-40,4);c.fill();c.fillStyle='#d9e1ec';c.fillRect(Wd-6,-L+20,3.5,2*L-40);
+ for(let i=0;i<6;i++){c.fillStyle=nt?'#ffd98a':'#a8dcf5';c.fillRect(-Wd+3.2,-L+23+i*5.4,1.8,3.6);c.fillRect(Wd-5,-L+23+i*5.4,1.8,3.6)}
+ c.fillStyle='#f2c53b';c.beginPath();c.arc(0,0,3.6,0,7);c.fill();c.fillStyle='#2b3040';c.beginPath();c.arc(0,0,1.8,0,7);c.fill();
+ const k=Math.min(24,Math.round(n/2.5)),cols=['#e8504a','#3a78d0','#6cc07a','#f2a63b','#b177e0','#2fb3b8'];for(let i=0;i<k;i++){const fr=i%2,j=i>>1;c.fillStyle=cols[(i*7+n)%6];c.beginPath();c.arc(-Wd+5.4+(j%6)*2.6,(fr?L-14:-L+14)+((j/6|0)-.5)*3.4,1.3,0,7);c.fill()}
+ c.restore();c.restore();if(kZ.S>.7)kSign(c,x,y-L-10,'⛴ '+name,'#1f6fb0','#fff',5.2)}
+function kSeeBigPylon(c,x,y,hw,water){if(water){c.fillStyle='rgba(20,60,80,.3)';c.beginPath();c.ellipse(x+6,y+3,hw+8,4,0,0,7);c.fill();c.fillStyle='#b9c2cf';c.beginPath();c.ellipse(x,y,hw+3,3.4,0,0,7);c.fill();c.fillStyle='rgba(255,255,255,.7)';c.beginPath();c.ellipse(x,y+3,hw+6,2,0,0,Math.PI);c.fill()}
+ c.strokeStyle='#5d667a';c.lineWidth=2;c.beginPath();c.moveTo(x-hw*.7,y);c.lineTo(x-2,y-46);c.moveTo(x+hw*.7,y);c.lineTo(x+2,y-46);c.stroke();c.lineWidth=.7;c.strokeStyle='#8a94a8';for(let k=0;k<6;k++){const y0=y-k*7.6,y1=y-(k+1)*7.6,w0=hw*.7-k*hw*.1,w1=hw*.7-(k+1)*hw*.1;c.beginPath();c.moveTo(x-w0,y0);c.lineTo(x+w1,y1);c.moveTo(x+w0,y0);c.lineTo(x-w1,y1);c.stroke()}
+ c.fillStyle='#3a3f58';c.fillRect(x-hw-2,y-49,hw*2+4,3.4);c.fillStyle='#e8504a';c.fillRect(x-1.5,y-52,3,3)}
+function kSeeSbCabin(c,n){c.fillStyle='#2a2e44';c.fillRect(-1,-1.5,2,6);c.fillStyle='#1f6fb0';c.beginPath();c.roundRect(-7,4,14,13,3);c.fill();c.fillStyle='#bfe6fa';c.beginPath();c.roundRect(-5.5,6,11,5.5,1.6);c.fill();
+ for(let i=0;i<Math.min(3,n);i++){c.fillStyle='#ffd9b5';c.beginPath();c.arc(-3+i*3,9.2,1.2,0,7);c.fill()}c.fillStyle='rgba(0,0,0,.18)';c.fillRect(-7,14.5,14,2.5)}
+// Felsgalerie am Felsweg: Dach über der Piste, Pfeiler zur Talseite
+function kSeeGalerie(c){const F=KW.pmap.fw,Y0=752,Y1=830,row=[];for(let y=Y0;y<=Y1;y+=3){let q=F.d[0];for(const p of F.d)if(Math.abs(p[1]-y)<Math.abs(q[1]-y))q=p;row.push([q[0],y,q[2]])}
+ const L=q=>Math.min(q[0]-q[2]-4,kWL(q[1])+6),Rr=q=>q[0]+q[2]+5,H=11;
+ for(let i=0;i<row.length-1;i++){const q=row[i];c.fillStyle=i%4<2?'#b8b0a2':'#4a4f60';c.fillRect(Rr(q)-1,q[1]-H,4,H+2)}
+ c.fillStyle='#bdb5a7';c.beginPath();row.forEach((q,i)=>i?c.lineTo(Rr(q)+3,q[1]-H):c.moveTo(L(q),q[1]-H));for(let i=row.length-1;i>=0;i--)c.lineTo(L(row[i]),row[i][1]-H);c.closePath();c.fill();
+ c.fillStyle='#d9d3c8';c.beginPath();row.forEach((q,i)=>i?c.lineTo(Rr(q)+3,q[1]-H-3):c.moveTo(L(q),q[1]-H-3));for(let i=row.length-1;i>=0;i--)c.lineTo(Rr(row[i])+3,row[i][1]-H);c.closePath();c.fill();
+ const r=kRNG(17);c.fillStyle='rgba(255,255,255,.95)';for(const q of row){if(r()<.35)continue;const x0=L(q)+4+r()*((Rr(q)-L(q))*.7);c.beginPath();c.ellipse(x0,q[1]-H-1,5+r()*8,2.2,0,0,7);c.fill()}
+ const q1=row[row.length-1],q0=row[0];c.fillStyle='#2e3240';c.beginPath();c.roundRect(L(q1)+2,q1[1]-H+1,Rr(q1)-L(q1)-2,H,[4,4,0,0]);c.fill();c.fillStyle='#bdb5a7';c.fillRect(L(q1),q1[1]-H-2,Rr(q1)-L(q1)+3,3);
+ c.fillStyle='rgba(46,50,64,.55)';c.fillRect(L(q0)+2,q0[1]-H-3,Rr(q0)-L(q0)-2,3);kSign(c,q0[0]+44,Y0-24,'FELSGALERIE','#5b6578','#fff',5.5)}
+KV.seek.drawB=function(add,t){const V=KVOR,K=V.kassa;add(K.y,c=>kKassaDraw(c,K.x,K.y));if(KG.b.kiosk)add(K.y+8,c=>kKioskDraw(c,K.x+38,K.y+8,t));add(KSE.KO[1],c=>kSeeKassaOst(c,KSE.KO[0],KSE.KO[1]));
+ add(1574,c=>kSeeBootshaus(c,330,1574));
+ // Lift-Stationen als Kette: Talstation, Mittelstation, Karstation, Gipfel
+ for(const L of V.lifts){const s=KG.l[L.id],bau=KG.bau.find(b=>b.lift===L.id&&b.k!=='up'),lo=kLowerOf(L.id);
+  if(bau){add(L.t[1]+20,c=>kSite(c,L.t[0],L.t[1]+10,50,t));continue}
+  const up=KG.bau.find(b=>b.k==='up'&&b.lift===L.id);if(!s.on&&!up)continue;const co=KLT[s.typ].co;
+  if(!lo)add(L.b[1]+22,c=>{liftStation(c,L.b[0],L.b[1],co,true);kSign(c,L.b[0],L.b[1]-30,'TALSTATION','#fff','#2b3a55',5.5);kBrkSign(c,L,t);if(up)kSign(c,L.b[0],L.b[1]-48,'🚧 UMBAU','#f2701f','#fff',6)});
+  else if(up)add(L.b[1]+30,c=>kSign(c,L.b[0],L.b[1]-56,'🚧 UMBAU','#f2701f','#fff',6));
+  const nx=L.nx&&KG.l[L.nx]&&KG.l[L.nx].on;add(L.t[1]+18,c=>{liftStation(c,L.t[0],L.t[1],nx?KLT[KG.l[L.nx].typ].co:co,false);kSign(c,L.t[0],L.t[1]-36,L.tn.toUpperCase(),'#fff','#2b3a55',5.5);if(nx)kBrkSign(c,kLC(L.nx),t)})}
+ // Karhütte
+ const H0=V.hut;if(KG.b.hut)add(H0.y+2,c=>{chalet(c,H0.x,H0.y,48,26,1);for(const [wx,wy] of chWin(H0.x,H0.y,48,26))kWin(wx,wy,6,6);kSign(c,H0.x,H0.y-46,'KARHÜTTE','#8f5a34','#fff',5.5);
+  c.fillStyle='#c9a77a';c.fillRect(H0.x-28,H0.y+4,56,12);c.strokeStyle='rgba(120,90,60,.4)';c.lineWidth=.5;for(let x=H0.x-28;x<H0.x+28;x+=5){c.beginPath();c.moveTo(x,H0.y+4);c.lineTo(x,H0.y+16);c.stroke()}
+  for(const x of [H0.x-18,H0.x-2,H0.x+14]){c.fillStyle='#7b5236';c.fillRect(x-.4,H0.y,.8,10);c.fillStyle='#e8504a';c.beginPath();c.arc(x,H0.y,4.4,Math.PI,0);c.fill();c.fillStyle='#fff';c.fillRect(x-4.4,H0.y-.6,8.8,.8)}hSmoke(c,H0.x+12,H0.y-34,t,1)});
+ else if(KG.bau.find(b=>b.id==='hut'))add(H0.y,c=>kSite(c,H0.x,H0.y,60,t));
+ // Seehotel
+ const H=V.hotel;if(KG.hotel)add(H.y,c=>kSeeHotel(c,H,t));else if(KG.bau.find(b=>b.id==='hotel'))add(H.y,c=>kSite(c,H.x,H.y-10,110,t));
+ else if(KG.stage>=2)add(H.y,c=>{c.strokeStyle='rgba(120,150,190,.6)';c.lineWidth=1;c.setLineDash([5,4]);c.strokeRect(150,1446,150,76);c.setLineDash([]);kSign(c,225,1484,'🏨 Seehotel · im Baumenü','rgba(43,58,85,.65)','#fff',7)});
+ // Garage + Bergwacht
+ if(KG.b.raupe)add(V.garage.y+8,c=>kGarage(c,V.garage.x,V.garage.y,t));if(KG.b.bw)add(V.bwHut.y,c=>kBwHut(c,V.bwHut.x,V.bwHut.y,t));
+ // Felsgalerie
+ const sb=KG.bau.find(b=>b.k==='stage');if(KG.stage>=3)add(838,c=>kSeeGalerie(c));
+ if(sb){const S={2:[[470,780],[690,860]],3:[[214,790],[300,970]],4:[[750,520],[700,920]],5:[[KSE.SBX,KSE.SBS+10],[KSE.SBX,KSE.SBN+16]]}[sb.st]||[];for(const [x,y] of S)add(y,c=>kSite(c,x,y,56,t))}
+ // Seebahn
+ if(KG.stage>=5){const X=KSE.SBX,o=KW.sbw;add(KSE.SBS+22,c=>{liftStation(c,X,KSE.SBS,10,true);kSign(c,X,KSE.SBS-30,'🚠 SEEBAHN · SÜD','#1f6fb0','#fff',5.5);kSign(c,X+38,KSE.SBS+8,'🎫 inkl.','#fff','#1f6fb0',4.6)});
+  add(KSE.SBN+18,c=>{liftStation(c,X,KSE.SBN,10,false);kSign(c,X,KSE.SBN-36,'🚠 SEEBAHN','#1f6fb0','#fff',5.5)});
+  for(const u of [.32,.66]){const y=KSE.SBS-(KSE.SBS-KSE.SBN)*u;add(y,c=>kSeeBigPylon(c,X,y,14,1))}
+  add(1e5,c=>{if(!kInV(X,1700,400))return;c.strokeStyle='#161a28';c.lineWidth=1.2;for(const sd of [-1,1]){c.beginPath();c.moveTo(X+10*sd,KSE.SBS);c.lineTo(X+10*sd,KSE.SBN);c.stroke()}
+   if(o)for(const ch of o.ch){if(ch.u<.07||ch.u>1.93||Math.abs(ch.u-1)<.06)continue;const [x,y]=kSeeSbPos(ch.u);if(!kInV(x,y,30))continue;c.save();c.translate(x,y);c.rotate(Math.sin(ch.u*30+t*.8)*.03);kSeeSbCabin(c,ch.r.length);c.restore()}})}
+ // Seeschiffe
+ if(KG.b.ship)for(const i of [0,1]){if(i&&!KG.b.ship2)continue;const p=kSeeShipPos(i),sh=KW.ships&&KW.ships[i];add(p.y+36,c=>kSeeShipDraw(c,p.x,p.y,sh?sh.load.length:0,p.mv,p.dir,i?'ZINNE':'SEEKAR',t))}};
+// Fenster des Seekars
+function kSeeShipHTML(){const on=kSeeShipN(),st=!KG.b.ship?(KG.bau.find(b=>b.id==='ship')?'im Bau':'noch nicht gekauft'):KG.wx==='sturm'?'Sturm – im Hafen':on?'fährt':'ab morgen';
+ const Q=KW.shipQ||{S:[],N:[]},dir=KG.t<13?'N':'S',LG=(KW.shipLog||[]).filter(e=>e.dir===dir),aus=LG.length?Math.round(LG.reduce((a,e)=>a+e.n,0)/(LG.length*KSE.cap)*100):0;
+ let h=kHead('⛴ Seeschiff „Seekar“')+`<div style="margin:4px 0"><span class="kchip b">60 Plätze</span><span class="kchip ${on?'g':'o'}">${st}</span><span class="kchip">Überfahrt 12 Min.</span></div>`;
+ h+=`<div class="kpi"><div><small>Warten am Anleger Süd</small><b>${Q.S.length}</b></div><div><small>Warten am Anleger Nord</small><b>${Q.N.length}</b></div><div><small>Fahrgäste heute</small><b>${knum(KG.res.shipN||0)}</b></div><div><small>Auslastung ${dir==='N'?'zur Talstation':'zurück'}</small><b>${aus} %</b><div class="kbar2"><i style="width:${aus}%;background:linear-gradient(90deg,#7cc4e4,#2f86cf)"></i></div></div></div>`;
+ const L=(KW.shipLog||[]).slice(-2).map(e=>[e.t,e.dir,e.n+' / 60',e.i]);const nx=[];for(const i of [0,1])for(const side of ['S','N'])for(const d of kSeeDeps(i,side))if(d>KG.t)nx.push([d,side==='S'?'N':'S','–',i]);nx.sort((a,b)=>a[0]-b[0]);
+ const rows=L.concat(nx.slice(0,4-L.length));if(rows.length)h+='<div class="bgh">Fahrplan</div><div class="kfp" style="display:grid;grid-template-columns:auto 1fr auto;gap:3px 10px;font-size:13px">'+'<span style="color:var(--mut);font-size:11.5px">ab</span><span style="color:var(--mut);font-size:11.5px">Richtung</span><span style="color:var(--mut);font-size:11.5px">an Bord</span>'+rows.map(r=>`<span>${kh(r[0])}</span><span>${r[1]==='N'?'Süd → Talstation':'Talstation → Süd'}${KG.b.ship2?' · '+(r[3]?'Zinne':'Seekar'):''}</span><b>${r[2]}</b>`).join('')+'</div>';
+ h+=`<div class="row"><span>⛴ Zweites Schiff „Zinne“</span><b>${KG.b.ship2?'fährt versetzt · alle 15 Min.':'im Baumenü (ab Stufe 3)'}</b></div><div class="row"><span>🎫 Schiffsfahrt</span><b>in der Tageskarte</b></div>`;
+ h+='<p class="hint">Ohne Schiff gehen die Gäste vom großen Parkplatz zu Fuß über die Brücke – das dauert über eine Stunde und kostet Laune. Bei Sturm bleibt das Schiff im Hafen.</p>';
+ if(!KG.b.ship||KG.stage>=3&&!KG.b.ship2)h+='<div class="row"><span>Anreise</span><button class="btn" data-a="go" data-v="bau|anr">Baumenü ›</button></div>';return h}
+function kSeeSbHTML(){const o=KW.sbw;if(KG.stage<5)return kHead('🚠 Seebahn')+'<p class="hint">🚧 Im Bau.</p>';const r=Math.round(kSeeSbRate());
+ return kHead('🚠 Seebahn')+`<div style="margin:4px 0"><span class="kchip b">8er-Gondel</span><span class="kchip ${kSeeSbOn()?'g':'o'}">${KG.wx==='sturm'?'Sturm – steht':kSeeSbOn()?'fährt in beide Richtungen':'steht'}</span></div><div class="kpi"><div><small>Warten Süd</small><b>${o?o.q.S.length:0}</b></div><div><small>Warten Nord</small><b>${o?o.q.N.length:0}</b></div><div><small>Fahrgäste heute</small><b>${knum(KG.res.sbN||0)}</b></div><div><small>Je Stunde und Richtung</small><b>bis ${knum(r)}</b></div></div><div class="row"><span>Strecke</span><b>Parkplatz Süd ⇄ Talstation</b></div><div class="row"><span>🎫 Fahrt</span><b>in der Tageskarte</b></div><div class="row"><span>Mehr Kabinen</span><button class="btn" data-a="go" data-v="bau|lif">Baumenü ›</button></div><p class="hint">Die Seebahn fährt ohne Fahrplan – wer kommt, steigt ein. Bei Sturm steht sie.</p>`}
+function kSeeAnrHTML(){const A=KG.res.arr||{},g=KG.gDay,best=Math.max(KG.maxG||0,g);
+ let h=`<div class="kpi"><div><small>Gäste heute</small><b>${knum(g)}</b><i>${best>=KSE.goalG?'Ziel: '+knum(KSE.goalG)+' an einem Tag ✓':'bester Tag: '+knum(best)+' · Ziel '+knum(KSE.goalG)}</i></div><div><small>Autos abgewiesen</small><b class="${KG.rej?'neg':''}">${KG.rej}</b></div></div>`;
+ h+='<div class="bgh">Wie die Gäste heute kamen</div>';for(const [k,n] of [['pn','🅿️ Parkplatz Nord (8 Plätze)'],['walk','🚶 zu Fuß über die Brücke'],['ship','⛴ Seeschiff'],['sb','🚠 Seebahn'],['bus','🚌 Skibus'],['hot','🏨 Seehotel']])h+=`<div class="row"><span>${n}</span><b>${knum(A[k]||0)}</b></div>`;
+ const sp=kSeeSpots().length,used=KW.cars.filter(c=>c.spot).length;h+=`<div class="row"><span>🅿️ Parkplätze belegt</span><b>${used} / ${sp}</b></div>`;
+ h+='<div class="bgh">Ausbau Anreise</div>';const I=kBuildItems().filter(i=>i.tab==='anr'&&i.id!=='paved');for(const i of I)h+=kCardHTML(i);
+ h+=`<div class="kcard ${KG.stage>=5?'done':''}"><span class="ic">🚠</span><span class="tx"><b>Seebahn (Ausbau Stufe 5)</b><small>8er-Gondel über den See – fährt hin und zurück, auch abends</small></span><span class="bt">${KG.stage>=5?'<span class="kchip g">✓ gebaut</span>':'<button class="btn" data-a="go" data-v="bau|aus">Ausbau ›</button>'}</span></div>`;
+ return h+'<p class="hint">Am Südufer entscheidet jede Gruppe selbst: zu Fuß, Schiff oder Seebahn – je nachdem, was gerade am schnellsten geht.</p>'}
+KV.seek.staTab=['anr','🚗','Anreise'];KV.seek.staTabHTML=kSeeAnrHTML;
+KV.seek.hit=function(x,y,hit,d){if(KG.b.ship)for(const i of [0,1]){if(i&&!KG.b.ship2)continue;const p=kSeeShipPos(i);if(Math.abs(x-p.x)<16&&Math.abs(y-p.y)<40)hit.push({k:'ship',d:0})}
+ if(Math.abs(x-KSE.PX)<20&&(y>1550&&y<1632||y>1780&&y<1860))hit.push({k:'ship',d:.5});
+ if(KG.stage>=5&&(d(KSE.SBX,KSE.SBS)<40||d(KSE.SBX,KSE.SBN)<34))hit.push({k:'sbahn',d:0});
+ if(d(KSE.KO[0],KSE.KO[1]-12)<26)hit.push({k:'kas',d:0});
+ if(x>868&&x<925&&y>1560&&y<1860)hit.push({k:'brk',d:1});
+ if(KG.b.bw&&d(KVOR.bwHut.x,KVOR.bwHut.y-10)<20)hit.push({k:'bwh',d:0})};
+KV.seek.infHTML=function(k){if(k==='ship')return kSeeShipHTML();if(k==='sbahn')return kSeeSbHTML();
+ if(k==='brk'){const n=KW.folks.filter(f=>f.st==='walk'&&f.x>866&&f.x<892&&f.y>1540&&f.y<1880).length;return kHead('🌉 Brücke')+`<div class="kpi"><div><small>Gerade zu Fuß unterwegs</small><b>${n}</b></div><div><small>Heute zu Fuß gekommen</small><b>${knum((KG.res.arr||{}).walk||0)}</b></div></div><p class="hint">Der Fußweg vom großen Parkplatz über die Brücke dauert über eine Stunde. Die Gäste kommen müde und spät an – mit Schiff oder Seebahn geht es schneller.</p><div class="row"><span>Anreise</span><button class="btn" data-a="go" data-v="sta|anr">Übersicht ›</button></div>`}
+ if(k==='bwh')return kHead('⛑️ Bergwacht')+`<p class="hint">Die Bergwacht holt Verletzte mit Motorschlitten und Akja von der Piste.${KW.res?' Gerade im Einsatz.':''}</p>`;return ''};
+KV.seek.pisteInfo=function(p){if(p.id==='fw')return '<p class="hint">🪨 Der Felsweg führt durch eine Felsgalerie an der Wand entlang – Könner lieben ihn.</p>';if(p.id==='zr')return '<p class="hint">⚫ Die Zackenrinne ist steil und schmal – nur für Könner.</p>';return ''};
+KV.seek.staExtra=function(){const Q=KW.shipQ||{S:[],N:[]};let h='<div class="bgh">Anreise</div>';if(KG.b.ship)h+=`<div class="row"><span>⛴ Seeschiff · warten Süd / Nord</span><b>${Q.S.length} / ${Q.N.length}</b></div>`;if(KG.stage>=5&&KW.sbw)h+=`<div class="row"><span>🚠 Seebahn · warten Süd / Nord</span><b>${KW.sbw.q.S.length} / ${KW.sbw.q.N.length}</b></div>`;
+ return h+`<div class="row"><span>🚶 heute zu Fuß über die Brücke</span><b>${knum((KG.res.arr||{}).walk||0)}</b></div>`};
+KV.seek.voices=function(out){const A=KG.res.arr||{};if((A.walk||0)>30)out.push(['🚶','„Der Weg über die Brücke ist ewig weit!“']);if(KW.shipQ&&KW.shipQ.S.length>70)out.push(['⛴','„Am Anleger wartet man ewig auf das Schiff.“']);
+ if(KG.b.ship&&(A.ship||0)>20)out.push(['⛴','„Mit dem Schiff über den See – herrlich!“']);if(KG.stage>=3&&kPisteOpen(KW.pmap.fw))out.push(['🪨','„Der Felsweg durch die Galerie ist spektakulär!“']);if(KG.stage>=5)out.push(['🚠','„Mit der Seebahn direkt vom Parkplatz zum Lift – super!“'])};
+KV.seek.thumbPrep=function(G){G.b.ship=1;G.b.ship2=1;G.hotel=1;G.b.hut=1;for(const k in G.lots)G.lots[k]=1;G.paved=1};
+KV.seek.thumbObjs=function(O){O.push({y:1522,f:c=>kSeeHotel(c,KV.seek.hotel,0)});O.push({y:1640,f:c=>kSeeShipDraw(c,KSE.lane[0],KSE.dockN,30,0,0,'SEEKAR',0)});O.push({y:1740,f:c=>kSeeShipDraw(c,KSE.lane[1],1700,40,1,-1,'ZINNE',0)});O.push({y:838,f:c=>kSeeGalerie(c)})};
+KV.seek.thumbR={x:-40,y:880,w:1120};
+// See: leichtes Glitzern
+KV.seek.drawDyn=function(c,t){if(!kInV(500,1700,500))return;c.save();c.beginPath();KSLAKE.forEach((q,i)=>i?c.lineTo(q[0],q[1]):c.moveTo(q[0],q[1]));c.closePath();c.clip();const r=kRNG(12);c.strokeStyle='rgba(255,255,255,.35)';c.lineWidth=.9;
+ for(let i=0;i<40;i++){const x=-100+r()*1240,y=1580+r()*250,ph=r()*6.28,a=.5+.5*Math.sin(t*1.3+ph);if(a<.4||!kInV(x,y,20))continue;c.globalAlpha=a;c.beginPath();c.moveTo(x,y);c.lineTo(x+8+r()*10,y);c.stroke()}c.restore()};
+KV.seek.onStart=function(){KW.ships=null;KW.shipQ={S:[],N:[]};KW.sbw=null;KW.shipLog=[]};
+
 // ===== Landschaftsteile =====
 function kSky(c,y1,top='#5fb8ee',bot='#d6f0ff'){const g=c.createLinearGradient(0,-200,0,y1);g.addColorStop(0,top);g.addColorStop(1,bot);c.fillStyle=g;c.fillRect(-600,-600,2400,y1+600)}
 function kSnowGround(c,y0,y1){const g=c.createLinearGradient(0,y0,0,y1);g.addColorStop(0,'#ffffff');g.addColorStop(1,'#edf4fb');c.fillStyle=g;c.fillRect(-600,y0,2400,y1-y0+600);
@@ -1005,7 +1517,7 @@ function kZebraWait(f,p){const zb=KVOR.zebra;if(zb==null||Math.abs(f.x-zb)>16)re
  for(const c of KW.cars){if(c.st!=='in'&&c.st!=='leave')continue;const d=(zb-c.x)*c.dir;if(d>-14&&d<58)return 1}for(const b of KW.buses){const d=(zb-b.x)*b.dir;if(b.st!=='stop'&&d>-20&&d<70)return 1}return 0}
 function kWalkStep(f,dt){if(!f.path||f.pi>=f.path.length){return kArrive(f)}if(kZebraWait(f,f.path[f.pi]))return;const p=f.path[f.pi],dx=p[0]-f.x,dy=p[1]-f.y,d=Math.hypot(dx,dy),m=(f.wsp||11)*2.3*(f.kid?.85:1)*dt;
  if(d<=m){f.x=p[0];f.y=p[1];f.pi++;if(f.pi>=f.path.length)kArrive(f)}else{f.x+=dx/d*m;f.y+=dy/d*m}}
-function kArrive(f){const nx=f.nx||'';f.nx='';f.path=null;
+function kArrive(f){const nx=f.nx||'';f.nx='';f.path=null;if(KVOR.arrive&&KVOR.arrive(f,nx))return;
  if(nx==='kassa')return kKassa(f);
  if(nx.startsWith('q:'))return kJoinQ(f,nx.slice(2));
  if(nx==='car')return kAtCar(f);
@@ -1026,13 +1538,13 @@ function kKassaDone(f){const V=KVOR,P=KG.price,F=V.fair;if(!kAnyLiftFor(f)){f.sa
  const fairT=F.ticket[KG.stage]+(kStars()-1)*1.5,half=KG.t>=12,pr=f.kid?Math.round(P.ticket*.5):half?Math.round(P.ticket*.6):P.ticket,r=P.ticket/fairT;
  const sens=V.priceSens*(f.ty==='fam'?1.3:f.ty==='anf'?1.1:.8);
  if(r>1.12&&kR()<(r-1.12)*sens*.9){f.sat-=12;kGoHome(f,1);KG.res.prRej=(KG.res.prRej||0)+1;return}
- f.sat+=r>1?-(r-1)*45*sens:(1-r)*14;kEarn('tk',pr,V.kassa.x,V.kassa.y-30);f.paid=(f.paid||0)+pr;f.half=half;
+ f.sat+=r>1?-(r-1)*45*sens:(1-r)*14;kEarn('tk',pr,f.kasP?f.kasP[0]:V.kassa.x,(f.kasP?f.kasP[1]:V.kassa.y)-30);f.paid=(f.paid||0)+pr;f.half=half;
  // Skischule buchen
  if(KG.b.school&&(f.ty==='anf'||f.kid&&!KG.b.kinder)&&!f.lessonD&&KG.t<14.4){const g=kSchoolSlot();if(g&&kR()<kcl(1.3-P.school/F.school*.55,.12,.85)){f.lessonD=1;g.pu.push(f);f.grp=g;kEarn('sch',P.school,V.school.x,V.school.y-30);f.paid+=P.school;f.sat+=6;kWalk(f,KW.paths.kSchool,'school',10);return}}
  kAfterRun(f)}
 function kWalk(f,path,nx,sp){f.st='walk';f.path=path.map(p=>[p[0],p[1]]);f.pi=0;f.nx=nx;f.wsp=sp||11}
 // --- Heimgehen ---
-function kGoHome(f,noRide){const P=KW.paths,V=KVOR;if(V.descend&&V.descend(f))return;f.leaving=1;
+function kGoHome(f,noRide){const P=KW.paths,V=KVOR;if(V.descend&&V.descend(f))return;f.leaving=1;if(V.goHome)return V.goHome(f,noRide);
  if(f.kid&&f.st==='kidin'){kWalk(f,kRev(P.kKid).concat(kHomeTail(f)),f.hotelG?'hotelin':f.busG?'busw':'car',10);return}
  let path=[];const here=kWhere(f);
  if(!noRide)path=kRoute(here,'kas');
@@ -1046,7 +1558,7 @@ function kAtCar(f){f.st='gone';const c=f.car;if(c){c.back++;if(c.back>=c.n&&c.st
 function kHutSeat(f){const H=KVOR.hut,i=(KW.hutN=(KW.hutN||0)+1)%10;const sp=[[-26,6],[-20,6],[-12,6],[10,6],[14,6],[18,6],[-8,14],[-2,14],[4,14],[8,14]][i];f.x=H.x+sp[0];f.y=H.y+sp[1];f.sit=1}
 function kHutDone(f){const V=KVOR,P=KG.price,r=P.food/V.fair.food;f.sit=0;f.ate=1;if(r<1.6||kR()<.5){const v=Math.round(P.food*(f.ty==='fam'?1.15:1));kEarn('food',v,V.hut.x,V.hut.y-46);f.paid+=v;f.sat+=r>1?-(r-1)*22:5}else f.sat-=4;
  kWalk(f,kRev(V.hut.in),'hutback',12)}
-function kGoKiosk(f){const k=KVOR.kassa;const path=kRoute(kWhere(f),'kas').concat([[k.x+36,k.y+12]]);kWalk(f,path,'kiosk',11)}
+function kGoKiosk(f){const k=KVOR.kassa;const path=kRoute(kWhere(f),'kas',f).concat([[k.x+36,k.y+12]]);kWalk(f,path,'kiosk',11)}
 function kKioskDone(f){const V=KVOR,P=KG.price;f.ate=1;const v=Math.round(P.food*.55);kEarn('food',v,V.kassa.x+36,V.kassa.y-14);f.paid+=v;f.sat+=3;
  kWalk(f,[[V.kassa.x,V.kassa.y+8]],'kioskback',11)}
 // --- Kinderland ---
@@ -1096,7 +1608,7 @@ function kSpots(){const out=[];for(const L of KVOR.lots){if(!KG.lots[L.id])conti
 function kFreeSpot(){const sp=kSpots(),used=new Set(KW.cars.filter(c=>c.spot).map(c=>c.spot.lot+':'+c.spot.i));const free=sp.filter(s=>!used.has(s.lot+':'+s.i));if(!free.length)return null;
  // nahe am Weg zur Kassa bevorzugen
  free.sort((a,b)=>Math.abs(a.x-KVOR.kassa.x)-Math.abs(b.x-KVOR.kassa.x));return free[Math.floor(kR()*Math.min(4,free.length))]}
-function kSpawnCar(ty){const sp=kFreeSpot();if(!sp){KG.rej++;KG.res.rej=(KG.res.rej||0)+1;return 0}
+function kSpawnCar(ty){if(KVOR.spawnCar)return KVOR.spawnCar(ty);const sp=kFreeSpot();if(!sp){KG.rej++;KG.res.rej=(KG.res.rej||0)+1;return 0}
  const fromW=kR()<.5,y=fromW?kLS():kLN(),x=fromW?KVOR.bounds.x0-40:KVOR.bounds.x1+40;
  const g=kGroup(ty),arr=KG.t,lt=kLeaveT(ty,arr);for(const f of g)kSetupFolk(f,arr,lt);
  const car={x,y,a:fromW?0:Math.PI,dir:fromW?1:-1,v:0,st:'in',spot:sp,sx:sp.x,col:kpick(['#e8504a','#3a78d0','#f2f2f2','#6cc07a','#f2c53b','#ff8fb8','#8e93b8','#2fb3b8']),ppl:g,n:g.length,back:0,ty};
@@ -1121,13 +1633,13 @@ function kBusStep(b,dt){const X=KVOR.bus.x;if(b.st==='in'){let v=40;const d=(X-b
  if(b.st==='leave'){b.x+=b.dir*44*dt;if(b.x<KVOR.bounds.x0-80||b.x>KVOR.bounds.x1+80)b.st='gone'}}
 function kAtBus(f){}
 function kBusUnload(b){const V=KVOR,n=b.n||0;for(let i=0;i<n;i++){const ty=kMix(),f=kMkFolk(ty,0);const lt=kLeaveT(ty,KG.t);kSetupFolk(f,KG.t,Math.min(16.2,lt));f.busG=1;f.x=V.bus.x-14+(i%5)*6;f.y=V.road.y-24+Math.floor(i/5)*2;kWalk(f,KW.paths.busUp,'kassa',11);KW.folks.push(f);KG.gDay++;KG.gT++}}
-function kSpawnBus(n,pick){KW.buses.push({x:KVOR.bounds.x1+60,y:kLN(),dir:-1,st:'in',n,a:0,pick});}
+function kSpawnBus(n,pick){if(KVOR.spawnBus)return KVOR.spawnBus(n,pick);KW.buses.push({x:KVOR.bounds.x1+60,y:kLN(),dir:-1,st:'in',n,a:0,pick});}
 // Hotelgäste (morgens aus dem Gasthof)
 function kSpawnHotelG(n){const V=KVOR,H=V.hotel;for(let i=0;i<n;i++){const ty=kMix(),f=kMkFolk(ty,0);f.hotelG=1;kSetupFolk(f,KG.t,kLeaveT(ty,KG.t));f.x=H.x-20+kR()*6;f.y=H.y+4;
  const path=V.hotel.pin();kWalk(f,path,'kassa',11);f.delay=Math.floor(i/4)*2.2+(i%4)*.35;KW.folks.push(f);KG.gDay++;KG.gT++}}
 
 // ===== Tagesablauf, Wirtschaft =====
-const KBASE={sonn:[0,110,260,380],bich:[0,120,190,270,380],alt:[0,150,220,290,370]};
+const KBASE={sonn:[0,110,260,380],bich:[0,120,190,270,380],alt:[0,150,220,290,370],seek:[0,175,245,305,370,450]};
 const KWXF={sonne:1.12,neuschnee:1.22,tau:.82,sturm:.5};
 const KWI={sonne:'☀️',neuschnee:'🌨️',tau:'🌡️',sturm:'🌪️'},KWNM={sonne:'Sonne',neuschnee:'Neuschnee',tau:'Tauwetter',sturm:'Sturm'};
 function kFairT(){return KVOR.fair.ticket[KG.stage]+(kStars()-1)*1.5}
@@ -1166,9 +1678,9 @@ function kStep(dt){if(!KG||KG.done)return;
  if(KG.t>=24){KG.t-=24;kMidnight()}
  // Ankunft
  if(KVOR.tick)KVOR.tick(dt,dth);
- const ar=kArrRate(KG.fog?KG.t-.6:KG.t);if(ar>0&&KG.dem>0){const car=KG.dem*(1-(KG.busShare||0))-KW.hotelN;KW.arrAcc=(KW.arrAcc||0)+Math.max(0,car)*ar/KARRI*dth/2.9;while(KW.arrAcc>=1){KW.arrAcc-=1;kSpawnCar(kMix())}}
+ const ar=kArrRate((KG.fog?KG.t-.6:KG.t)+(KVOR.arrShift||0));if(ar>0&&KG.dem>0){const car=KG.dem*(1-(KG.busShare||0))-KW.hotelN;KW.arrAcc=(KW.arrAcc||0)+Math.max(0,car)*ar/KARRI*dth/2.9;while(KW.arrAcc>=1){KW.arrAcc-=1;kSpawnCar(kMix())}}
  // Busse
- if(KG.b.bus){const BT=KVOR.busT?KVOR.busT():[8.65,9.65,10.65];for(const bt of BT)if(t0<bt&&KG.t>=bt){kSpawnBus(Math.round(KG.dem*(KG.busShare||0)/BT.length))}for(const bt of [15.3,16.05,16.7])if(t0<bt&&KG.t>=bt)kSpawnBus(0,1)}
+ if(KG.b.bus){const BT=KVOR.busT?KVOR.busT():[8.65,9.65,10.65];for(const bt of BT)if(t0<bt&&KG.t>=bt){kSpawnBus(Math.round(KG.dem*(KG.busShare||0)/BT.length))}for(const bt of (KVOR.busPickT?KVOR.busPickT():[15.3,16.05,16.7]))if(t0<bt&&KG.t>=bt)kSpawnBus(0,1)}
  // Hotelgäste
  if(KG.hotel&&t0<8.1&&KG.t>=8.1){kSpawnHotelG(KW.hotelN||0)}
  // Lifte
@@ -1180,11 +1692,12 @@ function kStep(dt){if(!KG||KG.done)return;
    case 'kas':if(KG.t>=f.tEnd)kKassaDone(f);break;case 'hut':if(KG.t>=f.tEnd)kHutDone(f);break;case 'kiosk':if(KG.t>=f.tEnd)kKioskDone(f);break;
    case 'kidin':kKidStep(f,dt);break;case 'sw':if(!f.grp||f.grp.st==='end'){f.grp=null;kAfterRun(f)}break;
    case 'hurt':if(!KG.b.bw&&KG.t>f.hT+.7){f.sat-=5;f.hurtOK=1;kGoHome(f,1)}break;
-   case 'busw':if(KG.t>17.2){f.st='gone'}break}
+   case 'busw':if(KG.t>17.2){f.st='gone'}break;
+   default:if(KVOR.folkStep)KVOR.folkStep(f,dt)}
   if(f.st==='gone'&&!f.dead){f.dead=1;kGuestDone(f)}}
  if(KW.folks.some(f=>f.dead))KW.folks=KW.folks.filter(f=>!f.dead);
- for(const c of KW.cars)kCarStep(c,dt);if(KW.cars.some(c=>c.st==='gone'))KW.cars=KW.cars.filter(c=>c.st!=='gone');
- for(const b of KW.buses)kBusStep(b,dt);if(KW.buses.some(b=>b.st==='gone'))KW.buses=KW.buses.filter(b=>b.st!=='gone');
+ for(const c of KW.cars)(KVOR.carStep||kCarStep)(c,dt);if(KW.cars.some(c=>c.st==='gone'))KW.cars=KW.cars.filter(c=>c.st!=='gone');
+ for(const b of KW.buses)(KVOR.busStep||kBusStep)(b,dt);if(KW.buses.some(b=>b.st==='gone'))KW.buses=KW.buses.filter(b=>b.st!=='gone');
  // Unfälle
  if(KW.acc&&KW.acc.length&&KG.t>=KW.acc[0]){KW.acc.shift();const S=KW.folks.filter(f=>f.st==='ski'&&!f.grpRun&&f.pid!=='ueb'&&!KW.pmap[f.pid].conn&&!f.engHold);if(S.length&&!KW.res){const f=kpick(S);f.hurtAt=f.s+20}}
  kResStep(dt);kGroomStep(dt);kCanStep(dt,dth);
@@ -1315,9 +1828,9 @@ function kDraw(){const cv=kZ.cv,c=kZ.c;if(!cv||!KG)return;const k=kZ.S*kZ.dpr;c.
   const O=[];const add=(y,f)=>O.push({y,f});
   kDrawFences(c);
   for(const car of KW.cars)if(kInV(car.x,car.y))add(car.y+(car.st==='park'?-4:6),c2=>car2(c2,car));
-  for(const b of KW.buses)if(kInV(b.x,b.y))add(b.y+8,c2=>bus(c2,b.x,b.y,b.dir>0?0:Math.PI,'#2e9e5b','SKIBUS'));
+  for(const b of KW.buses)if(kInV(b.x,b.y))add(b.y+8,c2=>bus(c2,b.x,b.y,b.a!=null?b.a:b.dir>0?0:Math.PI,'#2e9e5b','SKIBUS'));
   kDrawBuildings(add,T0);
-  for(const f of KW.folks){if(f.delay>0||f.st==='ride'&&KW.lift[f.lid]&&!KW.lift[f.lid].T.drag||f.st==='gone'||f.st==='kas'&&0)continue;if(!kInV(f.x,f.y,20))continue;add(f.y,c2=>kPerson(c2,f,T0))}
+  for(const f of KW.folks){if(f.hide||KVOR.hideF&&KVOR.hideF(f)||f.delay>0||f.st==='ride'&&KW.lift[f.lid]&&!KW.lift[f.lid].T.drag||f.st==='gone'||f.st==='kas'&&0)continue;if(!kInV(f.x,f.y,20))continue;add(f.y,c2=>kPerson(c2,f,T0))}
   if(KW.groom&&KW.groom.st!=='home'){const R=KW.groom;add(R.y,c2=>groomer(c2,R.x,R.y,R.a-Math.PI/2,T0,true))}
   if(KW.res){const R=KW.res;add(R.y,c2=>kSled(c2,R,T0))}
   if(KG.b.cannons)for(const p of kCanPos())if(kInV(p.x,p.y))add(p.y,c2=>{c2.save();c2.translate(p.x,p.y);c2.scale(p.sd>0?-1:1,1);cannonN(c2,0,0,KW.canOn?1:0,T0+p.ph);c2.restore()});
@@ -1572,7 +2085,7 @@ function kSheetClick(e){const b=e.target.closest('[data-a]');if(!b)return;const 
 function kLook(x,y,S){kZ.S=S||Math.max(kZ.S,1.2);kZ.camX=x-kViewW()/2;kZ.camY=y-kViewH()/2;kClamp()}
 // --- Bauen ---
 function kCosts(){const V=KVOR,lf=KPK('lift')?.9:1,sf=KPK('schnee')?.85:1;return {tl:Math.round(V.lifts[0].cost*lf),s4:Math.round(16000*lf),lgS:Math.round(3500*lf),lgT:Math.round(800*lf),can:Math.round(V.cannons.cost*sf),raupe:5000,kiosk:1500,kinder:V.kinder.cost,school:V.school.cost,hut:V.hut.cost,hotel:V.hotel.cost,po:4000,paved:4000,bus:3000,lw:2500,bw:4000,st2:Math.round(V.stageInfo[2].cost*lf),st3:V.stageInfo[3].cost}}
-function kReq(r){const [k,a]=r;if(k==='can')return !!KG.b.cannons;if(k==='tl')return !!KG.l.tl.on;if(k==='ruf')return KG.ruf>=a;if(k==='gst')return KG.gT>=a;if(k==='stars')return kStars()>=a;if(k==='ses4')return KG.l.ses.typ==='s4';return false}
+function kReq(r){const [k,a]=r;if(KVOR.req){const q=KVOR.req(r);if(q!=null)return q}if(k==='can')return !!KG.b.cannons;if(k==='tl')return !!KG.l.tl.on;if(k==='ruf')return KG.ruf>=a;if(k==='gst')return KG.gT>=a;if(k==='stars')return kStars()>=a;if(k==='ses4')return KG.l.ses.typ==='s4';return false}
 function kBuildItems(){if(KVOR.items)return KVOR.items();const C=kCosts(),V=KVOR,st=KG.stage,l=KG.l,b=KG.b,bau=id=>KG.bau.find(x=>x.id===id||x.lift===id);
  const I=[];const add=(tab,o)=>{o.tab=tab;I.push(o)};
  // Ausbau
@@ -1652,7 +2165,7 @@ function kVoices(){const out=[];let w=0;for(const id in KW.lift)if(KG.l[id].on)w
  if(!KG.b.hut&&!KG.b.kiosk)out.push(['🍽️','„Wo kann man hier etwas essen?“']);if(KG.rej>3)out.push(['🅿️','„Kein Parkplatz mehr frei – wir sind umgedreht.“']);if(KG.res.hurt&&!KG.b.bw)out.push(['⛑️','„Nach dem Unfall hat lange niemand geholfen.“']);
  if(KVOR.id==='sonn'&&KG.stage<2&&KG.gT>40)out.push(['🚡','„Ein richtiger Lift auf den Berg wäre schön.“']);if(!out.length)out.push(['😊','„Schöner Tag '+(KVOR.am||'in '+KVOR.n)+'!“']);return out.slice(0,5)}
 // --- Statistik ---
-function kStaHTML(){const tabs=[['heu','📅','Heute'],['ver','📈','Verlauf'],['gst','👥','Gäste'],['fin','💶','Finanzen']];if(!KW.tab||!tabs.some(t=>t[0]===KW.tab))KW.tab='heu';let h=kHead('📊 Statistik',tabs);
+function kStaHTML(){const tabs=[['heu','📅','Heute'],['ver','📈','Verlauf'],['gst','👥','Gäste'],['fin','💶','Finanzen']];if(KVOR.staTab)tabs.splice(1,0,KVOR.staTab);if(!KW.tab||!tabs.some(t=>t[0]===KW.tab))KW.tab='heu';let h=kHead('📊 Statistik',tabs);
  if(KW.tab==='heu'){const g=KG.gDay,inc=KG.inc;const L=[['tk','🎫 Tageskarten'],['pk','🅿️ Parken'],['food','🍲 Essen'],['kid','⭐ Kinderland'],['sch','⛷️ Skischule'],['hot','🏨 '+(KVOR.hotel?KVOR.hotel.n:'Gasthof')],['nos','🪑 Nostalgiefahrt']];let tot=0;for(const [k] of L)tot+=inc[k]||0;
   h+=`<div class="kpi"><div><small>Gäste heute</small><b>${g}</b>${KG.rej?`<i class="neg">${KG.rej} Autos abgewiesen</i>`:''}</div><div><small>Einnahmen heute</small><b>${kfmt(tot)}</b></div></div>`;
   h+=`<div class="wx wx2"><div><small>Heute</small>${KWI[KG.wx]} ${KWNM[KG.wx]}</div><div><small>Morgen</small>${KWI[KG.wxN]} ${KWNM[KG.wxN]}</div><div><small>Schnee</small>❄️ ${Math.round(KG.snow)} cm</div></div>`;
@@ -1660,6 +2173,7 @@ function kStaHTML(){const tabs=[['heu','📅','Heute'],['ver','📈','Verlauf'],
   h+='<div class="bgh">Lifte und Pisten</div>';for(const L2 of KVOR.lifts){if(!KG.l[L2.id].on)continue;h+=`<div class="row"><span>${L2.typ==='teller'?'🎿':'🚡'} ${L2.n}</span><b>Warten ${Math.round(kWait(L2.id))} Min.</b></div>`}
   for(const p of KW.pistes)if(!p.conn&&kPisteOpen(p))h+=`<div class="row"><span>${p.col==='r'?'🔴':p.col==='s'?'⚫':'🔵'} ${p.n}</span><b>Zustand ${Math.round(KG.pq[p.id])} %</b></div>`;
   if(KVOR.staExtra)h+=KVOR.staExtra()}
+ if(KVOR.staTab&&KW.tab===KVOR.staTab[0])h+=KVOR.staTabHTML();
  if(KW.tab==='ver'){const H=KG.hist.slice(-14);const mx=Math.max(1,...H.map(x=>Math.max(x.inc,x.cost)));h+='<div class="bgh">Einnahmen 🟩 und Kosten 🟥 je Tag</div><div class="kbars">'+H.map(x=>`<div><i style="height:${Math.round(x.inc/mx*80)}px;background:#5fc27a"></i><i style="height:${Math.round(x.cost/mx*80)}px;background:#e8806f"></i><small>${KWN[(x.d-1)%7][0]}${KWN[(x.d-1)%7][1].toLowerCase()}</small></div>`).join('')+'</div>';
   const gm=Math.max(1,...H.map(x=>x.g));h+='<div class="bgh">Gäste je Tag</div><div class="kbars">'+H.map(x=>`<div><i style="height:${Math.round(x.g/gm*80)}px;background:#5aa7e6"></i><small>${x.g}</small></div>`).join('')+'</div>';
   if(!H.length)h+='<p class="hint">Nach dem ersten Tag erscheinen hier die Balken.</p>'}
@@ -1797,7 +2311,7 @@ const KBINFO={
  bich:{goals:['Schneekanonen in Betrieb und 2 Sterne','Platz 6 oder besser in der Rangliste','Pistenzustand in der letzten Woche nie unter 60 %'],spec:[['🌡️ Tauwetter','1,7-mal so oft'],['❄️ Neuschnee','nur 60 %'],['🚧 Engstellen','2 · Umfahrung baubar'],['💧 Besonderes Gebäude','Speicherteich']],tip:'Tipp: viel Kunstschnee nötig'},
  alt:{goals:['Schuldenfrei (Kassa über 0 €) und 2 Sterne','Alle 3 alten Lifte wieder in Betrieb – saniert oder neu – und Platz 6 oder besser','In der letzten Woche der 2. Saison keine einzige Liftpanne'],spec:[['☀️ Westhang (Sonnseite)','nachmittags weich'],['❄️ Osthang (Schattseite)','Schnee hält länger'],['🔧 Alte Lifte','Pannen 3-mal so oft'],['🏦 Kreditrahmen','20.000 €'],['🪑 Besonderes Gebäude','Nostalgie-Sessellift']],tip:'Tipp: Liftbau-Partner und Hausbank',
   extra:`<div class="bgh">🔧 Alte Lifte</div><div class="kold"><span class="h">Lift</span><span class="h">Sanieren</span><span class="h">Neu</span><span><b>Altbergbahn</b><br>2er-Sessel · 1971 · läuft noch</span><span>4.000 €</span><span>4er · 16.000 €</span><span><b>Ostlift</b><br>Schlepplift · 1968 · zu</span><span>3.000 €</span><span>4er · 13.000 €</span><span><b>Gipfelsessel</b><br>Einersessel · 1958 · zu</span><span>Nostalgie<br>9.000 €</span><span>6er · 22.000 €</span></div>`},
- seek:{goals:['3 Sterne','Einmal 1.000 Gäste an einem Tag','Platz 3 oder besser in der Rangliste'],spec:[['🌊 Lage','hinter einem See, wenig Platz im Tal'],['⛴️ Seeschiff','bringt Gäste vom großen Parkplatz'],['🏨 Besonderes Gebäude','Seehotel mit Steg']],tip:'Tipp: Anreise ist der Engpass'},
+ seek:{goals:['3 Sterne','Einmal 500 Gäste an einem Tag','Platz 3 oder besser in der Rangliste'],spec:[['🌊 Lage','hinter einem See, nur 8 Parkplätze im Tal'],['🚶 Brücke','zu Fuß über eine Stunde'],['⛴️ Seeschiff','60 Plätze · alle 30 Minuten'],['🚠 Seebahn','Ausbau Stufe 5 · über den See'],['🏨 Besonderes Gebäude','Seehotel ★★★★ mit Steg']],tip:'Tipp: Die Anreise ist der Engpass'},
  eis:{goals:['4 Sterne','Platz 1 in der Rangliste','Platz 1 schon am Ende der 2. Saison'],spec:[['🌪️ Wetter','öfter Sturm, obere Lifte stehen'],['⚠️ Lawinengefahr','nach Neuschnee erst sprengen'],['🍽️ Besonderes Gebäude','Gipfelrestaurant am Gletscher']],tip:'Tipp: Konkurrenz baut schnell aus'}};
 function kBergWin(id){kCareerLoad();const i=KBERGE.findIndex(b=>b.id===id),B=KBERGE[i],I=KBINFO[id],lk=!kOpenB(i),av=!!KV[id],sv=kLoad(id),best=KC.best[id]||0,R=KC.res[id];
  const img=av?kThumb(id):'';const perks=(KC.perks||[]).filter(p=>KPERK.find(x=>x.id===p));const used=kPerkUsed(perks),xp=kXP();
@@ -1847,7 +2361,7 @@ const KTH={};function kThumb(id){if(KTH[id])return KTH[id];const g0=KG,v0=KVOR,o
 // Berg starten / verlassen
 function kStart(id,fresh){kCareerLoad();KVOR=KV[id];if(!KVOR)return;let s=fresh?null:kLoad(id);if(!s||s.done){s=kNewState(id,KC.perks||[]);s.firm=KC.firm}KG=s;
  KW.folks=[];KW.cars=[];KW.buses=[];KW.pops=[];KW.lift={};KW.school=[];KW.groom=null;KW.res=null;KW.neu=null;KW.open=null;KW.paused=false;KW.modal=0;KW.speed=1;KW.endAsk=0;KW.rsAsk=0;KW.canP=null;KW.acc=[];KW.lgNew=0;
- KW.paths=KVOR.paths();kBuildWorld();for(const id2 in KG.l)if(KG.l[id2].on)kLiftSetup(id2);KW.hutS=kHutS();
+ KW.paths=KVOR.paths();if(KVOR.onStart)KVOR.onStart();kBuildWorld();for(const id2 in KG.l)if(KG.l[id2].on)kLiftSetup(id2);KW.hutS=kHutS();
  if(fresh||!KG.dem){KG.dem=kDemand();if(KG.t>=6&&KG.day===1&&!KG.started){KG.wx='sonne';KG.started=1;kLog('🏔️',KVOR.welcome)}}
  KW.hotelN=0;kOvCSS();kOvHide();const n=document.getElementById('kname');if(n)n.remove();document.body.classList.add('kmode');kUIbuild();kCanvas();kZ.cv.style.display='block';document.getElementById('kui').hidden=false;
  const H=KVOR.home;kZ.S=H.S;kZ.camX=H.cx-kViewW()/2;kZ.camY=H.cy-kViewH()*.55;kClamp();kBuildStatic();KON=true;KW.last=0;cancelAnimationFrame(KW.raf);KW.raf=requestAnimationFrame(kLoop);kHud(1);kUI();
