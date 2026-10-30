@@ -7825,7 +7825,7 @@ function wrOv(){const R=G.wrR,show=!!(wrDay()&&['r1','p','r2','end'].includes(R.
 
 // ===== V239: Versteckter Testbereich (Optionen › 5× auf die Versionszeile tippen) =====
 // Jeder Test sichert vorher den Spielstand; „Test beenden“ holt ihn zurück. Neue Tests einfach in TESTS eintragen.
-const TVER='V310',TBAK='art-test-bak';
+const TVER='V311',TBAK='art-test-bak';
 // V263: Test „Alles ausgebaut“ – kauft über das Baumenü alles, was es gibt (Voraussetzungen und Sterne werden dabei übersprungen), und stellt Baustellen sofort fertig. wc = mit Verbindungsbahn West.
 var TALL=0;
 function tstAll(wc){const m0=G.money,st0=G.stN;let n=0;TALL=1;G.stN=5;
@@ -11124,4 +11124,4 @@ function perfWatch(ms,gap){if(SET.perf||SET.pAuto||paused||open||inTitle||docume
  PFW.n++;PFW.ms+=ms;PFW.gap+=gap;if(PFW.n<240)return;const am=PFW.ms/PFW.n,ag=PFW.gap/PFW.n;PFW.n=PFW.ms=PFW.gap=0;
  if(am>20||ag>.06){SET.perf=1;SET.pAuto=1;setSave();resize();buildStatic();lg('⚙️','lif','Leistungsmodus eingeschaltet, damit das Handy kühler bleibt (Einstellungen › Grafik).',{s:1});toast('⚙️ Leistungsmodus eingeschaltet – das Handy bleibt kühler. Abschalten unter Einstellungen › Grafik.',5000)}}
 (function loop(n){const dt=Math.min(.05,(n-last)/1000);last=n;if(!inTitle){if(!paused){if(G.seaP&&!SWS)seaFinish();const sp=evSlow()?1:nIdle()?Math.max(speed,5):speed;for(let i=0;i<sp;i++)step(dt)}fAcc+=dt;const tg=frTgt();if(!tg||fAcc>=tg-.004){const t0=performance.now(),g=fAcc;draw(Math.min(fAcc,.25));fAcc=0;perfWatch(performance.now()-t0,g)}}requestAnimationFrame(loop)})(last);
-</script><script src="karriere.js?v=310"></script></body></html>
+</script><script src="karriere.js?v=311"></script></body></html>
