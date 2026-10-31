@@ -3275,6 +3275,11 @@ function kStart(id,fresh){kCareerLoad();KVOR=KV[id];if(!KVOR)return;if(KC.last!=
  KW.hotelN=0;kOvCSS();kOvHide();const n=document.getElementById('kname');if(n)n.remove();document.body.classList.add('kmode');kUIbuild();kCanvas();kZ.cv.style.display='block';document.getElementById('kui').hidden=false;
  const H=KVOR.home;kZ.S=H.S;kZ.camX=H.cx-kViewW()/2;kZ.camY=H.cy-kViewH()*.55;kClamp();kBuildStatic();KON=true;KW.last=0;cancelAnimationFrame(KW.raf);KW.raf=requestAnimationFrame(kLoop);kHud(1);kUI();
  if(KG.day===1&&KG.t<7&&KVOR.tip&&(KVOR.tipIf?KVOR.tipIf():true))setTimeout(()=>kToast(KVOR.tip,5000),900);if(KG.lnMsg)setTimeout(kLnMsgShow,400);else if(KG.lnO>=2)setTimeout(kLnWarn,400);kSave()}
+// V336: Bildschirm anlassen auch in der Karriere (Heimatberg: wakeUpd, gilt nur für das Freie Spiel)
+let kWakeL=null,kWakeB=false;
+async function kWake(){if(kWakeB||!('wakeLock' in navigator))return;const want=typeof KON!=='undefined'&&KON&&document.visibilityState==='visible'&&(typeof SET==='undefined'||SET.wake!==0);kWakeB=true;
+ try{if(want&&!kWakeL){kWakeL=await navigator.wakeLock.request('screen');kWakeL.addEventListener('release',()=>{kWakeL=null})}else if(!want&&kWakeL){const w=kWakeL;kWakeL=null;await w.release()}}catch(e){}kWakeB=false}
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')kWake()});addEventListener('pointerdown',()=>{if(!kWakeL)kWake()},true);setInterval(kWake,3000);
 function kLeave(to){kSave();KON=false;cancelAnimationFrame(KW.raf);if(kZ.cv)kZ.cv.style.display='none';const u=document.getElementById('kui');if(u)u.hidden=true;KW.open=null;
  if(to==='map')kMap();else kToTitle()}
 function kRestartBerg(){const id=KG.id;KW.rsAsk=0;try{localStorage.removeItem(KBK(id))}catch(e){}KG=null;kStart(id,1)}
