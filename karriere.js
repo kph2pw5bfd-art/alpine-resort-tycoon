@@ -2127,8 +2127,11 @@ function kQStep(o,dt){const qv=o.T.cap>1?30:14;for(let i=0;i<o.q.length;i++){con
  // Liftschluss: wer noch steht, geht heim
  if(KG.t>=16.25||!KG.l[o.L.id].on){while(o.q.length){const f=o.q.shift();if(f.ins)kInsHome(f);else kGoHome(f)}}}
 // --- Gehen ---
-function kZebraWait(f,p){const zb=KVOR.zebra;if(zb==null||Math.abs(f.x-zb)>16)return 0;const Y0=KVOR.road.y-19,Y1=KVOR.road.y+19;const onRoad=f.y>Y0&&f.y<Y1;if(onRoad)return 0;if(!((f.y<=Y0&&p[1]>Y0)||(f.y>=Y1&&p[1]<Y1)))return 0;
- for(const c of KW.cars){if(c.st!=='in'&&c.st!=='leave')continue;const d=(zb-c.x)*c.dir;if(d>-14&&d<58)return 1}for(const b of KW.buses){const d=(zb-b.x)*b.dir;if(b.st!=='stop'&&d>-20&&d<70)return 1}return 0}
+// Zebrastreifen (V325): Fußgänger haben Vorrang. Wer am Gehsteig wartet, meldet sich an (f.zw) – Fahrzeuge halten davor.
+// Fußgänger warten nur, solange ein Fahrzeug schon auf dem Streifen steht oder zu nah zum Bremsen ist.
+function kZebraBusy(){const zb=KVOR.zebra,RY=KVOR.road.y,inZ=q=>Math.abs(q[1]-RY)<30&&Math.abs(q[0]-zb)<12+q[2];for(const o of kVall()){if(kVCirc(o).some(inZ))return 1;if((o.st==='turn'||o.st==='back')&&kVPath(o,o.st,o.p).some(inZ))return 1;if(o.rz&&o.rz.some(inZ))return 1}return 0}
+function kZebraWait(f,p){const zb=KVOR.zebra;if(zb==null||Math.abs(f.x-zb)>16){f.zw=0;return 0}const Y0=KVOR.road.y-19,Y1=KVOR.road.y+19;const onRoad=f.y>Y0&&f.y<Y1;if(onRoad){f.zw=0;return 0}if(!((f.y<=Y0&&p[1]>Y0)||(f.y>=Y1&&p[1]<Y1))){f.zw=0;return 0}
+ f.zw=1;if(kZebraBusy())return 1;f.zw=0;return 0}
 function kWalkStep(f,dt){if(!f.path||f.pi>=f.path.length){return kArrive(f)}if(kZebraWait(f,f.path[f.pi]))return;const p=f.path[f.pi],dx=p[0]-f.x,dy=p[1]-f.y,d=Math.hypot(dx,dy),m=(f.wsp||11)*2.3*(f.kid?.85:1)*dt;
  if(d<=m){f.x=p[0];f.y=p[1];f.pi++;if(f.pi>=f.path.length)kArrive(f)}else{f.x+=dx/d*m;f.y+=dy/d*m}}
 function kArrive(f){const nx=f.nx||'';f.nx='';f.path=null;if(KVOR.arrive&&KVOR.arrive(f,nx))return;
@@ -2232,7 +2235,7 @@ function kVPose(k){const R=KVOR.road.y,ld=kVld(k),ly=R+ld*KVLN,a0=ld>0?0:Math.PI
 function kVCirc(k){if(k.st==='park'||k.st==='out'||k.st==='gone'||k.st==='stop'&&0)return [];const q=kVPose(k),ca=Math.cos(q.a),sa=Math.sin(q.a),O=k.bus?[-14,0,14]:[-6,6],r=k.bus?9.5:8;return O.map(o=>[k.x+o*ca,q.y+o*sa,r])}
 function kVHit(C,D,g=1.5){for(const a of C)for(const b of D){const dx=a[0]-b[0],dy=a[1]-b[1],m=a[2]+b[2]+g;if(dx*dx+dy*dy<m*m)return true}return false}
 function kVPath(k,mode,from){const os=k.st,op=k.p,R2=[];k.st=mode;for(let i=0;i<=6;i++){const p=mode==='turn'?.12+i*.88/6:.88-i*.88/6;if(from!=null&&(mode==='turn'?p<from:p>from))continue;k.p=p;R2.push(...kVCirc(k))}k.st=os;k.p=op;return R2}
-function kVZebraBlocked(){const zb=KVOR.zebra,RY=KVOR.road.y;if(zb==null)return 0;for(const f of KW.folks)if(f.st==='walk'&&Math.abs(f.x-zb)<14&&f.y>RY-22&&f.y<RY+22)return 1;return 0}
+function kVZebraBlocked(road){const zb=KVOR.zebra,RY=KVOR.road.y;if(zb==null)return 0;for(const f of KW.folks)if(f.st==='walk'&&Math.abs(f.x-zb)<16&&(f.y>RY-20&&f.y<RY+20||!road&&f.zw&&Math.abs(f.y-RY)<40))return 1;return 0}
 // Schritt nach (nx,np) nur, wenn nichts im Weg ist
 function kVGo(k,nx,np,dt){const ox=k.x,op=k.p,y0=kVPose(k).y,C0=kVCirc(k);k.x=nx;k.p=np;const C=kVCirc(k),y1=kVPose(k).y;k.x=ox;k.p=op;const mx=nx-ox,my=y1-y0;
  if(!C.length||(Math.abs(mx)<1e-6&&Math.abs(my)<1e-6)){k.w=0;return true}
@@ -2251,7 +2254,7 @@ function kVFree(k,mode,dt){if(k.yd>0){k.yd-=dt;k.rz=null;return false}
   const od=o.bus?o.dir:o.st==='in'?o.d:-o.d;if(mode==='turn'&&!o.bus&&o.st==='in'&&od===kl&&(k.x-o.x)*kl>0)continue;O.push(D);
   if((o.bus&&o.st!=='stop'||o.st==='in'||o.st==='leave')&&!(o.w>0&&o.wz)&&!(o.st==='in'&&o.x===o.tx)){if((k.x-o.x)*od>0&&!(mode==='turn'&&od===kl))for(const f of [.3,.6,.9])O.push(D.map(c=>[c[0]+48*od*f,c[1],c[2]]))}}
  const P=kVPath(k,mode);let ok=true;
- if(KVOR.zebra!=null&&kVZebraBlocked()&&P.some(q=>Math.abs(q[1]-KVOR.road.y)<34&&Math.abs(q[0]-KVOR.zebra)<13+q[2]))ok=false;
+ if(KVOR.zebra!=null&&kVZebraBlocked(1)&&P.some(q=>Math.abs(q[1]-KVOR.road.y)<34&&Math.abs(q[0]-KVOR.zebra)<13+q[2]))ok=false;
  if(ok)for(const D of O)if(kVHit(P,D)){ok=false;break}
  if(ok){k.pw=0;k.rz=null;return true}k.pw=(k.pw||0)+dt;if(k.pw>1.5)k.rz=P;if(k.pw>20){k.pw=0;k.rz=null;return true}return false}
 // Startpunkt am Kartenrand: nicht in ein Auto hinein, das gerade erst hereingekommen ist
@@ -3299,7 +3302,7 @@ function kTitleCards(){const T=document.getElementById('title');if(!T)return;kTi
 // Test-Zugang
 window.KAR={get G(){return KG},get V(){return KVOR},W:KW,Z:kZ,ST:KST,step:kStep,start:kStart,leave:kLeave,open:kOpen,map:kMap,career:()=>KC,careerOpen:kCareerOpen,buy:kBuy,stars:kStars,score:kScore,demand:kDemand,ui:kUI,draw:kDraw,build:kBuildStatic,
  setCam:(x,y,S)=>{if(S)kZ.S=S;kZ.camX=x;kZ.camY=y;kClamp()},thumb:kThumb,end:kBergEnd,seaRes:kSeaRes,mid:kMidnight,morning:kMorning,credit:kCredit,offer:kOffer,pq:kPQavg,wait:kWait,perkWin:kPerkWin,bergWin:kBergWin,fairT:kFairT,items:kBuildItems,canPos:kCanPos,
- liftSetup:kLiftSetup,bauApply:kBauApply,eng:()=>KW.eng,
+ liftSetup:kLiftSetup,bauApply:kBauApply,eng:()=>KW.eng,vCirc:kVCirc,vPose:kVPose,zBusy:()=>kZebraBusy(),zBlk:()=>kVZebraBlocked(),
  allX:()=>{KG.money=1e6;KG.ruf=80;KG.gT=500;KG.canEver=1;KG.stage=KVOR.stages;for(const L of KVOR.lifts){KG.l[L.id].on=1;kLiftSetup(L.id)}for(let k=0;k<12;k++){let any=0;for(const it of kBuildItems()){if(it.done||it.lock||it.bau)continue;kBuy(it.id);any=1}KG.bau.slice().forEach(b=>kBauApply(b));KG.bau=[];if(!any)break}KW.neu=null;KG.money=50000;kRebuild();kUI()},
  all:()=>{KG.money=1e6;KG.stage=3;KG.ruf=80;KG.gT=500;for(const id of ['tl','kiosk','po','raupe','can','kinder','school','hut','hotel','bus','lw','bw','paved','lgT','lgS'])kBuy(id);KG.l.ses.on=1;kUp4();KG.bau.slice().forEach(b=>kBauApply(b));KG.bau=[];KW.neu=null;KG.money=50000;kRebuild();kUI()}};
 
