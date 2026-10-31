@@ -2538,11 +2538,13 @@ function kGroomStep(dt){if(!KG.b.raupe)return;const t=KG.t;let R=KW.groom;
  const dx=p[0]-R.x,dy=p[1]-R.y,d=Math.hypot(dx,dy),m=sp*dt;if(d>0.01){const ta=Math.atan2(dy,dx);let da=ta-R.a;while(da>Math.PI)da-=2*Math.PI;while(da<-Math.PI)da+=2*Math.PI;R.a+=da*Math.min(1,dt*6)}
  if(d<=m){R.x=p[0];R.y=p[1];R.pi++}else{R.x+=dx/d*m;R.y+=dy/d*m}}
 // --- Schneekanonen ---
-function kCanPos(){if(KW.canP)return KW.canP;if(KVOR.canPos)return KW.canP=KVOR.canPos();const out=[];const p=KW.pmap.main,L=p.d[p.d.length-1][3];let sd=1;const n=KVOR.cannons.n;
+// V321: jede Schneekanone schaut zur nächsten Piste (Blasrichtung = −sd)
+function kCanFace(out){for(const p of out){let best=1e9,bx=null;for(const P of KW.pistes){if(!P.d)continue;for(let i=0;i<P.d.length;i+=2){const q=P.d[i],d=Math.hypot(q[0]-p.x,q[1]-p.y)-q[2];if(d<best){best=d;bx=q[0]}}}if(bx!=null&&Math.abs(bx-p.x)>2)p.sd=p.x>bx?1:-1}return out}
+function kCanPos(){if(KW.canP)return KW.canP;if(KVOR.canPos)return KW.canP=kCanFace(KVOR.canPos());const out=[];const p=KW.pmap.main,L=p.d[p.d.length-1][3];let sd=1;const n=KVOR.cannons.n;
  const okP=(x,y)=>{if(kOnP(x,y,6))return 0;for(const L of KVOR.lifts){const dx=L.t[0]-L.b[0],dy=L.t[1]-L.b[1],l2=dx*dx+dy*dy,u=kcl(((x-L.b[0])*dx+(y-L.b[1])*dy)/l2,0,1);if(Math.hypot(x-L.b[0]-dx*u,y-L.b[1]-dy*u)<30)return 0}for(const b of KST.blocks)if(x>b[0]&&x<b[2]&&y>b[1]&&y<b[3])return 0;return 1};
  for(let i=0;i<n*2&&out.length<n;i++){const s=L*(.1+.82*(i%n)/(n-1))+(i>=n?18:0),q=kAt(p.d,s);for(const sg of [sd,-sd]){const x=q[0]+q[3]*(q[2]+13)*sg,y=q[1]+q[4]*(q[2]+13)*sg;if(okP(x,y)){out.push({x,y,sd:sg,ph:kR()*20});break}}sd=-sd}
  const u=KW.pmap.ueb;for(const s of [40,120]){const q=kAt(u.d,s);const sg=q[3]<0?1:-1;const x=q[0]+q[3]*(q[2]+12)*sg,y=q[1]+q[4]*(q[2]+12)*sg;if(okP(x,y))out.push({x,y,sd:sg,ph:kR()*20})}
- return KW.canP=out}
+ return KW.canP=kCanFace(out)}
 function kCanStep(dt,dth){if(!KG.b.cannons)return;const t=KG.t,night=t>=20||t<5;KW.canOn=night&&KG.canAuto!==0&&KG.snow<75;if(KW.canOn){KG.canRan=1;KG.canEver=1;KG.snow+=dth*.85*(KVOR.canF?KVOR.canF(dth):1)}}
 // --- Pannen ---
 function kBrkStep(){const t=KG.t;for(const id in KG.l){const s=KG.l[id];if(!s.on)continue;
