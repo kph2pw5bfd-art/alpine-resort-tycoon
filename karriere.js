@@ -753,7 +753,7 @@ KV.alt.bg=function(c){kSky(c,250,'#6aaedc','#e1edf6');
  kRoad(c,RY,-160,1160,34);if(!KG.paved){const r=kRNG(RY);c.fillStyle='#6b6f78';c.fillRect(-160,RY-17,1320,34);c.fillStyle='rgba(40,40,50,.35)';for(let i=0;i<60;i++){c.beginPath();c.ellipse(-150+r()*1300,RY-13+r()*26,3+r()*5,1.4+r(),0,0,7);c.fill()}c.strokeStyle='rgba(255,255,255,.45)';c.lineWidth=1.2;c.setLineDash([12,14]);c.beginPath();c.moveTo(-160,RY);c.lineTo(1160,RY);c.stroke();c.setLineDash([])}
  c.fillStyle='#d9dee6';c.fillRect(-160,RY-24,1320,7);c.fillRect(-160,RY+17,1320,7);
  const bx=KVOR.bus.x-20;c.fillStyle='#2e9e5b';c.fillRect(bx,RY-36,1.6,14);c.beginPath();c.roundRect(bx-6,RY-44,14,9,2);c.fill();c.fillStyle='#fff';c.font='700 6px Fredoka,sans-serif';c.textAlign='center';c.fillText('H',bx+1,RY-37);
- kSign(c,bx+1,RY-52,'🚌 Altberg Dorf','#2e9e5b','#fff',5)};
+ kSign(c,bx-20,RY-63,'🚌 Altberg Dorf','#2e9e5b','#fff',5);c.fillStyle='#2e9e5b';c.fillRect(bx-.2,RY-61,1.6,18)};
 KV.alt.staticExtra=function(c){kSign(c,-56,1862,'ALTBERG','#f2c53b','#2b3040',7)};
 KV.alt.decor=function(D){for(const [x,y,w,h,k] of [[150,2000,52,28,1],[300,2050,48,26,0],[640,2030,56,30,2],[850,2010,50,28,0],[480,2120,46,26,1],[-40,2080,48,26,2],[1020,2060,50,28,1]])D.house(x,y,w,h,k);
  const mix=r=>r()<.25?'l':'p';
@@ -1964,13 +1964,18 @@ function kBuildStatic(){const V=KVOR,b=V.bounds,rs=kStaticRes();const cv=KST.c&&
  for(const [cx,cy] of KST.churchW)for(const q of [2,16,30])KST.winS.push([cx+q,cy-26,7,14])}
 function kLampPost(c,x,y){c.fillStyle='rgba(110,140,180,.25)';c.beginPath();c.ellipse(x+3,y+1,4,1.4,0,0,7);c.fill();c.fillStyle='#5b6578';c.fillRect(x-.8,y-22,1.6,22);c.fillStyle='#2b3040';c.beginPath();c.roundRect(x-3,y-25,6,4,1.5);c.fill();c.fillStyle='#ffe9a8';c.fillRect(x-2,y-21.5,4,1.1)}
 // Wege (Gehwege im Schnee)
-function kPathLine(c,L,w){c.lineCap='round';c.lineJoin='round';c.strokeStyle='#d8c4a4';c.lineWidth=w;c.beginPath();L.forEach((p,i)=>i?c.lineTo(p[0],p[1]):c.moveTo(p[0],p[1]));c.stroke();c.strokeStyle='#e6d6bb';c.lineWidth=w-3;c.stroke()}
-function kDrawPaths(c){if(KVOR.drawPaths)return KVOR.drawPaths(c);const P=KW.paths;c.lineCap='round';c.lineJoin='round';
- const draw=(L,w)=>{c.strokeStyle='#d8c4a4';c.lineWidth=w;c.beginPath();L.forEach((p,i)=>i?c.lineTo(p[0],p[1]):c.moveTo(p[0],p[1]));c.stroke();c.strokeStyle='#e6d6bb';c.lineWidth=w-3;c.stroke()};
+// V337: Fußwege verschmelzen – innerhalb von kDrawPaths werden erst alle Ränder, dann alle Flächen gezeichnet, danach der Gehsteig darüber
+let KPB=null;
+function kPathLine(c,L,w){if(KPB){KPB.push([L,w]);return}c.lineCap='round';c.lineJoin='round';c.strokeStyle='#d8c4a4';c.lineWidth=w;c.beginPath();L.forEach((p,i)=>i?c.lineTo(p[0],p[1]):c.moveTo(p[0],p[1]));c.stroke();c.strokeStyle='#e6d6bb';c.lineWidth=w-3;c.stroke()}
+function kDrawPaths(c){KPB=[];try{kDrawPaths0(c)}finally{const B=KPB;KPB=null;const ln=L=>{c.beginPath();L.forEach((p,i)=>i?c.lineTo(p[0],p[1]):c.moveTo(p[0],p[1]))};c.lineCap='round';c.lineJoin='round';
+  c.strokeStyle='#d8c4a4';for(const [L,w] of B){c.lineWidth=w;ln(L);c.stroke()}c.strokeStyle='#e6d6bb';for(const [L,w] of B){c.lineWidth=w-3;ln(L);c.stroke()}
+  if(B.length&&['sonn','bich','alt'].includes(KVOR.id)){const W=KVOR.walkY;c.fillStyle='#e2d4bb';c.fillRect(-110,W-6,1220,12);c.fillStyle='#ead9be';c.fillRect(-110,W-5,1220,3)}}}
+function kDrawPaths0(c){if(KVOR.drawPaths)return KVOR.drawPaths(c);const P=KW.paths;c.lineCap='round';c.lineJoin='round';
+ const draw=(L,w)=>kPathLine(c,L,w);
  draw(P.kTl,9);draw(P.kSes,9);if(KG.b.kinder)draw(P.kKid,8);if(KG.b.school)draw(P.kSchool,7);
  if(KG.b.hut){c.strokeStyle='#e9dcc4';c.lineWidth=6;c.beginPath();const H=KVOR.hut.in;H.forEach((p,i)=>i?c.lineTo(p[0],p[1]):c.moveTo(p[0],p[1]));c.stroke()}
  if(KG.hotel){draw([[540,1636],[560,1690],[640,1724],[676,1724]],7)}
- c.strokeStyle='#d8c4a4';c.lineWidth=9;c.beginPath();c.moveTo(KVOR.kassa.x,KVOR.walkY);c.lineTo(KVOR.kassa.x,KVOR.kassa.y+6);c.stroke();c.strokeStyle='#e6d6bb';c.lineWidth=6;c.stroke()}
+ draw([[KVOR.kassa.x,KVOR.walkY],[KVOR.kassa.x,KVOR.kassa.y+6]],9)}
 // Pisten zeichnen: offen (gespurt, Stangen) oder noch gesperrt (unberührter Schnee)
 function kPisteOpen(p){return KG.stage>=p.st&&(!p.need||KG.b[p.need])&&kLiftFor(p)}
 // Abschnitte einer langen Piste: Stufe nach Höhe (p.sec = [[yAb,Stufe],…] von unten nach oben)
