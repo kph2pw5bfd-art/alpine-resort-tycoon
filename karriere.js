@@ -2300,7 +2300,8 @@ function kUnloadCar(c){const V=KVOR,W=V.walkY,k=V.kassa,PY=kPY();let i=0;for(con
  const r=KG.price.park/Math.max(1,V.fair.park);if(r>1.3)for(const f of c.ppl)kNg(f,'pk',(r-1.3)*10)}
 // Bus
 function kBusStep(b,dt){const X=KVOR.bus.x;if(b.st==='in'){let v=40;const d=(X-b.x)*b.dir;if(d<70)v=Math.max(10,d*.8);if(d<=1){b.st='stop';b.tw=3.5;b.x=X;kBusUnload(b)}else{const nx=b.x+b.dir*Math.min(v*dt,d);if(kVGo(b,nx,0,dt))b.x=nx}b.y=kVPose(b).y;return}
- if(b.st==='stop'){b.tw-=dt;if(b.tw<=0){// Abholung
+ if(b.st==='stop'){b.tw-=dt;b.tt=(b.tt||0)+dt;if(b.tw<=0){// Abholung
+   if(b.pick&&b.tt<9&&KW.folks.filter(f=>f.st==='busw').length<40&&KW.folks.some(f=>f.st==='walk'&&f.nx==='busw'&&Math.hypot(f.x-X,f.y-KVOR.road.y)<130))return;// V335: kurz auf Nachkommende warten
    const W=KW.folks.filter(f=>f.st==='busw');for(const f of W.slice(0,40)){f.st='gone';kAtBus(f)}b.st='leave'}return}
  if(b.st==='leave'){const nx=b.x+b.dir*44*dt;if(kVGo(b,nx,0,dt))b.x=nx;if(b.x<KVOR.bounds.x0-80||b.x>KVOR.bounds.x1+80)b.st='gone'}}
 function kAtBus(f){}
@@ -2444,7 +2445,9 @@ function kStep(dt){if(!KG||KG.done||KW.halt)return;
  if(KVOR.tick)KVOR.tick(dt,dth);
  const ar=kArrRate((KG.fog?KG.t-.6:KG.t)+(KVOR.arrShift||0));if(ar>0&&KG.dem>0){const car=KG.dem*(1-(KG.busShare||0))-KW.hotelN;KW.arrAcc=(KW.arrAcc||0)+Math.max(0,car)*ar/KARRI*dth/2.9;while(KW.arrAcc>=1){KW.arrAcc-=1;kSpawnCar(kMix())}}
  // Busse
- if(KG.b.bus){const BT=KVOR.busT?KVOR.busT():[8.65,9.65,10.65];for(const bt of BT)if(t0<bt&&KG.t>=bt){kSpawnBus(Math.round(KG.dem*(KG.busShare||0)/BT.length))}for(const bt of (KVOR.busPickT?KVOR.busPickT():[15.3,16.05,16.7]))if(t0<bt&&KG.t>=bt)kSpawnBus(0,1)}
+ if(KG.b.bus){const BT=KVOR.busT?KVOR.busT():[8.65,9.65,10.65];for(const bt of BT)if(t0<bt&&KG.t>=bt){kSpawnBus(Math.round(KG.dem*(KG.busShare||0)/BT.length))}const PT=KVOR.busPickT?KVOR.busPickT():[15.3,16.05,16.7];for(const bt of PT)if(t0<bt&&KG.t>=bt)kSpawnBus(0,1);
+  // V335: Nachzügler-Bus – nach dem letzten Abholbus kommt so lange ein weiterer, bis niemand mehr an der Haltestelle wartet (vorher verschwanden die Gäste um 17:12)
+  if(KG.t>=Math.max(...PT)&&KG.t<23.5&&!KW.buses.some(b=>b.pick&&(b.st==='in'||b.st==='stop'))&&KW.folks.some(f=>f.busG&&f.st!=='gone'&&!f.dead))kSpawnBus(0,1)}
  // Hotelgäste
  if(KG.hotel&&t0<8.1&&KG.t>=8.1){kSpawnHotelG(KW.hotelN||0)}
  // Lifte
@@ -2456,7 +2459,7 @@ function kStep(dt){if(!KG||KG.done||KW.halt)return;
    case 'kas':if(KG.t>=f.tEnd)kKassaDone(f);break;case 'hut':if(KG.t>=f.tEnd)kHutDone(f);break;case 'kiosk':if(KG.t>=f.tEnd)kKioskDone(f);break;
    case 'kidin':kKidStep(f,dt);break;case 'sw':if(!f.grp||f.grp.st==='end'){f.grp=null;kAfterRun(f)}break;
    case 'hurt':if(!KG.b.bw&&KG.t>f.hT+.7){kNg(f,'bw',5);f.hurtOK=1;kGoHome(f,1)}break;
-   case 'busw':if(KG.t>17.2){f.st='gone'}break;
+   case 'busw':if(KG.t>23.5||KG.t<5){f.st='gone'}break;
    default:if(KVOR.folkStep)KVOR.folkStep(f,dt)}
   if(f.st==='gone'&&!f.dead){f.dead=1;kGuestDone(f)}}
  if(KW.folks.some(f=>f.dead))KW.folks=KW.folks.filter(f=>!f.dead);
@@ -2466,7 +2469,7 @@ function kStep(dt){if(!KG||KG.done||KW.halt)return;
  if(KW.acc&&KW.acc.length&&KG.t>=KW.acc[0]){KW.acc.shift();const S=KW.folks.filter(f=>f.st==='ski'&&!f.grpRun&&f.pid!=='ueb'&&!KW.pmap[f.pid].conn&&!f.engHold);if(S.length&&!KW.res){const f=kpick(S);f.hurtAt=f.s+20}}
  kResStep(dt);kGroomStep(dt);kCanStep(dt,dth);
  // Sicherheitsnetz: abends alle weg
- if(KG.t>=19&&KG.t<19+dth*2){for(const f of KW.folks){if(f.st!=='gone'&&!f.dead){f.st='gone'}}for(const c of KW.cars)if(c.st==='park'){c.st='out';c.tw=kR()}}
+ if(KG.t>=19&&KG.t<19+dth*2){for(const f of KW.folks){if(f.st!=='gone'&&!f.dead&&!(f.busG&&KG.b.bus&&(f.st==='busw'||f.nx==='busw'))){f.st='gone'}}for(const c of KW.cars)if(c.st==='park'){c.st='out';c.tw=kR()}}
  for(const p of KW.pops)p.t+=dt;KW.pops=KW.pops.filter(p=>p.t<1.1);
  // Ziele prüfen
  kGoalCheck();}
