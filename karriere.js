@@ -2068,7 +2068,7 @@ function kUnload(o,f){f.ch=null;const L=o.L;f.x=L.exit[0]+(kR()-.5)*6;f.y=L.exit
 const KSPD={fam:46,anf:32,pro:72,sb:64,kid:30,ins:24};
 function kSkiStart(f,pid,grp,s0){const P=KW.pmap[pid];f.st='ski';f.pid=pid;f.s=s0||0;f.runS=0;f.s0r=f.s;f.grpRun=grp||null;f.engIn=null;f.engQ=null;f.engHold=0;f.brCk=0;
  f.v=(f.kid?KSPD.kid:KSPD[f.ty]||45)*(.85+kR()*.3)*(pid==='ueb'?.62:1)*(P.col==='r'?1.1:1);if(grp){f.v=17;f.o=0}else{f.o=(kR()*2-1)*.7}
- f.ph=kR()*6.28;f.amp=f.ty==='sb'?.9:f.ty==='pro'?.7:f.ty==='anf'?.25:.5;f.ateCk=0}
+ f.ph=kR()*6.28;f.amp=f.ty==='sb'?.9:f.ty==='pro'?.7:f.ty==='anf'?.25:.5;f.ateCk=0;f.oT=null}
 function kSkiPos(f){const P=KW.pmap[f.pid],q=kAt(P.d,f.s);let o;if(f.grpRun){o=Math.sin(f.s/34)*.55}else{const sw=Math.sin(f.s/(26+f.amp*14)+f.ph)*f.amp*.32;o=kcl(f.o+sw,-.88,.88)}
  return [q[0]+q[3]*q[2]*o,q[1]+q[4]*q[2]*o,q,o]}
 function kSkiStep(f,dt){const P=KW.pmap[f.pid],Ld=P.d[P.d.length-1][3];
@@ -2077,6 +2077,8 @@ function kSkiStep(f,dt){const P=KW.pmap[f.pid],Ld=P.d[P.d.length-1][3];
  // Ausweichen: langsamer, wenn vorne dicht (einfach)
  if(P.eng&&kEngStep(f,P,dt))return;
  const BRS=P.brs||(P.br?[P.br]:null);if(BRS&&!f.engHold)for(const br of BRS){if(f.s<br.s&&f.s+f.v*dt>=br.s){if(KVOR.branch&&KVOR.branch(f,br)){kSkiSwitch(f,br.p,br.s2||0);return}}}
+ // nach einem Pistenwechsel (Zubringer → Abfahrt) langsam auf eine eigene Spur über die ganze Breite ziehen
+ if(f.oT!=null&&!f.engHold&&!f.engIn){f.o+=(f.oT-f.o)*Math.min(1,dt*.7);if(Math.abs(f.oT-f.o)<.02)f.oT=null}
  if(!f.engHold)f.s+=f.v*dt*(f.engIn?f.engIn.vf:1);const [x,y,q,o]=kSkiPos(f);f.sv=(x-f.x)*20;f.x=x;f.y=y;f.lo=o;
  if(f.hurtAt&&f.s>=f.hurtAt){f.hurtAt=0;kHurt(f);return}
  if(f.s>=Ld){if(P.next){// Übergang auf die nächste Piste (Zubringer → Abfahrt, Umfahrung → Abfahrt)
@@ -2084,7 +2086,7 @@ function kSkiStep(f,dt){const P=KW.pmap[f.pid],Ld=P.d[P.d.length-1][3];
    kSkiSwitch(f,P.next.p,P.next.s);return}
   KG.pq[f.pid]=Math.max(0,KG.pq[f.pid]-(P.wear||(f.pid==='ueb'?.06:.035)));f.runs=(f.runs||0)+1;const rl=KVOR.runRef?kcl(((f.runS||0)+Math.max(0,f.s-(f.s0r||0)))/KVOR.runRef,.6,2.2):1;f.sat+=(((KG.pq[f.pid]||100)-68)/30*1.4+(P.col==='r'&&(f.ty==='pro'||f.ty==='sb')?1.6:0))*rl;kAfterRun(f)}}
 // auf eine andere Piste wechseln, ohne Sprung (seitliche Lage aus der echten Position)
-function kSkiSwitch(f,pid,s){const P=KW.pmap[pid],P0=KW.pmap[f.pid];f.runS=(f.runS||0)+Math.max(0,f.s-(f.s0r||0));f.s0r=s;f.pid=pid;f.s=s;f.engIn=null;f.engQ=null;f.engHold=0;f.brCk=0;const q=kAt(P.d,s);const o=((f.x-q[0])*q[3]+(f.y-q[1])*q[4])/Math.max(4,q[2]);f.o=kcl(o,-.8,.8)}
+function kSkiSwitch(f,pid,s){const P=KW.pmap[pid],P0=KW.pmap[f.pid];f.runS=(f.runS||0)+Math.max(0,f.s-(f.s0r||0));f.s0r=s;f.pid=pid;f.s=s;f.engIn=null;f.engQ=null;f.engHold=0;f.brCk=0;const q=kAt(P.d,s);const o=((f.x-q[0])*q[3]+(f.y-q[1])*q[4])/Math.max(4,q[2]);f.o=kcl(o,-.8,.8);f.oT=f.grpRun?null:(kR()*2-1)*.7}
 // Engstellen: nur einer nach dem anderen hinein, sonst warten (Stau)
 function kEngStep(f,P,dt){if(f.engIn){if(f.s>=f.engIn.s1)f.engIn=null;return 0}
  const E=P.eng.find(e=>e.s1>f.s&&e.s0>f.s-2);if(!E)return 0;
