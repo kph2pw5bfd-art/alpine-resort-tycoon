@@ -252,7 +252,7 @@ KV.bich.tick=function(dt,dth){// Tauwetter weicht die Piste tagsüber auf (die R
 // Schneekanonen: Abdeckung (unten/oben) und Wasser (Bach allein reicht nur halb)
 function kBichCov(){const M=KW.pmap.main,L=M.d[M.d.length-1][3],s0=kOpenS(M),y0=960;let lo=0,hi=0;const sMid=(()=>{for(const q of M.d)if(q[1]>=y0)return q[3];return L})();
  lo=L-Math.max(s0,sMid);hi=Math.max(0,sMid-s0);const tot=L-s0;let c=KG.b.cannons?lo:0;if(KG.b.can2)c+=hi;return tot>0?kcl(c/tot,0,1):0}
-KV.bich.canF=function(){return kBichCov()*(KG.b.teich&&KG.wat>0?1:.5)};
+KV.bich.canF=function(){return kBichCov()*(KG.b.teich&&KG.wat>0?1:.7)};KV.bich.canNote=function(){return !KG.b.teich?'Speicherteich fehlt – 70 % Leistung':KG.wat<=0?'Speicherteich leer – 70 % Leistung':''};
 KV.bich.canCost=function(){return 150+(KG.b.can2?150:0)};
 KV.bich.costs=function(c,tm){if(KG.b.teich)c.teich=Math.round(60*tm);if(KG.b.bus2)c.bus=(c.bus||0)+100};
 KV.bich.canPos=function(){const M=KW.pmap.main,out=[];let acc=0,side=1;const r=kRNG(7);
@@ -280,7 +280,7 @@ KV.bich.items=function(){const V=KVOR,st=KG.stage,l=KG.l,b=KG.b,lf=KPK('lift')?.
   if(L.id==='l1'&&t4)add('lif',{id:'up6_l1',ic:'🚡',n:nm+': 6er-Sessel',d:rt+'Noch mehr Plätze am Talsessel – hier steigen alle Gäste ein.',c:Math.round(18000*lf),days:kBauDays(1),done:s.typ==='s6',bau:b4});
   else add('lif',{id:'up4_'+L.id,ic:'🚡',n:nm+': 4er-Sessel',d:rt+'Doppelt so viele Plätze je Sessel – die Schlange wird kürzer. Der Lift steht bis zum nächsten Morgen.',c:Math.round(6000*lf),days:kBauDays(1),done:t4,bau:b4,lock:lk});
   add('lif',{id:'lg_'+L.id,ic:'💺',n:nm+': mehr Sessel',d:rt+'Zusätzliche Sessel am Seil – mehr Gäste pro Stunde.',c:Math.round(2500*lf),done:(s.lg||0)>=2,lock:lk,lv:(s.lg||0)+' / 2'})}
- add('pis',{id:'can',ic:'❄️',n:'Schneekanonen unten',d:'Beschneien nachts die Abfahrt bis zur Mittelstation 2. Ohne Speicherteich reicht das Bachwasser nur für halbe Leistung.',c:Math.round(V.cannons.cost*sf),done:!!b.cannons,up:'Strom je Nacht'});
+ add('pis',{id:'can',ic:'❄️',n:'Schneekanonen unten',d:'Beschneien nachts die Abfahrt bis zur Mittelstation 2. Ohne Speicherteich reicht das Bachwasser nur für 70 % Leistung.',c:Math.round(V.cannons.cost*sf),done:!!b.cannons,up:'Strom je Nacht'});
  add('pis',{id:'can2',ic:'❄️',n:'Schneekanonen oben',d:'Weitere Kanonen bis zum Gipfel – dann wird die ganze Abfahrt beschneit.',c:Math.round(V.can2.cost*sf),done:!!b.can2,lock:st<3?'erst Stufe 3':!b.cannons?'erst Kanonen unten':''});
  add('pis',{id:'teich',ic:'💧',n:'Speicherteich',d:'Besonderes Gebäude: Teich mit Pumpenhaus am Hang. Die Kanonen bekommen genug Wasser und schaffen die volle Leistung.',c:V.teich.cost,days:kBauDays(V.teich.days),done:!!b.teich,bau:bau('teich'),lock:st<2?'erst Stufe 2':'',up:'60 €/Tag'});
  add('pis',{id:'umf',ic:'🔴',n:'Umfahrung der unteren Engstelle',d:'Rote Piste durch den Wald um die Engstelle 2 herum. Könner fahren lieber außen herum – der Stau wird kleiner.',c:V.umf.cost,days:kBauDays(V.umf.days),done:!!b.umf,bau:bau('umf'),lock:st<2?'erst Stufe 2':''});
@@ -363,13 +363,13 @@ KV.bich.hit=function(x,y,hit,d){if((KG.b.teich||KG.bau.find(b=>b.id==='teich'))&
  for(const E of KW.eng||[]){const m=kAt(KW.pmap.main.d,(E.s0+E.s1)/2);if(kPtOpen(KW.pmap.main,m)&&d(m[0],m[1])<34)hit.push({k:'eng:'+E.id,d:1})}
  if(KG.b.bw&&d(KVOR.bwHut.x,KVOR.bwHut.y-10)<20)hit.push({k:'bwh',d:0})};
 KV.bich.infHTML=function(k){
- if(k==='tei'){if(!KG.b.teich)return kHead('💧 Speicherteich')+'<p class="hint">🚧 Im Bau.</p>';return kHead('💧 Speicherteich')+`<div class="kpi"><div><small>Wasserstand</small><b>${Math.round(KG.wat)} %</b><div class="kbar2"><i style="width:${Math.round(KG.wat)}%;background:linear-gradient(90deg,#7cc4e4,#2f86cf)"></i></div></div><div><small>Kanonen-Leistung</small><b>${Math.round(KV.bich.canF()*100)} %</b></div></div><p class="hint">Nachts holen die Schneekanonen das Wasser aus dem Teich, tagsüber füllt ihn der Bach wieder auf. Ist er leer, schaffen die Kanonen nur halbe Leistung.</p>`}
+ if(k==='tei'){if(!KG.b.teich)return kHead('💧 Speicherteich')+'<p class="hint">🚧 Im Bau.</p>';return kHead('💧 Speicherteich')+`<div class="kpi"><div><small>Wasserstand</small><b>${Math.round(KG.wat)} %</b><div class="kbar2"><i style="width:${Math.round(KG.wat)}%;background:linear-gradient(90deg,#7cc4e4,#2f86cf)"></i></div></div><div><small>Kanonen-Leistung</small><b>${Math.round(KV.bich.canF()*100)} %</b></div></div><p class="hint">Nachts holen die Schneekanonen das Wasser aus dem Teich, tagsüber füllt ihn der Bach wieder auf. Ist er leer, schaffen die Kanonen nur 70 % Leistung.</p>`}
  if(k.startsWith('eng:')){const E=(KW.eng||[]).find(e=>'eng:'+e.id===k);if(!E)return '';const lower=E.id==='e2';return kHead('🚧 '+E.n)+`<div class="kpi"><div><small>Warten gerade</small><b>${E.q.length}</b></div><div><small>Breite</small><b>${Math.round(E.w*2)} m</b></div></div><p class="hint">Hier wird die Abfahrt so schmal, dass die Gäste nur einzeln durchfahren. Wenn viele kommen, entsteht Stau – das kostet Laune.${lower?(KG.b.umf?' Die Umfahrung entlastet die Stelle.':' Abhilfe: die rote Umfahrung (🔨 Bauen › Piste).'):' Abhilfe: Gäste verteilen – mehr Sessel unten, damit nicht alle zum Gipfel fahren, oder Preise und Werbung.'}</p>`+(lower&&!KG.b.umf&&KG.stage>=2?'<div class="row"><span>Umfahrung</span><button class="btn" data-a="go" data-v="bau|pis">Baumenü ›</button></div>':'')}
  if(k==='bwh')return kHead('⛑️ Bergwacht')+`<p class="hint">Die Bergwacht holt Verletzte mit Motorschlitten und Akja von der Abfahrt.${KW.res?' Gerade im Einsatz.':''}</p>`;
  return ''};
 KV.bich.pisteInfo=function(p){if(p.id!=='main')return '';let h='<div class="bgh">Engstellen</div>';for(const E of KW.eng||[]){const op=kPtOpen(p,kAt(p.d,E.s0));h+=`<div class="row"><span>🚧 ${E.n}</span><b>${op?(E.q.length?E.q.length+' warten':'frei'):'noch gesperrt'}</b></div>`}return h};
 KV.bich.staExtra=function(){let h='';for(const E of KW.eng||[]){if(!kPtOpen(KW.pmap.main,kAt(KW.pmap.main.d,E.s0)))continue;h+=`<div class="row"><span>🚧 ${E.n}</span><b>${E.q.length?E.q.length+' warten':'frei'}</b></div>`}
- if(KG.b.cannons)h+=`<div class="row"><span>❄️ Schneekanonen</span><b>${Math.round(KV.bich.canF()*100)} % Leistung</b></div>`;if(KG.b.teich)h+=`<div class="row"><span>💧 Speicherteich</span><b>${Math.round(KG.wat)} % voll</b></div>`;return h};
+ if(KG.b.teich)h+=`<div class="row"><span>💧 Speicherteich</span><b>${Math.round(KG.wat)} % voll</b></div>`;return h};
 KV.bich.voices=function(out){const n=(KW.eng||[]).reduce((a,e)=>a+e.q.length,0);if(n>=5)out.push(['🚧','„An der Engstelle steht man ewig!“']);
  if(KG.pq.main<55||KG.snow<12)out.push(['🌱','„Unten wird die Piste schon grün.“']);if(KG.stage>=3&&kPQavg()>78)out.push(['🌲','„Die lange Abfahrt durch den Wald ist herrlich!“'])};
 KV.bich.thumbPrep=function(G){G.b.cannons=1;G.b.can2=1;G.b.teich=1;G.b.umf=1};
@@ -2070,6 +2070,10 @@ const KSPD={fam:46,anf:32,pro:72,sb:64,kid:30,ins:24};
 function kSkiStart(f,pid,grp,s0){const P=KW.pmap[pid];f.st='ski';f.pid=pid;f.s=s0||0;f.runS=0;f.s0r=f.s;f.grpRun=grp||null;f.engIn=null;f.engQ=null;f.engHold=0;f.brCk=0;
  f.v=(f.kid?KSPD.kid:KSPD[f.ty]||45)*(.85+kR()*.3)*(pid==='ueb'?.62:1)*(P.col==='r'?1.1:1);if(grp){f.v=17;f.o=0}else{f.o=(kR()*2-1)*.7}
  f.ph=kR()*6.28;f.amp=f.ty==='sb'?.9:f.ty==='pro'?.7:f.ty==='anf'?.25:.5;f.ateCk=0;f.oT=null}
+// Schneekanonen: Leistung und Schnee pro Nacht (V330)
+function kCanRows(){if(!KG.b.cannons)return '';let f=1;try{f=KVOR.canF?KVOR.canF(1):1}catch(e){f=1}if(!(f>=0))f=1;const cm=9*.85*f,nt=KVOR.canNote?KVOR.canNote():'';
+ let h=`<div class="row"><span>🌨️ Schneekanonen</span><b>${Math.round(f*100)} % · +${cm.toFixed(1).replace('.',',')} cm pro Nacht</b></div>`;
+ if(nt)h+=`<div class="row"><span style="color:#b8480c">⚠️ ${nt}</span></div>`;if(KG.canAuto===0)h+=`<div class="row"><span style="color:#b8480c">⚠️ Kanonen sind ausgeschaltet</span></div>`;return h}
 function kSkiPos(f){const P=KW.pmap[f.pid],q=kAt(P.d,f.s);let o;if(f.grpRun){o=Math.sin(f.s/34)*.55}else{const sw=Math.sin(f.s/(26+f.amp*14)+f.ph)*f.amp*.32;o=kcl(f.o+sw,-.88,.88)}
  return [q[0]+q[3]*q[2]*o,q[1]+q[4]*q[2]*o,q,o]}
 function kSkiStep(f,dt){const P=KW.pmap[f.pid],Ld=P.d[P.d.length-1][3];
@@ -2959,7 +2963,7 @@ function kBauHTML(){const tabs=[['aus','🏔️','Ausbau'],['lif','🚡','Lifte'
  const I=kBuildItems().filter(i=>i.tab===KW.tab);const open=I.filter(i=>!i.done),done=I.filter(i=>i.done);
  let h=kHead('🔨 Bauen',tabs)+`<p class="hint" style="margin:8px 0 2px">Kassa ${kfmt(KG.money)}${KG.loan>0?' · Kredit offen '+kfmt(KG.loan):''} · <a data-a="go" data-v="sta|kre" style="color:#1e5fb0;font-weight:600;cursor:pointer">🏦 Kredit</a></p>`;
  for(const i of open.concat(done))h+=kCardHTML(i);
- if(KW.tab==='pis'&&KG.b.cannons)h+=`<div class="row"><span>❄️ Schneekanonen automatisch nachts</span><button class="btn" data-a="can">${KG.canAuto===0?'Aus':'An'}</button></div>`;
+ if(KW.tab==='pis'&&KG.b.cannons)h+=`<div class="row"><span>❄️ Schneekanonen automatisch nachts</span><button class="btn" data-a="can">${KG.canAuto===0?'Aus':'An'}</button></div>`+kCanRows();
  if(KW.tab==='aus')h+=`<p class="hint">Jede Stufe öffnet neue Pisten und lockt mehr Gäste an. Neue Stufen sprechen sich in ${KPK('name')?2:3} Tagen herum.</p>`;
  return h}
 function kCardHTML(i){let btn='';if(i.done)btn=`<span class="kchip g">✓ ${i.lv?'voll':'gebaut'}</span>`;else if(i.bau)btn=`<span class="kchip o">🚧 im Bau<br>fertig ${kDayT(i.bau.d0+i.bau.days).split(' • ')[0]}</span>`;else if(i.lock)btn=`<button class="btn" disabled>${kfmt(i.c)}</button><small>${i.lock}</small>`;
@@ -3036,7 +3040,7 @@ function kStaHTML(){const tabs=[['heu','📊','Übersicht'],['fin','💶','Finan
  <div class="wx wx2"><div><small>Wetter</small><span>${KWI[KG.wx]} ${KWNM[KG.wx]}</span></div><div><small>Vorhersage</small><span>${KWI[KG.wxN]} ${KWNM[KG.wxN]}<small>morgen</small></span></div></div>`;
   h+=kStaHist();
   h+='<div class="bgh" style="margin-top:12px">🚡 Lifte und Pisten</div>';for(const L2 of KVOR.lifts){if(!KG.l[L2.id].on)continue;h+=`<div class="row"><span>${L2.typ==='teller'?'🎿':'🚡'} ${L2.n}</span><b>Warten ${Math.round(kWait(L2.id))} Min.</b></div>`}
-  h+=`<div class="row"><span>❄️ Schneehöhe</span><b>${Math.round(KG.snow)} cm</b></div>`;
+  h+=`<div class="row"><span>❄️ Schneehöhe</span><b>${Math.round(KG.snow)} cm</b></div>`+kCanRows();
   for(const p of KW.pistes)if(!p.conn&&kPisteOpen(p))h+=`<div class="row"><span>${p.col==='r'?'🔴':p.col==='s'?'⚫':'🔵'} ${p.n}</span><b>Zustand ${Math.round(KG.pq[p.id])} %</b></div>`;
   if(KVOR.staExtra)h+=KVOR.staExtra()}
  if(KW.tab==='kre')h+=kLnHTML();
