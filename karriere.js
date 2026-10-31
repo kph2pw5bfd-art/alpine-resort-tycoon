@@ -312,8 +312,8 @@ KV.bich.drawB=function(add,t){const V=KVOR;
   if(bau){if(!lo)add(L.b[1]+20,c=>kSite(c,L.b[0],L.b[1]+10,60,t));add(L.t[1]+20,c=>kSite(c,L.t[0],L.t[1]+10,50,t));continue}
   const up=KG.bau.find(b=>b.k==='up'&&b.lift===L.id);
   if(!s.on&&!up)continue;const co=KLT[s.typ].co;
-  if(!lo)add(L.b[1]+22,c=>{kStationM(c,L.b[0],L.b[1],co,true);kBrkSign(c,L,t);if(up)kSign(c,L.b[0],L.b[1]-48,'🚧 UMBAU','#f2701f','#fff',6)});
-  else if(up)add(L.b[1]+30,c=>kSign(c,L.b[0],L.b[1]-56,'🚧 UMBAU','#f2701f','#fff',6));
+  if(!lo)add(L.b[1]+22,c=>{kStationM(c,L.b[0],L.b[1],co,true);kBrkSign(c,L,t);if(up)kSign(c,L.b[0]-50,L.b[1]-12,'🚧 UMBAU','#f2701f','#fff',6)});
+  else if(up)add(L.b[1]+30,c=>kSign(c,L.b[0]-50,L.b[1]-20,'🚧 UMBAU','#f2701f','#fff',6));
   const nx=L.nx&&KG.l[L.nx]&&KG.l[L.nx].on;
   add(L.t[1]+18,c=>{kStationM(c,L.t[0],L.t[1],nx?KLT[KG.l[L.nx].typ].co:co,false);kSign(c,L.t[0],L.t[1]-36,L.tn.toUpperCase(),'#fff','#2b3a55',5.5);if(nx){const N=kLC(L.nx);kBrkSign(c,N,t)}})}
  // Waldhütte
@@ -1213,8 +1213,8 @@ KV.seek.drawB=function(add,t){const V=KVOR,K=V.kassa;add(K.y,c=>kKassaDraw(c,K.x
  for(const L of V.lifts){const s=KG.l[L.id],bau=KG.bau.find(b=>b.lift===L.id&&b.k!=='up'),lo=kLowerOf(L.id);
   if(bau){add(L.t[1]+20,c=>kSite(c,L.t[0],L.t[1]+10,50,t));continue}
   const up=KG.bau.find(b=>b.k==='up'&&b.lift===L.id);if(!s.on&&!up)continue;const co=KLT[s.typ].co;
-  if(!lo)add(L.b[1]+22,c=>{kStationM(c,L.b[0],L.b[1],co,true);kSign(c,L.b[0],L.b[1]-30,'TALSTATION','#fff','#2b3a55',5.5);kBrkSign(c,L,t);if(up)kSign(c,L.b[0],L.b[1]-48,'🚧 UMBAU','#f2701f','#fff',6)});
-  else if(up)add(L.b[1]+30,c=>kSign(c,L.b[0],L.b[1]-56,'🚧 UMBAU','#f2701f','#fff',6));
+  if(!lo)add(L.b[1]+22,c=>{kStationM(c,L.b[0],L.b[1],co,true);kSign(c,L.b[0],L.b[1]-30,'TALSTATION','#fff','#2b3a55',5.5);kBrkSign(c,L,t);if(up)kSign(c,L.b[0]-50,L.b[1]-12,'🚧 UMBAU','#f2701f','#fff',6)});
+  else if(up)add(L.b[1]+30,c=>kSign(c,L.b[0]-50,L.b[1]-20,'🚧 UMBAU','#f2701f','#fff',6));
   const nx=L.nx&&KG.l[L.nx]&&KG.l[L.nx].on;add(L.t[1]+18,c=>{kStationM(c,L.t[0],L.t[1],nx?KLT[KG.l[L.nx].typ].co:co,false);kSign(c,L.t[0],L.t[1]-36,L.tn.toUpperCase(),'#fff','#2b3a55',5.5);if(nx)kBrkSign(c,kLC(L.nx),t)})}
  // Karhütte
  const H0=V.hut;if(KG.b.hut)add(H0.y+2,c=>{chalet(c,H0.x,H0.y,48,26,1);for(const [wx,wy] of chWin(H0.x,H0.y,48,26))kWin(wx,wy,6,6);kSign(c,H0.x,H0.y-46,'KARHÜTTE','#8f5a34','#fff',5.5);
@@ -1772,8 +1772,8 @@ KV.eis.drawB=function(add,t){const V=KVOR,K=V.kassa,l=KG.l;add(K.y,c=>kKassaDraw
   if(!s.on&&!up)continue;const co=KLT[s.typ].co;
   if(L.id==='gt'){add(L.b[1]+12,c=>{stationN(c,L.b[0]+14,L.b[1],t);kSign(c,L.b[0]+14,L.b[1]-24,'GLETSCHERLIFT','#fff','#2b3a55',5);kBrkSign(c,L,t)});add(L.t[1]+12,c=>stationN(c,L.t[0]+14,L.t[1],t));continue}
   const big3=L.id==='s3',lab={am:['TALSTATION','ALM'],kb:['','KESSEL'],rl:['RINNENLIFT','RINNENKOPF'],gb:['GLETSCHERBAHN','GLETSCHERSTATION'],s3:['3S · GLETSCHEREXPRESS','3S · GLETSCHER OST']}[L.id];
-  if(!lo)add(L.b[1]+22,c=>{kStationM(c,L.b[0],L.b[1],big3?14:co,true);kEisPlate(c,L.b[0],L.b[1],lab[0],big3);kBrkSign(c,L,t);if(up)kSign(c,L.b[0],L.b[1]-48,'🚧 UMBAU','#f2701f','#fff',6)});
-  else if(up)add(L.b[1]+30,c=>kSign(c,L.b[0],L.b[1]-56,'🚧 UMBAU','#f2701f','#fff',6));
+  if(!lo)add(L.b[1]+22,c=>{kStationM(c,L.b[0],L.b[1],big3?14:co,true);kEisPlate(c,L.b[0],L.b[1],lab[0],big3);kBrkSign(c,L,t);if(up)kSign(c,L.b[0]-50,L.b[1]-12,'🚧 UMBAU','#f2701f','#fff',6)});
+  else if(up)add(L.b[1]+30,c=>kSign(c,L.b[0]-50,L.b[1]-20,'🚧 UMBAU','#f2701f','#fff',6));
   const nx=L.nx&&l[L.nx]&&l[L.nx].on;add(L.t[1]+18,c=>{kStationM(c,L.t[0],L.t[1],big3?14:nx?KLT[l[L.nx].typ].co:co,false);kSign(c,L.t[0],L.t[1]-36,lab[1],big3?'#2b3040':'#fff',big3?'#fff':'#2b3a55',5.5);if(nx)kBrkSign(c,kLC(L.nx),t)})}
  // Pendelbahn
  if(KG.stage>=5){const {b}=KEI.PB;add(b[1]+22,c=>{kStationM(c,b[0],b[1],10,true);kEisPlate(c,b[0],b[1],'PENDELBAHN · GIPFEL');if(kEisWS('pb'))kSign(c,b[0],b[1]-46,'💨 WIND – STEHT','#5b6578','#fff',5.5)});
@@ -2643,7 +2643,9 @@ function kStationM(c,x,y,co,big,ex,eb){const op=co+9+(ex||0);stBack(c,x,y,op,big
 function kStClip(c,o,id,vw,vh){const co=o.T.co,op=co+9,lo=typeof kLowerOf==='function'&&kLowerOf(id);c.beginPath();c.rect(kZ.camX-300,kZ.camY-300,vw+600,vh+600);
  for(const [x,y,big] of [[o.bx,o.by,!lo],[o.tx,o.ty,false]]){const hw=op+(big?20:7);c.moveTo(x-hw-5,y-6);c.lineTo(x-hw+3,y-44);c.lineTo(x+hw-3,y-44);c.lineTo(x+hw+5,y-6);c.closePath();c.rect(x-hw,y-6,hw-op,24);c.rect(x+op,y-6,hw-op,24)}
  c.clip('evenodd')}
-function kDrawLifts(c,t){const vw=kViewW(),vh=kViewH();for(const id in KW.lift){const o=KW.lift[id];if(!KG.l[id].on&&!o.run)continue;const {bx,by,tx,ty,len,ux,uy}=o,co=o.T.co;
+// V331: Lift im Umbau – Seil, Stützen und Sessel bleiben sichtbar (stehen still, leer). Altberg zeichnet Umbau/Neubau selbst.
+function kUmbau(id){return KVOR!==KV.alt&&KG.bau.some(b=>b.k==='up'&&b.lift===id)}
+function kDrawLifts(c,t){const vw=kViewW(),vh=kViewH();for(const id in KW.lift){const o=KW.lift[id];if(!KG.l[id].on&&!o.run&&!kUmbau(id))continue;const {bx,by,tx,ty,len,ux,uy}=o,co=o.T.co;
  if(Math.max(bx,tx)<kZ.camX-80||Math.min(bx,tx)>kZ.camX+vw+80||Math.max(by,ty)<kZ.camY-80||Math.min(by,ty)>kZ.camY+vh+80)continue;
  if(KVOR.liftLook){c.save();if(!o.T.drag&&!(KVOR.noClip&&KVOR.noClip(id)))kStClip(c,o,id,vw,vh);const dn=KVOR.liftLook(c,o,t);c.restore();if(dn)continue}
  if(o.T.cap===1){c.strokeStyle='#2a2e44';c.lineWidth=.8;c.beginPath();c.moveTo(bx,by-14);c.lineTo(tx,ty-14);c.stroke();
@@ -2660,9 +2662,9 @@ function kDrawBuildings(add,t){const V=KVOR;if(V.drawB)return V.drawB(add,t);
  const K=V.kassa;add(K.y,c=>kKassaDraw(c,K.x,K.y));
  if(KG.b.kiosk)add(K.y+8,c=>kKioskDraw(c,K.x+38,K.y+8,t));
  // Lift-Stationen
- for(const L of V.lifts){const s=KG.l[L.id],bau=KG.bau.find(b=>b.lift===L.id||b.k==='lift'&&b.id===L.id);
+ for(const L of V.lifts){const s=KG.l[L.id],bau=KG.bau.find(b=>b.lift===L.id&&b.k!=='up'||b.k==='lift'&&b.id===L.id),up=KG.bau.find(b=>b.k==='up'&&b.lift===L.id);
   if(bau){add(L.b[1]+20,c=>kSite(c,L.b[0],L.b[1]+10,60,t));add(L.t[1]+20,c=>kSite(c,L.t[0],L.t[1]+10,50,t));continue}
-  if(!s.on)continue;
+  if(!s.on&&!up)continue;if(up)add(L.b[1]+40,c=>kSign(c,L.b[0]-50,L.b[1]-12,'🚧 UMBAU','#f2701f','#fff',6));
   if(L.typ==='teller'||s.typ==='teller'){add(L.b[1]+12,c=>{stationN(c,L.b[0]+14,L.b[1],t);kBrkSign(c,L,t)});add(L.t[1]+12,c=>stationN(c,L.t[0]+14,L.t[1],t))}
   else{const co=KLT[s.typ].co;add(L.b[1]+22,c=>{kStationM(c,L.b[0],L.b[1],co,true);kSign(c,L.b[0],L.b[1]-26,'TALSTATION','#fff','#2b3a55',6);kBrkSign(c,L,t)});add(L.t[1]+18,c=>{kStationM(c,L.t[0],L.t[1],co,false);kSign(c,L.t[0],L.t[1]-36,'BERGSTATION','#fff','#2b3a55',5.5)})}}
  // Sonnalm
@@ -3241,7 +3243,7 @@ const KTH={};function kThumb(id){if(KTH[id])return KTH[id];const g0=KG,v0=KVOR,o
 // Berg starten / verlassen
 function kStart(id,fresh){kCareerLoad();KVOR=KV[id];if(!KVOR)return;if(KC.last!==id){KC.last=id;kCareerSave()}let s=fresh?null:kLoad(id);if(!s||s.done){s=kNewState(id,KC.perks||[]);s.firm=KC.firm}KG=s;KW.halt=0;
  KW.folks=[];KW.cars=[];KW.buses=[];KW.pops=[];KW.lift={};KW.school=[];KW.groom=null;KW.res=null;KW.neu=null;KW.open=null;KW.paused=false;KW.modal=0;KW.speed=1;KW.endAsk=0;KW.rsAsk=0;KW.canP=null;KW.acc=[];KW.lgNew=0;
- KW.paths=KVOR.paths();if(KVOR.onStart)KVOR.onStart();kBuildWorld();for(const id2 in KG.l)if(KG.l[id2].on)kLiftSetup(id2);KW.hutS=kHutS();
+ KW.paths=KVOR.paths();if(KVOR.onStart)KVOR.onStart();kBuildWorld();for(const id2 in KG.l)if(KG.l[id2].on||kUmbau(id2))kLiftSetup(id2);KW.hutS=kHutS();
  kLnMig();if(KG.loanStart){kLnSet(KG.loanStart,56);KG.loanStart=0}
  if(fresh||!KG.dem){KG.dem=kDemand();if(KG.t>=6&&KG.day===1&&!KG.started){KG.wx='sonne';KG.started=1;kLog('🏔️',KVOR.welcome)}}
  KW.hotelN=0;kOvCSS();kOvHide();const n=document.getElementById('kname');if(n)n.remove();document.body.classList.add('kmode');kUIbuild();kCanvas();kZ.cv.style.display='block';document.getElementById('kui').hidden=false;
