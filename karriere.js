@@ -388,7 +388,7 @@ KV.bich.bg=function(c){
  c.fillStyle='#e2d4bb';c.fillRect(-110,W-6,1220,12);c.fillStyle='#ead9be';c.fillRect(-110,W-5,1220,3);
  kRoad(c,RY,-160,1160,34);c.fillStyle='#d9dee6';c.fillRect(-160,RY-24,1320,7);c.fillRect(-160,RY+17,1320,7);
  const bx=KVOR.bus.x-20;c.fillStyle='#2e9e5b';c.fillRect(bx,RY-36,1.6,14);c.beginPath();c.roundRect(bx-6,RY-44,14,9,2);c.fill();c.fillStyle='#fff';c.font='700 6px Fredoka,sans-serif';c.textAlign='center';c.fillText('H',bx+1,RY-37);
- kSign(c,bx+1,RY-52,'🚌 Bichl Dorf','#2e9e5b','#fff',5)};
+ kSign(c,bx-18,RY-52,'🚌 Bichl Dorf','#2e9e5b','#fff',5);c.fillStyle='#2e9e5b';c.fillRect(bx-.2,RY-50,1.6,7)};
 KV.bich.staticExtra=function(c){// Ortsschild und Wegweiser an der Talstation
  kSign(c,-70,1940,'BICHL','#f2c53b','#2b3040',7)};
 // Dorf südlich der Straße, dichter Mischwald am ganzen Hang
@@ -2692,7 +2692,7 @@ function kKassaDraw(c,x,y){const nt=kBright()<.5;c.fillStyle='rgba(110,140,180,.
  c.fillStyle='#d8433d';c.beginPath();c.moveTo(x-31,y-23);c.lineTo(x-22,y-36);c.lineTo(x+22,y-36);c.lineTo(x+31,y-23);c.closePath();c.fill();c.fillStyle='#fff';c.beginPath();c.moveTo(x-27,y-26);c.lineTo(x-21,y-34);c.lineTo(x+21,y-34);c.lineTo(x+27,y-26);c.closePath();c.fill();
  kSign(c,x,y-44,'🎫 KASSA','#2b3040','#fff',6);
  // Preistafel
- c.fillStyle='#2b3040';c.beginPath();c.roundRect(x-48,y-22,18,16,1.5);c.fill();c.fillStyle='#fff';c.font='700 3.2px Fredoka,sans-serif';c.textAlign='center';c.fillText('TAGESKARTE',x-39,y-17);c.font='700 4.6px Fredoka,sans-serif';c.fillStyle='#ffd84d';c.fillText(KG.price.ticket+' €',x-39,y-11.5);c.fillStyle='#5d667a';c.fillRect(x-40,y-6,1.4,8)}
+ c.fillStyle='#2b3040';c.beginPath();c.roundRect(x-55,y-22,23,16,1.5);c.fill();c.fillStyle='#fff';c.font='700 3.2px Fredoka,sans-serif';c.textAlign='center';c.fillText('TAGESKARTE',x-43.5,y-17);c.font='700 4.6px Fredoka,sans-serif';c.fillStyle='#ffd84d';c.fillText(KG.price.ticket+' €',x-43.5,y-11.5);c.fillStyle='#5d667a';c.fillRect(x-44.2,y-6,1.4,8)}
 function kKioskDraw(c,x,y,t){c.fillStyle='rgba(110,140,180,.25)';c.beginPath();c.ellipse(x+2,y+2,14,3,0,0,7);c.fill();c.fillStyle='#8f5a34';c.fillRect(x-11,y-12,22,13);c.fillStyle='#6e4426';c.fillRect(x+4,y-12,7,13);c.fillStyle='#ffe2a8';c.fillRect(x-9,y-9,12,5);
  for(let i=0;i<5;i++){c.fillStyle=i%2?'#fff':'#e8504a';c.beginPath();c.moveTo(x-13+i*5.2,y-12);c.lineTo(x-13+i*5.2+5.2,y-12);c.lineTo(x-13+i*5.2+5.2,y-16);c.lineTo(x-13+i*5.2,y-16);c.fill()}
  c.fillStyle='#fff';c.fillRect(x-13,y-18,26,2);kSign(c,x,y-23,'KIOSK','#e8504a','#fff',4.6);hSmoke(c,x+8,y-20,t,2)}
