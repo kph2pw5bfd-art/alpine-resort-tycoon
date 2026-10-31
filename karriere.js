@@ -2674,7 +2674,7 @@ function kDrawBuildings(add,t){const V=KVOR;if(V.drawB)return V.drawB(add,t);
 }
 function kHutDraw(c,x,y,t){let hp={x:0,y:0};try{hp=hutPos()}catch(e){}const dx=x-hp.x,dy=y-hp.y,N=window.NWIN,np=N&&N.push;
  // Fenster-Licht mitverschieben (hut() meldet die Fenster in Heimatberg-Koordinaten)
- if(N&&np)N.push=(...r)=>np.apply(N,r.map(q=>[q[0]+dx,q[1]+dy,q[2],q[3]]));c.save();c.translate(dx,dy);try{hut(c,t)}catch(e){}c.restore();if(N&&np)N.push=np}
+ if(N&&np)N.push=(...r)=>np.apply(N,r.map(q=>[q[0]+dx,q[1]+dy,q[2],q[3]]));window.HUT_NOSIGN=1;c.save();c.translate(dx,dy);try{hut(c,t)}catch(e){}c.restore();window.HUT_NOSIGN=0;if(N&&np)N.push=np}
 function kBrkSign(c,L,t){const s=KG.l[L.id];if(!s.brk)return;const x=L.b[0],y=L.b[1]-(L.typ==='teller'?24:44);kSign(c,x,y,'⚠️ STÖRUNG','#e8504a','#fff',6.5);
  // Liftwart / Techniker an der Station
  const sw=Math.sin(t*6)*.6;personN(c,{x:x+18,y:L.b[1]+16,st:'walk',col:s.brk.lw?'#f2a63b':'#5b6578'},t);c.fillStyle='#ffd84d';if(sw>0){c.beginPath();c.arc(x+22,L.b[1]+2,1.6,0,7);c.fill()}}

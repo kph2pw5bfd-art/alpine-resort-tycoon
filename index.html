@@ -2794,7 +2794,7 @@ function hut(c,t){const {x,y}=hutPos(),nt=1-bright();c.save();
  if(!fzSu()){c.fillStyle='#fff';c.beginPath();c.moveTo(x-14,y-38.5);c.lineTo(x+10,y-38.5);c.lineTo(x+20,y-28);c.quadraticCurveTo(x+12,y-25,x+6,y-28.5);c.quadraticCurveTo(x-2,y-24.5,x-8,y-28.5);c.quadraticCurveTo(x-16,y-25,x-24,y-28);c.closePath();c.fill();
  c.fillRect(x-32,y-20.6,60,2);for(const q of [-26,-14,-1,13,22]){c.beginPath();c.arc(x+q,y-18.2,1,0,7);c.fill()}}
  // Schild
- c.fillStyle='#5a3418';c.beginPath();c.roundRect(x-15,y-30,26,6.6,1.4);c.fill();c.fillStyle='#f4e3c3';c.font='700 4.8px Fredoka,sans-serif';c.textAlign='center';c.fillText('ALMHÜTTE',x-2,y-25.3,23);
+ if(!window.HUT_NOSIGN){c.fillStyle='#5a3418';c.beginPath();c.roundRect(x-15,y-30,26,6.6,1.4);c.fill();c.fillStyle='#f4e3c3';c.font='700 4.8px Fredoka,sans-serif';c.textAlign='center';c.fillText('ALMHÜTTE',x-2,y-25.3,23)}
  // Bänke vorne + Tisch mit Bänken
  const bench=(bx,by,len)=>{c.fillStyle='#7a4a2c';c.fillRect(bx,by-2.6,len,2);c.fillRect(bx+1,by-.6,1,2.4);c.fillRect(bx+len-2,by-.6,1,2.4);if(!fzSu()){c.fillStyle='#fff';c.fillRect(bx,by-3.2,len,.7)}};
  bench(x-30,y+7,19);bench(x+9,y+7,13);
@@ -7825,7 +7825,7 @@ function wrOv(){const R=G.wrR,show=!!(wrDay()&&['r1','p','r2','end'].includes(R.
 
 // ===== V239: Versteckter Testbereich (Optionen › 5× auf die Versionszeile tippen) =====
 // Jeder Test sichert vorher den Spielstand; „Test beenden“ holt ihn zurück. Neue Tests einfach in TESTS eintragen.
-const TVER='V326',TBAK='art-test-bak';
+const TVER='V327',TBAK='art-test-bak';
 // V263: Test „Alles ausgebaut“ – kauft über das Baumenü alles, was es gibt (Voraussetzungen und Sterne werden dabei übersprungen), und stellt Baustellen sofort fertig. wc = mit Verbindungsbahn West.
 var TALL=0;
 function tstAll(wc){const m0=G.money,st0=G.stN;let n=0;TALL=1;G.stN=5;
@@ -11126,4 +11126,4 @@ function perfWatch(ms,gap){if(SET.perf||SET.pAuto||paused||open||inTitle||docume
  PFW.n++;PFW.ms+=ms;PFW.gap+=gap;if(PFW.n<240)return;const am=PFW.ms/PFW.n,ag=PFW.gap/PFW.n;PFW.n=PFW.ms=PFW.gap=0;
  if(am>20||ag>.06){SET.perf=1;SET.pAuto=1;setSave();resize();buildStatic();lg('⚙️','lif','Leistungsmodus eingeschaltet, damit das Handy kühler bleibt (Einstellungen › Grafik).',{s:1});toast('⚙️ Leistungsmodus eingeschaltet – das Handy bleibt kühler. Abschalten unter Einstellungen › Grafik.',5000)}}
 (function loop(n){const dt=Math.min(.05,(n-last)/1000);last=n;if(!inTitle){if(!paused){if(G.seaP&&!SWS)seaFinish();const sp=evSlow()?1:nIdle()?Math.max(speed,5):speed;for(let i=0;i<sp;i++)step(dt)}fAcc+=dt;const tg=frTgt();if(!tg||fAcc>=tg-.004){const t0=performance.now(),g=fAcc;draw(Math.min(fAcc,.25));fAcc=0;perfWatch(performance.now()-t0,g)}}requestAnimationFrame(loop)})(last);
-</script><script src="karriere.js?v=326"></script></body></html>
+</script><script src="karriere.js?v=327"></script></body></html>
