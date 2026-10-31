@@ -1,8 +1,8 @@
 // Alpine Resort Tycoon – Service Worker
 // Spiel (index.html): erst aus dem Netz holen (immer die neueste Version), ohne Netz die zuletzt gespeicherte.
 // Symbole, Manifest, Schrift: aus dem Speicher, sonst aus dem Netz (und merken).
-const V='art-v312';
-const CORE = ['./', 'index.html', 'karriere.js?v=312', 'manifest.webmanifest', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/icon-maskable-512.png', 'icons/apple-touch-icon.png'];
+const V='art-v313';
+const CORE = ['./', 'index.html', 'karriere.js?v=313', 'manifest.webmanifest', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/icon-maskable-512.png', 'icons/apple-touch-icon.png'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(V).then(c => c.addAll(CORE)).then(() => self.skipWaiting()));

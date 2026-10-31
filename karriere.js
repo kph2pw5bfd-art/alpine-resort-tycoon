@@ -1,4 +1,4 @@
-// Alpine Resort Tycoon – Karriere (Bergbahn-Karriere, K1 + K2 + K3 + K4)
+// Alpine Resort Tycoon – Karriere (Bergbahn-Karriere, K1 + K2 + K3 + K4 + K5)
 (function(){'use strict';
 // ===== Karriere (K1): eigene Berg-Engine für Karriere-Berge =====
 // Läuft getrennt vom Freien Spiel (Heimatberg bleibt unverändert). Benutzt die Zeichenteile des Spiels
@@ -51,7 +51,7 @@ const KBERGE=[
  {id:'alt',n:'Altberg',sub:'der Sanierungsfall',lv:'Schwer',lc:'#e8504a',st:4,sea:2,start:-8000},
  {id:'seek',n:'Seekar',sub:'der Berg hinter dem See',lv:'Schwer',lc:'#e8504a',st:5,sea:2,start:1000},
  {id:'eis',n:'Eisspitz',sub:'der Gipfelsturm',lv:'Sehr schwer',lc:'#7d3bd0',st:6,sea:3,start:300}];
-const KV={}; // Berg-Vorlagen (K1 Sonnleiten, K2 Bichlberg, K3 Altberg)
+const KV={}; // Berg-Vorlagen (K1 Sonnleiten, K2 Bichlberg, K3 Altberg, K4 Seekar, K5 Eisspitz)
 
 // ===== Zustand =====
 let KG=null;      // Spielstand des laufenden Berges
@@ -1277,6 +1277,613 @@ KV.seek.drawDyn=function(c,t){if(!kInV(500,1700,500))return;c.save();c.beginPath
  for(let i=0;i<40;i++){const x=-100+r()*1240,y=1580+r()*250,ph=r()*6.28,a=.5+.5*Math.sin(t*1.3+ph);if(a<.4||!kInV(x,y,20))continue;c.globalAlpha=a;c.beginPath();c.moveTo(x,y);c.lineTo(x+8+r()*10,y);c.stroke()}c.restore()};
 KV.seek.onStart=function(){KW.ships=null;KW.shipQ={S:[],N:[]};KW.sbw=null;KW.shipLog=[]};
 
+// ===== Berg-Vorlage 5: Eisspitz – Hochgebirge: Felsrinnen, Gletscher, Pendelbahn zum Gipfel, 3S-Gletscherexpress, Lawinengefahr, Windgrenzen =====
+// Kette: Almbahn (Tal → Alm) · Kesselbahn (Alm → Kessel) · Rinnenlift (Kessel → Rinnenkopf) · Gletscherbahn (Kessel → Gletscherstation) · Gletscherlift (Schlepplift am Gletscher)
+// Pendelbahn (Gletscherstation ⇄ Gipfel, eigene Steuerung KW.pb) · 3S-Gletscherexpress (Tal Ost → Gletscher Ost, fährt auch bei Sturm)
+// Lawinen: Warnstufe KG.lw 1–5; ab 3 sind Nordrinne, Teufelsrinne und Gipfelabfahrt morgens zu (KG.lwz), bis gesprengt (Sprengmast 7:15, Sprengtrupp, Sprengflug).
+// Wind: KG.wind = Wind am Gipfel (km/h) für den ganzen Tag; jede Bahn hat eine Windgrenze (KEI.lim) und einen Höhenfaktor (KEI.wf).
+const KEG0=180,KEG1=990;
+const kEgL=x=>620+18*Math.sin(x/47)+10*Math.sin(x/17);           // Unterkante Gletscher (Eisbruch)
+const kEgT=x=>{const u=kcl((x-KEG0)/(KEG1-KEG0),0,1);return kEgL(x)-280*Math.pow(Math.sin(Math.PI*u),.45)-30*Math.exp(-Math.pow((x-560)/110,2))+10*Math.sin(x/29)};
+const kErL=x=>790+18*Math.sin(x/53+1)+8*Math.sin(x/13);           // Unterkante Felsband
+const kEsf=x=>{const d=Math.abs(x-572);if(d<62)return 1;if(d>112)return 0;const u=(112-d)/50;return u*u*(3-2*u)};   // Schneesattel
+const kEtop=x=>(x>KEG0-6&&x<KEG1+6?kEgL(x)+2:598+20*Math.sin(x/41)+9*Math.sin(x/11)),kElow=x=>kErL(x)+24*Math.sin(x/37+2)+10*Math.sin(x/9);
+// Straße mit zwei Kehren (Mittellinie, von Osten zum Wendeplatz im Dorf)
+const KER=(()=>{const P=[[1300,2238]];const arc=(cx,cy,R,a0,a1)=>{for(let i=0;i<=14;i++){const a=a0+(a1-a0)*i/14;P.push([cx+Math.cos(a)*R,cy+Math.sin(a)*R])}};
+ arc(520,2150,50,Math.PI/2,Math.PI*1.5);arc(880,2020,50,Math.PI/2,-Math.PI/2);for(const q of [[760,1962],[600,1952],[520,1946],[456,1932],[420,1900],[408,1860],[410,1806],[430,1760],[458,1722]])P.push(q);return P})();
+const KEI={K:[420,1600],KO:[1080,1662],G1:1790,G3:1812,F12:1865,F3:1890,WP:[478,1700],
+ PB:{b:[486,494],t:[548,262]},REST:[282,540],HELI:[910,1724],BW:[836,1720],
+ lim:{am:90,kb:85,rl:75,gb:70,gt:65,s3:110,pb:60},wf:{am:.6,kb:.8,rl:.95,gb:.95,gt:.95,s3:.95,pb:1},
+ shut:['nr','tr','gpa'],mast:{nr:[690,646],tr:[384,616],gpa:[630,300]},sn:{nr:'Nordrinne',tr:'Teufelsrinne',gpa:'Gipfelabfahrt'},
+ pbV:46,pbTT:.2,pbDW:.05,pbCap:[60,80,100]};
+KV.eis={id:'eis',n:'Eisspitz',am:'am Eisspitz',bounds:{x0:-140,x1:1140,y0:90,y1:2160},home:{x:520,y:1520,S:1.0,cx:540,cy:1520},
+ desc:'Ein steiler Hochgebirgsberg: Felsrinnen, ein großer Gletscher und ganz oben die Eisspitz-Pyramide. Oft Sturm – dann stehen die oberen Bahnen. Nach Neuschnee sind die Rinnen erst nach dem Sprengen offen. Die Konkurrenz baut schnell aus.',
+ stages:6,seasons:3,start:300,snow0:46,kioskAlways:1,runRef:900,arrShift:.2,credMin:12000,
+ welcome:'Willkommen am Eisspitz! Die Almbahn läuft. Oben wartet viel Arbeit: Kessel, Rinnen, Gletscher und der Gipfel. Achte auf Wind und Lawinen – 📊 Statistik › Berg.',
+ tip:'Tipp: Wind und Lawinenlage findest du unter 📊 Statistik › Berg',tipIf:()=>KG.stage<2,
+ preHint:'Am Eisspitz zahlen Könner gern mehr – mit jeder Stufe ist der Berg mehr wert. Fair heißt: so viel wie die Gegend gerade wert ist.',
+ mix:{fam:.18,anf:.12,pro:.42,sb:.28},priceSens:.95,
+ wx:{sonne:.42,neuschnee:.26,tau:.1,sturm:.22},wxF:{sturm:.62},
+ rivals:['Gletscherbahnen Pitz','Hintertux-Lifte','Stubaier Eisgrat','Kaunertal-Gletscher','Sölden-Rettenbach','Mölltaler Gletscher','Kitzsteinhorn','Dachstein-Gletscher','Zugspitz-Bahnen','Titlis-Lifte'],
+ rivS:[860,790,730,670,610,560,510,460,410,360],rivG:1.45,
+ parkY:1825,valleyY:1560,walkY:KEI.G1,road:{y:1948},bus:{x:478,y:1700},zebra:null,starTh:[0,0,340,480,640,900],
+ pistes:[
+  {id:'za',n:'Zubringer',col:'b',st:1,conn:1,pts:[[446,1216,10],[470,1238,12],[494,1260,16]]},
+  {id:'ta',n:'Talabfahrt',col:'b',st:1,pts:[[500,1266,30],[440,1294,36],[372,1322,34],[330,1372,32],[336,1420,34],[396,1460,36],[452,1514,40],[486,1550,42]]},
+  {id:'ka',n:'Kesselabfahrt',col:'r',st:2,pts:[[664,980,28],[704,1034,30],[742,1094,30],[704,1164,28],[626,1206,28],[556,1232,26],[488,1240,22]]},
+  {id:'zr',n:'Zubringer',col:'b',st:3,conn:1,pts:[[798,586,9],[762,602,10],[732,632,11],[717,672,12]]},
+  {id:'nr',n:'Nordrinne',col:'s',st:3,wear:.05,pts:[[716,676,12],[712,730,13],[720,790,14],[712,848,16],[700,898,22]]},
+  {id:'gs',n:'Gletscherpiste',col:'b',st:4,ice:1,pts:[[704,388,24],[742,424,36],[756,476,46],[724,530,50],[662,572,44],[606,604,34]]},
+  {id:'zgt',n:'Zubringer',col:'b',st:4,conn:1,pts:[[686,432,8],[702,436,11],[718,438,14]]},
+  {id:'zga',n:'Zubringer',col:'r',st:4,conn:1,pts:[[438,594,9],[474,606,11],[514,618,13],[552,626,16]]},
+  {id:'ga',n:'Gletscherabfahrt',col:'r',st:4,pts:[[566,630,28],[580,670,28],[596,712,26],[600,756,24],[576,810,24],[556,862,26],[574,926,30],[588,980,28],[592,1036,26]]},
+  {id:'ztr',n:'Zubringer',col:'y',st:4,conn:1,route:1,pts:[[410,592,9],[382,598,11],[356,602,14]]},
+  {id:'tr',n:'Teufelsrinne',col:'y',st:4,route:1,wear:.02,pts:[[350,604,16],[304,660,13],[278,730,12],[286,806,13],[318,880,16],[352,960,20],[378,1050,22],[398,1124,22]]},
+  {id:'gpa',n:'Gipfelabfahrt',col:'s',st:5,via:'gs',wear:.05,pts:[[580,280,12],[608,306,13],[644,330,15],[676,352,17],[700,382,22]]},
+  {id:'z3',n:'Zubringer',col:'b',st:6,conn:1,pts:[[850,466,10],[818,472,14],[790,476,18]]}],
+ lifts:[
+  {id:'am',n:'Almbahn',sh:'Almbahn',typ:'s4',st:1,b:[548,1576],t:[430,1196],nx:'kb',exit:[448,1212],py:[.2,.4,.6],pistes:['za','ta'],bn:'Talstation',tn:'Alm',ovh:2500,upF:.7},
+  {id:'kb',n:'Kesselbahn',sh:'Kesselbahn',typ:'s6',st:2,b:[430,1196],t:[644,950],exit:[660,966],py:[.33,.58],pistes:['ka'],bn:'Alm',tn:'Kessel',ovh:3000,upF:.7},
+  {id:'rl',n:'Rinnenlift',sh:'Rinnenlift',typ:'s4',st:3,b:[800,970],t:[820,568],exit:[800,584],py:[.32,.62],pistes:['zr','nr'],bn:'Kessel',tn:'Rinnenkopf',ovh:2500,upF:.7},
+  {id:'gb',n:'Gletscherbahn',sh:'Gletscherbahn',typ:'g8',st:4,b:[530,975],t:[420,572],exit:[438,592],py:[.3,.66],pistes:['zga','ga','ztr','tr'],bn:'Kessel',tn:'Gletscherstation',ovh:3500,upF:.7},
+  {id:'gt',n:'Gletscherlift',sh:'Gletscherlift',typ:'schlepp',st:4,b:[540,560],t:[670,424],exit:[686,430],py:[.5],pistes:['zgt','gs'],bn:'Gletscherstation',tn:'Gletscher oben',ovh:1500,upF:.6},
+  {id:'s3',n:'Gletscherexpress 3S',sh:'3S',typ:'s3',st:6,b:[984,1612],t:[868,452],exit:[850,466],py:[.3,.62],pistes:['z3','gs'],bn:'Talstation Ost',tn:'Gletscher Ost',ovh:6000,upF:.6}],
+ kassa:{x:420,y:1600},
+ lots:[{id:'r1',n:'Parkplatz · Reihe 1',x0:-130,x1:356,y0:1800,y1:1850,base:1},{id:'r2',n:'Reihe 2',x0:-130,x1:356,y0:1880,y1:1930},{id:'r3',n:'Reihe 3',x0:560,x1:902,y0:1820,y1:1870,st:3}],
+ hut:{x:282,y:1160,in:[[452,1220],[392,1196],[334,1172]],cost:8000,days:2,st:2,n:'Almhütte',pid:'za'},
+ garage:{x:300,y:1590},bwHut:{x:836,y:1720},bwStart:[860,1726],
+ cannons:{cost:9000,st:2},
+ goals:[
+  {k:'pf',t:'4 Sterne',sh:'4 ★',prog:()=>kStars()+' ★',ok:()=>kStars()>=4,lock:1},
+  {k:'zu',t:'Platz 1 in der Rangliste',sh:'Platz 1',prog:()=>'jetzt Platz '+kRank(),ok:()=>kRank()<=1,lock:1},
+  {k:'me',t:'Platz 1 schon am Ende der 2. Saison',sh:'Platz 1 nach Saison 2',prog:()=>KG.r2==null?(kSeaN()<=2?'zählt am letzten Tag der 2. Saison · jetzt Platz '+kRank():'–'):KG.r2?'Platz 1 am Ende der 2. Saison ✓':'am Ende der 2. Saison Platz '+KG.r2p,ok:()=>KG.r2===1,lock:1}],
+ stageInfo:[null,
+  {n:'Almbahn',d:'Die Almbahn bis zur Alm und die blaue Talabfahrt.'},
+  {n:'Kessel',d:'Der 6er-Sessel fährt von der Alm in den Kessel unter dem Felsband. Die rote Kesselabfahrt ist offen, die Almhütte kann gebaut werden.',cost:14000,days:2,req:[['ruf',50,'Ruf mindestens 50 %'],['gst',150,'150 Gäste insgesamt']]},
+  {n:'Rinnen',d:'Der Rinnenlift fährt auf den Rinnenkopf am Gletscherrand. Von dort geht die schwarze Nordrinne durch die Felsen in den Kessel. Ab jetzt zählt die Lawinengefahr: nach Neuschnee erst sprengen.',cost:16000,days:3,req:[['stars',2,'2 Sterne'],['ruf',55,'Ruf mindestens 55 %']]},
+  {n:'Gletscher',d:'Eine 8er-Gondelbahn fährt auf den Gletscher. Dort ein Schlepplift, die blaue Gletscherpiste, die rote Gletscherabfahrt über den Schneesattel und die Teufelsrinne als Skiroute. Das Gletscherrestaurant kann gebaut werden.',cost:38000,days:4,req:[['stars',3,'3 Sterne'],['ruf',60,'Ruf mindestens 60 %']]},
+  {n:'Gipfel',d:'Eine Pendelbahn mit zwei großen Kabinen fährt von der Gletscherstation auf den Gipfel – mit Aussichtsplattform auf 3.402 m und der schwarzen Gipfelabfahrt. Bei viel Wind steht sie.',cost:50000,days:5,req:[['stars',3,'3 Sterne'],['ruf',64,'Ruf mindestens 64 %']]},
+  {n:'3S-Gletscherexpress',d:'Eine 3S-Bahn mit großen Kabinen fährt direkt vom Tal Ost auf den Gletscher – an zwei Tragseilen, auch bei Sturm. Mit eigener Kassa an der Talstation Ost.',cost:75000,days:6,req:[['stars',4,'4 Sterne'],['ruf',68,'Ruf mindestens 68 %']]}],
+ fair:{ticket:[0,22,27,32,37,42,47],park:5,food:15,kids:7,school:24,hotel:90}
+};
+
+KV.eis.init=function(s){s.l.am.on=1;s.snow=46;s.lw=1;s.lw0=1;s.lwz={};s.wind=20;s.b.bus2=0;s.b.grest=0;s.b.zaun=0;s.b.mast={};s.pbLg=0;s.r2=null;s.lwH=0;s.heliAuto=0;s.maxG=0};
+KV.eis.req=function(r){return null};
+// ---------- Lawinen, Wind: Grundfunktionen ----------
+function kEisShut(id){return !!(KG.lwz&&KG.lwz[id])}
+function kEisOpenP(id){const p=KW.pmap[id];return !!p&&kPisteOpen(p)&&!kEisShut(id)}
+function kEisWS(id){if(id==='s3'&&KG.stage<6)return 0;return (KG.wind||0)*(KEI.wf[id]||1)>KEI.lim[id]}
+function kEisWindAt(id){return Math.round((KG.wind||0)*(KEI.wf[id]||1))}
+KV.eis.windStop=function(id){return kEisWS(id)};
+KV.eis.liftV=function(id){if(id==='kb'&&kEisWindAt('kb')>KEI.lim.kb*.85)return .6;return 1};
+function kEisSlow(){return kEisWindAt('kb')>KEI.lim.kb*.85&&!kEisWS('kb')}
+// ---------- Pisten verknüpfen ----------
+KV.eis.world=function(){const P=KW.pmap,near=(Q,x,y)=>{let b=0,bd=1e9;for(const q of Q.d){const d=Math.hypot(q[0]-x,q[1]-y);if(d<bd){bd=d;b=q[3]}}return b};
+ for(const [c,t] of [['za','ta'],['zr','nr'],['zgt','gs'],['gs','ga'],['zga','ga'],['ztr','tr'],['gpa','gs'],['z3','gs']]){const C=P[c],e=C.d[C.d.length-1];C.next={p:t,s:near(P[t],e[0],e[1])}}};
+KV.eis.paths=function(){return {busUp:[],zebra:[]}};
+// Wo ist der Gast? kas Kassa/Dorf · tal Talstation · ost Tal Ost (3S) · alm Alm · kes Kessel · gst Gletscherstation · gto Gletscherlift oben · rk Rinnenkopf · g3 3S oben · gip Gipfel
+KV.eis.where=function(f){const d=(x,y)=>Math.hypot(f.x-x,f.y-y);
+ if(d(KEI.KO[0],KEI.KO[1])<70||f.x>860&&f.y>1560&&f.y<1720)return 'ost';
+ if(f.y>1700||d(420,1608)<64)return 'kas';
+ if(f.y>1470)return 'tal';
+ if(d(440,1214)<110&&f.y>1110)return 'alm';
+ if(f.y>880&&f.y<1080&&f.x>430&&f.x<900)return 'kes';
+ if(f.y<310)return 'gip';
+ if(d(820,576)<50)return 'rk';
+ if(d(860,462)<46)return 'g3';
+ if(d(680,430)<36)return 'gto';
+ if(f.y>470&&f.y<650&&f.x>360&&f.x<600)return 'gst';
+ return 'x'};
+KV.eis.route=function(from,to,f){if(!f)f={x:420,y:1610};
+ if(to==='am'){if(from==='kas')return [[440,1614],[556,1616]];if(from==='tal')return [[Math.max(500,f.x),Math.max(f.y,1592)]];if(from==='ost')return [[940,1660],[800,1652],[640,1648]];return []}
+ if(to==='s3'){if(from==='kas')return [[452,1622],[560,1644],[800,1652],[900,1660]];if(from==='tal')return [[Math.max(560,f.x),1644],[800,1652],[900,1660]];return []}
+ if(to==='kas'){if(from==='ost')return [[940,1660],[800,1652],[560,1644],[440,1614],[420,1610]];if(from==='tal')return [[Math.max(500,f.x),Math.max(f.y,1606)],[440,1614],[420,1610]];return [[420,1610]]}
+ return []};
+// Skifahren nach einem kurzen Weg (ohne Sprung)
+function kEisGoSki(f,pid,P){if(!P||!P.length){kSkiStart(f,pid);return}kWalk(f,P,'sk:'+pid,12)}
+function kEisUp(f,id,P){if(!KG.l[id]||!KG.l[id].on||!kLiftOpen(id)||KG.t>=15.3||f.leaving)return 0;let p=P[f.ty]||.4;if(f.kid)p*=.6;const w=kWait(id);if(w>20)p*=.45;else if(w>10)p*=.75;return kR()<p}
+function kEisMiss(f,id){if(f.lwM||!(f.ty==='pro'||f.ty==='sb'))return;if(kPisteOpen(KW.pmap[id])&&kEisShut(id)){f.lwM=1;f.sat-=3}}
+// Kessel: Gletscherbahn, Rinnenlift oder Kesselabfahrt
+function kEisKes(f){kEisMiss(f,'nr');const g=KG.stage>=4&&kEisUp(f,'gb',{pro:.72,sb:.7,fam:.34,anf:.1}),r=kEisOpenP('nr')&&kEisUp(f,'rl',{pro:.5,sb:.42,fam:0,anf:0});
+ if(g&&r)return kR()<.6?'gb':'rl';if(g)return 'gb';if(r)return 'rl';return null}
+KV.eis.chooseLift=function(f){const w=KVOR.where(f),ty=f.ty,ok=id=>KG.l[id]&&KG.l[id].on&&kLiftOpen(id);
+ if(w==='ost'){if(ok('s3'))return 's3';return 'am'}
+ if(w==='alm'){if(kEisUp(f,'kb',{pro:.86,sb:.8,fam:.34,anf:.12}))return 'kb';kEisGoSki(f,'za',[[448,1216]]);return null}
+ if(w==='kes'){const c=kEisKes(f);if(c)return c;kEisGoSki(f,'ka',[[664,982]]);return null}
+ if(w==='gst'){kEisAtGst(f);return null}
+ if(w==='gto'){kEisGoSki(f,'zgt',[[686,432]]);return null}
+ if(ok('s3')&&(ty==='pro'||ty==='sb')&&kR()<.22&&kWait('s3')<kWait('am')+6)return 's3';
+ return 'am'};
+// Aussteigen oben
+KV.eis.unload=function(o,f){const id=o.L.id;
+ if(id==='am'){if(KG.stage>=2&&kEisUp(f,'kb',{pro:.88,sb:.84,fam:.36,anf:.12})){kToQueue(f,'kb');return}kSkiStart(f,'za');return}
+ if(id==='kb'){const c=kEisKes(f);if(c){kToQueue(f,c);return}kSkiStart(f,'ka');return}
+ if(id==='rl'){kSkiStart(f,'zr');return}
+ if(id==='gb'){kEisAtGst(f);return}
+ if(id==='gt'){kSkiStart(f,'zgt');return}
+ if(id==='s3'){kSkiStart(f,'z3');return}
+ kSkiStart(f,o.L.pistes[0])};
+// an der Gletscherstation: Restaurant, Pendelbahn, Gletscherlift, Teufelsrinne oder Gletscherabfahrt
+function kEisAtGst(f){const ty=f.ty,sk=ty==='pro'||ty==='sb';
+ if(f.leaving||KG.t>=f.leaveT){f.leaveT=0;kEisGoSki(f,'zga',[[438,594]]);return}
+ if(KG.b.grest&&!f.ate&&KG.t>=11.2&&KG.t<14.2&&!f.kid&&kR()<.62){kEisRest(f);return}
+ const O=[];
+ if(kEisPbOk()&&KG.t<15.4){if(sk&&kEisOpenP('gpa'))O.push(['pbs',{pro:.55,sb:.42}[ty]]);else{if(sk)kEisMiss(f,'gpa');if(!f.viewD)O.push(['pbv',{fam:.34,anf:.24,pro:.12,sb:.1}[ty]||.15])}}
+ if(KG.l.gt.on&&kLiftOpen('gt')&&KG.t<15.6){let p={fam:.62,anf:.58,pro:.3,sb:.42}[ty]||.4;const w=kWait('gt');if(w>15)p*=.5;O.push(['gt',p])}
+ if(sk){if(kEisOpenP('tr'))O.push(['tr',{pro:.34,sb:.4}[ty]]);else kEisMiss(f,'tr')}
+ O.push(['ga',ty==='fam'||ty==='anf'?.25:.5]);
+ let s=0;for(const o of O)s+=o[1];let r=kR()*s,pick='ga';for(const o of O){r-=o[1];if(r<=0){pick=o[0];break}}
+ if(pick==='pbs'||pick==='pbv'){kEisPbQ(f,'B',pick==='pbs'?'s':'v');return}
+ if(pick==='gt'){kToQueue(f,'gt');return}
+ if(pick==='tr'){kEisGoSki(f,'ztr',[[410,592]]);return}
+ kEisGoSki(f,'zga',[[438,594]])}
+// Gletscherrestaurant mit Sonnenterrasse
+function kEisRestSeat(i){const S=[[-44,12],[-34,12],[-24,12],[-14,12],[-4,12],[6,12],[16,12],[26,12],[-40,20],[-28,20],[-16,20],[-4,20],[8,20],[20,20],[32,20],[42,12]];const q=S[i%S.length];return [KEI.REST[0]+q[0],KEI.REST[1]+q[1]]}
+function kEisRest(f){const i=(KW.restN=(KW.restN||0)+1);const s=kEisRestSeat(i);kWalk(f,[[420,586],[376,566],[s[0],s[1]+8],s],'rest',11)}
+function kEisRestDone(f){const P=KG.price,r=P.food/KVOR.fair.food;f.ate=1;f.sit=0;
+ if(r<1.7||kR()<.45){const v=Math.round(P.food*1.35*(f.ty==='pro'?1.15:1));kEarn('food',v,KEI.REST[0],KEI.REST[1]-74);f.paid=(f.paid||0)+v;f.sat+=(r>1?-(r-1)*20:6)+3}else f.sat-=4;
+ kWalk(f,[[f.x,f.y+8],[376,566],[430,588]],'gst',11)}
+KV.eis.arrive=function(f,nx){if(nx.startsWith('sk:')){kSkiStart(f,nx.slice(3));return true}
+ if(nx==='rest'){f.st='rest';f.sit=1;f.tEnd=KG.t+.45+kR()*.4;return true}
+ if(nx==='gst'){kEisAtGst(f);return true}
+ if(nx==='pbq'){kEisPbJoin(f);return true}
+ if(nx==='view'){f.st='view';f.tEnd=Math.min(16.1,KG.t+.22+kR()*.25);return true}
+ if(nx==='busw'){f.st='busw';return true}
+ return false};
+KV.eis.folkStep=function(f,dt){const st=f.st;
+ if(st==='rest'){if(KG.t>=f.tEnd)kEisRestDone(f);return}
+ if(st==='view'){if(KG.t>=f.tEnd){f.viewD=1;kEisPbQ(f,'T','d')}return}
+ if(st==='pbw'){const pb=KW.pb;if(!pb)return;const Q=pb.q[f.pbS],i=Q.indexOf(f);if(i<0)return;const [sx,sy]=kEisPbSlot(f.pbS,i),dx=sx-f.x,dy=sy-f.y,d=Math.hypot(dx,dy);if(d>.3){const m=Math.min(d,26*dt);f.x+=dx/d*m;f.y+=dy/d*m}f.sv=0}};
+// Abfahren nach Hause: von jeder Station über die passende Piste
+KV.eis.descend=function(f){if(f.st==='hurt'&&f.pid){f.st='ski';f.v=Math.min(f.v||20,20);f.leaveT=0;f.engIn=null;f.engQ=null;f.engHold=0;return true}
+ if(f.st==='ski')return false;const w=KVOR.where(f),go=(pid,P)=>{f.leaveT=0;kEisGoSki(f,pid,P);return true};
+ if(w==='alm')return go('za',[[448,1216]]);if(w==='kes')return go('ka',[[664,982]]);if(w==='gst')return go('zga',[[438,594]]);if(w==='gto')return go('zgt',[[686,432]]);
+ if(w==='rk')return go(kEisOpenP('nr')?'zr':'zr',[[798,586]]);if(w==='g3')return go('z3',[[850,466]]);
+ if(w==='gip'){f.leaveT=0;kEisPbQ(f,'T','d');return true}
+ return false};
+KV.eis.resPre=function(f){const P=KW.pmap[f.pid];if(!P)return [];if(['nr','zr','ga','zga','gs','zgt','z3','gpa','tr','ztr'].includes(f.pid)||P.next&&['ga','gs','tr','nr'].includes(P.next.p))return [[420,1610],[480,1530],[452,1514],[396,1460],[336,1420],[330,1372],[372,1322],[440,1294],[500,1266],[560,1232],[626,1206],[704,1164],[742,1094],[704,1034],[664,980]];return [[420,1610],[480,1530]]};
+// ---------- Warteschlangen ----------
+KV.eis.qSlot=function(o,i){const id=o.L.id,k=(n,c)=>{const m=Math.min(i,n-1);return [Math.floor(m/c),m%c]};
+ if(id==='am'){const [r,j]=k(80,10);return [566+(r%2?9-j:j)*7.4,1598+r*8]}
+ if(id==='kb'){const [r,j]=k(60,10);return [412-(r%2?9-j:j)*7,1212+r*7]}
+ if(id==='rl'){const [r,j]=k(48,8);return [818+(r%2?7-j:j)*7,986+r*7]}
+ if(id==='gb'){const [r,j]=k(48,8);return [512-(r%2?7-j:j)*7,994+r*7]}
+ if(id==='gt'){const [r,j]=k(24,6);return [528-(r%2?5-j:j)*7,572+r*7]}
+ if(id==='s3'){const [r,j]=k(60,10);return [962-(r%2?9-j:j)*7.4,1630+r*8]}
+ return null};
+function kEisFence(c,x0,x1,y0,dy,R,dir){const ys=[];for(let r=0;r<=R;r++)ys.push(y0+r*dy);if(dy<0)ys.reverse();kSeeFenceBlock(c,x0,x1,ys,dir)}
+function kEisPbFence(c){if(KG.stage<5||!KW.pb)return;const nB=KW.pb.q.B.length,nT=KW.pb.q.T.length;kEisFence(c,404,456,497,6.5,Math.max(2,Math.min(6,Math.ceil(nB/7)+1)),0);kEisFence(c,492,536,279,6.5,Math.max(2,Math.min(6,Math.ceil(nT/6)+1)),1)}
+KV.eis.fence=function(c,o,id){const n=o.q.length,R=(per,mn,mx)=>Math.max(mn,Math.min(mx,Math.ceil(n/per)+1));if(id==='am')kEisPbFence(c);
+ if(id==='am'){kEisFence(c,560,640,1594,8,R(10,3,8),0);kSeeWaitSign(c,id,652,1574);return true}
+ if(id==='kb'){kEisFence(c,342,418,1208,7,R(10,3,7),0);kSeeWaitSign(c,id,336,1196);return true}
+ if(id==='rl'){kEisFence(c,812,872,982,7,R(8,3,6),0);kSeeWaitSign(c,id,884,968);return true}
+ if(id==='gb'){kEisFence(c,458,518,990,7,R(8,3,6),0);kSeeWaitSign(c,id,446,980);return true}
+ if(id==='gt'){kEisFence(c,488,534,568,7,R(6,2,4),0);return true}
+ if(id==='s3'){kEisFence(c,890,968,1626,8,R(10,3,7),0);kSeeWaitSign(c,id,880,1610);return true}
+ return false};
+
+// ---------- Pendelbahn: zwei große Kabinen, die eine fährt hinauf, die andere hinunter ----------
+function kEisPbOk(){return KG.stage>=5&&!kEisWS('pb')&&KG.t>=8.4&&KG.t<16.25}
+function kEisPbCap(){return KEI.pbCap[Math.min(2,KG.pbLg||0)]}
+function kEisPbPh(i,t){const Pd=2*(KEI.pbTT+KEI.pbDW),dw=KEI.pbDW,tt=KEI.pbTT,e=u=>u*u*(3-2*u);
+ if(KG.stage<5||kEisWS('pb')||t<8.4||t>=17.15)return {st:i?'T':'B',u:i?1:0,k:-1};
+ const zz=(t-8.4)+(i?Pd/2:0),z=zz%Pd,k=Math.floor(zz/Pd);
+ if(z<dw)return {st:'B',u:0,k};if(z<dw+tt)return {st:'up',u:e((z-dw)/tt),k};if(z<2*dw+tt)return {st:'T',u:1,k};return {st:'dn',u:1-e((z-2*dw-tt)/tt),k}}
+function kEisPbSlot(side,i){if(side==='B'){const m=Math.min(i,39),r=Math.floor(m/7),j=m%7;return [450-(r%2?6-j:j)*7,500+r*6.5]}
+ const m=Math.min(i,35),r=Math.floor(m/6),j=m%6;return [530-(r%2?5-j:j)*7,282+r*6.5]}
+function kEisPbInit(){if(!KW.pb)KW.pb={cab:[{r:[]},{r:[]}],q:{B:[],T:[]},n:0,up:0};return KW.pb}
+// anstellen: s = Gipfelabfahrt, v = Aussicht, d = hinunter
+function kEisPbQ(f,side,kind){kEisPbInit();f.pbK=kind;f.pbS=side;const Q=KW.pb.q[side],sl=kEisPbSlot(side,Q.length+1);const P=side==='B'?[[452,Math.min(f.y,588)],[452,Math.min(f.y,536)],sl]:[[Math.min(f.x,546),Math.max(f.y,276)],sl];kWalk(f,P,'pbq',11)}
+function kEisPbJoin(f){const pb=kEisPbInit();if(f.pbS==='B'&&(!kEisPbOk()||KG.t>=15.55)){kEisAtGstNoPb(f);return}f.st='pbw';f.qT=KG.t;pb.q[f.pbS].push(f)}
+function kEisAtGstNoPb(f){f.viewD=1;if(f.pbK==='s'&&kEisOpenP('tr')&&kR()<.5){kEisGoSki(f,'ztr',[[410,592]]);return}kEisGoSki(f,'zga',[[438,594]])}
+function kEisPbPos(i){const ph=kEisPbPh(i,KG.t),{b,t}=KEI.PB,dx=t[0]-b[0],dy=t[1]-b[1],l=Math.hypot(dx,dy),s=i?1:-1,co=9;const u=ph.u;return {x:b[0]+dx*u+(-dy/l)*co*s,y:b[1]+dy*u+(dx/l)*co*s+Math.sin(u*Math.PI)*10,ph}}
+function kEisPbTick(t0,t1){if(KG.stage<5)return;const pb=kEisPbInit();
+ for(const i of [0,1]){const C=pb.cab[i],a=kEisPbPh(i,t0),b=kEisPbPh(i,t1);
+  if(a.st!==b.st||a.k!==b.k){
+   if(a.st==='up'&&b.st!=='up')kEisPbOut(C,'T');
+   if(a.st==='dn'&&b.st!=='dn')kEisPbOut(C,'B');
+   if((a.st==='B'||a.st==='T')&&(b.st==='up'||b.st==='dn')){pb.n+=C.r.length;if(b.st==='up')pb.up+=C.r.length;KG.res.pbN=(KG.res.pbN||0)+C.r.length}}
+  // einsteigen, solange die Kabine an der Station steht
+  if(b.k<0)continue;const side=b.st==='B'?'B':b.st==='T'?'T':null;if(!side)continue;if(side==='B'&&t1>=15.55)continue;
+  const Q=pb.q[side],s0=kEisPbSlot(side,0);while(Q.length&&C.r.length<kEisPbCap()){const f=Q[0];if(Math.hypot(f.x-s0[0],f.y-s0[1])>60)break;Q.shift();f.st='pbr';f.hide=1;f.pbTo=side==='B'?'T':'B';C.r.push(f);
+   const w=(KG.t-(f.qT||KG.t))*60;f.sat-=Math.max(0,w-12)*.4}}
+ // nach der letzten Bergfahrt: wer unten wartet, fährt mit der Gletscherbahn-Seite weiter
+ if(t1>=15.55)for(const f of pb.q.B.splice(0))kEisAtGstNoPb(f);
+ // nach der letzten Talfahrt (Sicherheitsnetz)
+ if(t1>=17.15){for(const f of pb.q.T.splice(0)){f.st='gone'}for(const C of pb.cab)for(const f of C.r.splice(0)){f.hide=0;f.st='gone'}}}
+function kEisPbOut(C,side){let k=0;const keep=[];for(const f of C.r){if(f.pbTo!==side){keep.push(f);continue}f.hide=0;f.delay=k*.05;k++;
+  if(side==='T'){f.x=560+(k%4)*4;f.y=282+(k%3)*3;if(f.pbK==='s'&&kEisOpenP('gpa'))kEisGoSki(f,'gpa',[[580,282]]);else{const sp=kEisView(k);kWalk(f,[[566,276],sp],'view',8)}}
+  else{f.x=458-(k%4)*4;f.y=510+(k%3)*3;f.viewD=1;if(f.leaving||KG.t>=f.leaveT||KG.t>=16.25){f.leaveT=0;kEisGoSki(f,'zga',[[452,536],[452,586],[438,594]])}else kWalk(f,[[452,536],[452,586],[438,590]],'gst',11)}}
+ C.r=keep}
+function kEisView(k){const P=[[578,248],[584,247],[590,246],[596,246],[574,252],[582,252],[590,252],[598,251],[570,256],[588,257]];const q=P[(KW.vN=(KW.vN||0)+1)%P.length];return [q[0]+(kR()-.5)*2,q[1]]}
+// ---------- Anreise: Autos über die Straße mit den Kehren, Skibus zum Wendeplatz ----------
+function kEiOff(P,o){const n=P.length,out=[];for(let i=0;i<n;i++){const a=P[Math.max(0,i-1)],b=P[Math.min(n-1,i+1)],dx=b[0]-a[0],dy=b[1]-a[1],l=Math.hypot(dx,dy)||1;out.push([P[i][0]+(-dy/l)*o,P[i][1]+(dx/l)*o])}return out}
+const KERIN=kEiOff(KER,7),KEROUT=kEiOff(KER.slice().reverse(),7);
+const KEIX={r12:35,r3:26};   // Abzweig von der Straße (Index in KER)
+function kEisSpots(){const out=[];for(const L of KVOR.lots){if(!KG.lots[L.id])continue;const n=Math.floor((L.x1-L.x0)/kLotW);for(let i=0;i<n;i++){const x=L.x0+kLotW*i+kLotW/2;out.push({lot:L.id,i,x,y:L.id==='r1'?1825:L.id==='r2'?1905:1845,nose:L.id==='r2'?Math.PI/2:-Math.PI/2})}}return out}
+function kEisFreeSpot(){const used=new Set(KW.cars.filter(c=>c.spot).map(c=>c.spot.lot+':'+c.spot.i));const free=kEisSpots().filter(s=>!used.has(s.lot+':'+s.i));if(!free.length)return null;
+ const rk={r1:0,r2:1,r3:2};free.sort((a,b)=>rk[a.lot]-rk[b.lot]||(a.lot==='r3'?a.x-b.x:b.x-a.x));return free[Math.floor(kR()*Math.min(3,free.length))]}
+function kEisInPts(c){const sx=c.sx;
+ if(c.lot==='r3')return KERIN.slice(0,KEIX.r3+1).concat([[906,1956],[906,1904],[sx+18,1886],[sx,1872],[sx,c.py]]);
+ const F=KEI.F12-4,dn=c.lot==='r2';return KERIN.slice(0,KEIX.r12+1).concat([[414,1874],[396,F],[sx+18,F],[sx,F+(dn?14:-14)],[sx,c.py]])}
+function kEisRevPts(c){const sx=c.sx;if(c.lot==='r3')return [[sx,c.py],[sx,1878],[sx-14,1894]];const F=KEI.F12+4;return [[sx,c.py],[sx,c.py<F?F-12:F+12],[sx-14,F]]}
+function kEisOutPts(c){const sx=c.sx,j3=KER.length-1-KEIX.r3,j12=KER.length-1-KEIX.r12;
+ if(c.lot==='r3')return [[sx-14,1894],[918,1894],[918,1950]].concat(KEROUT.slice(j3));
+ return [[sx-14,KEI.F12+4],[392,KEI.F12+4],[402,1884]].concat(KEROUT.slice(j12))}
+function kEisCarSp(c){const y=c.y,x=c.x;if(y>1990)return 90;if(c.st==='in'&&c.s>c.turnS-40||c.st==='leave'&&c.s<70)return 26;return 70}
+KV.eis.spawnCar=function(ty){const sp=kEisFreeSpot();if(!sp){KG.rej++;KG.res.rej=(KG.res.rej||0)+1;return 0}
+ const g=kGroup(ty),arr=KG.t,lt=kLeaveT(ty,arr);for(const f of g)kSetupFolk(f,arr,lt);
+ const c={st:'in',spot:sp,sx:sp.x,py:sp.y,lot:sp.lot,nose:sp.nose,col:kpick(['#e8504a','#3a78d0','#f2f2f2','#6cc07a','#f2c53b','#ff8fb8','#8e93b8','#2fb3b8']),ppl:g,n:g.length,back:0,ty,slow:1};
+ const P=kEisInPts(c);c.d=kSeeRnd(P,14);c.s=0;{const tp=P[P.length-3];let bd=1e9;for(const q of c.d){const d=Math.hypot(q[0]-tp[0],q[1]-tp[1]);if(d<bd){bd=d;c.turnS=q[3]}}}const p=kAt(c.d,0);c.x=p[0];c.y=p[1];c.a=Math.PI;for(const f of g)f.car=c;KW.cars.push(c);return g.length};
+KV.eis.carStep=function(c,dt){
+ if(c.st==='in'){if(kSeeMove(c,dt,kEisCarSp(c))){c.st='park';c.x=c.sx;c.y=c.py;c.a=c.nose;kEisUnloadCar(c)}return}
+ if(c.st==='park')return;
+ if(c.st==='out'){c.tw-=dt;if(c.tw>0)return;const P=kEisRevPts(c),e=P[2];for(const o of KW.cars){if(o===c||o.st==='park')continue;if(Math.hypot(o.x-e[0],o.y-e[1])<34)return}
+  c.st='rev';c.d=kSeeRnd(P,10);c.s=0;c.rev=1;c.prio=1;c.slow=0;return}
+ if(c.st==='rev'){if(kSeeMove(c,dt,16)){c.st='leave';c.rev=0;c.prio=0;c.d=kSeeRnd(kEisOutPts(c),14);c.s=0;c.spot=null}return}
+ if(c.st==='leave'){if(kSeeMove(c,dt,kEisCarSp(c)))c.st='gone'}};
+// Wege zwischen Auto und Kassa
+function kEisCarX(c){return c.sx+9}
+function kEisFromCar(c){const x=kEisCarX(c);if(c.lot==='r3')return [[x,c.py],[x,KEI.G3],[566,KEI.G3],[562,1720],[540,1660],[452,1620],[420,1610]];return [[x,c.py],[x,KEI.G1],[360,KEI.G1],[386,1720],[404,1652],[420,1612]]}
+function kEisFromCar3S(c){const x=kEisCarX(c);return [[x,c.py],[x,KEI.G3],[920,KEI.G3],[968,1724],[1054,1686],[KEI.KO[0],KEI.KO[1]+8]]}
+function kEisUnloadCar(c){let i=0;const s3=KG.stage>=6&&KG.l.s3.on&&!kEisWS('s3')&&c.lot==='r3'&&(c.ty==='pro'||c.ty==='sb')&&kR()<.5;
+ for(const f of c.ppl){f.x=c.sx+(i%2?-7:7);f.y=c.py+(c.nose<0?6:-6)+(i>>1)*4;f.delay=i*.3;KW.folks.push(f);KG.gDay++;KG.gT++;i++;
+  if(s3){f.kasP=[KEI.KO[0],KEI.KO[1]];kWalk(f,kEisFromCar3S(c),'kassa',11)}else{f.kasP=null;kWalk(f,kEisFromCar(c),'kassa',11)}}
+ kEarn('pk',KG.price.park,c.sx,c.py-20);const r=KG.price.park/Math.max(1,KVOR.fair.park);if(r>1.3)for(const f of c.ppl)f.sat-=(r-1.3)*10}
+KV.eis.goHome=function(f){const w=KVOR.where(f);let P=[];
+ if(w==='ost')P=[[Math.min(f.x,1000),Math.max(f.y,1650)]];else if(w==='tal')P=[[Math.max(500,f.x),Math.max(f.y,1606)],[440,1614]];else P=[[f.x,Math.max(f.y,1606)]];
+ if(f.busG){kWalk(f,P.concat([[452,1626],[470+(kR()-.5)*16,1668]]),'busw',11);return}
+ const c=f.car;if(!c){kWalk(f,P,'inshome',11);return}const x=kEisCarX(c);
+ if(c.lot==='r3'){if(w==='ost')P=P.concat([[968,1724],[920,KEI.G3],[x,KEI.G3],[x,c.py]]);else P=P.concat([[452,1620],[540,1660],[562,1720],[566,KEI.G3],[x,KEI.G3],[x,c.py]]);kWalk(f,P,'car',11);return}
+ if(w==='ost')P=P.concat([[940,1660],[800,1652],[560,1644],[440,1614]]);
+ kWalk(f,P.concat([[404,1652],[386,1720],[360,KEI.G1],[x,KEI.G1],[x,c.py]]),'car',11)};
+// Skibus: über die Kehren zum Wendeplatz im Dorf und wieder hinunter
+const KEBUS=(()=>{const W=KEI.WP;return KERIN.concat([[W[0]-6,W[1]+18],[W[0]+16,W[1]+10],[W[0]+20,W[1]-10],[W[0]+2,W[1]-20],[W[0]-18,W[1]-10]]).concat(KEROUT.slice(1))})();
+KV.eis.spawnBus=function(n,pick){const b={st:'in',n,pick,bus:1,d:kSeeRnd(KEBUS,16),s:0};let best=1e9;for(const q of b.d){const d=Math.hypot(q[0]-(KEI.WP[0]+4),q[1]-(KEI.WP[1]-20));if(d<best){best=d;b.stopS=q[3]}}const p=kAt(b.d,0);b.x=p[0];b.y=p[1];b.a=Math.PI;KW.buses.push(b)};
+KV.eis.busStep=function(b,dt){const sp=b.y>1990?80:56;
+ if(b.st==='in'){if(b.s+sp*dt>=b.stopS){b.s=b.stopS;const q=kAt(b.d,b.s);b.x=q[0];b.y=q[1];b.st='stop';b.tw=3.5;if(b.n)kEisBusUnload(b);return}kSeeMove(b,dt,sp);return}
+ if(b.st==='stop'){b.tw-=dt;if(b.tw<=0){if(b.pick){const Wt=KW.folks.filter(f=>f.st==='busw');for(const f of Wt.slice(0,44))f.st='gone'}b.st='leave'}return}
+ if(b.st==='leave'){if(kSeeMove(b,dt,sp))b.st='gone'}};
+function kEisBusUnload(b){const n=b.n||0;for(let i=0;i<n;i++){const ty=kMix(),f=kMkFolk(ty,0);kSetupFolk(f,KG.t,Math.min(16.2,kLeaveT(ty,KG.t)));f.busG=1;f.x=b.x-10+(i%6)*5;f.y=b.y-10-Math.floor(i/6)*2;f.delay=i*.07;
+  kWalk(f,[[f.x,1664],[452,1626],[420,1610]],'kassa',11);KW.folks.push(f);KG.gDay++;KG.gT++}}
+KV.eis.busPickT=function(){return KG.b.bus2?[15.1,15.5,15.9,16.3,16.7,17.05]:[15.3,15.8,16.3,16.8]};
+KV.eis.busT=function(){return KG.b.bus2?[8.4,8.9,9.4,9.9,10.4]:[8.65,9.65,10.65]};
+// ---------- Lawinen: Sperren, Sprengen ----------
+function kEisBlast(id,how){if(!kEisShut(id))return;delete KG.lwz[id];(KW.blast||(KW.blast=[])).push({id,T:KW.T});KG.res.lwB=(KG.res.lwB||0)+1;
+ kLog('💥',KEI.sn[id]+' gesprengt ('+how+') – die Abfahrt ist offen.');kUIdirty()}
+function kEisClosed(){return KEI.shut.filter(id=>kEisShut(id))}
+// heute überhaupt erreichbar? (fährt der Lift dorthin)
+function kEisReach(id){return id==='nr'?!kEisWS('rl'):id==='tr'?!kEisWS('gb'):KG.stage>=5&&!kEisWS('pb')}
+function kEisHeliCan(){return KG.b.bw&&!KW.heli&&kEisClosed().length>0&&KG.t>=6.9&&KG.t<15}
+function kEisHeli(auto){if(!kEisHeliCan())return 0;kSpend('heli',1500);const pad=KEI.HELI,T=kEisClosed();const pts=[[pad[0],pad[1]-6]];for(const id of ['nr','gpa','tr'])if(T.includes(id)){const m=KEI.mast[id];pts.push([m[0]-40,m[1]-30,id])}pts.push([pad[0],pad[1]-6]);
+ KW.heli={pts,i:1,x:pad[0],y:pad[1]-6,a:0,h:0};kLog('🚁','Sprengflug'+(auto?' (automatisch)':'')+' gestartet – 1.500 €.');kUIdirty();return 1}
+function kEisHeliStep(dt){const H=KW.heli;if(!H)return;const p=H.pts[H.i];if(!p){KW.heli=null;return}const dx=p[0]-H.x,dy=p[1]-H.y,d=Math.hypot(dx,dy),sp=150,m=sp*dt;
+ H.h=Math.min(1,H.h+dt*.8);H.a=Math.atan2(dy,dx);if(d<=m){H.x=p[0];H.y=p[1];if(p[2]){H.hold=(H.hold||0)+dt;if(H.hold<.9)return;H.hold=0;kEisBlast(p[2],'Sprengflug')}H.i++;if(H.i>=H.pts.length){KW.heli=null}}else{H.x+=dx/d*m;H.y+=dy/d*m}}
+// ---------- Tagesablauf ----------
+KV.eis.morning=function(){const W={sonne:[10,34],tau:[22,48],neuschnee:[32,72],sturm:[76,122]}[KG.wx]||[15,40];KG.wind=Math.round(W[0]+kR()*(W[1]-W[0]));
+ const d={neuschnee:2,sturm:1,tau:-1,sonne:-1}[KG.wx]||0;KG.lw0=kcl((KG.lw0||1)+d-.4,1,5);KG.lw=Math.max(1,Math.round(KG.lw0)-(KG.b.zaun?1:0));
+ KG.lwz={};KW.blast=[];KW.heli=null;KW.trupp=null;KW.natL=null;KW.natA=null;KW.pb=null;kEisPbInit();KW.restN=0;
+ if(KG.lw>=3&&KG.stage>=3)for(const id of KEI.shut)if(kPisteOpen(KW.pmap[id]))KG.lwz[id]={z:1};
+ if(KG.lw>=4&&KG.stage>=1)KW.natL={t:9.2+kR()*2.6};
+ if(KG.b.bus&&KG.dem>0)KG.busShare=Math.min(KG.b.bus2?.42:.32,(KG.b.bus2?200:110)/KG.dem)};
+KV.eis.windLog=function(){const st=[];for(const id of ['pb','gb','gt','rl','kb','am','s3']){if(id==='pb'?KG.stage<5:!KG.l[id].on)continue;if(kEisWS(id))st.push(id==='pb'?'Pendelbahn':kLC(id).n)}
+ if(st.length)kLog('🌪️','Wind am Gipfel '+KG.wind+' km/h – '+st.join(', ')+(st.length>1?' stehen':' steht')+' heute.'+(kEisSlow()?' Die Kesselbahn fährt langsam.':''));else if(kEisSlow())kLog('💨','Wind am Gipfel '+KG.wind+' km/h – die Kesselbahn fährt heute langsam.');
+ if(KG.stage>=3&&KG.lw>=3){const z=kEisClosed();const tx='Lawinenwarnstufe '+KG.lw+' – '+(z.length?z.map(i=>KEI.sn[i]).join(', ')+' gesperrt, bis gesprengt.':'die Rinnen sind offen.');kLog('⚠️',tx);if(z.length)kToast('⚠️ '+tx,4200)}};
+KV.eis.tick=function(dt,dth){const t0=KG.t-dth,t1=KG.t;
+ // Sprengmasten um 7:15
+ if(t0<7.25&&t1>=7.25)for(const id of kEisClosed())if(KG.b.mast&&KG.b.mast[id])kEisBlast(id,'Sprengmast');
+ // Sprengflug automatisch, Sprengtrupp der Bergwacht ab 7:00 (eine Rinne pro Stunde)
+ if(t0<7&&t1>=7){if(KG.heliAuto&&KG.lw>=4&&kEisClosed().some(id=>!(KG.b.mast&&KG.b.mast[id])&&kEisReach(id)))kEisHeli(1);
+  if(KG.b.bw&&!KW.heli&&kEisClosed().some(id=>!(KG.b.mast&&KG.b.mast[id]))){KW.trupp={q:['nr','tr','gpa'].filter(id=>kEisShut(id)&&!(KG.b.mast&&KG.b.mast[id])),t:7.25};kLog('🧨','Der Sprengtrupp der Bergwacht ist unterwegs – eine Rinne pro Stunde.')}}
+ const TR=KW.trupp;if(TR){while(TR.q.length&&!kEisShut(TR.q[0]))TR.q.shift();if(!TR.q.length)KW.trupp=null;else if(t1>=TR.t+1){kEisBlast(TR.q.shift(),'Sprengtrupp');TR.t=t1;if(!TR.q.length)KW.trupp=null}}
+ kEisHeliStep(dt);
+ if(KW.natL&&t1>=KW.natL.t){KW.natL=null;KW.natA={T:KW.T};kLog('🏔️','Eine Lawine ist im Lawinenstrich abgegangen – der Damm hat sie aufgefangen.')}
+ // gesperrte Zeit zählt für den Ruf
+ if(t1>8.5&&t1<16.25)KG.lwH=(KG.lwH||0)+dth*kEisClosed().length;
+ kEisPbTick(t0,t1)};
+KV.eis.midnight=function(){KG.maxG=Math.max(KG.maxG||0,KG.gDay||0);
+ if(KG.lwH>0){KG.ruf=Math.max(5,KG.ruf-Math.min(2.5,KG.lwH*.22));KG.lwH=0}
+ for(const id of ['nr','tr','gpa'])KG.pq[id]=Math.min(kSnowCap(),(KG.pq[id]||80)+5);
+ if(kSeaN()===2&&kSeaD()===KSL&&KG.r2==null){KG.r2p=kRank();KG.r2=KG.r2p<=1?1:0;kLog(KG.r2?'🏆':'📉',KG.r2?'Ende der 2. Saison auf Platz 1 – Meister-Ziel geschafft!':'Ende der 2. Saison auf Platz '+KG.r2p+' – das Meister-Ziel ist nicht mehr zu schaffen.')}};
+KV.eis.costs=function(c,tm){if(KG.stage>=5)c.pb=Math.round((520+(KG.pbLg||0)*60)*tm);if(KG.stage>=6)c.kassa=(c.kassa||0)+70*tm;if(KG.b.bus2)c.bus=(c.bus||0)+100;
+ const nm=Object.keys(KG.b.mast||{}).length;if(nm)c.mast=nm*25;if(KG.b.grest)c.grest=Math.round(160*tm)};
+KV.eis.att=function(){return (KG.b.grest?.05:0)+(KG.stage>=5&&!kEisWS('pb')?.03:0)+(KG.stage>=6?.03:0)};
+KV.eis.offer=function(){let o=0;const b=KG.b;for(const id in KG.l){const s=KG.l[id];if(!s.on)continue;o+=45+({s4:25,s6:45,g8:60,s3:90,schlepp:5}[s.typ]||0)+(s.lg||0)*10}
+ if(KG.stage>=5)o+=80+(KG.pbLg||0)*15;o+=(KG.stage-1)*40;for(const p of KW.pistes)if(!p.conn&&kPisteOpen(p))o+=30;
+ o+=(b.cannons?35:0)+(b.raupe?30:0)+(b.kiosk?15:0)+(b.hut?50:0)+(b.grest?90:0)+(b.bus?20:0)+(b.bus2?10:0)+(b.bw?15:0)+(b.lw?10:0)+(KG.paved?15:0)+(b.zaun?20:0)+Object.keys(b.mast||{}).length*10;
+ for(const L of KVOR.lots)if(!L.base&&KG.lots[L.id])o+=15;return o};
+// Schneekanonen an der Talabfahrt
+KV.eis.canPos=function(){const out=[],r=kRNG(9),P=KW.pmap.ta;const ok=(x,y)=>{if(kOnP(x,y,4)||kOnP(x,y-12,7))return 0;for(const L of KVOR.lifts){const dx=L.t[0]-L.b[0],dy=L.t[1]-L.b[1],l2=dx*dx+dy*dy,u=kcl(((x-L.b[0])*dx+(y-L.b[1])*dy)/l2,0,1);if(Math.hypot(x-L.b[0]-dx*u,y-L.b[1]-dy*u)<30)return 0}for(const b of KST.blocks)if(x>b[0]&&x<b[2]&&y>b[1]&&y<b[3])return 0;return 1};
+ let acc=0,side=1;for(let i=1;i<P.d.length;i++){const a=P.d[i-1],q=P.d[i];acc+=Math.hypot(q[0]-a[0],q[1]-a[1]);if(acc<90||q[1]>1500)continue;
+  for(const sg of [side,-side]){const x=q[0]+q[4]*(q[2]+12)*sg,y=q[1]+q[5]*(q[2]+12)*sg;if(ok(x,y)){out.push({x,y,sd:sg,ph:r()*20});acc=0;side=-side;break}}}return out};
+// Pistenraupe: Talabfahrt, Kesselabfahrt, Gletscherabfahrt und Gletscherpiste hinauf – auf der anderen Seite wieder hinunter (Rinnen und Skiroute bleiben unpräpariert)
+KV.eis.groomPlan=function(){const P=KW.pmap,L=Q=>Q.d[Q.d.length-1][3],off=(Q,s,k)=>{const q=kAt(Q.d,s);return [q[0]+q[3]*q[2]*k,q[1]+q[4]*q[2]*k]},run=(Q,a,b,k)=>{const o=[];if(a>b)for(let s=a;s>=b;s-=12)o.push(off(Q,s,k));else for(let s=a;s<=b;s+=12)o.push(off(Q,s,k));o.push(off(Q,b,k));return o};
+ const up=[],dn=[];up.push({p:'x',pts:[[300,1560],[440,1556]]},{p:'ta',pts:run(P.ta,L(P.ta),0,.42)});dn.unshift({p:'ta',pts:run(P.ta,0,L(P.ta),-.42),fin:1});
+ if(kPisteOpen(P.ka)){up.push({p:'x',pts:[[520,1258]]},{p:'ka',pts:run(P.ka,L(P.ka),0,.42)});dn.unshift({p:'ka',pts:run(P.ka,0,L(P.ka),-.42),fin:1},{p:'x',pts:[[520,1258]]})}
+ if(kPisteOpen(P.ga)){up.push({p:'x',pts:[[630,1000],[600,1040]]},{p:'ga',pts:run(P.ga,L(P.ga),0,.4)});dn.unshift({p:'ga',pts:run(P.ga,0,L(P.ga),-.4),fin:1},{p:'x',pts:[[600,1040],[630,1000]]})}
+ if(kPisteOpen(P.gs)){up.push({p:'gs',pts:run(P.gs,L(P.gs),0,.42)});dn.unshift({p:'gs',pts:run(P.gs,0,L(P.gs),-.42),fin:1})}
+ return up.concat(dn,[{p:'x',pts:[[440,1556],[300,1560]]}])};
+
+// ---------- Bauen ----------
+KV.eis.items=function(){const V=KVOR,st=KG.stage,l=KG.l,b=KG.b,lf=KPK('lift')?.9:1,sf=KPK('schnee')?.85:1,bau=id=>KG.bau.find(x=>x.id===id);
+ const I=[];const add=(tab,o)=>{o.tab=tab;I.push(o);return o};const S=V.stageInfo;
+ for(const s of [2,3,4,5,6]){const rq=S[s].req.map(r=>({t:r[r.length-1],ok:kReq(r)}));add('aus',{id:'st'+s,ic:['','','🪑','⚫','🧊','🚡','🚠'][s],n:'Ausbau Stufe '+s+': '+S[s].n,d:S[s].d,c:Math.round(S[s].cost*lf),days:kBauDays(S[s].days),done:st>=s,bau:KG.bau.find(x=>x.k==='stage'&&x.st===s),lock:st<s-1?'erst Stufe '+(s-1):rq.some(r=>!r.ok)?'Voraussetzungen fehlen':'',rq})}
+ const upB=L=>KG.bau.find(x=>x.k==='up'&&x.lift===L),A=l.am;
+ add('lif',{id:'up6_am',ic:'🚡',n:'Almbahn: 6er-Sessel',d:'Talstation → Alm. Hier steigen alle Gäste ein – mehr Plätze je Sessel. Der Lift steht bis zum nächsten Morgen.',c:Math.round(16000*lf),days:kBauDays(1),done:A.typ==='s6',bau:upB('am')});
+ add('lif',{id:'lg_am',ic:'💺',n:'Almbahn: mehr Sessel',d:'Zusätzliche Sessel am Seil – mehr Gäste pro Stunde.',c:Math.round(2500*lf),done:(A.lg||0)>=2,lock:upB('am')?'Umbau läuft':'',lv:(A.lg||0)+' / 2'});
+ if(st>=2&&l.kb.on)add('lif',{id:'lg_kb',ic:'💺',n:'Kesselbahn: mehr Sessel',d:'Alm → Kessel. Zusätzliche Sessel am Seil.',c:Math.round(3000*lf),done:(l.kb.lg||0)>=2,lv:(l.kb.lg||0)+' / 2'});
+ if(st>=3&&l.rl.on)add('lif',{id:'lg_rl',ic:'💺',n:'Rinnenlift: mehr Sessel',d:'Kessel → Rinnenkopf. Zusätzliche Sessel am Seil.',c:Math.round(3000*lf),done:(l.rl.lg||0)>=2,lv:(l.rl.lg||0)+' / 2'});
+ if(st>=4&&l.gb.on)add('lif',{id:'lg_gb',ic:'🚠',n:'Gletscherbahn: mehr Kabinen',d:'Kessel → Gletscherstation. Zusätzliche Kabinen am Seil.',c:Math.round(4000*lf),done:(l.gb.lg||0)>=2,lv:(l.gb.lg||0)+' / 2'});
+ if(st>=4&&l.gt.on)add('lif',{id:'lg_gt',ic:'🎿',n:'Gletscherlift: mehr Bügel',d:'Schlepplift am Gletscher. Mehr Bügel – kürzere Schlange.',c:Math.round(1500*lf),done:(l.gt.lg||0)>=2,lv:(l.gt.lg||0)+' / 2'});
+ if(st>=5)add('lif',{id:'pb_lg',ic:'🚡',n:'Pendelbahn: größere Kabinen',d:'Gletscherstation ⇄ Gipfel. '+kEisPbCap()+' → '+KEI.pbCap[Math.min(2,(KG.pbLg||0)+1)]+' Plätze je Kabine.',c:Math.round(((KG.pbLg||0)?14000:9000)*lf),done:(KG.pbLg||0)>=2,lv:(KG.pbLg||0)+' / 2'});
+ if(st>=6&&l.s3.on)add('lif',{id:'lg_s3',ic:'🚠',n:'3S-Gletscherexpress: mehr Kabinen',d:'Tal Ost → Gletscher Ost. Zusätzliche Kabinen.',c:Math.round(6000*lf),done:(l.s3.lg||0)>=2,lv:(l.s3.lg||0)+' / 2'});
+ add('pis',{id:'raupe',ic:'🚜',n:'Pistenraupe mit Garage',d:'Präpariert nachts die offenen Pisten bis hinauf zum Gletscher. Rinnen und Skiroute bleiben unpräpariert.',c:5000,done:!!b.raupe});
+ add('pis',{id:'can',ic:'❄️',n:'Schneekanonen',d:'Beschneien nachts die Talabfahrt, wenn der Schnee knapp wird.',c:Math.round(V.cannons.cost*sf),done:!!b.cannons,lock:st<2?'erst Stufe 2':'',up:'Strom je Nacht'});
+ for(const [id,s0] of [['nr',3],['tr',4],['gpa',5]])add('pis',{id:'mast_'+id,ic:'📡',n:'Sprengmast '+KEI.sn[id],d:'Sprengt die Rinne automatisch um 7:15 – nach Neuschnee ist sie offen, bevor die Lifte fahren.',c:6000,done:!!(b.mast&&b.mast[id]),lock:st<s0?'erst Stufe '+s0:'',up:'25 €/Tag'});
+ add('pis',{id:'zaun',ic:'🚧',n:'Schneezäune',d:'Lawinenverbauung am Hang über den Rinnen: die Warnstufe ist dauerhaft eine Stufe niedriger.',c:12000,days:kBauDays(2),done:!!b.zaun,bau:bau('zaun'),lock:st<3?'erst Stufe 3':''});
+ add('gas',{id:'kiosk',ic:'🌭',n:'Kiosk an der Kassa',d:'Würstel, Tee und Kakao im Dorf.',c:1500,days:0,done:!!b.kiosk});
+ add('gas',{id:'hut',ic:'🛖',n:'Almhütte',d:'Gemütliche Hütte an der Alm. Wer zur Talabfahrt fährt, kehrt mittags gern ein.',c:V.hut.cost,days:kBauDays(V.hut.days),done:!!b.hut,bau:bau('hut'),lock:st<2?'erst Stufe 2':''});
+ add('gas',{id:'grest',ic:'🍽️',n:'Gletscherrestaurant mit Eisgrotte',d:'Besonderes Gebäude: Glaskubus auf dem Fels an der Gletscherstation, mit Sonnenterrasse und einer Eisgrotte im Gletscher. Gletscher-Preise – die Gäste zahlen gern mehr.',c:30000,days:kBauDays(4),done:!!b.grest,bau:bau('grest'),lock:st<4?'erst Stufe 4':'',up:'160 €/Tag'});
+ add('anr',{id:'r2',ic:'🅿️',n:'Parkplatz · Reihe 2',d:'27 weitere Stellplätze an der Fahrgasse. Ist alles voll, drehen die Gäste um.',c:4000,done:!!KG.lots.r2});
+ add('anr',{id:'r3',ic:'🅿️',n:'Parkplatz · Reihe 3',d:'19 Stellplätze östlich der Straße, mit eigener Zufahrt. Ab Stufe 6 gehen die Gäste von hier auch zum 3S.',c:6000,done:!!KG.lots.r3,lock:st<3?'erst Stufe 3':''});
+ add('anr',{id:'paved',ic:'🛣️',n:'Parkplätze asphaltieren',d:'Kein Schotter mehr – sieht ordentlicher aus und bringt etwas Ansehen.',c:4000,done:!!KG.paved});
+ add('anr',{id:'bus',ic:'🚌',n:'Skibus aus dem Nachbardorf',d:'Morgens bringen 3 Busse Gäste über die Kehren bis zum Wendeplatz an der Kassa, nachmittags holen sie sie wieder ab.',c:3000,done:!!b.bus,up:'150 €/Tag'});
+ add('anr',{id:'bus2',ic:'🚌',n:'Skibus alle 30 Minuten',d:'5 Busse am Morgen statt 3 – deutlich mehr Gäste ohne Auto. Hilft, wenn die Parkplätze voll sind.',c:4000,done:!!b.bus2,lock:!b.bus?'erst Skibus':st<3?'erst Stufe 3':'',up:'+100 €/Tag'});
+ add('per',{id:'lw',ic:'🔧',n:'Liftwart',d:'Repariert Störungen in kurzer Zeit. Ohne Liftwart kommt ein Techniker von außen (650 €, über 1 Stunde).',c:2500,done:!!b.lw,up:'130 €/Tag'});
+ add('per',{id:'bw',ic:'⛑️',n:'Bergwacht mit Sprengtrupp',d:'Holt Verletzte mit Motorschlitten und Akja. Ab Stufe 3 sprengt ihr Sprengtrupp gesperrte Rinnen (eine pro Stunde), dazu der Hubschrauber für Sprengflüge.',c:KPK('bw')?0:4000,done:!!b.bw,up:KPK('bw')?'Verein · ohne Lohn':'140 €/Tag'});
+ return I};
+KV.eis.buy=function(id,I,pay){
+ if(/^st[23456]$/.test(id)){const s=+id[2];pay();kBauStart({k:'stage',st:s,n:'Ausbau Stufe '+s+': '+KVOR.stageInfo[s].n,days:I.days,lift:{2:'kb',3:'rl',4:'gb',6:'s3'}[s]||null,id});return true}
+ if(id==='up6_am'){pay();KG.bau.push({k:'up',id,lift:'am',typ:'s6',n:'Almbahn: 6er-Sessel',d0:KG.day,days:I.days});kLog('🚧','Umbau Almbahn auf 6er-Sessel – der Lift steht bis zum Morgen.');KG.l.am.on=0;if(KW.lift.am)for(const f of KW.lift.am.q.splice(0))kGoHome(f);return true}
+ if(id==='pb_lg'){pay();KG.pbLg=(KG.pbLg||0)+1;kLog('🚡','Die Pendelbahn hat jetzt Kabinen für '+kEisPbCap()+' Gäste.');return true}
+ if(id.startsWith('mast_')){const k=id.slice(5);pay();KG.b.mast=Object.assign({},KG.b.mast||{},{[k]:1});kLog('📡','Sprengmast '+KEI.sn[k]+' steht – ab morgen sprengt er um 7:15 automatisch.');kRebuild();return true}
+ if(id==='zaun'){pay();kBauStart({k:'b',id:'zaun',n:'Schneezäune',days:I.days});return true}
+ if(id==='grest'){pay();kBauStart({k:'b',id:'grest',n:'Gletscherrestaurant mit Eisgrotte',days:I.days});return true}
+ if(id.startsWith('lg_')){const L=id.slice(3);pay();KG.l[L].lg=(KG.l[L].lg||0)+1;kLiftSetup(L);kLog('💺','Mehr '+(KG.l[L].typ==='schlepp'?'Bügel':KG.l[L].typ==='g8'||KG.l[L].typ==='s3'?'Kabinen':'Sessel')+' am '+kLC(L).n+'.');return true}
+ if(id==='r2'||id==='r3'){pay();KG.lots[id]=1;kLog('🅿️','Parkplatz · Reihe '+id[1]+' ist offen.');return true}
+ if(id==='bus2'){pay();KG.b.bus2=1;kLog('🚌','Ab morgen fährt der Skibus alle 30 Minuten.');return true}
+ return false};
+KV.eis.applied=function(b){if(b.k==='stage'&&b.st===4){KG.l.gt.on=1;kLiftSetup('gt')}if(b.k==='stage'&&b.st===5){KW.pb=null;kEisPbInit()}if(b.k==='stage'&&b.st===6)kLog('🎫','An der Talstation Ost gibt es jetzt eine eigene Kassa für den 3S-Gletscherexpress.')};
+KV.eis.act=function(a,v){if(a==='eheli'){if(!kEisHeli(0))kToast(KG.b.bw?'Gerade nichts zu sprengen.':'Erst die Bergwacht anstellen (🔨 Bauen › Personal).');kUI();return true}
+ if(a==='eauto'){KG.heliAuto=KG.heliAuto?0:1;kUI();return true}return false};
+
+// ---------- Zeichnen: Landschaft ----------
+function kEisPeak(c,x,y,w,b,L,D){c.fillStyle=L;c.beginPath();c.moveTo(x-w,b);c.lineTo(x,y);c.lineTo(x+w*.08,b);c.closePath();c.fill();c.fillStyle=D;c.beginPath();c.moveTo(x,y);c.lineTo(x+w,b);c.lineTo(x+w*.08,b);c.closePath();c.fill();
+ c.fillStyle='rgba(255,255,255,.95)';c.beginPath();c.moveTo(x,y);c.lineTo(x-w*.32,y+(b-y)*.36);c.lineTo(x-w*.14,y+(b-y)*.3);c.lineTo(x-w*.05,y+(b-y)*.42);c.lineTo(x+w*.1,y+(b-y)*.28);c.lineTo(x+w*.26,y+(b-y)*.34);c.closePath();c.fill()}
+function kEisPOff(p,m,sd){return p.d.map((q,i)=>{const a=p.d[Math.max(0,i-1)],b=p.d[Math.min(p.d.length-1,i+1)],dx=b[0]-a[0],dy=b[1]-a[1],l=Math.hypot(dx,dy)||1;return [q[0]+(-dy/l)*(q[2]+m)*sd,q[1]+(dx/l)*(q[2]+m)*sd]})}
+function kEisLn(c,P,w,col){c.strokeStyle=col;c.lineWidth=w;c.lineCap='round';c.lineJoin='round';c.beginPath();P.forEach((q,i)=>i?c.lineTo(q[0],q[1]):c.moveTo(q[0],q[1]));c.stroke()}
+KV.eis.bg=function(c){const R=kRNG;
+ const gs=c.createLinearGradient(0,-200,0,420);gs.addColorStop(0,'#3f8fd8');gs.addColorStop(1,'#d5ecfb');c.fillStyle=gs;c.fillRect(-600,-600,2400,1200);
+ kEisPeak(c,110,190,240,520,'#e3e0dc','#b9b4ad');kEisPeak(c,1010,170,250,520,'#e3e0dc','#b9b4ad');kEisPeak(c,320,240,150,480,'#d8d4cd','#aaa49c');kEisPeak(c,820,230,160,480,'#d8d4cd','#aaa49c');
+ // Eisspitz: steile Pyramide
+ c.fillStyle='#d4cfc7';c.beginPath();c.moveTo(250,520);c.lineTo(548,120);c.lineTo(560,520);c.closePath();c.fill();c.fillStyle='#9e978d';c.beginPath();c.moveTo(548,120);c.lineTo(880,520);c.lineTo(560,520);c.closePath();c.fill();
+ {const r=R(9);c.strokeStyle='rgba(80,70,60,.18)';c.lineWidth=1;for(let i=0;i<26;i++){const y=150+r()*330,t=(y-120)/400,x=548-(298*t)*r()*.9;c.beginPath();c.moveTo(x,y);c.lineTo(x-6+r()*4,y+20+r()*20);c.stroke()}
+  c.fillStyle='rgba(255,255,255,.95)';for(let i=0;i<16;i++){const y=160+r()*300,t=(y-120)/400,x=548-(298*t)*(.1+r()*.8),l=6+r()*16;c.beginPath();c.moveTo(x,y);c.lineTo(x+l,y-1);c.lineTo(x+l-3,y+2.6);c.lineTo(x+2,y+3);c.closePath();c.fill()}}
+ c.fillStyle='rgba(255,255,255,.9)';c.beginPath();c.moveTo(548,120);c.lineTo(532,170);c.lineTo(546,160);c.lineTo(556,182);c.lineTo(566,150);c.closePath();c.fill();
+ kSnowGround(c,560,1620);
+ // Gletscher
+ c.fillStyle='#e9f5fd';c.beginPath();c.moveTo(KEG0,kEgL(KEG0));for(let x=KEG0;x<=KEG1;x+=10)c.lineTo(x,kEgT(x));for(let x=KEG1;x>=KEG0;x-=10)c.lineTo(x,kEgL(x));c.closePath();c.fill();
+ const gg=c.createLinearGradient(0,330,0,640);gg.addColorStop(0,'rgba(170,215,240,0)');gg.addColorStop(1,'rgba(120,190,230,.35)');c.fillStyle=gg;c.fill();
+ c.lineCap='round';for(const [x,y,l,a] of [[262,420,40,.25],[300,452,28,.2],[404,380,30,.1],[894,600,22,-.15],[836,388,26,-.3]]){c.save();c.translate(x,y);c.rotate(a);c.strokeStyle='#5fa3cf';c.lineWidth=4;c.beginPath();c.moveTo(-l/2,0);c.quadraticCurveTo(0,3,l/2,0);c.stroke();c.strokeStyle='#1d5f8a';c.lineWidth=1.6;c.stroke();
+  for(let i=-1;i<=1;i+=2){c.fillStyle='#e8504a';c.fillRect(i*(l/2+5)-.6,-8,1.2,8)}c.strokeStyle='rgba(232,80,74,.8)';c.lineWidth=.6;c.beginPath();c.moveTo(-l/2-5,-6);c.lineTo(l/2+5,-6);c.stroke();c.restore()}
+ // Eisbruch (Seracs) an der Unterkante – nie auf einer Piste
+ for(let x=KEG0;x<KEG1;x+=14){const y=kEgL(x);if(kOnP(x+7,y,10)||kEsf(x+7)>.5)continue;c.fillStyle='#bfe2f5';c.beginPath();c.moveTo(x,y-4);c.lineTo(x+7,y-12);c.lineTo(x+14,y-3);c.lineTo(x+12,y+8);c.lineTo(x+2,y+8);c.closePath();c.fill();c.fillStyle='#7cc4e4';c.fillRect(x+7,y-4,5,10)}
+ // Felsband (Facetten), läuft am Schneesattel flach aus; Lücke für den Lawinenstrich
+ const gap=x=>x>118&&x<206,r2=R(23),LT=['#e6dfd3','#dad1c2','#e0d8ca'],DK=['#c2b7a4','#b0a490','#b9ad99'];
+ for(let x=-160;x<1160;x+=22){const w=22,t0=kEtop(x)+(kElow(x)-kEtop(x))*kEsf(x),t1=kEtop(x+w)+(kElow(x+w)-kEtop(x+w))*kEsf(x+w),b0=kElow(x),b1=kElow(x+w),n=3+Math.floor(r2()*2);if(b0-t0<4&&b1-t1<4)continue;
+  for(let k=0;k<n;k++){const ya=t0+(b0-t0)*k/n,yb=t0+(b0-t0)*(k+1)/n,ya1=t1+(b1-t1)*k/n,yb1=t1+(b1-t1)*(k+1)/n,mx=x+w*(.3+r2()*.4),my=(ya+ya1)/2-2-r2()*5,mb=(yb+yb1)/2+r2()*3;if(gap(x+w/2)||gap(x+3)||gap(x+w-3))continue;
+   c.fillStyle=LT[Math.floor(r2()*3)];c.beginPath();c.moveTo(x-.5,ya);c.lineTo(mx,my);c.lineTo(mx,mb);c.lineTo(x-.5,yb+.5);c.closePath();c.fill();c.fillStyle=DK[Math.floor(r2()*3)];c.beginPath();c.moveTo(mx,my);c.lineTo(x+w+.5,ya1);c.lineTo(x+w+.5,yb1+.5);c.lineTo(mx,mb);c.closePath();c.fill();
+   if(k<n-1&&r2()<.4){c.fillStyle='rgba(255,255,255,.96)';c.beginPath();c.moveTo(x+1,yb);c.lineTo(mx,mb-2);c.lineTo(x+w-1,yb1);c.lineTo(mx,mb+2.4);c.closePath();c.fill()}}
+  if(!gap(x+w/2)){c.fillStyle='rgba(255,255,255,.95)';c.beginPath();c.moveTo(x-1,t0+1);c.lineTo(x+w*.5,(t0+t1)/2-3);c.lineTo(x+w+1,t1+1);c.lineTo(x+w*.5,(t0+t1)/2+3);c.closePath();c.fill()}}
+ // Rinnen als Couloirs: Schneefüllung, Schattenwand links, Sonnenwand rechts (nur im Felsband)
+ c.save();c.beginPath();for(let x=-160;x<=1160;x+=8)c.lineTo(x,kEtop(x)+3);for(let x=1160;x>=-160;x-=8)c.lineTo(x,kElow(x)+6);c.closePath();c.clip();
+ for(const [p,m] of [[KW.pmap.tr,6],[KW.pmap.nr,6]]){const Lf=kEisPOff(p,m,1),Rt=kEisPOff(p,m,-1),Lw=kEisPOff(p,m+5,1),Rw=kEisPOff(p,m+4,-1);kEisLn(c,Lw,12,'#a99d89');kEisLn(c,Rw,10,'#d3c9b8');
+  const g=c.createLinearGradient(0,600,0,840);g.addColorStop(0,'#fbfdff');g.addColorStop(1,'#eef4fa');c.fillStyle=g;c.beginPath();Lf.forEach((q,i)=>i?c.lineTo(q[0],q[1]):c.moveTo(q[0],q[1]));for(let i=Rt.length-1;i>=0;i--)c.lineTo(Rt[i][0],Rt[i][1]);c.closePath();c.fill();
+  kEisLn(c,kEisPOff(p,m-3,1),5,'rgba(150,175,205,.28)');kEisLn(c,Lf,1.2,'rgba(90,78,64,.55)');kEisLn(c,Rt,1,'rgba(120,108,92,.45)');
+  const r4=R(p.d.length);for(let i=6;i<p.d.length-6;i+=7)for(const [P,sd,col] of [[Lw,1,'#958873'],[Rw,-1,'#c4b8a4']]){const q=P[i];if(r4()<.55){c.fillStyle=col;c.beginPath();c.moveTo(q[0],q[1]-6);c.lineTo(q[0]+sd*-5,q[1]);c.lineTo(q[0],q[1]+6);c.closePath();c.fill()}}}
+ c.restore();
+ // Schuttkegel unter dem Felsband
+ c.fillStyle='rgba(214,204,188,.55)';for(const x of [40,446,900,1020]){const y=kErL(x)+8;c.beginPath();c.moveTo(x-10,y-4);c.lineTo(x+40,y+42);c.lineTo(x-56,y+42);c.closePath();c.fill()}
+ // Lawinenstrich mit Auffangdamm
+ c.fillStyle='#f2f7fc';c.beginPath();c.moveTo(130,592);c.quadraticCurveTo(170,700,150,800);c.quadraticCurveTo(140,900,104,980);c.lineTo(226,980);c.quadraticCurveTo(196,900,200,800);c.quadraticCurveTo(206,690,196,592);c.closePath();c.fill();
+ c.strokeStyle='#8f8576';c.lineWidth=2.4;c.beginPath();c.moveTo(130,592);c.quadraticCurveTo(170,700,150,800);c.moveTo(196,592);c.quadraticCurveTo(206,690,200,800);c.stroke();
+ {const r3=R(41);for(let i=0;i<34;i++){const x=110+r3()*110,y=950+r3()*60;c.fillStyle='rgba(180,200,225,.5)';c.beginPath();c.ellipse(x+2,y+2,6+r3()*5,3,0,0,7);c.fill();c.fillStyle='#fbfdff';c.beginPath();c.ellipse(x,y,6+r3()*5,3,0,0,7);c.fill()}}
+ c.fillStyle='#b1a593';c.beginPath();c.moveTo(70,1040);c.quadraticCurveTo(162,990,256,1040);c.lineTo(250,1052);c.quadraticCurveTo(162,1006,76,1052);c.closePath();c.fill();c.fillStyle='rgba(255,255,255,.9)';c.beginPath();c.moveTo(78,1038);c.quadraticCurveTo(162,992,248,1038);c.lineTo(244,1032);c.quadraticCurveTo(162,990,82,1032);c.closePath();c.fill();
+ kSign(c,162,1070,'LAWINENDAMM','#5b6578','#fff',5);
+ // Schneezäune (Lawinenverbauung)
+ if(KG.b.zaun){c.strokeStyle='#6e4426';c.lineWidth=1.2;for(const [x0,y0,n] of [[30,592,5],[70,562,4],[892,640,4],[950,610,4],[620,232,3],[300,640,2]])for(let i=0;i<n;i++){const x=x0+i*18,y=y0+(i%2)*3;c.beginPath();c.moveTo(x,y);c.lineTo(x+14,y-2);for(let k=0;k<5;k++){c.moveTo(x+k*3.4,y-k*.4);c.lineTo(x+k*3.4,y-k*.4-6)}c.stroke()}kSign(c,100,542,'SCHNEEZÄUNE','#6e4426','#fff',4.5)}
+ // Tal: Straße mit Kehren, Wendeplatz, Fahrgassen
+ c.fillStyle='#f4f8fc';c.fillRect(-600,1640,2400,1000);
+ c.lineCap='round';c.lineJoin='round';c.strokeStyle='#c3c9d3';c.lineWidth=40;c.beginPath();KER.forEach((p,i)=>i?c.lineTo(p[0],p[1]):c.moveTo(p[0],p[1]));c.stroke();
+ const W=KEI.WP;c.fillStyle='#c3c9d3';c.beginPath();c.arc(W[0],W[1],34,0,7);c.fill();
+ if(KG.lots.r3){c.fillStyle='#c3c9d3';c.fillRect(901,1876,25,96);c.fillRect(548,1877,378,26)}c.fillRect(-140,1852,560,26);
+ c.strokeStyle='#4b5160';c.lineWidth=32;c.beginPath();KER.forEach((p,i)=>i?c.lineTo(p[0],p[1]):c.moveTo(p[0],p[1]));c.stroke();c.fillStyle='#4b5160';c.beginPath();c.arc(W[0],W[1],30,0,7);c.fill();
+ c.fillStyle='#5a6170';c.fillRect(-140,1856,556,18);if(KG.lots.r3){c.fillRect(552,1881,370,18);c.fillRect(904,1880,18,90)}
+ c.strokeStyle='#fff';c.lineWidth=1.4;c.setLineDash([12,10]);c.beginPath();KER.forEach((p,i)=>i?c.lineTo(p[0],p[1]):c.moveTo(p[0],p[1]));c.stroke();
+ c.strokeStyle='rgba(255,255,255,.6)';c.lineWidth=1;c.setLineDash([6,6]);c.beginPath();c.moveTo(-130,KEI.F12);c.lineTo(392,KEI.F12);if(KG.lots.r3){c.moveTo(560,KEI.F3);c.lineTo(912,KEI.F3);c.moveTo(913,1890);c.lineTo(913,1960)}c.stroke();c.setLineDash([]);
+ c.fillStyle='#e8eef5';c.beginPath();c.arc(W[0],W[1],12,0,7);c.fill();c.fillStyle='#fff';c.beginPath();c.arc(W[0],W[1],9,0,7);c.fill();
+ // Haltestelle am Wendeplatz
+ const hx=W[0]+30,hy=W[1]-26;c.fillStyle='#2e9e5b';c.fillRect(hx,hy-14,1.6,14);c.beginPath();c.roundRect(hx-6,hy-22,14,9,2);c.fill();c.fillStyle='#fff';c.font='700 6px Fredoka,sans-serif';c.textAlign='center';c.fillText('H',hx+1,hy-15);
+ // Gipfelkreuz
+ c.strokeStyle='#7b5236';c.lineWidth=2.2;c.beginPath();c.moveTo(548,128);c.lineTo(548,100);c.moveTo(540,108);c.lineTo(556,108);c.stroke()};
+KV.eis.staticExtra=function(c){kSign(c,1060,2196,'EISSPITZ','#f2c53b','#2b3040',7);kSign(c,KEI.WP[0]+31,KEI.WP[1]-56,'🚌 Eisspitz · Kassa','#2e9e5b','#fff',5)};
+KV.eis.drawPaths=function(c){const G1=KEI.G1,G3=KEI.G3;
+ kPathLine(c,[[-120,G1],[360,G1],[386,1720],[404,1652],[420,1612]],8);kPathLine(c,[[420,1612],[556,1616]],8);kPathLine(c,[[452,1622],[470,1668]],6);
+ if(KG.lots.r3){kPathLine(c,[[452,1620],[540,1660],[562,1720],[566,G3]],7);kPathLine(c,[[566,G3],[900,G3]],7)}
+ if(KG.stage>=6||KG.bau.find(b=>b.k==='stage'&&b.st===6)){kPathLine(c,[[452,1622],[560,1644],[800,1652],[940,1660],[1060,1676]],7);if(KG.lots.r3)kPathLine(c,[[900,G3],[968,1724],[1054,1686]],7)}
+ if(KG.b.hut){c.strokeStyle='#e9dcc4';c.lineWidth=6;c.lineCap='round';c.beginPath();KVOR.hut.in.forEach((p,i)=>i?c.lineTo(p[0],p[1]):c.moveTo(p[0],p[1]));c.stroke()}
+ if(KG.b.grest){kEisLn(c,[[430,588],[376,566],[330,556]],6,'#cfe4f2');kEisLn(c,[[430,588],[376,566],[330,556]],3,'#e6f3fb');kEisLn(c,[[352,478],[372,520],[376,562]],4,'#cfe4f2')}};
+KV.eis.lamps=function(){const o=[];for(let x=-100;x<=340;x+=88)o.push([x,KEI.G1-6]);for(let x=470;x<=540;x+=70)o.push([x,1624]);o.push([392,1700]);if(KG.lots.r3)for(let x=600;x<=880;x+=90)o.push([x,KEI.G3-6]);if(KG.stage>=6)for(const x of [640,800,960])o.push([x,1640]);return o};
+KV.eis.decor=function(D){const mix=r=>r()<.5?'l':'p';
+ // Dorf mit Kirche
+ for(const [x,y,w,h,k] of [[-70,1650,50,26,1],[10,1712,44,24,3],[-100,1742,48,24,2],[60,1642,40,22,4],[110,1752,44,22,1],[660,1748,46,24,2],[740,1770,44,24,4],[724,1600,44,22,3]])D.house(x,y,w,h,k);
+ D.church(190,1700);
+ D.scatter(-120,1090,1120,1540,1500,51,(x,y)=>y<1180?.18:.6,mix);D.scatter(-120,960,1120,1100,260,52,()=>.16,'p');
+ for(const [x,y] of [[200,1300],[640,1310],[880,1200],[760,1420],[100,1420],[940,1470],[600,1420]])D.grove(x,y,46,26,x+y,mix);
+ for(const [x,y] of [[-110,1960],[-80,2040],[20,2010],[110,1990],[210,2050],[300,2000],[620,2040],[700,2100],[980,2100],[1060,2010],[1080,1920],[1000,1800],[-120,1700],[1100,1760]])D.tree(x,y,.9,'p')};
+KV.eis.blocks=function(B){
+ B.box(-200,1780,440,1950);B.box(540,1800,940,1910);B.box(890,1870,940,1990); // Parkplätze, Fahrgassen, Zufahrt
+ B.line(KER,24);B.box(430,1650,530,1740);B.box(360,1560,480,1640);B.box(552,1586,660,1668); // Straße, Wendeplatz, Kassa, Anstellbereich
+ B.box(266,1546,334,1602);B.box(150,1570,250,1712);B.box(780,1690,960,1760);B.box(890,1590,1000,1680);B.box(1040,1620,1120,1700); // Garage, Bergwacht, 3S, Kassa Ost
+ B.line([[-120,KEI.G1],[360,KEI.G1],[386,1720],[404,1652],[420,1612]],8);B.line([[452,1620],[540,1660],[562,1720],[566,KEI.G3]],8);B.line([[452,1622],[560,1644],[800,1652],[940,1660],[1060,1676]],8);B.line([[900,KEI.G3],[968,1724],[1054,1686]],8);
+ B.box(80,560,226,1062);B.box(232,1100,336,1176);B.box(336,1200,424,1266);B.line(KVOR.hut.in,8); // Lawinenstrich, Almhütte, Anstellen Kesselbahn
+ B.box(452,982,524,1046);B.box(806,976,890,1044);B.box(560,1080,640,1130);B.box(760,700,880,830); // Anstellen Kessel, Baustelle
+ B.box(214,470,352,552)};
+
+// ---------- Zeichnen: Gebäude, Stationen, Bahnen ----------
+function kEisPlate(c,x,y,t,dark){c.fillStyle=dark?'#2b3040':'#fff';c.beginPath();c.roundRect(x-27,y-31,54,12,2);c.fill();c.fillStyle=dark?'#fff':'#2b3a55';c.font='700 5.4px Fredoka,sans-serif';c.textAlign='center';c.textBaseline='middle';c.fillText(t,x,y-24.8,50);c.textBaseline='alphabetic'}
+function kEisPpl(c,x,y,col,t){personN(c,{x,y,st:'walk',col:col||KCOL[Math.floor(Math.abs(x*7+y*3))%KCOL.length],sv:0},t)}
+function kEisKassa3S(c,x,y){const nt=kBright()<.5;c.fillStyle='rgba(110,140,180,.25)';c.beginPath();c.ellipse(x+3,y+3,24,4,0,0,7);c.fill();c.fillStyle='#e9e1d2';c.fillRect(x-20,y-20,40,22);c.fillStyle='#d6cbb7';c.fillRect(x+8,y-20,12,22);
+ for(const q of [-16,-4]){c.fillStyle=nt?'#ffd98a':'#a8dcf5';c.fillRect(x+q,y-13,9,8);kWin(x+q,y-13,9,8);c.fillStyle='#8f5a34';c.fillRect(x+q-1,y-5,11,1.4)}
+ c.fillStyle='#2b3040';c.beginPath();c.moveTo(x-24,y-19);c.lineTo(x-17,y-30);c.lineTo(x+17,y-30);c.lineTo(x+24,y-19);c.closePath();c.fill();c.fillStyle='#fff';c.beginPath();c.moveTo(x-20,y-22);c.lineTo(x-15,y-28);c.lineTo(x+15,y-28);c.lineTo(x+20,y-22);c.closePath();c.fill();kSign(c,x,y-37,'🎫 KASSA 3S','#2b3040','#fff',5.4)}
+function kEisGipfel(c,t){const x=548,y=262;c.fillStyle='#8d8a86';c.beginPath();c.moveTo(x-46,y+8);c.lineTo(x-30,y-6);c.lineTo(x+40,y-8);c.lineTo(x+56,y+8);c.closePath();c.fill();
+ c.fillStyle='#e9e6e0';c.fillRect(x-30,y-30,52,28);c.fillStyle='#cfcac1';c.fillRect(x+8,y-30,14,28);for(let i=0;i<4;i++){c.fillStyle='#a8dcf5';c.fillRect(x-26+i*9,y-24,6,9);kWin(x-26+i*9,y-24,6,9)}
+ c.fillStyle='#e8504a';c.fillRect(x-32,y-34,56,5);c.fillStyle='#8d8f98';c.fillRect(x+22,y-14,34,3);c.strokeStyle='#5d667a';c.lineWidth=.8;for(let i=0;i<7;i++){c.beginPath();c.moveTo(x+24+i*5,y-14);c.lineTo(x+24+i*5,y-19);c.stroke()}c.beginPath();c.moveTo(x+22,y-19);c.lineTo(x+56,y-19);c.stroke();
+ // Windsack
+ const w=Math.min(1,(KG.wind||0)/60),fl=Math.sin(t*6)*1.5*w;c.fillStyle='#5d667a';c.fillRect(x-38,y-36,1.2,30);c.fillStyle='#f2701f';c.beginPath();c.moveTo(x-37,y-36);c.lineTo(x-37+12*(.3+.7*w),y-35+fl);c.lineTo(x-37+12*(.3+.7*w),y-32+fl);c.lineTo(x-37,y-31);c.closePath();c.fill();c.fillStyle='#fff';c.fillRect(x-33,y-35.5+fl*.5,2,4.4);
+ kSign(c,x-4,y-44,'GIPFEL 3.402 m','#2b3040','#fff',5.5)}
+function kEisRestDraw(c,t){const x=KEI.REST[0],y=KEI.REST[1],nt=kBright()<.55;c.fillStyle='#9c958c';c.beginPath();c.moveTo(x-70,y+10);c.lineTo(x-58,y-8);c.lineTo(x+60,y-10);c.lineTo(x+72,y+10);c.closePath();c.fill();
+ c.fillStyle='#d9dee6';c.fillRect(x-56,y-16,112,8);c.fillStyle='#5b6578';c.fillRect(x-50,y-62,82,46);
+ const g=c.createLinearGradient(0,y-62,0,y-16);g.addColorStop(0,nt?'#ffe2a0':'#bfe6fa');g.addColorStop(1,nt?'#f2b85a':'#7cc4e4');c.fillStyle=g;c.fillRect(x-47,y-59,76,40);
+ c.strokeStyle='rgba(255,255,255,.75)';c.lineWidth=.8;for(let i=1;i<8;i++){c.beginPath();c.moveTo(x-47+i*9.5,y-59);c.lineTo(x-47+i*9.5,y-19);c.stroke()}c.beginPath();c.moveTo(x-47,y-39);c.lineTo(x+29,y-39);c.stroke();
+ c.fillStyle='rgba(255,233,168,.9)';for(let i=0;i<6;i++){c.beginPath();c.arc(x-40+i*12,y-27,1.6,0,7);c.fill()}
+ const n=KW.folks.filter(f=>f.st==='rest').length;for(let i=0;i<Math.min(7,2+Math.floor(n/3));i++)kEisPpl(c,x-36+i*10,y-21,null,t);
+ c.fillStyle='#e9e6e0';c.fillRect(x+32,y-52,22,36);c.fillStyle='#fff';c.fillRect(x-54,y-66,112,6);c.fillStyle='#f2f6fa';c.fillRect(x-50,y-72,104,6);hSmoke(c,x+44,y-72,t,1);
+ for(const dx of [-30,0,30]){c.fillStyle='#8f5a34';c.fillRect(x+dx-.5,y-8,1,8);c.fillStyle=dx?'#e8504a':'#f2c53b';c.beginPath();c.arc(x+dx,y-8,6,Math.PI,0);c.fill()}
+ kSign(c,x,y-82,'GLETSCHERRESTAURANT','#2f6f78','#fff',6)}
+function kEisGrotte(c){const x=352,y=468;c.fillStyle='#7cc4e4';c.beginPath();c.ellipse(x,y,22,16,0,Math.PI,0);c.fill();c.fillStyle='#3a8fc0';c.beginPath();c.ellipse(x,y,15,11,0,Math.PI,0);c.fill();c.fillStyle='#1d5f8a';c.beginPath();c.ellipse(x,y,9,7,0,Math.PI,0);c.fill();
+ c.fillStyle='rgba(255,255,255,.8)';c.beginPath();c.ellipse(x-10,y-12,6,2,-.4,0,7);c.fill();kSign(c,x,y-24,'❄ EISGROTTE','#1d5f8a','#fff',5)}
+function kEisGazex(c,x,y){c.fillStyle='rgba(60,70,90,.25)';c.beginPath();c.ellipse(x+3,y+2,8,2.4,0,0,7);c.fill();c.fillStyle='#6b7385';c.fillRect(x-1.6,y-22,3.2,22);c.fillStyle='#e8504a';c.save();c.translate(x,y-22);c.rotate(.5);c.fillRect(-2.4,-2,13,4.4);c.restore();c.fillStyle='#f2c53b';c.fillRect(x-5,y-6,10,6);c.fillStyle='#2b3040';c.fillRect(x-5,y-6,10,1.4)}
+function kEisHeliDraw(c,x,y,a,t,fly){c.save();c.translate(x,y);if(fly){c.fillStyle='rgba(40,60,90,.18)';c.beginPath();c.ellipse(8,26,12,4,0,0,7);c.fill()}c.scale(Math.cos(a)<0?-1:1,1);
+ c.fillStyle='#e8504a';c.beginPath();c.ellipse(0,0,10,5,0,0,7);c.fill();c.fillRect(6,-2,14,3);c.fillStyle='#bfe6fa';c.beginPath();c.ellipse(-4,-1,4,3,0,0,7);c.fill();c.fillStyle='#2b3040';c.fillRect(-6,5,12,1.2);
+ const rw=fly?16*Math.abs(Math.cos(t*30)):16;c.strokeStyle='#2b3040';c.lineWidth=1;c.beginPath();c.moveTo(-rw,-7);c.lineTo(rw,-7);c.stroke();c.fillRect(-.6,-7,1.2,3);c.restore()}
+function kEisBwDraw(c,t){const x=KEI.BW[0],y=KEI.BW[1];c.fillStyle='rgba(110,140,180,.25)';c.beginPath();c.ellipse(x+4,y+3,28,5,0,0,7);c.fill();c.fillStyle='#e8504a';c.fillRect(x-22,y-24,44,26);c.fillStyle='#fff';c.fillRect(x-22,y-28,44,5);c.fillRect(x-4,y-18,8,3);c.fillRect(x-1.5,y-20.5,3,8);
+ c.fillStyle='#a8dcf5';c.fillRect(x+8,y-16,8,7);kWin(x+8,y-16,8,7);kSign(c,x,y-36,'BERGWACHT','#e8504a','#fff',5);
+ const [hx,hy]=KEI.HELI;c.fillStyle='#9aa3b2';c.beginPath();c.ellipse(hx,hy,24,9,0,0,7);c.fill();c.strokeStyle='#fff';c.lineWidth=1.4;c.beginPath();c.ellipse(hx,hy,18,6.6,0,0,7);c.stroke();c.fillStyle='#fff';c.font='700 8px sans-serif';c.textAlign='center';c.fillText('H',hx,hy+3);
+ if(!KW.heli)kEisHeliDraw(c,hx,hy-6,0,t,0);if(!KW.res)kSled(c,{x:x-34,y:y+6,a:0,st:'park'},t)}
+// Stationen
+KV.eis.drawB=function(add,t){const V=KVOR,K=V.kassa,l=KG.l;add(K.y,c=>kKassaDraw(c,K.x,K.y));if(KG.b.kiosk)add(K.y+8,c=>kKioskDraw(c,K.x+38,K.y+8,t));
+ if(KG.stage>=6)add(KEI.KO[1],c=>kEisKassa3S(c,KEI.KO[0],KEI.KO[1]));
+ const sb=KG.bau.find(b=>b.k==='stage');
+ for(const L of V.lifts){const s=l[L.id],bau=KG.bau.find(b=>b.lift===L.id&&b.k!=='up'),up=KG.bau.find(b=>b.k==='up'&&b.lift===L.id),lo=kLowerOf(L.id);
+  if(bau){add(L.t[1]+20,c=>kSite(c,L.t[0],L.t[1]+10,50,t));if(!lo)add(L.b[1]+20,c=>kSite(c,L.b[0]+(L.id==='gb'?-40:0),L.b[1]+30,50,t));continue}
+  if(!s.on&&!up)continue;const co=KLT[s.typ].co;
+  if(L.id==='gt'){add(L.b[1]+12,c=>{stationN(c,L.b[0]+14,L.b[1],t);kSign(c,L.b[0]+14,L.b[1]-24,'GLETSCHERLIFT','#fff','#2b3a55',5);kBrkSign(c,L,t)});add(L.t[1]+12,c=>stationN(c,L.t[0]+14,L.t[1],t));continue}
+  const big3=L.id==='s3',lab={am:['TALSTATION','ALM'],kb:['','KESSEL'],rl:['RINNENLIFT','RINNENKOPF'],gb:['GLETSCHERBAHN','GLETSCHERSTATION'],s3:['3S · GLETSCHEREXPRESS','3S · GLETSCHER OST']}[L.id];
+  if(!lo)add(L.b[1]+22,c=>{liftStation(c,L.b[0],L.b[1],big3?14:co,true);kEisPlate(c,L.b[0],L.b[1],lab[0],big3);kBrkSign(c,L,t);if(up)kSign(c,L.b[0],L.b[1]-48,'🚧 UMBAU','#f2701f','#fff',6)});
+  else if(up)add(L.b[1]+30,c=>kSign(c,L.b[0],L.b[1]-56,'🚧 UMBAU','#f2701f','#fff',6));
+  const nx=L.nx&&l[L.nx]&&l[L.nx].on;add(L.t[1]+18,c=>{liftStation(c,L.t[0],L.t[1],big3?14:nx?KLT[l[L.nx].typ].co:co,false);kSign(c,L.t[0],L.t[1]-36,lab[1],big3?'#2b3040':'#fff',big3?'#fff':'#2b3a55',5.5);if(nx)kBrkSign(c,kLC(L.nx),t)})}
+ // Pendelbahn
+ if(KG.stage>=5){const {b}=KEI.PB;add(b[1]+22,c=>{liftStation(c,b[0],b[1],10,true);kEisPlate(c,b[0],b[1],'PENDELBAHN · GIPFEL');if(kEisWS('pb'))kSign(c,b[0],b[1]-46,'💨 WIND – STEHT','#5b6578','#fff',5.5)});
+  const m=[b[0]+(KEI.PB.t[0]-b[0])*.5,b[1]+(KEI.PB.t[1]-b[1])*.5+14];add(m[1],c=>{kSeeBigPylon(c,m[0],m[1],17);c.fillStyle='#3a3f58';c.fillRect(m[0]-23,m[1]-50,46,4)});
+  add(1e5,c=>{if(!kInV(500,400,320))return;kEisPbRope(c);for(const i of [0,1]){const p=kEisPbPos(i),C=KW.pb&&KW.pb.cab[i];if(p.ph.u<.05||p.ph.u>.95)continue;kEisPbCab(c,p.x,p.y,C?C.r.length:0)}})}
+ if(KG.stage>=5||sb&&sb.st===5)add(270,c=>kEisGipfel(c,t));
+ // Almhütte
+ const H0=V.hut;if(KG.b.hut)add(H0.y+2,c=>{chalet(c,H0.x,H0.y,48,26,2);for(const [wx,wy] of chWin(H0.x,H0.y,48,26))kWin(wx,wy,6,6);kSign(c,H0.x,H0.y-46,'ALMHÜTTE','#8f5a34','#fff',5.5);
+  c.fillStyle='#c9a77a';c.fillRect(H0.x-28,H0.y+4,56,12);c.strokeStyle='rgba(120,90,60,.4)';c.lineWidth=.5;for(let x=H0.x-28;x<H0.x+28;x+=5){c.beginPath();c.moveTo(x,H0.y+4);c.lineTo(x,H0.y+16);c.stroke()}
+  for(const x of [H0.x-18,H0.x-2,H0.x+14]){c.fillStyle='#7b5236';c.fillRect(x-.4,H0.y,.8,10);c.fillStyle='#e8504a';c.beginPath();c.arc(x,H0.y,4.4,Math.PI,0);c.fill();c.fillStyle='#fff';c.fillRect(x-4.4,H0.y-.6,8.8,.8)}hSmoke(c,H0.x+12,H0.y-34,t,1)});
+ else if(KG.bau.find(b=>b.id==='hut'))add(H0.y,c=>kSite(c,H0.x,H0.y,60,t));
+ // Gletscherrestaurant + Eisgrotte
+ if(KG.b.grest){add(KEI.REST[1],c=>kEisRestDraw(c,t));add(470,c=>kEisGrotte(c))}else if(KG.bau.find(b=>b.id==='grest'))add(KEI.REST[1],c=>kSite(c,KEI.REST[0],KEI.REST[1],90,t));
+ else if(KG.stage>=4)add(KEI.REST[1],c=>{c.strokeStyle='rgba(120,150,190,.6)';c.lineWidth=1;c.setLineDash([5,4]);c.strokeRect(220,478,126,62);c.setLineDash([]);kSign(c,283,508,'🍽️ Gletscherrestaurant · im Baumenü','rgba(43,58,85,.65)','#fff',5.5)});
+ if(KG.bau.find(b=>b.id==='zaun'))add(600,c=>kSite(c,90,600,50,t));
+ // Garage, Bergwacht
+ if(KG.b.raupe)add(V.garage.y+8,c=>kGarage(c,V.garage.x,V.garage.y,t));if(KG.b.bw)add(KEI.BW[1],c=>kEisBwDraw(c,t));
+ // Sprengmasten und Sprengtrupp
+ for(const id of KEI.shut)if(KG.b.mast&&KG.b.mast[id]){const [x,y]=KEI.mast[id];add(y,c=>kEisGazex(c,x,y))}
+ if(KW.trupp&&KW.trupp.q.length){const id=KW.trupp.q[0],[x,y]=KEI.mast[id];add(y+6,c=>{kEisPpl(c,x-8,y+4,'#f2701f',t);kEisPpl(c,x+6,y+6,'#f2701f',t);c.fillStyle='#e8504a';c.fillRect(x+12,y-14,1,14);c.fillRect(x+13,y-14,6,4)})}
+ // Ausbau-Baustellen
+ if(sb){const S={2:[[560,1110],[650,1000]],3:[[820,760]],4:[[490,800],[610,520]],5:[[500,420],[600,300]],6:[[930,1120],[930,700]]}[sb.st]||[];for(const [x,y] of S)add(y,c=>kSite(c,x,y,56,t))}};
+// Pendelbahn: Seile mit Durchhang, Kabinen
+function kEisPbRope(c){const {b,t}=KEI.PB,dx=t[0]-b[0],dy=t[1]-b[1],l=Math.hypot(dx,dy),px=-dy/l,py=dx/l,co=9;const P=(u,s)=>[b[0]+dx*u+px*co*s,b[1]+dy*u+py*co*s+Math.sin(u*Math.PI)*10];
+ c.strokeStyle='#161a28';c.lineWidth=1.3;for(const s of [-1,1]){c.beginPath();for(let u=0;u<=1.001;u+=.05){const [x,y]=P(u,s);u?c.lineTo(x,y):c.moveTo(x,y)}c.stroke()}
+ c.lineWidth=.6;c.strokeStyle='rgba(22,26,40,.6)';for(const s of [-1,1]){c.beginPath();for(let u=0;u<=1.001;u+=.05){const [x,y]=P(u,s*.55);u?c.lineTo(x,y+3):c.moveTo(x,y+3)}c.stroke()}}
+function kEisPbCab(c,x,y,n){c.save();c.translate(x,y);c.fillStyle='#2a2e44';c.fillRect(-1.5,-2,3,9);c.fillRect(-8,-3,16,3);c.fillStyle='#e8504a';c.beginPath();c.roundRect(-14,7,28,22,4);c.fill();c.fillStyle='#bfe6fa';c.beginPath();c.roundRect(-11.5,10,23,9,2);c.fill();
+ const k=Math.min(6,Math.ceil(n/12));for(let i=0;i<k;i++){c.fillStyle='#ffd9b5';c.beginPath();c.arc(-8.5+i*3.4,14.4,1.3,0,7);c.fill()}c.fillStyle='#fff';c.fillRect(-14,22,28,2);c.fillStyle='rgba(0,0,0,.18)';c.fillRect(-14,26,28,3);c.restore()}
+// 3S-Kabine
+function kEis3SCab(c,n){c.fillStyle='#2a2e44';c.fillRect(-1.2,-2,2.4,7);c.fillRect(-6,-3,12,2.4);c.fillStyle='#2b3040';c.beginPath();c.roundRect(-10,5,20,15,3);c.fill();c.fillStyle='#bfe6fa';c.beginPath();c.roundRect(-8.5,7,17,6,1.6);c.fill();c.fillStyle='#f2c53b';c.fillRect(-10,16,20,1.4);
+ for(let i=0;i<Math.min(5,Math.ceil(n/6));i++){c.fillStyle='#ffd9b5';c.beginPath();c.arc(-6+i*3,10,1.2,0,7);c.fill()}c.fillStyle='rgba(0,0,0,.18)';c.fillRect(-10,18,20,2.5)}
+KV.eis.liftLook=function(c,o,t){const id=o.L.id,s=KG.l[id],T0=o.T,{bx,by,tx,ty,len,ux,uy}=o,co=T0.co,PY=kAPy(o.L,len,T0.drag);
+ if(T0.drag){c.strokeStyle='#2a2e44';c.lineWidth=.8;c.beginPath();c.moveTo(bx,by-14);c.lineTo(tx,ty-14);c.stroke();
+  for(const u of PY){const px=bx+(tx-bx)*u,py=by+(ty-by)*u;if(!kInV(px,py))continue;c.fillStyle='rgba(110,140,180,.25)';c.beginPath();c.ellipse(px+3,py+2,5,1.6,0,0,7);c.fill();c.fillStyle='#6a6890';c.fillRect(px-1,py-17,2,18);c.fillStyle='#3a3f58';c.fillRect(px-4,py-17,8,1.6)}
+  for(const ch of o.ch){if(ch.u>=1)continue;const [x,y0]=kLiftPos(o,ch.u),y=y0-14;if(!kInV(x,y,20))continue;c.strokeStyle='#2a2e44';c.lineWidth=.6;c.beginPath();c.moveTo(x,y);c.lineTo(x,y+9);c.stroke();c.strokeStyle='#3a3f58';c.lineWidth=1.1;c.beginPath();c.moveTo(x-3.5,y+9.5);c.lineTo(x+3.5,y+9.5);c.stroke()}return true}
+ const px=-uy,py=ux;c.strokeStyle='#161a28';c.lineWidth=id==='s3'?1.4:1.2;for(const sd of [-1,1]){c.beginPath();c.moveTo(bx+px*co*sd,by+py*co*sd);c.lineTo(tx+px*co*sd,ty+py*co*sd);c.stroke()}
+ if(id==='s3'){c.lineWidth=.7;c.strokeStyle='rgba(22,26,40,.7)';for(const sd of [-1,1]){c.beginPath();c.moveTo(bx+px*(co-4)*sd,by+py*(co-4)*sd+2);c.lineTo(tx+px*(co-4)*sd,ty+py*(co-4)*sd+2);c.stroke()}}
+ for(const u of PY){const x=bx+(tx-bx)*u,y=by+(ty-by)*u;if(!kInV(x,y))continue;if(id==='s3')kSeeBigPylon(c,x,y,co+6);else pylonN(c,x,y,co+3)}
+ const cap=T0.cap;for(const ch of o.ch){if(ch.u<.03||ch.u>1.97||Math.abs(ch.u-1)<.03)continue;const [x,y]=kLiftPos(o,ch.u);if(!kInV(x,y,30))continue;
+  c.save();c.translate(x,y);c.rotate(Math.sin(ch.u*40+t*.8)*(id==='s3'?.015:.04));if(id==='s3'){c.scale(1.35,1.35);kEis3SCab(c,ch.r.length)}else if(s.typ==='g8')kACabin(c,{r:ch.r.map(f=>({col:f.col}))});else gondola(c,{r:ch.r.map(f=>({col:f.col}))},cap);c.restore()}
+ return true};
+// Sperren, Sprengungen, Lawinen (unter den Gästen)
+function kEisBar(c,x,y,tx){c.fillStyle='#2b3040';c.fillRect(x-16,y-1,1.6,9);c.fillRect(x+14,y-1,1.6,9);for(let i=0;i<6;i++){c.fillStyle=i%2?'#fff':'#e8504a';c.fillRect(x-16+i*5.2,y-2,5.2,3)}if(tx)kSign(c,x,y-10,tx,'#e8504a','#fff',5)}
+const KESHUT={nr:[[748,594],[716,690]],tr:[[384,598],[350,612]],gpa:[[574,288],[600,304]]};
+KV.eis.drawDyn=function(c,t){
+ for(const id of kEisClosed()){const P=KESHUT[id];kEisBar(c,P[0][0],P[0][1],'GESPERRT · LAWINE');kEisBar(c,P[1][0],P[1][1])}
+ // Sprengung: Blitz am Mast, Schneewolke rollt die gesperrte Rinne hinunter
+ if(KW.blast&&KW.blast.length){KW.blast=KW.blast.filter(b=>t-b.T<5);for(const b of KW.blast){const u=t-b.T,[mx,my]=KEI.mast[b.id];
+  if(u<.9){c.fillStyle=`rgba(255,220,120,${((1-u/.9)*.95).toFixed(2)})`;c.beginPath();for(let i=0;i<12;i++){const a=i/12*6.283,rr=(i%2?7:17)*(1+u);c.lineTo(mx+Math.cos(a)*rr,my-24+Math.sin(a)*rr)}c.closePath();c.fill()}
+  const P=KW.pmap[b.id],L=P.d[P.d.length-1][3],r=kRNG(b.id.length*7),A=Math.max(0,1-Math.max(0,u-3)/2);for(let i=0;i<46;i++){const fr=i/46,s=Math.min(L,Math.min(1,u/3.2)*L*(.35+fr*.65)),q=kAt(P.d,s),ox=(r()-.5)*q[2]*1.6,oy=-r()*6,sz=6+fr*10+r()*5;c.fillStyle=`rgba(150,175,210,${(.35*A).toFixed(2)})`;c.beginPath();c.arc(q[0]+ox+sz*.3,q[1]+oy+sz*.35,sz*.75,0,7);c.fill();c.fillStyle=`rgba(255,255,255,${(A*(.8+r()*.2)).toFixed(2)})`;c.beginPath();c.arc(q[0]+ox,q[1]+oy,sz,0,7);c.fill()}}}
+ // Lawine im Lawinenstrich (nur bei hoher Warnstufe)
+ if(KW.natA){const u=t-KW.natA.T;if(u>6){KW.natA=null}else{const r=kRNG(77);for(let i=0;i<70;i++){const fr=i/70,yy=600+Math.min(1,u/3.2)*fr*420,x=165+(r()-.5)*(26+fr*50)-fr*14,s=7+fr*13+r()*6,a=Math.max(0,1-Math.max(0,u-3.5)/2.5);c.fillStyle=`rgba(150,175,210,${(a*.35).toFixed(2)})`;c.beginPath();c.arc(x+s*.3,yy+s*.35,s*.7,0,7);c.fill();c.fillStyle=`rgba(255,255,255,${(a*(.75+r()*.25)).toFixed(2)})`;c.beginPath();c.arc(x,yy,s,0,7);c.fill()}}}};
+KV.eis.drawOver=function(c,t){const H=KW.heli;if(H)kEisHeliDraw(c,H.x,H.y-H.h*14,H.a,t,1)};
+
+// ---------- Antippen, Fenster ----------
+KV.eis.hit=function(x,y,hit,d){if(KG.stage>=5&&(d(KEI.PB.b[0],KEI.PB.b[1])<34||d(548,256)<34))hit.push({k:'pb',d:0});
+ if(KG.stage>=5)for(const i of [0,1]){const p=kEisPbPos(i);if(Math.abs(x-p.x)<16&&y>p.y&&y<p.y+32)hit.push({k:'pb',d:0})}
+ for(const id of KEI.shut){const [mx,my]=KEI.mast[id];if(KG.b.mast&&KG.b.mast[id]&&d(mx,my-10)<18)hit.push({k:'law',d:0})}
+ if(x>70&&x<256&&y>580&&y<1060)hit.push({k:'law',d:2});
+ if(KG.b.grest&&(d(KEI.REST[0],KEI.REST[1]-30)<46||d(352,462)<20))hit.push({k:'grest',d:0});
+ if(KG.stage>=6&&d(KEI.KO[0],KEI.KO[1]-12)<26)hit.push({k:'kas',d:0});
+ if(KG.b.bw&&(d(KEI.BW[0],KEI.BW[1]-12)<26||d(KEI.HELI[0],KEI.HELI[1])<24))hit.push({k:'bwh',d:0});
+ if(KW.heli&&d(KW.heli.x,KW.heli.y-14)<26)hit.push({k:'law',d:0})};
+function kEisCSS(){if(document.getElementById('keiscss'))return;const s=document.createElement('style');s.id='keiscss';s.textContent=`.lws{display:flex;gap:4px;margin:8px 0 4px}.lws div{flex:1;text-align:center;border-radius:8px;padding:6px 0;font-weight:700;font-size:15px;color:#fff;opacity:.3}.lws div.on{opacity:1;outline:3px solid #2b3040;outline-offset:1px}
+.kwind{display:grid;grid-template-columns:1fr auto auto auto;gap:5px 10px;font-size:13.5px;align-items:center;margin:4px 0}.kwind .h{color:var(--mut);font-size:11.5px}`;document.head.appendChild(s)}
+const KELWN=['','gering','mäßig','erheblich','groß','sehr groß'],KELWC=['','#6cc07a','#f2c53b','#f2a63b','#e8504a','#7a2f2f'];
+function kEisLawHTML(){kEisCSS();const st=KG.stage,mast=KG.b.mast||{};let h=`<div class="lws">${[1,2,3,4,5].map(i=>`<div class="${KG.lw===i?'on':''}" style="background:${KELWC[i]}">${i}</div>`).join('')}</div>`;
+ h+=`<div style="font-size:13px;color:var(--mut);margin-bottom:6px">Warnstufe ${KG.lw} · ${KELWN[KG.lw]} – steigt mit Neuschnee und Sturm, sinkt mit Sonne${KG.b.zaun?' · Schneezäune: eine Stufe weniger':''}</div>`;
+ if(st<3)return h+'<p class="hint">Gesperrt wird erst ab Ausbau Stufe 3 – dann gibt es Rinnen, die nach Neuschnee gesprengt werden müssen.</p>';
+ h+=`<div class="bgh">${KG.lw>=3?'Heute gesperrt, bis gesprengt':'Abfahrten'}</div>`;
+ for(const id of KEI.shut){const p=KW.pmap[id];if(!kPisteOpen(p))continue;const z=kEisShut(id),how=mast[id]?'Sprengmast 7:15':KW.trupp&&KW.trupp.q[0]===id?'Sprengtrupp · frei um '+kh(KW.trupp.t+1):KW.trupp&&KW.trupp.q.includes(id)?'Sprengtrupp · wartet':'';
+  h+=`<div class="row"><span>${p.col==='y'?'🟡':'⚫'} ${p.n}</span><b>${z?`<span class="kchip ${how?'o':'r'}">${how||'gesperrt'}</span>`:'<span class="kchip g">offen</span>'}</b></div>`}
+ h+=`<div class="row"><span>🔵 Gletscher, Kessel, Tal</span><b><span class="kchip g">offen</span></b></div>`;
+ h+='<div class="bgh">Sprengen</div>';
+ const card=(ic,n,s,btn)=>`<div class="kcard"><span class="ic">${ic}</span><span class="tx"><b>${n}</b><small>${s}</small></span><span class="bt">${btn}</span></div>`;
+ h+=card('🧨','Sprengtrupp (Bergwacht)','beginnt um 7:00 · eine Rinne pro Stunde · gratis',KG.b.bw?'<span class="kchip g">✓ dabei</span>':'<button class="btn" data-a="go" data-v="bau|per">Bergwacht ›</button>');
+ const can=kEisHeliCan();h+=card('🚁','Sprengflug','alle gesperrten Rinnen in rund 30 Minuten · 1.500 € je Flug',!KG.b.bw?'<small>erst Bergwacht</small>':KW.heli?'<span class="kchip o">fliegt</span>':`<button class="btn" data-a="eheli" ${can&&kCanPay(1500)?'':'disabled'}>1.500 €</button>`);
+ if(KG.b.bw)h+=`<div class="row"><span>🚁 Sprengflug automatisch ab Warnstufe 4</span><button class="btn" data-a="eauto" style="${KG.heliAuto?'':'background:#8a94a8;box-shadow:0 3px 0 #5d667a'}">${KG.heliAuto?'an':'aus'}</button></div>`;
+ const nm=KEI.shut.filter(id=>mast[id]).length,av=KEI.shut.filter(id=>kPisteOpen(KW.pmap[id])).length;h+=card('📡','Sprengmasten','sprengen automatisch um 7:15 · 6.000 € je Rinne',`<span class="kchip ${nm?'g':''}">${nm} von ${av}</span>`);
+ h+=card('🚧','Schneezäune','Warnstufe dauerhaft eine Stufe niedriger · 12.000 €',KG.b.zaun?'<span class="kchip g">✓ gebaut</span>':'<button class="btn" data-a="go" data-v="bau|pis">Baumenü ›</button>');
+ return h+'<p class="hint">Gesperrte Abfahrten fehlen den Profis – das kostet Laune und Ruf. Je früher gesprengt, desto weniger.</p>'}
+function kEisWindHTML(){kEisCSS();const w=KG.wind||0;let h=`<div class="kpi"><div><small>Wind am Gipfel</small><b>${w} km/h</b><i>${w>=75?'Sturm':w>=50?'stürmisch':w>=30?'windig':'ruhig'}</i></div><div><small>Wind im Tal</small><b>${Math.round(w*.38)} km/h</b></div></div>`;
+ h+='<div class="bgh">Welche Bahnen bei Wind fahren</div><div class="kwind"><span class="h">Bahn</span><span class="h">Wind am Lift</span><span class="h">fährt bis</span><span class="h">jetzt</span>';
+ const row=(ic,n,id)=>{const st=kEisWS(id),sl=id==='kb'&&kEisSlow();h+=`<span>${ic} ${n}</span><span style="text-align:right">${kEisWindAt(id)} km/h</span><span style="text-align:right">${KEI.lim[id]} km/h</span><b><span class="kchip ${st?'r':sl?'o':'g'}">${st?'steht':sl?'langsam':'fährt'}</span></b>`};
+ if(KG.stage>=5)row('🚡','Pendelbahn Gipfel','pb');if(KG.l.gb.on)row('🚠','Gletscherbahn','gb');if(KG.l.gt.on)row('🎿','Gletscherlift','gt');if(KG.l.rl.on)row('🪑','Rinnenlift','rl');if(KG.l.kb.on)row('🪑','Kesselbahn','kb');row('🪑','Almbahn','am');if(KG.l.s3.on)row('🚠','3S-Gletscherexpress','s3');
+ h+='</div><p class="hint">Je höher eine Bahn, desto mehr Wind bekommt sie ab – im Tal weht nur ein Teil des Gipfelwinds. Die Kesselbahn fährt ab '+Math.round(KEI.lim.kb*.85)+' km/h langsamer.'+(KG.stage>=6?' Der 3S-Gletscherexpress hängt an zwei Tragseilen und fährt auch bei Sturm – dann ist er der einzige Weg auf den Gletscher.':' Ab Stufe 6 kommt der 3S-Gletscherexpress – er fährt auch bei Sturm.')+'</p>';
+ return h}
+function kEisPbHTML(){const pb=KW.pb||{q:{B:[],T:[]}},cap=kEisPbCap(),ws=kEisWS('pb');let h=kHead('🚡 Pendelbahn Gipfel')+`<div style="margin:4px 0"><span class="kchip b">2 Kabinen · je ${cap} Plätze</span><span class="kchip ${ws?'r':kEisPbOk()?'g':''}">${ws?'Wind '+KG.wind+' km/h – steht':kEisPbOk()?'fährt alle 15 Minuten':'steht'}</span></div>`;
+ h+=`<div class="kpi"><div><small>Warten unten</small><b>${pb.q.B.length}</b></div><div><small>Warten am Gipfel</small><b>${pb.q.T.length}</b></div><div><small>Auf der Plattform</small><b>${KW.folks.filter(f=>f.st==='view').length}</b></div><div><small>Fahrgäste heute</small><b>${knum(KG.res.pbN||0)}</b></div></div>`;
+ h+=`<div class="row"><span>Strecke</span><b>Gletscherstation ⇄ Gipfel 3.402 m</b></div><div class="row"><span>💨 Windgrenze</span><b>${KEI.lim.pb} km/h · heute ${KG.wind} km/h</b></div><div class="row"><span>Größere Kabinen</span><button class="btn" data-a="go" data-v="bau|lif">Baumenü ›</button></div>`;
+ return h+'<p class="hint">Eine Kabine fährt hinauf, die andere hinunter. Profis fahren die schwarze Gipfelabfahrt, die anderen genießen die Aussicht auf der Plattform und fahren wieder hinunter. Letzte Bergfahrt 15:30.</p>'}
+function kEisBergHTML(){return '<div class="bgh">🌪️ Bergwetter</div>'+kEisWindHTML()+'<div class="bgh">⚠️ Lawinenlage</div>'+kEisLawHTML()}
+KV.eis.infHTML=function(k){if(k==='pb')return kEisPbHTML();
+ if(k==='law')return kHead('⚠️ Lawinenlage')+kEisLawHTML();if(k==='wind')return kHead('🌪️ Bergwetter am Eisspitz')+kEisWindHTML();
+ if(k==='grest')return kHead('🍽️ Gletscherrestaurant')+`<div class="kpi"><div><small>Gäste gerade</small><b>${KW.folks.filter(f=>f.st==='rest').length}</b></div><div><small>Essen heute (alle)</small><b>${kfmt(KG.inc.food||0)}</b></div></div><div class="row"><span>Gletscher-Preis</span><b>${Math.round(KG.price.food*1.35)} € (Menü ${KG.price.food} €)</b></div><p class="hint">Glaskubus mit Sonnenterrasse an der Gletscherstation – mit Eisgrotte. Mittagszeit ist zwischen 11 und 14 Uhr.</p>`;
+ if(k==='bwh')return kHead('⛑️ Bergwacht')+`<p class="hint">Holt Verletzte mit Motorschlitten und Akja von der Piste.${KW.res?' Gerade im Einsatz.':''} Ab Stufe 3 sprengt ihr Sprengtrupp die gesperrten Rinnen, der Hubschrauber fliegt Sprengflüge.</p><div class="row"><span>Lawinenlage</span><button class="btn" data-a="go" data-v="sta|berg">Übersicht ›</button></div>`;
+ return ''};
+KV.eis.kioskOK=function(f){const w=KVOR.where(f);return w==='tal'||w==='kas'};
+KV.eis.staTab=['berg','🏔️','Berg'];KV.eis.staTabHTML=kEisBergHTML;
+KV.eis.staExtra=function(){let h='<div class="bgh">Berg</div>'+`<div class="row"><span>💨 Wind am Gipfel</span><b>${KG.wind||0} km/h</b></div>`;if(KG.stage>=3){const z=kEisClosed();h+=`<div class="row"><span>⚠️ Lawinenwarnstufe</span><b>${KG.lw} · ${z.length?z.length+' gesperrt':'alles offen'}</b></div>`}return h};
+KV.eis.liftInfo=function(id){return `<div class="row"><span>💨 Windgrenze</span><b>${KEI.lim[id]} km/h · heute am Lift ${kEisWindAt(id)} km/h</b></div>`+(id==='kb'&&kEisSlow()?'<p class="hint">💨 Viel Wind – die Kesselbahn fährt heute langsamer.</p>':'')+(id==='s3'?'<p class="hint">Zwei Tragseile, ein Zugseil – die 3S-Bahn fährt auch bei Sturm.</p>':'')};
+KV.eis.windHint=function(id){return `<p class="hint">🌪️ Zu viel Wind am Lift (${kEisWindAt(id)} km/h, Grenze ${KEI.lim[id]} km/h) – die Bahn steht heute.</p>`};
+KV.eis.pisteInfo=function(p){const id=p.id;let h='';if(KEI.shut.includes(id))h+=kEisShut(id)?'<p class="hint">⚠️ Wegen Lawinengefahr gesperrt, bis gesprengt.</p>':'';
+ if(id==='tr')h+='<p class="hint">🟡 Skiroute: nicht präpariert, gelb-schwarz markiert – durch eine Felsrinne bis zur Alm.</p>';if(id==='nr')h+='<p class="hint">⚫ Steil und eng zwischen den Felswänden – nur für Könner.</p>';if(id==='gpa')h+='<p class="hint">⚫ Vom Gipfel über den steilen Grat auf den Gletscher.</p>';if(id==='gs')h+='<p class="hint">🧊 Auf dem Gletscher – Spalten sind abgesperrt.</p>';
+ return h};
+KV.eis.voices=function(out){if(KG.stage>=3&&kEisClosed().length&&KG.t>8.5)out.push(['⚠️','„Die Rinnen sind schon wieder zu – wann wird gesprengt?“']);if(kEisWS('pb')&&KG.stage>=5)out.push(['💨','„Die Pendelbahn steht wegen Wind – schade!“']);
+ if(KG.stage>=5&&!kEisWS('pb'))out.push(['🏔️','„Die Aussicht vom Gipfel ist unglaublich!“']);if(KG.b.grest)out.push(['🍽️','„Mittagessen im Glaskubus am Gletscher – traumhaft.“']);if(KG.stage>=6&&KG.wx==='sturm')out.push(['🚠','„Zum Glück fährt der 3S auch bei Sturm.“'])};
+KV.eis.thumbPrep=function(G){G.b.grest=1;G.b.hut=1;G.b.zaun=1;G.b.mast={nr:1,tr:1,gpa:1};G.b.bw=1;for(const k in G.lots)G.lots[k]=1;G.paved=1;G.wind=20};
+KV.eis.thumbObjs=function(O){O.push({y:540,f:c=>kEisRestDraw(c,0)});O.push({y:470,f:c=>kEisGrotte(c)});O.push({y:270,f:c=>kEisGipfel(c,0)});O.push({y:3000,f:c=>{kEisPbRope(c);kEisPbCab(c,476,470,30);kEisPbCab(c,532,330,30)}})};
+KV.eis.thumbR={x:-60,y:220,w:1200};
+KV.eis.onStart=function(){KW.pb=null;KW.blast=[];KW.heli=null;KW.trupp=null;KW.natA=null;KW.natL=null;if(KG&&KG.wind==null)KG.wind=20;if(KG&&!KG.lwz)KG.lwz={}};
+
 // ===== Landschaftsteile =====
 function kSky(c,y1,top='#5fb8ee',bot='#d6f0ff'){const g=c.createLinearGradient(0,-200,0,y1);g.addColorStop(0,top);g.addColorStop(1,bot);c.fillStyle=g;c.fillRect(-600,-600,2400,y1+600)}
 function kSnowGround(c,y0,y1){const g=c.createLinearGradient(0,y0,0,y1);g.addColorStop(0,'#ffffff');g.addColorStop(1,'#edf4fb');c.fillStyle=g;c.fillRect(-600,y0,2400,y1-y0+600);
@@ -1369,9 +1976,10 @@ function kOpenS(p){if(!p.sec)return 0;for(const q of p.d)if(kPtOpen(p,q))return 
 function kLiftFor(p){if(p.via)return kPisteOpen(KW.pmap[p.via]);for(const L of KVOR.lifts)if(L.pistes.includes(p.id)&&KG.l[L.id]&&KG.l[L.id].on)return 1;return 0}
 function kDrawPistes(c){const PS=KW.pistes;
  for(let pass=0;pass<2;pass++)for(const p of PS){const op0=kPisteOpen(p);for(let i=0;i<p.d.length;i+=2){const q=p.d[i],op=op0&&kPtOpen(p,q);c.fillStyle=pass?(op?'#ffffff':'#fbfdff'):(op?'#d9e6f3':'#e9f0f8');c.beginPath();c.arc(q[0],q[1],q[2]+(pass?0:1.4),0,7);c.fill()}}
- c.strokeStyle='rgba(165,185,215,.32)';c.lineWidth=.7;for(const p of PS){if(!kPisteOpen(p))continue;for(const f of [-.62,-.3,0,.3,.62]){c.beginPath();const n0=p.d.length;let st=0;p.d.forEach((q,i)=>{if(i<n0*.04||i>n0*.93||!kPtOpen(p,q)){st=0;return}const x=q[0]+q[4]*q[2]*f+Math.sin(q[1]/37+f*5)*3,y=q[1]+q[5]*q[2]*f;st?c.lineTo(x,y):c.moveTo(x,y);st=1});c.stroke()}}
- const PC={b:'#3a78d0',r:'#e8504a',s:'#2b3040'};for(const p of PS){if(!kPisteOpen(p))continue;let acc=0;for(let i=1;i<p.d.length;i++){const a=p.d[i-1],q=p.d[i];acc+=Math.hypot(q[0]-a[0],q[1]-a[1]);if(acc<34||!kPtOpen(p,q))continue;acc=0;
-  for(const sd of [-1,1]){const x=q[0]+q[4]*(q[2]+4)*sd,y=q[1]+q[5]*(q[2]+4)*sd;if(kOnP(x,y,-1)||kInBlock(x,y,-6))continue;c.fillStyle=PC[p.col];c.fillRect(x,y-8,1.6,9);c.fillStyle=p.col==='s'?'#f2c53b':'#fff';c.fillRect(x,y-5,1.6,1.4)}}}
+ c.strokeStyle='rgba(165,185,215,.32)';c.lineWidth=.7;for(const p of PS){if(!kPisteOpen(p)||p.route)continue;for(const f of [-.62,-.3,0,.3,.62]){c.beginPath();const n0=p.d.length;let st=0;p.d.forEach((q,i)=>{if(i<n0*.04||i>n0*.93||!kPtOpen(p,q)){st=0;return}const x=q[0]+q[4]*q[2]*f+Math.sin(q[1]/37+f*5)*3,y=q[1]+q[5]*q[2]*f;st?c.lineTo(x,y):c.moveTo(x,y);st=1});c.stroke()}}
+ for(const p of PS){if(!p.route||!kPisteOpen(p))continue;const r=kRNG(p.d.length*3);for(let i=0;i<p.d.length;i+=3){const q=p.d[i];for(let k=0;k<2;k++){const x=q[0]+(r()*2-1)*q[2]*.7,y=q[1]+(r()*2-1)*4;c.fillStyle='rgba(150,180,215,.35)';c.beginPath();c.ellipse(x+1.5,y+1.2,4,1.6,0,0,7);c.fill();c.fillStyle='rgba(255,255,255,.95)';c.beginPath();c.ellipse(x,y,3.6,1.5,0,0,7);c.fill()}}}
+ const PC={b:'#3a78d0',r:'#e8504a',s:'#2b3040',y:'#f2c53b'};for(const p of PS){if(!kPisteOpen(p))continue;let acc=0;for(let i=1;i<p.d.length;i++){const a=p.d[i-1],q=p.d[i];acc+=Math.hypot(q[0]-a[0],q[1]-a[1]);if(acc<34||!kPtOpen(p,q))continue;acc=0;
+  for(const sd of [-1,1]){const x=q[0]+q[4]*(q[2]+4)*sd,y=q[1]+q[5]*(q[2]+4)*sd;if(kOnP(x,y,-1)||kInBlock(x,y,-6))continue;c.fillStyle=PC[p.col];c.fillRect(x,y-8,1.6,9);c.fillStyle=p.col==='s'?'#f2c53b':p.col==='y'?'#2b3040':'#fff';c.fillRect(x,y-5,1.6,p.col==='y'?2:1.4)}}}
  // gesperrte Pisten: Schild
  for(const p of PS){if(p.id==='ueb'||p.conn)continue;
   if(p.sec&&kPisteOpen(p)){// gesperrte Abschnitte einzeln beschriften
@@ -1410,7 +2018,9 @@ const kDayT=d=>KWN[(d-1)%7]+' • Woche '+(Math.floor(((d-1)%KSL)/7)+1);
 // Helligkeit 0..1 aus der Uhrzeit
 function kBright(){const t=KG?KG.t:12;if(t<6)return 0;if(t<7.5)return (t-6)/1.5;if(t<16.8)return 1;if(t<18.6)return 1-(t-16.8)/1.8;return 0}
 // Lift-Daten
-const KLT={teller:{n:'Tellerlift',cap:1,sp:15,v:30,co:4,up:110,drag:1},schlepp:{n:'Schlepplift',cap:2,sp:20,v:30,co:3,up:150,drag:1},s1:{n:'Einersessel',cap:1,sp:30,v:30,co:5,up:180,chair:1},g8:{n:'8er-Gondel',cap:8,sp:62,v:56,co:10,up:640},s2:{n:'2er-Sessel',cap:2,sp:36,v:40,co:8,up:260},s4:{n:'4er-Sessel',cap:4,sp:40,v:46,co:8,up:380},s6:{n:'6er-Sessel',cap:6,sp:44,v:50,co:9,up:520}};
+const KLT={teller:{n:'Tellerlift',cap:1,sp:15,v:30,co:4,up:110,drag:1},schlepp:{n:'Schlepplift',cap:2,sp:20,v:30,co:3,up:150,drag:1},s1:{n:'Einersessel',cap:1,sp:30,v:30,co:5,up:180,chair:1},g8:{n:'8er-Gondel',cap:8,sp:62,v:56,co:10,up:640},s2:{n:'2er-Sessel',cap:2,sp:36,v:40,co:8,up:260},s4:{n:'4er-Sessel',cap:4,sp:40,v:46,co:8,up:380},s6:{n:'6er-Sessel',cap:6,sp:44,v:50,co:9,up:520},s3:{n:'3S-Bahn',cap:28,sp:150,v:72,co:12,up:900}};
+// Wind: steht ein Lift? (Berge mit eigener Windgrenze: KVOR.windStop)
+function kWS(id){if(KVOR&&KVOR.windStop)return KVOR.windStop(id);const s=KG.l[id];return KG.wx==='sturm'&&!KLT[s.typ].drag}
 const kLC=(id)=>{const L=KVOR.lifts.find(x=>x.id===id);return L};
 // Lift, dessen Bergstation am Fuß dieses Liftes liegt (Lift-Kette)
 const kLowerOf=(id)=>KVOR.lifts.find(x=>x.nx===id);
@@ -1426,12 +2036,12 @@ function kLiftSetup(id){const st=KG.l[id],g=kLiftGeo(id),T0=KLT[st.typ],sp=T0.sp
  const old=KW.lift&&KW.lift[id];const o=Object.assign(g,{T:T0,n,ph:old?old.ph:0,ch:Array.from({length:n},(_,i)=>({u:i*2/n,r:[]})),q:old?old.q:[],run:0,ridT:0,wait:[],cnt:0});
  if(old)for(const c of old.ch)for(const f of c.r){f.st='q';o.q.unshift(f)}
  (KW.lift||(KW.lift={}))[id]=o;return o}
-function kLiftOpen(id){const st=KG.l[id];if(!st||!st.on)return 0;if(st.brk)return 0;if(KG.wx==='sturm'&&!KLT[st.typ].drag)return 0;const t=KG.t;return t>=8.5&&t<16.25}
+function kLiftOpen(id){const st=KG.l[id];if(!st||!st.on)return 0;if(st.brk)return 0;if(kWS(id))return 0;const t=KG.t;return t>=8.5&&t<16.25}
 function kLiftPos(o,u,side){// u 0..1 bergauf (rechte Seite), 1..2 bergab
  const up=u<1,a=up?u:2-u,co=o.T.co,px=-o.uy,py=o.ux;const sd=up?1:-1;return [o.bx+(o.tx-o.bx)*a+px*co*sd,o.by+(o.ty-o.by)*a+py*co*sd]}
 function kLiftStep(o,dt){const id=o.L.id,open=kLiftOpen(id),st=KG.l[id];
- const riders=o.ch.some(c=>c.r.length);o.run=(st.on||riders)&&!st.brk&&!(KG.wx==='sturm'&&!KLT[st.typ].drag)&&(open||riders);
- if(!o.run)return;const du=o.T.v*dt/o.len;
+ const riders=o.ch.some(c=>c.r.length);o.run=(st.on||riders)&&!st.brk&&!kWS(id)&&(open||riders);
+ if(!o.run)return;const du=o.T.v*dt/o.len*(KVOR.liftV?KVOR.liftV(id):1);
  for(const c of o.ch){const u0=c.u;c.u+=du;if(c.u>=2)c.u-=2;
   // Ankunft oben
   if(u0<1&&c.u>=1){for(const f of c.r)kUnload(o,f);c.r=[]}
@@ -1489,10 +2099,10 @@ function kAfterRun(f){f.st='walk';f.path=null;
  if(f.ins)return kInsHome(f);
  if(KG.t>=f.leaveT||!kAnyLiftFor(f))return kGoHome(f);
  // Kiosk am Mittag (wenn keine Hütte erreichbar)
- if(!f.ate&&KG.b.kiosk&&KG.t>=11.4&&KG.t<13.8&&(f.pid==='ueb'||!KG.b.hut||KVOR.kioskAlways&&!f.ateCk)&&kR()<.7)return kGoKiosk(f);
+ if(!f.ate&&KG.b.kiosk&&KG.t>=11.4&&KG.t<13.8&&(f.pid==='ueb'||!KG.b.hut||KVOR.kioskAlways&&!f.ateCk)&&(!KVOR.kioskOK||KVOR.kioskOK(f))&&kR()<.7)return kGoKiosk(f);
  // Wechsel zwischen Übungshang und Sessel
- const lid=KVOR.chooseLift?KVOR.chooseLift(f):kChooseLift(f);kToQueue(f,lid)}
-function kAnyLiftFor(f){for(const L of KVOR.lifts)if(KG.l[L.id].on&&KG.t<16.25&&(KLT[KG.l[L.id].typ].drag||KG.wx!=='sturm'))return 1;return 0}
+ const lid=KVOR.chooseLift?KVOR.chooseLift(f):kChooseLift(f);if(lid)kToQueue(f,lid)}
+function kAnyLiftFor(f){for(const L of KVOR.lifts)if(KG.l[L.id].on&&KG.t<16.25&&!kWS(L.id))return 1;return 0}
 function kChooseLift(f){const ses=KG.l.ses&&KG.l.ses.on&&KG.wx!=='sturm'&&KG.stage>=2,tl=KG.l.tl&&KG.l.tl.on;
  if(!ses)return 'tl';if(!tl)return 'ses';
  const p={fam:.82,anf:.25,pro:.97,sb:.95}[f.ty]||.6;const anfP=f.ty==='anf'?Math.min(.75,.18+(f.runs||0)*.07):p;return kR()<anfP?'ses':'tl'}
@@ -1508,7 +2118,7 @@ function kWhere(f){// Bereich, an dem der Gast gerade ist: kas | tl | ses | kid 
 function kRoute(from,to,f){if(KVOR.route)return KVOR.route(from,to,f);const P=KW.paths,toK={tl:P.kTl,ses:P.kSes,kid:P.kKid,sch:P.kSchool};let path=[];if(from===to)return path;if(from!=='kas'&&toK[from])path=kRev(toK[from]);if(to!=='kas'&&toK[to])path=path.concat(toK[to]);else path.push([KVOR.kassa.x,KVOR.kassa.y+8]);return path}
 function kToQueue(f,lid){const o=KW.lift[lid],here=kWhere(f);const path=here===lid?(KVOR.route?KVOR.route(here,lid,f):[]):kRoute(here,lid,f);
  const end=kQSlot(o,o.q.length+1);path.push(end);f.path=path;f.pi=0;f.st='walk';f.wsp=path.length>2?11:14;f.nx='q:'+lid}
-function kJoinQ(f,lid){const o=KW.lift[lid];if(!o||!KG.l[lid].on||KG.t>=16.25||(!KLT[KG.l[lid].typ].drag&&KG.wx==='sturm')){return f.ins?kInsHome(f):kGoHome(f)}f.st='q';f.qT=KG.t;f.lid=lid;o.q.push(f)}
+function kJoinQ(f,lid){const o=KW.lift[lid];if(!o||!KG.l[lid].on||KG.t>=16.25||kWS(lid)){return f.ins?kInsHome(f):kGoHome(f)}f.st='q';f.qT=KG.t;f.lid=lid;o.q.push(f)}
 function kQStep(o,dt){const qv=o.T.cap>1?30:14;for(let i=0;i<o.q.length;i++){const f=o.q[i],[sx,sy]=kQSlot(o,i),dx=sx-f.x,dy=sy-f.y,d=Math.hypot(dx,dy);if(d>.3){const m=Math.min(d,qv*dt);f.x+=dx/d*m;f.y+=dy/d*m;f.sv=0}}
  // Liftschluss: wer noch steht, geht heim
  if(KG.t>=16.25||!KG.l[o.L.id].on){while(o.q.length){const f=o.q.shift();if(f.ins)kInsHome(f);else kGoHome(f)}}}
@@ -1639,7 +2249,7 @@ function kSpawnHotelG(n){const V=KVOR,H=V.hotel;for(let i=0;i<n;i++){const ty=kM
  const path=V.hotel.pin();kWalk(f,path,'kassa',11);f.delay=Math.floor(i/4)*2.2+(i%4)*.35;KW.folks.push(f);KG.gDay++;KG.gT++}}
 
 // ===== Tagesablauf, Wirtschaft =====
-const KBASE={sonn:[0,110,260,380],bich:[0,120,190,270,380],alt:[0,150,220,290,370],seek:[0,175,245,305,370,450]};
+const KBASE={sonn:[0,110,260,380],bich:[0,120,190,270,380],alt:[0,150,220,290,370],seek:[0,175,245,305,370,450],eis:[0,150,205,255,305,355,420]};
 const KWXF={sonne:1.12,neuschnee:1.22,tau:.82,sturm:.5};
 const KWI={sonne:'☀️',neuschnee:'🌨️',tau:'🌡️',sturm:'🌪️'},KWNM={sonne:'Sonne',neuschnee:'Neuschnee',tau:'Tauwetter',sturm:'Sturm'};
 function kFairT(){return KVOR.fair.ticket[KG.stage]+(kStars()-1)*1.5}
@@ -1649,7 +2259,7 @@ function kDemand(){const V=KVOR,base=KBASE[V.id]||KBASE.sonn,st=KG.stage;if(!Obj
  const r=KG.price.ticket/kFairT(),priceF=kcl(1.15-(r-.85)*V.priceSens*.9,.3,1.3);
  const q=kPQavg();let att=1+(KG.b.kinder?.07:0)+(KG.b.school?.05:0)+(KG.b.hut&&st>=(V.hut?V.hut.st:2)?.06:0)+(KG.b.kiosk?.02:0)+(V.att?V.att():0);
  let cmp=0;for(const c of KG.cmp)cmp+=c.eff;
- const d=b*KWF[kWd()]*(KWXF[KG.wx]||1)*(.35+KG.ruf/100*.95)*(.8+.1*kStars())*priceF*att*(.72+.28*q/100)*(1+cmp);
+ const d=b*KWF[kWd()]*((KVOR.wxF&&KVOR.wxF[KG.wx])||KWXF[KG.wx]||1)*(.35+KG.ruf/100*.95)*(.8+.1*kStars())*priceF*att*(.72+.28*q/100)*(1+cmp);
  return Math.round(d)}
 function kPQavg(){let s=0,n=0;for(const p of KW.pistes){if(p.conn||!kPisteOpen(p))continue;s+=KG.pq[p.id];n++}return n?s/n:100}
 function kArrRate(t){if(t<8||t>=13.1)return 0;return t<9?1:t<10.6?1.6:t<12?.8:.62}
@@ -1718,7 +2328,7 @@ function kMorning(){KG.wx=KG.wxN||'sonne';KG.dem=kDemand();KG.gDay=0;KG.rej=0;KG
  for(const id in KG.l){const s=KG.l[id];if(!s.on)continue;const p=KVOR.brkP?KVOR.brkP(id,s):.025+(1-s.cond/100)*.32;if(kR()<p){s.brkAt=9.4+kR()*5.6}else s.brkAt=0}
  const lam=.3+(KG.stage>=2?.35:0)+(kPQavg()<55?.4:0);KW.acc=[];let n=lam>1?1:0;if(kR()<lam%1)n++;for(let i=0;i<n;i++)KW.acc.push(9.6+kR()*5.5);KW.acc.sort((a,b)=>a-b);
  KG.fog=0;if(KVOR.morning)KVOR.morning();
- if(KG.wx==='sturm')kLog('🌪️',KVOR.lifts.filter(L=>!KLT[KG.l[L.id].typ].drag&&KG.l[L.id].on).length>1?'Sturm – die Sessellifte bleiben heute zu.':'Sturm – der Sessellift bleibt heute zu.');
+ if(KVOR.windLog)KVOR.windLog();else if(KG.wx==='sturm')kLog('🌪️',KVOR.lifts.filter(L=>!KLT[KG.l[L.id].typ].drag&&KG.l[L.id].on).length>1?'Sturm – die Sessellifte bleiben heute zu.':'Sturm – der Sessellift bleibt heute zu.');
  kSave()}
 // --- Mitternacht: Tagesabschluss ---
 function kMidnight(){const V=KVOR,d=KG.day;
@@ -2066,6 +2676,7 @@ function kUI(){KW.dirty=0;const sh=document.getElementById('ksheet');if(!sh)retu
  const top=sh.dataset.k===k+(KW.tab||'')?sh.scrollTop:0;sh.innerHTML=h;sh.dataset.k=k+(KW.tab||'');sh.classList.add('on');sh.classList.toggle('big',k==='bau'||k==='end'||k==='sta'||k==='ziel');sh.scrollTop=top;kGoalBar()}
 function kHead(t,tabs){return `<div class="bhead"><h3>${t}<a data-a="x">✕</a></h3>${tabs?`<div class="btab">${tabs.map(([id,ic,n])=>`<button data-a="tab" data-v="${id}" class="${KW.tab===id?'on':''}"><span>${ic}</span>${n}</button>`).join('')}</div>`:''}</div>`}
 function kSheetClick(e){const b=e.target.closest('[data-a]');if(!b)return;const a=b.dataset.a,v=b.dataset.v;
+ if(KVOR&&KVOR.act&&KVOR.act(a,v))return;
  if(a==='x'){if(KW.open==='neu'){KW.neu=null}kClose();return}
  if(a==='tab'){KW.tab=v;kUI();return}
  if(a==='buy'){kBuy(v);return}
@@ -2213,7 +2824,7 @@ function kInfHTML(){const k=KW.inf||'',V=KVOR;
   let h=kHead((s.typ==='teller'?'🎿 ':'🚡 ')+L.n)+`<div style="margin:4px 0"><span class="kchip b">${T0.n}</span>${s.lg?`<span class="kchip">+${s.lg} Ausbau</span>`:''}${s.brk?'<span class="kchip r">⚠️ Störung</span>':kLiftOpen(id)?'<span class="kchip g">in Betrieb</span>':'<span class="kchip">steht</span>'}</div>`;
   h+=`<div class="kpi"><div><small>Wartezeit</small><b>${w<1?'keine':Math.round(w)+' Min.'}</b></div><div><small>In der Schlange</small><b>${o?o.q.length:0}</b></div><div><small>Fahrten heute</small><b>${o?o.cnt:0}</b></div><div><small>Zustand</small><b>${Math.round(s.cond)} %</b></div></div>`;
   if(L.tn)h+=`<div class="row"><span>Strecke</span><b>${L.bn||'Talstation'} → ${L.tn}</b></div>`;
-  if(KG.wx==='sturm'&&!KLT[s.typ].drag)h+='<p class="hint">🌪️ Bei Sturm steht der Sessellift.</p>';
+  if(kWS(id))h+=KVOR.windHint?KVOR.windHint(id):'<p class="hint">🌪️ Bei Sturm steht der Sessellift.</p>';
   h+=`<div class="row"><span>🔧 Generalüberholung (Zustand 100 %, weniger Störungen)</span><button class="btn" data-a="ovh" data-v="${id}" ${s.cond>92||!kCanPay(ovh)?'disabled':''}>${kfmt(ovh)}</button></div><div class="row"><span>Ausbau</span><button class="btn" data-a="go" data-v="bau|lif">Baumenü ›</button></div>`;if(V.liftInfo)h+=V.liftInfo(id)||'';return h}
  if(V.infHTML){const r=V.infHTML(k);if(r)return r}
  const Hd={kas:'🎫 Kassa',kio:'🌭 Kiosk',hut:'🛖 '+(V.hut?V.hut.n:'Hütte'),kid:'⭐ Kinderland',sch:'⛷️ Skischule',rau:'🚜 Pistenraupe',hot:'🏨 '+(V.hotel?V.hotel.n:'Gasthof'),park:'🅿️ Parkplätze'};
@@ -2226,7 +2837,7 @@ function kInfHTML(){const k=KW.inf||'',V=KVOR;
   if(k==='hot')h+=`<div class="kpi"><div><small>Belegung</small><b>${Math.round((KG.hOcc||0)*100)} %</b></div><div><small>Zimmerpreis</small><b>${KG.price.hotel} €</b></div></div>`;
   if(k==='park'){const sp=kSpots().length,used=KW.cars.filter(c=>c.spot).length;h+=`<div class="kpi"><div><small>Belegt</small><b>${used} / ${sp}</b></div><div><small>Heute abgewiesen</small><b>${KG.rej}</b></div></div><div class="row"><span>Parken</span><button class="btn" data-a="go" data-v="pre">${KG.price.park} € ›</button></div>`}
   return h}
- if(k.startsWith('p:')){const p=KW.pmap[k.slice(2)];return kHead((p.col==='r'?'🔴 ':p.col==='s'?'⚫ ':'🔵 ')+p.n)+`<div class="kpi"><div><small>Zustand</small><b>${Math.round(KG.pq[p.id])} %</b></div><div><small>Gäste darauf</small><b>${KW.folks.filter(f=>f.st==='ski'&&f.pid===p.id).length}</b></div></div>`+(V.pisteInfo?V.pisteInfo(p):'')}
+ if(k.startsWith('p:')){const p=KW.pmap[k.slice(2)];return kHead((p.col==='r'?'🔴 ':p.col==='s'?'⚫ ':p.col==='y'?'🟡 ':'🔵 ')+p.n)+`<div class="kpi"><div><small>Zustand</small><b>${Math.round(KG.pq[p.id])} %</b></div><div><small>Gäste darauf</small><b>${KW.folks.filter(f=>f.st==='ski'&&f.pid===p.id).length}</b></div></div>`+(V.pisteInfo?V.pisteInfo(p):'')}
  return kHead('Info')}
 function kOvhC(id){const L=kLC(id);return Math.round((L.ovh||(id==='tl'?600:3000))*(KPK('lift')?.9:1))}
 function kOverhaul(id){const c=kOvhC(id);if(!kCanPay(c))return;KG.money-=c;KG.cost.bau=(KG.cost.bau||0)+c;KG.seaBau=(KG.seaBau||0)+c;KG.l[id].cond=100;kLog('🔧',kLC(id).n+' generalüberholt.');kUI()}
@@ -2312,7 +2923,7 @@ const KBINFO={
  alt:{goals:['Schuldenfrei (Kassa über 0 €) und 2 Sterne','Alle 3 alten Lifte wieder in Betrieb – saniert oder neu – und Platz 6 oder besser','In der letzten Woche der 2. Saison keine einzige Liftpanne'],spec:[['☀️ Westhang (Sonnseite)','nachmittags weich'],['❄️ Osthang (Schattseite)','Schnee hält länger'],['🔧 Alte Lifte','Pannen 3-mal so oft'],['🏦 Kreditrahmen','20.000 €'],['🪑 Besonderes Gebäude','Nostalgie-Sessellift']],tip:'Tipp: Liftbau-Partner und Hausbank',
   extra:`<div class="bgh">🔧 Alte Lifte</div><div class="kold"><span class="h">Lift</span><span class="h">Sanieren</span><span class="h">Neu</span><span><b>Altbergbahn</b><br>2er-Sessel · 1971 · läuft noch</span><span>4.000 €</span><span>4er · 16.000 €</span><span><b>Ostlift</b><br>Schlepplift · 1968 · zu</span><span>3.000 €</span><span>4er · 13.000 €</span><span><b>Gipfelsessel</b><br>Einersessel · 1958 · zu</span><span>Nostalgie<br>9.000 €</span><span>6er · 22.000 €</span></div>`},
  seek:{goals:['3 Sterne','Einmal 500 Gäste an einem Tag','Platz 3 oder besser in der Rangliste'],spec:[['🌊 Lage','hinter einem See, nur 8 Parkplätze im Tal'],['🚶 Brücke','zu Fuß über eine Stunde'],['⛴️ Seeschiff','60 Plätze · alle 30 Minuten'],['🚠 Seebahn','Ausbau Stufe 5 · über den See'],['🏨 Besonderes Gebäude','Seehotel ★★★★ mit Steg']],tip:'Tipp: Die Anreise ist der Engpass'},
- eis:{goals:['4 Sterne','Platz 1 in der Rangliste','Platz 1 schon am Ende der 2. Saison'],spec:[['🌪️ Wetter','öfter Sturm, obere Lifte stehen'],['⚠️ Lawinengefahr','nach Neuschnee erst sprengen'],['🍽️ Besonderes Gebäude','Gipfelrestaurant am Gletscher']],tip:'Tipp: Konkurrenz baut schnell aus'}};
+ eis:{goals:['4 Sterne','Platz 1 in der Rangliste','Platz 1 schon am Ende der 2. Saison'],spec:[['🌪️ Wind','oft Sturm – die oberen Bahnen stehen'],['⚠️ Lawinengefahr','ab Stufe 3: nach Neuschnee erst sprengen'],['🚡 Pendelbahn','Ausbau Stufe 5 · auf den Gipfel'],['🚠 3S-Gletscherexpress','Ausbau Stufe 6 · fährt auch bei Sturm'],['🍽️ Besonderes Gebäude','Gletscherrestaurant mit Eisgrotte']],tip:'Tipp: Konkurrenz baut schnell aus'}};
 function kBergWin(id){kCareerLoad();const i=KBERGE.findIndex(b=>b.id===id),B=KBERGE[i],I=KBINFO[id],lk=!kOpenB(i),av=!!KV[id],sv=kLoad(id),best=KC.best[id]||0,R=KC.res[id];
  const img=av?kThumb(id):'';const perks=(KC.perks||[]).filter(p=>KPERK.find(x=>x.id===p));const used=kPerkUsed(perks),xp=kXP();
  let h=`<div class="kh"><a data-o="map">‹ Karte</a><h2 style="text-align:center">${B.n}</h2><span style="width:50px"></span></div><div class="card">`;
