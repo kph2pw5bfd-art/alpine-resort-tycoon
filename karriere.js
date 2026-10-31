@@ -2425,14 +2425,19 @@ function kMorning(){KG.wx=KG.wxN||'sonne';KG.dem=kDemand();KG.gDay=0;KG.rej=0;KG
  KG.fog=0;if(KVOR.morning)KVOR.morning();
  if(KVOR.windLog)KVOR.windLog();else if(KG.wx==='sturm')kLog('🌪️',KVOR.lifts.filter(L=>!KLT[KG.l[L.id].typ].drag&&KG.l[L.id].on).length>1?'Sturm – die Sessellifte bleiben heute zu.':'Sturm – der Sessellift bleibt heute zu.');
  kSave()}
+// Laufende Kosten pro Tag (ohne Zinsen) – auch für die Schätzung „Gewinn heute“
+function kRunCosts(){const V=KVOR;
+ const tm=KPK('team')?.8:1,c={};let up=0;for(const id in KG.l){const s=KG.l[id];if(!s.on)continue;up+=KLT[s.typ].up*(kLC(id).upF||1)+(s.lg||0)*30}c.lift=up*(KPK('team')?.9:1);
+ c.kassa=90*tm;if(KG.b.hut)c.hut=110*tm;if(KG.b.kinder)c.kinder=80*tm;if(KG.b.school)c.school=70*tm;if(KG.b.kiosk)c.kiosk=30*tm;
+ if(KG.b.raupe)c.raupe=130;if(KG.canRan)c.can=Math.round((V.canCost?V.canCost():260)*(KPK('schnee')?.9:1));if(V.costs)V.costs(c,tm);
+ let lots=0;for(const L of V.lots)if(KG.lots[L.id])lots++;c.lots=lots*25+(KG.paved?lots*10:0);
+ if(KG.b.bus)c.bus=150;if(KG.hotel)c.hotel=170*tm;if(KG.b.lw)c.lw=130*tm;if(KG.b.bw&&!KPK('bw'))c.bw=140*tm;else if(KG.b.bw>1)c.bw=140*tm;
+ for(const k in c)c[k]=Math.round(c[k]);return c}
+function kHotEst(){return KG.hotel&&KVOR.hotel?Math.round(KVOR.hotel.rooms*(KG.hOcc||.4)*KG.price.hotel):0}
 // --- Mitternacht: Tagesabschluss ---
 function kMidnight(){const V=KVOR,d=KG.day;
  // laufende Kosten
- const tm=KPK('team')?.8:1,c={};let up=0;for(const id in KG.l){const s=KG.l[id];if(!s.on)continue;up+=KLT[s.typ].up*(kLC(id).upF||1)+(s.lg||0)*30}c.lift=up*(KPK('team')?.9:1);
- c.kassa=90*tm;if(KG.b.hut)c.hut=110*tm;if(KG.b.kinder)c.kinder=80*tm;if(KG.b.school)c.school=70*tm;if(KG.b.kiosk)c.kiosk=30*tm;
- if(KG.b.raupe)c.raupe=130;if(KG.canRan)c.can=Math.round((V.canCost?V.canCost():260)*(KPK('schnee')?.9:1));KG.canRan=0;if(V.costs)V.costs(c,tm);
- let lots=0;for(const L of V.lots)if(KG.lots[L.id])lots++;c.lots=lots*25+(KG.paved?lots*10:0);
- if(KG.b.bus)c.bus=150;if(KG.hotel)c.hotel=170*tm;if(KG.b.lw)c.lw=130*tm;if(KG.b.bw&&!KPK('bw'))c.bw=140*tm;else if(KG.b.bw>1)c.bw=140*tm;
+ const c=kRunCosts();KG.canRan=0;
  // Hotel-Einnahmen der Nacht
  if(KG.hotel){const v=Math.round(V.hotel.rooms*(KG.hOcc||.4)*KG.price.hotel);kEarn('hot',v)}
  let cs=0;for(const k in c){c[k]=Math.round(c[k]);cs+=c[k]}
@@ -2446,7 +2451,7 @@ function kMidnight(){const V=KVOR,d=KG.day;
  if(KG.rej>5)KG.ruf-=Math.min(4,KG.rej/12);for(const cm of KG.cmp)KG.ruf+=cm.ruf||0;KG.ruf=kcl(KG.ruf,5,100);
  // Familien zufrieden?
  const fs=KG.sat.fam;let famA=null;if(fs&&fs.n>=5){famA=fs.s/fs.n;if(famA>=75&&V.famGoal){KG.famOK=(KG.famOK||0)+1;kLog('👨‍👩‍👧','Familien heute zu '+Math.round(famA)+' % zufrieden – Ziel: '+Math.min(5,KG.famOK)+' von 5 Tagen.')}}
- KG.hist.push({d,inc:Math.round(inc),cost:cs,g,rej:KG.rej,sat:satA==null?null:Math.round(satA),fam:famA==null?null:Math.round(famA),ruf:Math.round(KG.ruf),m:Math.round(KG.money),wx:KG.wx,st:kStars()});if(KG.hist.length>60)KG.hist.shift();
+ KG.hist.push({d,inc:Math.round(inc),cost:cs,src:Object.assign({},KG.inc),z:c.zins||0,b:Math.round(KG.cost.bau||0),wb:Math.round(KG.cost.wer||0),g,rej:KG.rej,sat:satA==null?null:Math.round(satA),fam:famA==null?null:Math.round(famA),ruf:Math.round(KG.ruf),m:Math.round(KG.money),wx:KG.wx,st:kStars()});if(KG.hist.length>60)KG.hist.shift();
  KG.seaInc=(KG.seaInc||0)+inc;KG.seaCost=(KG.seaCost||0)+cs;
  KG.lastDay={inc:Math.round(inc),cost:cs,g,sat:satA,c,i:Object.assign({},KG.inc)};
  // Schnee und Pisten
@@ -2463,7 +2468,7 @@ function kMidnight(){const V=KVOR,d=KG.day;
  // Kreditrate
  kLnDay();
  // Pleite?
- if(KG.money<0){KG.pleite=(KG.pleite||0)+1;if(KG.pleite===1)kToast('⚠️ Die Kassa ist im Minus! Nimm einen Kredit auf (🔨 Bauen › 🏦 Kredit), sonst ist der Berg nach 7 Tagen verloren.',5500);if(KG.pleite===3||KG.pleite===5)kLog('⚠️','Die Kassa ist seit '+KG.pleite+' Tagen im Minus. Nach 7 Tagen ist der Berg verloren!');if(KG.pleite>=7){KG.done=1;KG.lost=1;kSave();setTimeout(()=>kBergEnd(1),300);return}}else KG.pleite=0;
+ if(KG.money<0){KG.pleite=(KG.pleite||0)+1;if(KG.pleite===1)kToast('⚠️ Die Kassa ist im Minus! Nimm einen Kredit auf (📊 Statistik › 🏦 Kredit), sonst ist der Berg nach 7 Tagen verloren.',5500);if(KG.pleite===3||KG.pleite===5)kLog('⚠️','Die Kassa ist seit '+KG.pleite+' Tagen im Minus. Nach 7 Tagen ist der Berg verloren!');if(KG.pleite>=7){KG.done=1;KG.lost=1;kSave();setTimeout(()=>kBergEnd(1),300);return}}else KG.pleite=0;
  KG.wxN=kWxRoll(V);
  // Saisonende?
  if((KG.day-1)%KSL===0){kSeasonEnd();return}
@@ -2782,6 +2787,7 @@ function kSheetClick(e){const b=e.target.closest('[data-a]');if(!b)return;const 
  if(a==='go'){kOpen(v.split('|')[0],v.split('|')[1]);return}
  if(a==='ovh'){kOverhaul(v);return}
  if(a==='lna'||a==='lnt'||a==='ln'){kLnAct(a,v);return}
+ if(a==='bm'){const sh=document.getElementById('ksheet'),sc=sh?sh.scrollTop:0;KW.bm=v;kUI();if(sh)sh.scrollTop=sc;return}
  if(a==='can'){KG.canAuto=KG.canAuto===0?1:0;kUI();return}
  if(a==='endnow'){if(KW.endAsk){KG.done=1;kSave();kBergEnd(0)}else{KW.endAsk=1;kUI()}return}
  if(a==='leave'){kLeave('map');return}
@@ -2821,10 +2827,9 @@ function kBuildItems(){if(KVOR.items)return KVOR.items();const C=kCosts(),V=KVOR
  add('per',{id:'lw',ic:'🔧',n:'Liftwart',d:'Repariert Störungen in kurzer Zeit. Ohne Liftwart kommt ein Techniker von außen (650 €, über 1 Stunde).',c:C.lw,done:!!b.lw,up:'130 €/Tag'});
  add('per',{id:'bw',ic:'⛑️',n:'Bergwacht',d:'Holt Verletzte mit dem Motorschlitten und Akja von der Piste. Ohne Bergwacht leidet der Ruf.',c:KPK('bw')?0:C.bw,done:!!b.bw,up:KPK('bw')?'Verein · ohne Lohn':'140 €/Tag'});
  return I}
-function kBauHTML(){const tabs=[['aus','🏔️','Ausbau'],['lif','🚡','Lifte'],['pis','❄️','Piste'],['gas','🛖','Gastro'],['anr','🚗','Anreise'],['per','👷','Personal'],['kre','🏦','Kredit']];if(!KW.tab||!tabs.some(t=>t[0]===KW.tab))KW.tab='aus';
- if(KW.tab==='kre')return kHead('🔨 Bauen',tabs)+`<p class="hint" style="margin:8px 0 2px">Kassa ${kfmt(KG.money)}</p>`+kLnHTML();
+function kBauHTML(){const tabs=[['aus','🏔️','Ausbau'],['lif','🚡','Lifte'],['pis','❄️','Piste'],['gas','🛖','Gastro'],['anr','🚗','Anreise'],['per','👷','Personal']];if(!KW.tab||!tabs.some(t=>t[0]===KW.tab))KW.tab='aus';
  const I=kBuildItems().filter(i=>i.tab===KW.tab);const open=I.filter(i=>!i.done),done=I.filter(i=>i.done);
- let h=kHead('🔨 Bauen',tabs)+`<p class="hint" style="margin:8px 0 2px">Kassa ${kfmt(KG.money)}${KG.loan>0?' · Kredit offen '+kfmt(KG.loan):''} · <a data-a="tab" data-v="kre" style="color:#1e5fb0;font-weight:600;cursor:pointer">🏦 Kredit</a></p>`;
+ let h=kHead('🔨 Bauen',tabs)+`<p class="hint" style="margin:8px 0 2px">Kassa ${kfmt(KG.money)}${KG.loan>0?' · Kredit offen '+kfmt(KG.loan):''} · <a data-a="go" data-v="sta|kre" style="color:#1e5fb0;font-weight:600;cursor:pointer">🏦 Kredit</a></p>`;
  for(const i of open.concat(done))h+=kCardHTML(i);
  if(KW.tab==='pis'&&KG.b.cannons)h+=`<div class="row"><span>❄️ Schneekanonen automatisch nachts</span><button class="btn" data-a="can">${KG.canAuto===0?'Aus':'An'}</button></div>`;
  if(KW.tab==='aus')h+=`<p class="hint">Jede Stufe öffnet neue Pisten und lockt mehr Gäste an. Neue Stufen sprechen sich in ${KPK('name')?2:3} Tagen herum.</p>`;
@@ -2833,7 +2838,7 @@ function kCardHTML(i){let btn='';if(i.done)btn=`<span class="kchip g">✓ ${i.lv
  else{const ok=kCanPay(i.c);btn=`<button class="btn" data-a="buy" data-v="${i.id}" ${ok?'':'disabled'}>${i.c?kfmt(i.c):'gratis'}</button><small>${i.days?'Bauzeit '+i.days+(i.days===1?' Tag':' Tage'):'sofort'}${i.up?' · '+i.up:''}</small>`}
  const rq=i.rq&&!i.done?'<small>'+i.rq.map(r=>`<span class="rq ${r.ok?'ok':''}">${r.ok?'✓':'○'} ${r.t}</span>`).join(' · ')+'</small>':'';
  return `<div class="kcard ${i.done?'done':''}"><span class="ic">${i.ic}</span><span class="tx"><b>${i.n}${i.lv?' <span style="font-weight:400;color:var(--mut);font-size:13px">'+i.lv+'</span>':''}</b><small>${i.d}</small>${rq}</span><span class="bt">${btn}</span></div>`}
-function kBuy(id){const I=kBuildItems().find(i=>i.id===id);if(!I||I.done||I.lock||I.bau)return;if(!kCanPay(I.c)){kToast('Zu wenig Geld in der Kassa – bei Bedarf einen Kredit aufnehmen (🔨 Bauen › 🏦 Kredit).',4000);return}
+function kBuy(id){const I=kBuildItems().find(i=>i.id===id);if(!I||I.done||I.lock||I.bau)return;if(!kCanPay(I.c)){kToast('Zu wenig Geld in der Kassa – bei Bedarf einen Kredit aufnehmen (📊 Statistik › 🏦 Kredit).',4000);return}
  let S0=null;try{S0=JSON.parse(JSON.stringify(KG))}catch(e){}
  const pay=()=>{KG.money-=I.c;KG.inc.bau=(KG.inc.bau||0);KG.cost.bau=(KG.cost.bau||0)+I.c;KG.seaBau=(KG.seaBau||0)+I.c};
  if(KVOR.buy&&KVOR.buy(id,I,pay)){}
@@ -2876,25 +2881,57 @@ function kVoices(){const out=[];let w=0;for(const id in KW.lift)if(KG.l[id].on)w
  if(!KG.b.hut&&!KG.b.kiosk)out.push(['🍽️','„Wo kann man hier etwas essen?“']);if(KG.rej>3)out.push(['🅿️','„Kein Parkplatz mehr frei – wir sind umgedreht.“']);if(KG.res.hurt&&!KG.b.bw)out.push(['⛑️','„Nach dem Unfall hat lange niemand geholfen.“']);
  if(KVOR.id==='sonn'&&KG.stage<2&&KG.gT>40)out.push(['🚡','„Ein richtiger Lift auf den Berg wäre schön.“']);if(!out.length)out.push(['😊','„Schöner Tag '+(KVOR.am||'in '+KVOR.n)+'!“']);return out.slice(0,5)}
 // --- Statistik ---
-function kStaHTML(){const tabs=[['heu','📅','Heute'],['ver','📈','Verlauf'],['gst','👥','Gäste'],['fin','💶','Finanzen']];if(KVOR.staTab)tabs.splice(1,0,KVOR.staTab);if(!KW.tab||!tabs.some(t=>t[0]===KW.tab))KW.tab='heu';let h=kHead('📊 Statistik',tabs);
- if(KW.tab==='heu'){const g=KG.gDay,inc=KG.inc;const L=[['tk','🎫 Tageskarten'],['pk','🅿️ Parken'],['food','🍲 Essen'],['kid','⭐ Kinderland'],['sch','⛷️ Skischule'],['hot','🏨 '+(KVOR.hotel?KVOR.hotel.n:'Gasthof')],['nos','🪑 Nostalgiefahrt']];let tot=0;for(const [k] of L)tot+=inc[k]||0;
-  h+=`<div class="kpi"><div><small>Gäste heute</small><b>${g}</b>${KG.rej?`<i class="neg">${KG.rej} Autos abgewiesen</i>`:''}</div><div><small>Einnahmen heute</small><b>${kfmt(tot)}</b></div></div>`;
-  h+=`<div class="wx wx2"><div><small>Heute</small>${KWI[KG.wx]} ${KWNM[KG.wx]}</div><div><small>Morgen</small>${KWI[KG.wxN]} ${KWNM[KG.wxN]}</div><div><small>Schnee</small>❄️ ${Math.round(KG.snow)} cm</div></div>`;
-  h+='<div class="bgh">Einnahmen nach Quelle</div>'+L.filter(([k])=>inc[k]).map(([k,n])=>`<div class="row"><span>${n}</span><b>${kfmt(inc[k])}</b></div>`).join('')+(tot?'':'<p class="hint">Noch keine Einnahmen heute.</p>');
-  h+='<div class="bgh">Lifte und Pisten</div>';for(const L2 of KVOR.lifts){if(!KG.l[L2.id].on)continue;h+=`<div class="row"><span>${L2.typ==='teller'?'🎿':'🚡'} ${L2.n}</span><b>Warten ${Math.round(kWait(L2.id))} Min.</b></div>`}
+// V316: Statistik wie im Hauptspiel – Übersicht (Kasse, heute, Wetter | Vorhersage, Verlauf), Finanzen-Tabelle, Kredit, Gäste
+const KSRC=[['tk','Liftkarten','#2f7fd8'],['pk','Parken','#7a8aa3'],['food','Gastro','#f0a020'],['hot','Hotel','#7a52c7'],['kid','Kinderland','#4cc27a'],['sch','Skischule','#34c0b8'],['nos','Nostalgiefahrt','#e8504a'],['alt','Einnahmen','#9aa8bb']];
+function kHsSrc(x){return x.src||{alt:x.inc||0}}
+function kHsA(x){return (x.cost||0)+(x.b||0)+(x.wb||0)}
+function kWdL(d){const w=KWN[(d-1)%7];return w[0]+w[1].toLowerCase()}
+function kChartMoney(){const hs=KG.hist.slice(-10),M=KW.bm||'s';if(!hs.length)return '';
+ const vals=hs.map(x=>M==='e'?(x.inc||0):M==='a'?kHsA(x):(x.inc||0)-kHsA(x));
+ const W=320,Ht=140,pl=4,pt=18,pb=18,ph=Ht-pt-pb,hi0=Math.max(0,...vals),lo=Math.min(0,...vals),hi=hi0===lo?1:hi0,y=v=>pt+ph*(hi-v)/(hi-lo),bw=(W-2*pl)/10;
+ let g=`<line x1="${pl}" x2="${W-pl}" y1="${y(0)}" y2="${y(0)}" stroke="var(--line)" stroke-width="1.5"/>`;
+ vals.forEach((v,i)=>{const sl=10-vals.length+i,x=pl+sl*bw+bw*.19,w=bw*.62,y0=y(0),y1=y(v),top=Math.min(y0,y1),h=Math.max(1.5,Math.abs(y1-y0)),col=M==='e'?'#4cc27a':M==='a'?'#e8504a':(v<0?'#e8504a':'#4cc27a'),cx2=x+w/2;
+  g+=`<rect x="${x}" y="${top}" width="${w}" height="${h}" rx="3" fill="${col}"/><text x="${cx2}" y="${v<0?Math.min(top+h+9,Ht-pb-2):Math.max(9,top-3)}" text-anchor="middle" font-size="8.5" font-weight="600" fill="var(--tx)">${kf(v)}</text><text x="${cx2}" y="${Ht-5}" text-anchor="middle" font-size="8.5" fill="var(--mut)">${kWdL(hs[i].d)}</text>`});
+ const tb=(k,t)=>`<button data-a="bm" data-v="${k}" class="${M===k?'on':''}">${t}</button>`;
+ return `<div class="lab" style="margin-top:12px"><b>💰 Geld pro Tag</b></div><div class="seg">${tb('e','Einnahmen')}${tb('a','Ausgaben')}${tb('s','Saldo')}</div><svg viewBox="0 0 ${W} ${Ht}" width="100%" style="display:block">${g}</svg><p class="hint">Unter dem Balken: Wochentag, k = tausend €. Ausgaben = Tageskosten plus Bauen und Werbung.</p>`}
+function kStaHist(){const hs=KG.hist.slice(-10);if(!hs.length)return '<p class="hint">Noch kein Tag abgeschlossen. Die Diagramme füllen sich nach dem ersten Spieltag.</p>';
+ const lab=hs.map(x=>kWdL(x.d));let h=kChartMoney();
+ h+=chB('👥 Gäste pro Tag',svgLine([{v:hs.map(x=>x.g||0),c:'#4cc27a',fill:1,dots:1}],lab,{f:v=>Math.round(v),every:1}));
+ const keys=KSRC.filter(k=>hs.some(x=>kHsSrc(x)[k[0]]));
+ h+=chB('💶 Einnahmen nach Quelle',svgStack(hs.map(kHsSrc),lab,keys)+lgd(keys.map(x=>[x[0]==='hot'&&KVOR.hotel?KVOR.hotel.n:x[1],x[2]])));
+ return h}
+function kIncNow(){let i=0;for(const k in KG.inc)if(k!=='bau')i+=KG.inc[k];return i}
+function kCostNow(){const c=kRunCosts();let s=0;for(const k in c)s+=c[k];return s}
+function kStaHTML(){const tabs=[['heu','📊','Übersicht'],['fin','💶','Finanzen'],['kre','🏦','Kredit'],['gst','👥','Gäste']];if(KVOR.staTab)tabs.splice(1,0,KVOR.staTab);if(!KW.tab||!tabs.some(t=>t[0]===KW.tab))KW.tab='heu';let h=kHead('📊 Statistik',tabs);
+ if(KW.tab==='heu'){const inc=kIncNow(),pr=inc-kCostNow()-kLnZins();
+  h+=`<div class="kpi"><div style="grid-column:1/-1"><small>Kasse</small><b class="${KG.money<0?'neg':''}">${kfmt(KG.money)}</b>${KG.loan>0?`<i style="color:var(--mut)">Kredit offen ${kfmt(KG.loan)}</i>`:''}</div><div><small>Einnahmen heute</small><b>${kfmt(inc)}</b><i style="color:var(--mut)">${KG.gDay} Gäste${KG.rej?' · '+KG.rej+' Autos abgewiesen':''}</i></div><div><small>Gewinn heute (bisher)</small><b class="${pr<0?'neg':'pos'}">${(pr>0?'+':'')+kfmt(pr)}</b><i style="color:var(--mut)">nach Kosten</i></div></div>
+ <div class="wx wx2"><div><small>Wetter</small><span>${KWI[KG.wx]} ${KWNM[KG.wx]}</span></div><div><small>Vorhersage</small><span>${KWI[KG.wxN]} ${KWNM[KG.wxN]}<small>morgen</small></span></div></div>`;
+  h+=kStaHist();
+  h+='<div class="bgh" style="margin-top:12px">🚡 Lifte und Pisten</div>';for(const L2 of KVOR.lifts){if(!KG.l[L2.id].on)continue;h+=`<div class="row"><span>${L2.typ==='teller'?'🎿':'🚡'} ${L2.n}</span><b>Warten ${Math.round(kWait(L2.id))} Min.</b></div>`}
+  h+=`<div class="row"><span>❄️ Schneehöhe</span><b>${Math.round(KG.snow)} cm</b></div>`;
   for(const p of KW.pistes)if(!p.conn&&kPisteOpen(p))h+=`<div class="row"><span>${p.col==='r'?'🔴':p.col==='s'?'⚫':'🔵'} ${p.n}</span><b>Zustand ${Math.round(KG.pq[p.id])} %</b></div>`;
   if(KVOR.staExtra)h+=KVOR.staExtra()}
+ if(KW.tab==='kre')h+=kLnHTML();
  if(KVOR.staTab&&KW.tab===KVOR.staTab[0])h+=KVOR.staTabHTML();
- if(KW.tab==='ver'){const H=KG.hist.slice(-14);const mx=Math.max(1,...H.map(x=>Math.max(x.inc,x.cost)));h+='<div class="bgh">Einnahmen 🟩 und Kosten 🟥 je Tag</div><div class="kbars">'+H.map(x=>`<div><i style="height:${Math.round(x.inc/mx*80)}px;background:#5fc27a"></i><i style="height:${Math.round(x.cost/mx*80)}px;background:#e8806f"></i><small>${KWN[(x.d-1)%7][0]}${KWN[(x.d-1)%7][1].toLowerCase()}</small></div>`).join('')+'</div>';
-  const gm=Math.max(1,...H.map(x=>x.g));h+='<div class="bgh">Gäste je Tag</div><div class="kbars">'+H.map(x=>`<div><i style="height:${Math.round(x.g/gm*80)}px;background:#5aa7e6"></i><small>${x.g}</small></div>`).join('')+'</div>';
-  if(!H.length)h+='<p class="hint">Nach dem ersten Tag erscheinen hier die Balken.</p>'}
  if(KW.tab==='gst'){const S=KG.sat,N={fam:'👨‍👩‍👧 Familien',anf:'🔰 Anfänger',pro:'⛷️ Profis',sb:'🏂 Snowboarder'};h+='<div class="bgh">Heute abgereiste Gäste · Zufriedenheit</div>';
   for(const k in N){const s=S[k];h+=`<div class="row"><span>${N[k]}</span><b>${s&&s.n?Math.round(s.s/s.n)+' % · '+s.n:'–'}</b></div>`}
   if(KVOR.famGoal)h+=`<div class="bgh">Ziel Familien</div><div class="row"><span>Tage mit Familien ≥ 75 % zufrieden</span><b>${Math.min(5,KG.famOK||0)} / 5</b></div><p class="hint">Familien mögen faire Preise, kurze Wartezeiten, das Kinderland und ein Mittagessen. Gezählt wird ein Tag ab 5 Familien-Gästen.</p>`}
- if(KW.tab==='fin'){const inc=KG.seaInc||0,cost=KG.seaCost||0;h+=`<div class="kpi"><div><small>Saison: Einnahmen</small><b>${kfmt(inc)}</b></div><div><small>Saison: laufende Kosten</small><b>${kfmt(cost)}</b></div><div><small>Betriebsergebnis</small><b class="${inc-cost>=0?'pos':'neg'}">${kfmt(inc-cost)}</b></div><div><small>Gebaut + Werbung</small><b>${kfmt((KG.seaBau||0)+(KG.seaWer||0))}</b></div></div>`;
+ if(KW.tab==='fin'){const inc=KG.seaInc||0,cost=KG.seaCost||0;h+=kFinTab()+`<div class="bgh">Saison bisher</div><div class="kpi"><div><small>Saison: Einnahmen</small><b>${kfmt(inc)}</b></div><div><small>Saison: laufende Kosten</small><b>${kfmt(cost)}</b></div><div><small>Betriebsergebnis</small><b class="${inc-cost>=0?'pos':'neg'}">${kfmt(inc-cost)}</b></div><div><small>Gebaut + Werbung</small><b>${kfmt((KG.seaBau||0)+(KG.seaWer||0))}</b></div></div>`;
   const L=KG.lastDay;if(L){h+='<div class="bgh">Kosten gestern</div>';const N={teich:'💧 Speicherteich',lift:'🚡 Lifte',kassa:'🎫 Kassa',hut:'🛖 '+(KVOR.hut?KVOR.hut.n:'Hütte'),kinder:'⭐ Kinderland',school:'⛷️ Skischule',kiosk:'🌭 Kiosk',raupe:'🚜 Pistenraupe',can:'❄️ Schneekanonen (Strom)',lots:'🅿️ Parkplätze',bus:'🚌 Skibus',hotel:'🏨 '+(KVOR.hotel?KVOR.hotel.n:'Gasthof'),lw:'🔧 Liftwart',bw:'⛑️ Bergwacht',zins:'🏦 Zinsen'};for(const k in L.c)h+=`<div class="row"><span>${N[k]||k}</span><b>${kfmt(L.c[k])}</b></div>`}
-  if(KG.loan>0)h+=`<div class="bgh">Kredit</div><div class="row"><span>Offener Kredit · Rate pro Tag</span><b>${kfmt(KG.loan)} · ${kfmt(KG.lnR)}</b></div><button class="btn ghost" data-a="go" data-v="bau|kre" style="margin-top:6px">🏦 Zum Kredit</button>`}
+  if(KG.loan>0)h+=`<div class="bgh">Kredit</div><div class="row"><span>Offener Kredit · Rate pro Tag</span><b>${kfmt(KG.loan)} · ${kfmt(KG.lnR)}</b></div><button class="btn ghost" data-a="tab" data-v="kre" style="margin-top:6px">🏦 Zum Kredit</button>`}
  return h}
+function kFinTab(){const hs=KG.hist.slice(-4),src=Object.assign({},KG.inc);delete src.bau;if(KG.hotel)src.hot=(src.hot||0)+kHotEst();
+ const T={live:1,src,cost:kCostNow()+kLnZins(),z:kLnZins(),b:Math.round(KG.cost.bau||0),wb:Math.round(KG.cost.wer||0)},C=hs.concat([T]);
+ const RS=KSRC.filter(k=>C.some(x=>kHsSrc(x)[k[0]])).map(k=>[k[0]==='hot'&&KVOR.hotel?KVOR.hotel.n:k[1],k[0]]);
+ const RW=[['Betrieb','k'],['Bauen','b'],['Werbung','wb'],['Kreditzinsen','z']];
+ const val=(x,k)=>k==='k'?(x.cost||0)-(x.z||0):(x[k]||0);
+ let h=`<table class="bil fin"><tr><th></th>${C.map(x=>`<th>${x.live?'Heute':kWdL(x.d)+'<br><small>Woche '+(Math.floor(((x.d-1)%KSL)/7)+1)+'</small>'}</th>`).join('')}</tr><tr><td colspan="${C.length+1}" class="fg">Einnahmen</td></tr>`;
+ for(const [n,k] of RS)h+=`<tr><td>${n}</td>${C.map(x=>{const v=kHsSrc(x)[k]||0;return `<td class="${x.live&&k==='hot'&&v?'mut':''}">${v?kf(v):'–'}</td>`}).join('')}</tr>`;
+ if(!RS.length)h+=`<tr><td>–</td>${C.map(()=>'<td>–</td>').join('')}</tr>`;
+ h+=`<tr><td colspan="${C.length+1}" class="fg">Ausgaben</td></tr>`;
+ for(const [n,k] of RW)h+=`<tr><td>${n}</td>${C.map(x=>{const v=val(x,k);return `<td class="${v?(x.live&&(k==='k'||k==='z')?'mut':'neg'):''}">${v?'−'+kf(v):'–'}</td>`}).join('')}</tr>`;
+ h+=`<tr class="sum"><td>Saldo</td>${C.map(x=>{if(x.live)return '<td class="mut">abends</td>';const d=(x.inc||0)-kHsA(x);return `<td class="${d<0?'neg':'pos'}">${d>0?'+':''}${kf(d)}</td>`}).join('')}</tr></table>`;
+ return h+'<p class="hint">Beträge in Euro, k = Tausend. „Heute“ ist der Stand bis jetzt. Betrieb und Zinsen (grau) werden erst abends abgebucht'+(KG.hotel?', das Hotel ist für heute Nacht geschätzt':'')+'. Betrieb = Tageskosten für Lifte, Personal, Gebäude und Technik.</p>'}
 // --- Ziele, Sterne, Rangliste ---
 function kZielHTML(){const tabs=[['zi','🎯','Ziele'],['st','⭐','Sterne'],['rk','🏆','Rangliste']];if(!KW.tab||!tabs.some(t=>t[0]===KW.tab))KW.tab='zi';let h=kHead('🎯 '+KVOR.n,tabs);
  if(KW.tab==='zi'){const B=KBERGE.find(b=>b.id===KG.id);h+=`<p class="hint" style="margin:8px 0 4px">Bis zum Ende von Saison ${KVOR.seasons}. Jedes Ziel ist ein Stern für die Karriere – ohne das Pflichtziel gibt es keinen.</p>`;
