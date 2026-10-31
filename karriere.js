@@ -2221,32 +2221,64 @@ function kSpots(){const out=[];for(const L of KVOR.lots){if(!KG.lots[L.id])conti
 function kFreeSpot(){const sp=kSpots(),used=new Set(KW.cars.filter(c=>c.spot).map(c=>c.spot.lot+':'+c.spot.i));const free=sp.filter(s=>!used.has(s.lot+':'+s.i));if(!free.length)return null;
  // nahe am Weg zur Kassa bevorzugen
  free.sort((a,b)=>Math.abs(a.x-KVOR.kassa.x)-Math.abs(b.x-KVOR.kassa.x));return free[Math.floor(kR()*Math.min(4,free.length))]}
+// V317: Verkehr wie am Heimatberg (vPose/vCirc/vGo/vFree): jedes Fahrzeug fährt nur, wenn vor ihm frei ist,
+// und parkt erst ein oder aus, wenn der ganze Weg dafür frei ist. Ein- und Ausparken: gerade in die Parklücke, dabei drehen.
+// c.d = Fahrtrichtung bei der Ankunft (1 = nach Osten, Spur Süd), Ausparken in die Gegenrichtung (Spur Nord, nach Westen bzw. umgekehrt).
+const KVLN=9,kVwrap=a=>{while(a>Math.PI)a-=2*Math.PI;while(a<-Math.PI)a+=2*Math.PI;return a};
+function kVall(){return KW.cars.concat(KW.buses)}
+function kVld(k){return k.bus?k.dir:(k.st==='back'||k.st==='leave')?-k.d:k.d}
+function kVPose(k){const R=KVOR.road.y,ld=kVld(k),ly=R+ld*KVLN,a0=ld>0?0:Math.PI;if(k.bus)return {y:ly,a:a0};const sy=kPY(),a1=sy>R?Math.PI/2:-Math.PI/2,p=k.p||0;return {y:ly+(sy-ly)*p,a:a0+p*kVwrap(a1-a0)}}
+function kVCirc(k){if(k.st==='park'||k.st==='out'||k.st==='gone'||k.st==='stop'&&0)return [];const q=kVPose(k),ca=Math.cos(q.a),sa=Math.sin(q.a),O=k.bus?[-14,0,14]:[-6,6],r=k.bus?9.5:8;return O.map(o=>[k.x+o*ca,q.y+o*sa,r])}
+function kVHit(C,D,g=1.5){for(const a of C)for(const b of D){const dx=a[0]-b[0],dy=a[1]-b[1],m=a[2]+b[2]+g;if(dx*dx+dy*dy<m*m)return true}return false}
+function kVPath(k,mode,from){const os=k.st,op=k.p,R2=[];k.st=mode;for(let i=0;i<=6;i++){const p=mode==='turn'?.12+i*.88/6:.88-i*.88/6;if(from!=null&&(mode==='turn'?p<from:p>from))continue;k.p=p;R2.push(...kVCirc(k))}k.st=os;k.p=op;return R2}
+function kVZebraBlocked(){const zb=KVOR.zebra,RY=KVOR.road.y;if(zb==null)return 0;for(const f of KW.folks)if(f.st==='walk'&&Math.abs(f.x-zb)<14&&f.y>RY-22&&f.y<RY+22)return 1;return 0}
+// Schritt nach (nx,np) nur, wenn nichts im Weg ist
+function kVGo(k,nx,np,dt){const ox=k.x,op=k.p,y0=kVPose(k).y,C0=kVCirc(k);k.x=nx;k.p=np;const C=kVCirc(k),y1=kVPose(k).y;k.x=ox;k.p=op;const mx=nx-ox,my=y1-y0;
+ if(!C.length||(Math.abs(mx)<1e-6&&Math.abs(my)<1e-6)){k.w=0;return true}
+ const blk=z=>{k.wz=z;k.w=(k.w||0)+dt;return k.w>20};
+ // Zebrastreifen: vor dem Streifen warten, solange jemand drauf ist
+ const zb=KVOR.zebra,RY=KVOR.road.y;if(zb!=null&&Math.abs(my)<1e-6&&!(k.p>.05)){const hit=Q=>Q.some(q=>Math.abs(q[1]-RY)<34&&Math.abs(q[0]-zb)<13+q[2]+2);if(hit(C)&&!hit(C0)&&kVZebraBlocked()){k.w=0;return false}}
+ const man=k.st==='turn'||k.st==='back';
+ for(const o of kVall()){if(o===k)continue;if(man&&!(o.st==='turn'||o.st==='back'))continue;const D=kVCirc(o);if(D.length){const oy=kVPose(o).y;if(!(Math.abs(my)<1e-6&&Math.abs(oy-y0)>=15&&(o.st==='in'||o.st==='leave'))&&(o.x-ox)*mx+(oy-y0)*my>0&&kVHit(C,D,Math.abs(my)<1e-6&&Math.abs(oy-y0)<4?7:1.5))return blk(0)}
+  const RZ=o.rz||((o.st==='turn'||o.st==='back')?kVPath(o,o.st,o.p):null);if(RZ&&(k.bus||k.st==='in'||k.st==='leave')&&!kVHit(C0,RZ)){const Z=RZ.filter(c=>(c[0]-ox)*mx+(c[1]-y0)*my>0);if(Z.length&&kVHit(C,Z,5))return blk(1)}}
+ k.w=0;k.wz=0;return true}
+// Ist der ganze Weg zum Ein- oder Ausparken frei?
+function kVFree(k,mode,dt){if(k.yd>0){k.yd-=dt;k.rz=null;return false}
+ if(kVall().some(o=>o!==k&&(o.bus||o.st==='in'||o.st==='leave')&&o.w>2.5&&o.wz&&Math.abs(o.x-k.x)<90)){k.yd=3;k.rz=null;return false}
+ const kl=mode==='turn'?k.d:-k.d,O=[];
+ for(const o of kVall()){if(o===k)continue;const D=kVCirc(o);if(o.st==='turn'||o.st==='back')O.push(kVPath(o,o.st,o.p));if(!D.length)continue;
+  const od=o.bus?o.dir:o.st==='in'?o.d:-o.d;if(mode==='turn'&&!o.bus&&o.st==='in'&&od===kl&&(k.x-o.x)*kl>0)continue;O.push(D);
+  if((o.bus&&o.st!=='stop'||o.st==='in'||o.st==='leave')&&!(o.w>0&&o.wz)&&!(o.st==='in'&&o.x===o.tx)){if((k.x-o.x)*od>0&&!(mode==='turn'&&od===kl))for(const f of [.3,.6,.9])O.push(D.map(c=>[c[0]+48*od*f,c[1],c[2]]))}}
+ const P=kVPath(k,mode);let ok=true;
+ if(KVOR.zebra!=null&&kVZebraBlocked()&&P.some(q=>Math.abs(q[1]-KVOR.road.y)<34&&Math.abs(q[0]-KVOR.zebra)<13+q[2]))ok=false;
+ if(ok)for(const D of O)if(kVHit(P,D)){ok=false;break}
+ if(ok){k.pw=0;k.rz=null;return true}k.pw=(k.pw||0)+dt;if(k.pw>1.5)k.rz=P;if(k.pw>20){k.pw=0;k.rz=null;return true}return false}
+// Startpunkt am Kartenrand: nicht in ein Auto hinein, das gerade erst hereingekommen ist
+function kVSpawnX(d){const b=KVOR.bounds;let x=d>0?b.x0-40:b.x1+40;for(const o of kVall()){const od=o.bus?o.dir:o.d;if((o.st==='in'||o.bus&&o.st==='in')&&od===d){if(d>0)x=Math.min(x,o.x-(o.bus?56:40));else x=Math.max(x,o.x+(o.bus?56:40))}}return x}
+function kVSet(k){const q=kVPose(k);k.y=q.y;k.a=q.a}
 function kSpawnCar(ty){if(KVOR.spawnCar)return KVOR.spawnCar(ty);const sp=kFreeSpot();if(!sp){KG.rej++;KG.res.rej=(KG.res.rej||0)+1;return 0}
- const fromW=kR()<.5,y=fromW?kLS():kLN(),x=fromW?KVOR.bounds.x0-40:KVOR.bounds.x1+40;
+ const fromW=kR()<.5,d=fromW?1:-1;
  const g=kGroup(ty),arr=KG.t,lt=kLeaveT(ty,arr);for(const f of g)kSetupFolk(f,arr,lt);
- const car={x,y,a:fromW?0:Math.PI,dir:fromW?1:-1,v:0,st:'in',spot:sp,sx:sp.x,col:kpick(['#e8504a','#3a78d0','#f2f2f2','#6cc07a','#f2c53b','#ff8fb8','#8e93b8','#2fb3b8']),ppl:g,n:g.length,back:0,ty};
+ const car={x:kVSpawnX(d),d,dir:d,p:0,st:'in',spot:sp,sx:sp.x,tx:sp.x,col:kpick(['#e8504a','#3a78d0','#f2f2f2','#6cc07a','#f2c53b','#ff8fb8','#8e93b8','#2fb3b8']),ppl:g,n:g.length,back:0,ty};kVSet(car);
  for(const f of g)f.car=car;KW.cars.push(car);return g.length}
-function kCarStep(c,dt){const zb=KVOR.zebra;
- const RY=KVOR.road.y,PY=kPY();const blockedZ=()=>{if(zb==null)return 0;for(const f of KW.folks){if(f.st==='walk'&&Math.abs(f.x-zb)<13&&f.y>RY-20&&f.y<RY+20)return 1}return 0};
- const ahead=(v)=>{for(const o of KW.cars){if(o===c||o.dir!==c.dir||Math.abs(o.y-c.y)>6||o.st==='park'||o.st==='turn'&&false)continue;const d=(o.x-c.x)*c.dir;if(d>0&&d<36)v=Math.min(v,Math.max(0,(d-26)*2))}const nz=(zb-c.x)*c.dir;if(nz>4&&nz<40&&blockedZ())v=0;return v};
- if(c.st==='in'){const tx=c.sx-c.dir*16,dist=(tx-c.x)*c.dir;let v=46;if(dist<60)v=Math.max(12,dist*.8);v=ahead(v);c.x+=c.dir*v*dt;if(dist<=1){c.x=tx;c.st='turn';c.tt=0;c.y0=c.y}return}
- if(c.st==='turn'){c.tt+=dt/1.7;const t=Math.min(1,c.tt),h=Math.PI/2;c.x=c.sx-c.dir*16+c.dir*16*Math.sin(t*h);c.y=c.y0+(PY-c.y0)*(1-Math.cos(t*h));c.a=(c.dir>0?0:Math.PI)+(c.dir>0?-1:1)*t*h;if(t>=1){c.st='park';c.a=-h;c.x=c.sx;c.y=PY;kUnloadCar(c)}return}
- if(c.st==='out'){c.tw-=dt;if(c.tw>0)return;c.st='back';c.tt=0;c.dir=kR()<.5?1:-1;return}
- if(c.st==='back'){// nur ausparken, wenn die Spur frei ist
-  const ty2=c.dir>0?kLS():kLN();if(c.tt===0){for(const o of KW.cars){if(o===c||o.st==='park')continue;if(Math.abs(o.y-ty2)<6&&Math.abs(o.x-c.x)<46)return}}
-  c.tt+=dt/1.9;const t=Math.min(1,c.tt),h=Math.PI/2;c.x=c.sx+c.dir*16*(1-Math.cos(t*h));c.y=PY+(ty2-PY)*Math.sin(t*h);c.a=-h+(c.dir>0?t*h:-t*h);if(t>=1){c.st='leave';c.y=ty2;c.a=c.dir>0?0:Math.PI;c.spot=null}return}
- if(c.st==='leave'){let v=ahead(48);c.x+=c.dir*v*dt;if(c.x<KVOR.bounds.x0-60||c.x>KVOR.bounds.x1+60)c.st='gone'}}
+function kCarStep(c,dt){const V=48;if(c.p==null){c.p=c.st==='park'||c.st==='out'?1:0;c.d=c.d||c.dir||1;c.tx=c.sx;if(c.st==='back')c.p=1}
+ if(c.st==='in'){const sx=c.sx;let nx=c.x+V*c.d*dt;if(c.d>0?nx>=sx:nx<=sx)nx=sx;if(kVGo(c,nx,c.p,dt)){c.x=nx;if(nx===sx&&kVFree(c,'turn',dt))c.st='turn'}kVSet(c);return}
+ if(c.st==='turn'){const np=Math.min(1,c.p+dt/1.1);if(kVGo(c,c.x,np,dt))c.p=np;kVSet(c);if(c.p>=1){c.p=1;c.st='park';c.a=-Math.PI/2;c.y=kPY();kUnloadCar(c)}return}
+ if(c.st==='park')return;
+ if(c.st==='out'){c.tw=(c.tw||0)-dt;if(c.tw>0)return;if(kVFree(c,'back',dt)){c.st='back';kVSet(c)}return}
+ if(c.st==='back'){const np=Math.max(0,c.p-dt/1.1);if(kVGo(c,c.x,np,dt))c.p=np;kVSet(c);if(c.p<=0){c.p=0;c.st='leave';c.spot=null}return}
+ if(c.st==='leave'){const nx=c.x-c.d*V*dt;if(kVGo(c,nx,0,dt))c.x=nx;kVSet(c);if(c.x<KVOR.bounds.x0-60||c.x>KVOR.bounds.x1+60)c.st='gone'}}
 function kUnloadCar(c){const V=KVOR,W=V.walkY,k=V.kassa,PY=kPY();let i=0;for(const f of c.ppl){f.x=c.sx+(i%2?-10:10);f.y=PY+(i>>1)*6;i++;const path=[[f.x,PY-16],[c.sx+9,W],[k.x,W],[k.x,k.y+8]];kWalk(f,path,'kassa',11);KW.folks.push(f);KG.gDay++;KG.gT++}
  kEarn('pk',KG.price.park,c.sx,kPY()-22);
  const r=KG.price.park/Math.max(1,V.fair.park);if(r>1.3)for(const f of c.ppl)f.sat-=(r-1.3)*10}
 // Bus
-function kBusStep(b,dt){const X=KVOR.bus.x;if(b.st==='in'){let v=40;const d=(X-b.x)*b.dir;if(d<70)v=Math.max(10,d*.8);if(d<=1){b.st='stop';b.tw=3.5;b.x=X;kBusUnload(b)}else b.x+=b.dir*v*dt;return}
+function kBusStep(b,dt){const X=KVOR.bus.x;if(b.st==='in'){let v=40;const d=(X-b.x)*b.dir;if(d<70)v=Math.max(10,d*.8);if(d<=1){b.st='stop';b.tw=3.5;b.x=X;kBusUnload(b)}else{const nx=b.x+b.dir*Math.min(v*dt,d);if(kVGo(b,nx,0,dt))b.x=nx}b.y=kVPose(b).y;return}
  if(b.st==='stop'){b.tw-=dt;if(b.tw<=0){// Abholung
    const W=KW.folks.filter(f=>f.st==='busw');for(const f of W.slice(0,40)){f.st='gone';kAtBus(f)}b.st='leave'}return}
- if(b.st==='leave'){b.x+=b.dir*44*dt;if(b.x<KVOR.bounds.x0-80||b.x>KVOR.bounds.x1+80)b.st='gone'}}
+ if(b.st==='leave'){const nx=b.x+b.dir*44*dt;if(kVGo(b,nx,0,dt))b.x=nx;if(b.x<KVOR.bounds.x0-80||b.x>KVOR.bounds.x1+80)b.st='gone'}}
 function kAtBus(f){}
 function kBusUnload(b){const V=KVOR,n=b.n||0;for(let i=0;i<n;i++){const ty=kMix(),f=kMkFolk(ty,0);const lt=kLeaveT(ty,KG.t);kSetupFolk(f,KG.t,Math.min(16.2,lt));f.busG=1;f.x=V.bus.x-14+(i%5)*6;f.y=V.road.y-24+Math.floor(i/5)*2;kWalk(f,KW.paths.busUp,'kassa',11);KW.folks.push(f);KG.gDay++;KG.gT++}}
-function kSpawnBus(n,pick){if(KVOR.spawnBus)return KVOR.spawnBus(n,pick);KW.buses.push({x:KVOR.bounds.x1+60,y:kLN(),dir:-1,st:'in',n,a:0,pick});}
+function kSpawnBus(n,pick){if(KVOR.spawnBus)return KVOR.spawnBus(n,pick);const b={dir:-1,st:'in',n,a:Math.PI,pick,bus:1};b.x=kVSpawnX(-1)+20;b.y=kVPose(b).y;KW.buses.push(b)}
 // Hotelgäste (morgens aus dem Gasthof)
 function kSpawnHotelG(n){const V=KVOR,H=V.hotel;for(let i=0;i<n;i++){const ty=kMix(),f=kMkFolk(ty,0);f.hotelG=1;kSetupFolk(f,KG.t,kLeaveT(ty,KG.t));f.x=H.x-20+kR()*6;f.y=H.y+4;
  const path=V.hotel.pin();kWalk(f,path,'kassa',11);f.delay=Math.floor(i/4)*2.2+(i%4)*.35;KW.folks.push(f);KG.gDay++;KG.gT++}}
@@ -3107,9 +3139,10 @@ const KTH={};function kThumb(id){if(KTH[id])return KTH[id];const g0=KG,v0=KVOR,o
  finally{KG=g0;KVOR=v0;KON=on0;KST.c=st0.c;KST.rs=st0.rs;KW.pistes=pist0;KW.pmap=pm0;KW.paths=paths0;Object.assign(kZ,z0);if(KVOR){kBuildWorld()}}
  return KTH[id]=url}
 // Berg starten / verlassen
-function kStart(id,fresh){kCareerLoad();KVOR=KV[id];if(!KVOR)return;let s=fresh?null:kLoad(id);if(!s||s.done){s=kNewState(id,KC.perks||[]);s.firm=KC.firm}KG=s;KW.halt=0;kLnMig();if(KG.loanStart){kLnSet(KG.loanStart,56);KG.loanStart=0}
+function kStart(id,fresh){kCareerLoad();KVOR=KV[id];if(!KVOR)return;let s=fresh?null:kLoad(id);if(!s||s.done){s=kNewState(id,KC.perks||[]);s.firm=KC.firm}KG=s;KW.halt=0;
  KW.folks=[];KW.cars=[];KW.buses=[];KW.pops=[];KW.lift={};KW.school=[];KW.groom=null;KW.res=null;KW.neu=null;KW.open=null;KW.paused=false;KW.modal=0;KW.speed=1;KW.endAsk=0;KW.rsAsk=0;KW.canP=null;KW.acc=[];KW.lgNew=0;
  KW.paths=KVOR.paths();if(KVOR.onStart)KVOR.onStart();kBuildWorld();for(const id2 in KG.l)if(KG.l[id2].on)kLiftSetup(id2);KW.hutS=kHutS();
+ kLnMig();if(KG.loanStart){kLnSet(KG.loanStart,56);KG.loanStart=0}
  if(fresh||!KG.dem){KG.dem=kDemand();if(KG.t>=6&&KG.day===1&&!KG.started){KG.wx='sonne';KG.started=1;kLog('🏔️',KVOR.welcome)}}
  KW.hotelN=0;kOvCSS();kOvHide();const n=document.getElementById('kname');if(n)n.remove();document.body.classList.add('kmode');kUIbuild();kCanvas();kZ.cv.style.display='block';document.getElementById('kui').hidden=false;
  const H=KVOR.home;kZ.S=H.S;kZ.camX=H.cx-kViewW()/2;kZ.camY=H.cy-kViewH()*.55;kClamp();kBuildStatic();KON=true;KW.last=0;cancelAnimationFrame(KW.raf);KW.raf=requestAnimationFrame(kLoop);kHud(1);kUI();
