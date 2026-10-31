@@ -212,11 +212,11 @@ KV.bich.world=function(){const M=KW.pmap.main;const near=(P,x,y)=>{let b=0,bd=1e
  const E=[];let cur=null;for(const q of M.d){if(q[2]<=23.5&&q[1]<1600){if(!cur){cur={s0:q[3],s1:q[3],w:q[2],y:q[1]}}cur.s1=q[3];if(q[2]<cur.w){cur.w=q[2];cur.y=q[1]}}else if(cur){E.push(cur);cur=null}}if(cur)E.push(cur);
  E.sort((a,b)=>a.s0-b.s0);E.forEach((e,i)=>{e.id='e'+(i+1);e.n='Engstelle '+(i+1);e.h=i===0?.36:.3;e.vf=.62;e.q=[];e.last=-1e9});M.eng=E;KW.eng=E};
 KV.bich.paths=function(){const k=KV.bich.kassa,W=KV.bich.walkY;return {
- kL1:[[k.x,k.y+8],[328,1848],[292,1834]],
+ kL1:[[k.x,k.y+8],[306,1838],[292,1832]],
  busUp:[[380,1948],[372,1906],[366,W],[k.x,W],[k.x,k.y+8]],
  zebra:[]}};
 KV.bich.drawPaths=function(c){const k=KVOR.kassa,W=KVOR.walkY;
- kPathLine(c,[[k.x,k.y+8],[328,1848],[292,1834],[262,1816]],9);kPathLine(c,[[k.x,k.y+6],[k.x,W]],9);
+ kPathLine(c,[[k.x,k.y+8],[306,1838],[288,1830],[262,1816]],9);kPathLine(c,[[306,1838],[306,W]],9);kPathLine(c,[[k.x,k.y+6],[k.x,W]],9);// V338: nach Skizze des Spielers – gerade zur Kassa, Abzweig zum Gehsteig
  kPathLine(c,[[380,1946],[372,1906],[366,W]],7);
  if(KG.b.hut){c.strokeStyle='#e9dcc4';c.lineWidth=6;c.lineCap='round';c.beginPath();KVOR.hut.in.forEach((p,i)=>i?c.lineTo(p[0],p[1]):c.moveTo(p[0],p[1]));c.stroke()}
  if(KG.hotel)kPathLine(c,[[740,1846],[740,W]],7)};
