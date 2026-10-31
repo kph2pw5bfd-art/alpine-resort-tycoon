@@ -2021,7 +2021,8 @@ const kXP=()=>{let n=0;for(const b of KBERGE)n+=KC&&KC.best[b.id]||0;return n};
 const kWd=()=>(KG.day-1)%7,kWeek=()=>Math.floor(((KG.day-1)%KSL)/7)+1,kSeaN=()=>Math.floor((KG.day-1)/KSL)+1,kSeaD=()=>(KG.day-1)%KSL+1;
 const kDayT=d=>KWN[(d-1)%7]+' • Woche '+(Math.floor(((d-1)%KSL)/7)+1);
 // Helligkeit 0..1 aus der Uhrzeit
-function kBright(){const t=KG?KG.t:12;if(t<6)return 0;if(t<7.5)return (t-6)/1.5;if(t<16.8)return 1;if(t<18.6)return 1-(t-16.8)/1.8;return 0}
+// V334: Tag-Nacht wie am Heimatberg (bright(): p .58–.72 dunkel, .94–1 hell → 16:38–19 Uhr und 5–6 Uhr)
+function kBright(){const t=KG?KG.t:12;if(t<5)return 0;if(t<6)return t-5;if(t<16.64)return 1;if(t<19)return 1-(t-16.64)/2.36;return 0}
 // Lift-Daten
 const KLT={teller:{n:'Tellerlift',cap:1,sp:15,v:30,co:4,up:110,drag:1},schlepp:{n:'Schlepplift',cap:2,sp:20,v:30,co:3,up:150,drag:1},s1:{n:'Einersessel',cap:1,sp:30,v:30,co:5,up:180,chair:1},g8:{n:'8er-Gondel',cap:8,sp:62,v:56,co:10,up:640},s2:{n:'2er-Sessel',cap:2,sp:36,v:40,co:8,up:260},s4:{n:'4er-Sessel',cap:4,sp:40,v:46,co:8,up:380},s6:{n:'6er-Sessel',cap:6,sp:44,v:50,co:9,up:520},s3:{n:'3S-Bahn',cap:28,sp:150,v:72,co:12,up:900}};
 // Wind: steht ein Lift? (Berge mit eigener Windgrenze: KVOR.windStop)
@@ -2434,7 +2435,7 @@ function kLnAct(a,v){const L=KG.loan||0;
 // --- Hauptschritt ---
 function kStep(dt){if(!KG||KG.done||KW.halt)return;
  const busy=KW.folks.length>0||KW.cars.length>0||KW.buses.length>0;
- let nf=1;if((KG.t>=17.6||KG.t<7.2)&&!busy){nf=KW.groom&&KW.groom.st!=='home'?3.5:12}
+ let nf=1;if((KG.t>=17||KG.t<7.2)&&!busy){const tt=KG.t;nf=KW.groom&&KW.groom.st!=='home'?3.5:tt>=17&&tt<19?2:tt>=4.5&&tt<7.2?8:22}
  const dth=dt/KRT*nf,t0=KG.t;KG.t+=dth;KW.T+=dt;
  // Ereignisse über die Uhr
  if(t0<6&&KG.t>=6)kMorning();
@@ -2807,14 +2808,20 @@ function kSite(c,x,y,w,t,noFence){const h=w*.5;if(!noFence){c.fillStyle='rgba(18
  kSign(c,x,y-44,'🚧 BAUSTELLE','#f2701f','#fff',5)}
 function kCanSpray(c,t){for(const p of kCanPos()){if(!kInV(p.x,p.y))continue;for(let i=0;i<7;i++){const u=((t*.7+i/7+p.ph)%1),dir=-p.sd;const x=p.x+dir*(4+u*30)+Math.sin(u*9+i)*2,y=p.y-14-u*6+u*u*16;c.fillStyle='rgba(240,248,255,'+(.7*(1-u)).toFixed(2)+')';c.beginPath();c.arc(x,y,1.4+u*3,0,7);c.fill()}}}
 // Nacht: abdunkeln, Fenster und Laternen
-function kDrawNight(c){const b=kBright();if(b>=1)return;const a=(1-b)*.58;const vw=kViewW(),vh=kViewH();c.fillStyle='rgba(16,26,62,'+a.toFixed(3)+')';c.fillRect(kZ.camX-10,kZ.camY-10,vw+20,vh+20);
+function kDrawNight(c){const b=kBright(),t=KG.t,vw=kViewW(),vh=kViewH(),R=[kZ.camX-10,kZ.camY-10,vw+20,vh+20];
+ // Abendrot (Heimatberg p .56–.72 ≈ 16:17–19 Uhr) und Morgenrot (p .93–1 ≈ 4:45–6 Uhr)
+ const sg=Math.sin(Math.PI*kcl((t-16.29)/2.71,0,1)),dg=t<6?Math.sin(Math.PI*kcl((t-4.75)/1.25,0,1)):0;
+ if(sg>.01){c.fillStyle='rgba(255,140,70,'+(.17*sg).toFixed(3)+')';c.fillRect(...R)}if(dg>.01){c.fillStyle='rgba(255,170,150,'+(.11*dg).toFixed(3)+')';c.fillRect(...R)}
+ if(b>=1)return;const a=(1-b)*.58;c.fillStyle='rgba(12,22,58,'+a.toFixed(3)+')';c.fillRect(...R);
  if(b<.75){const g=Math.min(1,(.75-b)*2.2);c.fillStyle='rgba(255,214,130,'+(.9*g).toFixed(2)+')';for(const w of KW.win){if(!kInV(w[0],w[1]))continue;c.fillRect(w[0],w[1],w[2],w[3])}if(KST.winS)for(const w of KST.winS){if(!kInV(w[0],w[1]))continue;c.fillRect(w[0],w[1],w[2],w[3])}
   // Laternen am Gehweg und an der Straße
-  for(const [x,y] of kLampsF())kLamp(c,x,y-22,g)
+  for(const [x,y] of kLampsF())kLamp(c,x,y-22,g,1-b)
   if(KW.groom&&KW.groom.st!=='home'){const R=KW.groom,a2=R.a;const gr=c.createRadialGradient(R.x+Math.cos(a2)*26,R.y+Math.sin(a2)*26,2,R.x+Math.cos(a2)*26,R.y+Math.sin(a2)*26,34);gr.addColorStop(0,'rgba(255,240,190,'+(.55*g)+')');gr.addColorStop(1,'rgba(255,240,190,0)');c.fillStyle=gr;c.beginPath();c.arc(R.x+Math.cos(a2)*26,R.y+Math.sin(a2)*26,34,0,7);c.fill()}
   // Scheinwerfer wie beim Zug am Heimatberg: weicher, runder Lichtschein vor der Front
   for(const car of KW.cars.concat(KW.buses)){if(car.st==='park'||car.st==='out'||car.st==='gone'||car.x==null||!kInV(car.x,car.y,40))continue;const a2=car.a!=null?car.a:car.dir>0?0:Math.PI,hl=car.bus?24:14,fx=car.x+Math.cos(a2)*(hl+10),fy=car.y+Math.sin(a2)*(hl+10),gr=c.createRadialGradient(fx,fy,0,fx,fy,18);gr.addColorStop(0,'rgba(255,240,190,'+(.4*g).toFixed(3)+')');gr.addColorStop(1,'rgba(255,240,190,0)');c.fillStyle=gr;c.fillRect(fx-18,fy-18,36,36)}}}
-function kLamp(c,x,y,g){if(!kInV(x,y))return;const gr=c.createRadialGradient(x,y+6,1,x,y+10,30);gr.addColorStop(0,'rgba(255,226,150,'+(.42*g).toFixed(2)+')');gr.addColorStop(1,'rgba(255,226,150,0)');c.fillStyle=gr;c.beginPath();c.ellipse(x,y+12,30,16,0,0,7);c.fill();c.fillStyle='rgba(255,236,170,'+(.95*g).toFixed(2)+')';c.beginPath();c.arc(x,y-1,2.2,0,7);c.fill()}
+function kLamp(c,x,y,g,nt){if(!kInV(x,y))return;if(nt!=null){// V334: weicher Lichtkegel wie lampPts am Heimatberg (Fuß = y+22)
+  const la=kcl(nt*1.3,0,1);if(nt<=.12)return;c.save();c.globalCompositeOperation='lighter';const soft=(x0,y0,rx,ry,rgb,al)=>{c.save();c.translate(x0,y0);c.scale(1,ry/rx);const q=c.createRadialGradient(0,0,0,0,0,rx);for(const [o,m] of [[0,1],[.2,.72],[.45,.34],[.7,.1],[1,0]])q.addColorStop(o,'rgba('+rgb+','+(al*m).toFixed(3)+')');c.fillStyle=q;c.beginPath();c.arc(0,0,rx,0,7);c.fill();c.restore()};
+  soft(x,y+29,60,34,'255,214,130',.34*la);soft(x,y-3,18,18,'255,232,170',.3*la);c.restore();c.fillStyle='rgba(255,236,170,'+(.95*g).toFixed(2)+')';c.beginPath();c.arc(x,y-1,2.2,0,7);c.fill();return}const gr=c.createRadialGradient(x,y+6,1,x,y+10,30);gr.addColorStop(0,'rgba(255,226,150,'+(.42*g).toFixed(2)+')');gr.addColorStop(1,'rgba(255,226,150,0)');c.fillStyle=gr;c.beginPath();c.ellipse(x,y+12,30,16,0,0,7);c.fill();c.fillStyle='rgba(255,236,170,'+(.95*g).toFixed(2)+')';c.beginPath();c.arc(x,y-1,2.2,0,7);c.fill()}
 // Wetter: Schneefall, Sturm
 function kDrawWeather(c){const w=KG.wx;if(w!=='neuschnee'&&w!=='sturm')return;if(KG.t<6||KG.t>22)return;const vw=kViewW(),vh=kViewH(),n=w==='sturm'?90:60,T0=KW.T;c.fillStyle='rgba(255,255,255,.85)';
  for(let i=0;i<n;i++){const sx=((i*97.3+T0*(w==='sturm'?70:14))%(vw+40))-20,sy=((i*57.7+T0*(w==='sturm'?30:22)+(i%7)*13)%(vh+40))-20;c.beginPath();c.arc(kZ.camX+sx,kZ.camY+sy,w==='sturm'?.9:1.2,0,7);c.fill()}}
