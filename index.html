@@ -7825,7 +7825,7 @@ function wrOv(){const R=G.wrR,show=!!(wrDay()&&['r1','p','r2','end'].includes(R.
 
 // ===== V239: Versteckter Testbereich (Optionen › 5× auf die Versionszeile tippen) =====
 // Jeder Test sichert vorher den Spielstand; „Test beenden“ holt ihn zurück. Neue Tests einfach in TESTS eintragen.
-const TVER='V323',TBAK='art-test-bak';
+const TVER='V324',TBAK='art-test-bak';
 // V263: Test „Alles ausgebaut“ – kauft über das Baumenü alles, was es gibt (Voraussetzungen und Sterne werden dabei übersprungen), und stellt Baustellen sofort fertig. wc = mit Verbindungsbahn West.
 var TALL=0;
 function tstAll(wc){const m0=G.money,st0=G.stN;let n=0;TALL=1;G.stN=5;
@@ -11049,7 +11049,7 @@ document.querySelectorAll('[data-df]').forEach(b=>b.onclick=()=>{const d=b.datas
  try{localStorage.setItem('art-newdiff',d)}catch(e){}doReset()});
 
 // ===== Spielstand sichern: Konto (db) + Datei (V90) =====
-let cloudWait=true,cDB=null,cRef=null,cBusy=false,cLast='',ldAsk=false,ldData=null,dlCap=null;
+let cloudWait=true,cDB=null,cRef=null,cBusy=false,cLast='',ldAsk=false,ldData=null,ldKar=null,dlCap=null;
 function tUI(){$('tcont').disabled=cloudWait||!(hasSave||started);$('tnew').disabled=cloudWait;$('tbk').disabled=cloudWait||!(hasSave||started);$('tld').disabled=cloudWait;if(cloudWait)$('tnote').textContent='Spielstand wird geladen …'}
 function tMsg(m){$('tnote').textContent=m;clearTimeout(tMsg.t);tMsg.t=setTimeout(()=>{if(inTitle&&!cloudWait&&!newAsk&&!ldAsk)$('tnote').textContent=''},5000)}
 function cloudDone(){if(!cloudWait)return;cloudWait=false;if(inTitle){$('tnote').textContent='';tUI()}}
@@ -11081,29 +11081,31 @@ async function doReset(){
  try{location.hash='go'}catch(e){}location.reload();
 }
 $('tbk').onclick=async()=>{
- if(cloudWait||!(hasSave||started))return;
+ const kar=window.kBackup?window.kBackup():null,hasF=hasSave||started;
+ if(cloudWait||!(hasF||kar))return;
  if(!dlCap){try{dlCap=await window.claude.use('downloads')}catch(e){}}
  if(started)save();
- const o=Object.assign({},G);o.sv=G.sv||Date.now();
+ const o=hasF?Object.assign({},G):null;if(o)o.sv=G.sv||Date.now();
  const dd=new Date(),p=n=>String(n).padStart(2,'0');
- const fn='Alpine-Resort-Tycoon_Tag'+G.day+'_'+dd.getFullYear()+'-'+p(dd.getMonth()+1)+'-'+p(dd.getDate())+'.json';
- const data=JSON.stringify({spiel:'Alpine Resort Tycoon',version:90,gesichert:dd.toISOString(),stand:o});
- if(!dlCap){const r=await webSave(fn,data);tMsg(r?'Spielstand gesichert ('+sTg(G.day)+').':'Sichern abgebrochen.');return}
- try{await dlCap.save({filename:fn,data});tMsg('Spielstand gesichert ('+sTg(G.day)+').')}catch(e){
+ const fn='Alpine-Resort-Tycoon_'+(hasF?'Tag'+G.day:'Karriere')+'_'+dd.getFullYear()+'-'+p(dd.getMonth()+1)+'-'+p(dd.getDate())+'.json';
+ const data=JSON.stringify({spiel:'Alpine Resort Tycoon',version:90,gesichert:dd.toISOString(),stand:o,karriere:kar});
+ const okM='Spielstand gesichert ('+(hasF?sTg(G.day):'')+(hasF&&kar?' + ':'')+(kar?'Karriere':'')+').';
+ if(!dlCap){const r=await webSave(fn,data);tMsg(r?okM:'Sichern abgebrochen.');return}
+ try{await dlCap.save({filename:fn,data});tMsg(okM)}catch(e){
   const c=e&&e.code;tMsg(c==='declined'?'Sichern abgebrochen.':c==='rate_limited'?'Bitte kurz warten und nochmal tippen.':'Sichern hat nicht geklappt.')}
 };
 $('tld').onclick=()=>{
  if(cloudWait)return;
- if(ldAsk&&ldData){ldAsk=false;const o=ldData;ldData=null;o.sv=Date.now();tMsg('Spielstand wird geladen …');applyState(o);cloudPushNow(o);return}
+ if(ldAsk&&ldData){ldAsk=false;const o=ldData;ldData=null;if(ldKar&&window.kRestore)window.kRestore(ldKar);ldKar=null;o.sv=Date.now();tMsg('Spielstand wird geladen …');applyState(o);cloudPushNow(o);return}
  $('tfile').value='';$('tfile').click();
 };
 function cloudPushNow(o){if(!cRef)return;try{cRef.set({g:JSON.stringify(o),ts:o.sv,day:o.day,v:90})}catch(e){}}
 $('tfile').onchange=()=>{
  const f=$('tfile').files&&$('tfile').files[0];if(!f)return;
  const rd=new FileReader();
- rd.onload=()=>{let o=null;try{const j=JSON.parse(rd.result);o=j&&j.stand?j.stand:j}catch(e){}
-  if(!o||typeof o!=='object'||typeof o.money!=='number'||typeof o.day!=='number'||!Array.isArray(o.lg)){tMsg('Diese Datei ist kein Spielstand.');return}
-  ldData=o;
+ rd.onload=()=>{let o=null,kar=null;try{const j=JSON.parse(rd.result);kar=j&&j.karriere&&typeof j.karriere==='object'?j.karriere:null;o=j&&('stand' in j)?j.stand:j}catch(e){}
+  if(!o||typeof o!=='object'||typeof o.money!=='number'||typeof o.day!=='number'||!Array.isArray(o.lg)){if(kar&&window.kRestore){window.kRestore(kar);tMsg('Karriere-Spielstände geladen.');return}tMsg('Diese Datei ist kein Spielstand.');return}
+  ldData=o;ldKar=kar;
   if(!(hasSave||started)){ldAsk=true;$('tld').onclick();return}
   ldAsk=true;$('tld').textContent='✔ Wirklich laden?';$('tld').classList.add('warn');
   $('tnote').textContent='Datei: '+sTg(o.day)+', '+fmt(o.money)+'. Dein aktueller Spielstand ('+sTg(G.day)+') wird ersetzt. Zum Bestätigen nochmal tippen.';
@@ -11124,4 +11126,4 @@ function perfWatch(ms,gap){if(SET.perf||SET.pAuto||paused||open||inTitle||docume
  PFW.n++;PFW.ms+=ms;PFW.gap+=gap;if(PFW.n<240)return;const am=PFW.ms/PFW.n,ag=PFW.gap/PFW.n;PFW.n=PFW.ms=PFW.gap=0;
  if(am>20||ag>.06){SET.perf=1;SET.pAuto=1;setSave();resize();buildStatic();lg('⚙️','lif','Leistungsmodus eingeschaltet, damit das Handy kühler bleibt (Einstellungen › Grafik).',{s:1});toast('⚙️ Leistungsmodus eingeschaltet – das Handy bleibt kühler. Abschalten unter Einstellungen › Grafik.',5000)}}
 (function loop(n){const dt=Math.min(.05,(n-last)/1000);last=n;if(!inTitle){if(!paused){if(G.seaP&&!SWS)seaFinish();const sp=evSlow()?1:nIdle()?Math.max(speed,5):speed;for(let i=0;i<sp;i++)step(dt)}fAcc+=dt;const tg=frTgt();if(!tg||fAcc>=tg-.004){const t0=performance.now(),g=fAcc;draw(Math.min(fAcc,.25));fAcc=0;perfWatch(performance.now()-t0,g)}}requestAnimationFrame(loop)})(last);
-</script><script src="karriere.js?v=323"></script></body></html>
+</script><script src="karriere.js?v=324"></script></body></html>

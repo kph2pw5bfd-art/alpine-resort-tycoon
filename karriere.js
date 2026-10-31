@@ -3227,7 +3227,7 @@ const KTH={};function kThumb(id){if(KTH[id])return KTH[id];const g0=KG,v0=KVOR,o
  finally{KG=g0;KVOR=v0;KON=on0;KST.c=st0.c;KST.rs=st0.rs;KW.pistes=pist0;KW.pmap=pm0;KW.paths=paths0;Object.assign(kZ,z0);if(KVOR){kBuildWorld()}}
  return KTH[id]=url}
 // Berg starten / verlassen
-function kStart(id,fresh){kCareerLoad();KVOR=KV[id];if(!KVOR)return;let s=fresh?null:kLoad(id);if(!s||s.done){s=kNewState(id,KC.perks||[]);s.firm=KC.firm}KG=s;KW.halt=0;
+function kStart(id,fresh){kCareerLoad();KVOR=KV[id];if(!KVOR)return;if(KC.last!==id){KC.last=id;kCareerSave()}let s=fresh?null:kLoad(id);if(!s||s.done){s=kNewState(id,KC.perks||[]);s.firm=KC.firm}KG=s;KW.halt=0;
  KW.folks=[];KW.cars=[];KW.buses=[];KW.pops=[];KW.lift={};KW.school=[];KW.groom=null;KW.res=null;KW.neu=null;KW.open=null;KW.paused=false;KW.modal=0;KW.speed=1;KW.endAsk=0;KW.rsAsk=0;KW.canP=null;KW.acc=[];KW.lgNew=0;
  KW.paths=KVOR.paths();if(KVOR.onStart)KVOR.onStart();kBuildWorld();for(const id2 in KG.l)if(KG.l[id2].on)kLiftSetup(id2);KW.hutS=kHutS();
  kLnMig();if(KG.loanStart){kLnSet(KG.loanStart,56);KG.loanStart=0}
@@ -3255,6 +3255,47 @@ function kEndHTML(){const R=KW.endR||{st:0,before:0,xp:kXP()};const i=KBERGE.fin
  if(!on)return;$('tscl').innerHTML=kTitleList();
  document.querySelectorAll('[data-sc]').forEach(b=>b.onclick=()=>{const k=b.dataset.sc;if(k==='free'){$('tscn').hidden=true;tDiff(true);return}if(k==='kar'){newAsk=false;$('tnote').textContent='';kCareerOpen();return}})};
  window.addEventListener('pagehide',()=>{if(KON)kSave()});document.addEventListener('visibilitychange',()=>{if(KON&&document.visibilityState==='hidden')kSave()})})();
+// ===== Startbildschirm (V324): zwei Karten – Karriere und Freies Spiel =====
+function kBackup(){const o={};try{for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(k===KKEY||k.startsWith('art-kberg-'))o[k]=localStorage.getItem(k)}}catch(e){}return Object.keys(o).length?o:null}
+function kRestore(o){if(!o||typeof o!=='object')return;try{const old=[];for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(k===KKEY||k.startsWith('art-kberg-'))old.push(k)}old.forEach(k=>localStorage.removeItem(k));for(const k in o)if((k===KKEY||k.startsWith('art-kberg-'))&&typeof o[k]==='string')localStorage.setItem(k,o[k])}catch(e){}KC=null;kCareerLoad();kTitleCards()}
+window.kBackup=kBackup;window.kRestore=kRestore;
+function kLastInfo(){const id=KC&&KC.last;if(!id||!KV[id])return null;let s=null;try{s=JSON.parse(localStorage.getItem(KBK(id))||'null')}catch(e){}if(!s||s.done)return null;
+ const b=KBERGE.find(x=>x.id===id),d=s.day||1,sea=(b&&b.sea)||1;return {id,n:b?b.n:id,t:'Saison '+(Math.floor((d-1)/KSL)+1)+(sea>1?'/'+sea:'')+' · '+KWN[(d-1)%7]+' Woche '+(Math.floor(((d-1)%KSL)/7)+1)}}
+function kTitleCSS(){if(document.getElementById('tmccss'))return;const st=document.createElement('style');st.id='tmccss';st.textContent=`
+#tcont,#tnew{display:none!important}
+#tmc{display:flex;flex-direction:column;gap:10px;width:min(340px,100%)}
+.tmcard{border-radius:20px;padding:11px 13px 12px;color:#fff;font-family:Fredoka,sans-serif;text-align:left;box-shadow:0 5px 0 var(--sh),0 10px 18px rgba(30,80,140,.25)}
+.tmcard.k{background:linear-gradient(#ffb04a,#f2701f);--sh:#b8480c}.tmcard.f{background:linear-gradient(#5bc8fb,#1e88e5);--sh:#0f5fb0}
+.tmh{display:flex;align-items:center;gap:10px}.tmh .i{font-size:30px;flex:none}.tmh b{display:block;font-size:21px;font-weight:600;line-height:1.1;text-shadow:0 2px 0 rgba(0,0,0,.15)}.tmh small{display:block;font-size:12.5px;opacity:.95;line-height:1.25}
+.tms{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:12.5px;margin-top:7px;background:rgba(0,0,0,.14);border-radius:10px;padding:5px 9px}
+.tmr{display:flex;gap:6px;margin-top:9px}
+.tmr button{border:0;border-radius:12px;font:600 16px Fredoka,sans-serif;cursor:pointer;padding:9px 6px}
+.tmr .p{flex:1;background:#fff;color:#c4550d;box-shadow:0 3px 0 rgba(0,0,0,.18)}.tmcard.f .tmr .p{color:#1e5fb0}
+.tmr .s{flex:none;background:rgba(255,255,255,.24);color:#fff;font-size:13.5px;padding:9px 11px}
+.tmr button:disabled{opacity:.5}
+#tsv{width:auto!important;justify-content:center}#tsv button{flex:none!important;padding:6px 12px!important;font-size:13px!important;border-radius:12px!important}`;document.head.appendChild(st)}
+function kTitleCards(){const T=document.getElementById('title');if(!T)return;kTitleCSS();let box=document.getElementById('tmc');
+ if(!box){box=document.createElement('div');box.id='tmc';const sv=document.getElementById('tsv');sv.parentNode.insertBefore(box,sv)}
+ kCareerLoad();const w=typeof cloudWait!=='undefined'&&cloudWait,hasF=hasSave||started,L=KC.firm?kLastInfo():null,nb=KC.firm?kNextBerg():null;
+ const kSub=KC.firm?kesc(KC.firm)+' · ★ '+kXP()+' von 15':'5 Berge, jeder anders. Sterne sammeln, Erfahrung mitnehmen.';
+ const kInfo=L?`Zuletzt gespielt: <b>${L.n}</b> · ${L.t}`:nb?`Weiter mit <b>${nb.n}</b>`:'';
+ const fSub=hasF?'Dein Heimatberg · '+fmt(G.money):'Dein Heimatberg ohne Frist, Schwierigkeit frei wählbar',fInfo=hasF?String(sTg(G.day)).replace(', ',' · ').replace(' • ',' '):'';
+ box.innerHTML=`<div class="tmcard k"><div class="tmh"><span class="i">🏔️</span><span><b>Karriere</b><small>${kSub}</small></span></div>${kInfo?`<div class="tms">${kInfo}</div>`:''}
+<div class="tmr"><button class="p" data-tm="kgo">${KC.firm?'▶ Weiterspielen':'▶ Karriere starten'}</button>${KC.firm?'<button class="s" data-tm="kmap">🗺️ Karte</button>':''}</div></div>
+<div class="tmcard f"><div class="tmh"><span class="i">♾️</span><span><b>Freies Spiel</b><small>${fSub}</small></span></div>${fInfo?`<div class="tms">${fInfo}</div>`:''}
+<div class="tmr"><button class="p" data-tm="fgo" ${w?'disabled':''}>${hasF?'▶ Weiterspielen':'▶ Neues Spiel'}</button>${hasF?`<button class="s" data-tm="fnew" ${w?'disabled':''}>Neu</button>`:''}</div></div>`;
+ box.querySelectorAll('[data-tm]').forEach(b=>b.onclick=()=>{const a=b.dataset.tm;if(w&&a[0]==='f')return;newAsk=false;$('tnote').textContent='';
+  if(a==='kgo'){if(!KC.firm){kCareerOpen();return}const l=kLastInfo();if(l){kStart(l.id,0);return}kMap();return}
+  if(a==='kmap'){kCareerOpen();return}
+  if(a==='fgo'){if(hasF){$('tcont').onclick();return}tDiff(true);return}
+  if(a==='fnew'){tDiff(true);return}});
+ const bk=document.getElementById('tbk');if(bk)bk.disabled=w||!(hasF||kBackup())}
+(function(){const oT=window.showTitle,oD=window.tDiff,oU=window.tUI;
+ window.showTitle=function(){oT.apply(this,arguments);kTitleCards()};
+ window.tDiff=function(on){oD(on);const b=document.getElementById('tmc');if(b)b.style.display=on?'none':''};
+ window.tUI=function(){oU.apply(this,arguments);if(document.getElementById('tmc')||inTitle)kTitleCards()};
+ const db=document.getElementById('tdb');if(db)db.onclick=()=>{newAsk=false;tDiff(false)};
+ if(typeof inTitle!=='undefined'&&inTitle)kTitleCards()})();
 // Test-Zugang
 window.KAR={get G(){return KG},get V(){return KVOR},W:KW,Z:kZ,ST:KST,step:kStep,start:kStart,leave:kLeave,open:kOpen,map:kMap,career:()=>KC,careerOpen:kCareerOpen,buy:kBuy,stars:kStars,score:kScore,demand:kDemand,ui:kUI,draw:kDraw,build:kBuildStatic,
  setCam:(x,y,S)=>{if(S)kZ.S=S;kZ.camX=x;kZ.camY=y;kClamp()},thumb:kThumb,end:kBergEnd,seaRes:kSeaRes,mid:kMidnight,morning:kMorning,credit:kCredit,offer:kOffer,pq:kPQavg,wait:kWait,perkWin:kPerkWin,bergWin:kBergWin,fairT:kFairT,items:kBuildItems,canPos:kCanPos,
