@@ -444,7 +444,7 @@ KV.alt={id:'alt',n:'Altberg',am:'am Altberg',bounds:{x0:-100,x1:1100,y0:150,y1:2
   pin:()=>[[740,1770],[420,1770],[420,1724]],pout:()=>[[420,1724],[420,1770],[740,1770],[752,1760]]},
  cannons:{cost:9000,st:2},
  goals:[
-  {k:'pf',t:'Schuldenfrei (Kassa über 0 €) und 2 Sterne',sh:'Schuldenfrei + 2 ★',prog:()=>(KG.money>0?'schuldenfrei ✓':'noch '+kfmt(-KG.money)+' Schulden')+' · '+kStars()+' ★',ok:()=>KG.money>0&&kStars()>=2,lock:1},
+  {k:'pf',t:'Schuldenfrei (Kredit abbezahlt, Kassa über 0 €) und 2 Sterne',sh:'Schuldenfrei + 2 ★',prog:()=>(KG.loan>0?'noch '+kfmt(KG.loan)+' Kredit':KG.money<=0?'Kassa im Minus':'schuldenfrei ✓')+' · '+kStars()+' ★',ok:()=>!(KG.loan>0)&&KG.money>0&&kStars()>=2,lock:1},
   {k:'zu',t:'Alle 3 alten Lifte wieder in Betrieb – saniert oder neu – und Platz 6 oder besser',sh:'3 Lifte + Platz 6',prog:()=>kAltOldN()+' / 3 Lifte · Platz '+kRank(),ok:()=>kAltOldN()>=3&&kRank()<=6,lock:1},
   {k:'me',t:'In der letzten Woche der 2. Saison keine einzige Liftpanne',sh:'Keine Panne',prog:()=>kAltLW(),ok:()=>!!KG.lwSeen&&!KG.lwBrk,end:1}],
  stageInfo:[null,
@@ -2009,7 +2009,7 @@ function kNewState(id,perks){const V=KV[id],B=KBERGE.find(b=>b.id===id);
  for(const L of V.lifts)s.l[L.id]={on:0,typ:L.typ,lg:0,cond:100,brk:null};
  for(const L of V.lots)s.lots[L.id]=L.base?1:0;
  for(const p of V.pistes)s.pq[p.id]=100;
- if(V.init)V.init(s);s.wxN=kWxRoll(V);s.seaM0=s.money;return s}
+ if(V.init)V.init(s);s.wxN=kWxRoll(V);s.loan=0;s.buys=[];if(s.money<0){s.loanStart=-s.money;s.money=0}s.seaM0=s.money;return s}
 function kWxRoll(V){const w=V.wx;let r=kR(),acc=0;for(const k in w){acc+=w[k];if(r<acc)return k}return 'sonne'}
 function kSave(){if(!KG)return;try{localStorage.setItem(KBK(KG.id),JSON.stringify(KG))}catch(e){}}
 function kLoad(id){try{const o=JSON.parse(localStorage.getItem(KBK(id))||'null');if(o&&o.id===id)return o}catch(e){}return null}
@@ -2280,9 +2280,101 @@ function kStars(){if(!KG)return 1;const s=kScore(),TH=kSTH();let n=1;for(let i=2
 function kRank(){const me=kScore();return 1+KG.rv.filter(v=>v>me).length}
 function kCredit(){const H=KG.hist.slice(-7);let avg=0;if(H.length)avg=H.reduce((a,h)=>a+h.inc,0)/H.length;return Math.round(Math.max(KVOR&&KVOR.credMin||5000,avg*8)*(KPK('bank')?1.5:1)/100)*100}
 function kSeaRes(){return Math.round((KG.seaInc||0)-(KG.seaCost||0))}
-function kCanPay(v){return KG.money-v>=-kCredit()}
+function kCanPay(v){return KG.money>=v}
+// ===== V315: Kredit wie am Heimatberg – gekauft wird nur mit Geld in der Kassa =====
+// Kreditrahmen kCredit() = höchster Kredit. Ein Kredit, aufstockbar; Tagesrate abends; offene Raten → Mahnung, 2. → Warnfenster, 3. → Bank nimmt das zuletzt Gekaufte zum halben Preis zurück (Ausbaustufen nie).
+const KLNTS=[14,21,28],KLNBK=40;
+function kLnRateI(){return (.004+(5-kStars())*.0008)*(KPK('bank')?2/3:1)}
+function kLnAnn(L,i,n){n=Math.max(1,n);return L<=0?0:Math.ceil(L*i/(1-Math.pow(1+i,-n)))}
+function kLnZins(){return Math.round((KG.loan||0)*(KG.lnI||kLnRateI()))}
+function kLnClr(){KG.loan=0;KG.lnR=0;KG.lnN=0;KG.lnO=0;KG.lnOA=0}
+function kLnSet(L,n){KG.loan=L;KG.lnI=KG.lnI||kLnRateI();KG.lnT=n;KG.lnN=n;KG.lnD=KG.day;KG.lnR=kLnAnn(L,KG.lnI,n);KG.lnO=0;KG.lnOA=0}
+// alte Spielstände: Minus in der Kassa wird zum Kredit (8 Wochen)
+function kLnMig(){if(!KG.buys)KG.buys=[];if(KG.loan==null){KG.loan=0;if(KG.money<0){const L=-Math.round(KG.money);KG.money=0;KG.lnI=kLnRateI();kLnSet(L,56);KG.pleite=0}}}
+let kLnAmt=0,kLnTm=21;
+function kLnStep(){return kCredit()<=30000?2000:5000}
+function kLnFree(){return Math.max(0,kCredit()-(KG.loan||0))}
+function kLnFit(){const F=kLnFree(),s=kLnStep();if(!kLnAmt)kLnAmt=Math.min(F,s*2);kLnAmt=Math.max(0,Math.min(kLnAmt,Math.floor(F/500)*500))}
+// Tagesabschluss: Zinsen sind schon bei den Kosten, hier wird die Tilgung fällig
+function kLnDay(){const L=KG.loan||0;if(L<=0){if(KG.lnR)kLnClr();return}
+ const OA=KG.lnOA||0,last=(KG.lnN||1)-(KG.lnO||0)<=1,P0=last?L-OA:Math.min(L-OA,Math.max(0,KG.lnR-kLnZins())),due=OA+P0;
+ if(KG.money>=due){KG.money-=due;KG.loan=Math.max(0,L-due);KG.lnN=Math.max(0,(KG.lnN||1)-1-(KG.lnO||0));const war=KG.lnO;KG.lnO=0;KG.lnOA=0;
+  if(KG.loan<1||KG.lnN<=0){if(KG.loan>=1)KG.money-=KG.loan;kLnClr();kLog('🏦','Kredit ganz abbezahlt!');kToast('🏦 Dein Kredit ist ganz abbezahlt!',3500)}
+  else kLog('🏦','Kreditrate bezahlt: −'+kfmt(due)+(war?' (mit nachgeholten Raten)':'')+', noch '+kfmt(KG.loan));return}
+ KG.lnO=(KG.lnO||0)+1;KG.lnOA=OA+P0;KG.ruf=Math.max(5,KG.ruf-3);
+ kLog('🏦',KG.lnO+'. Kreditrate nicht bezahlt ('+kfmt(P0)+' fehlen), Ruf −3');
+ if(KG.lnO===1)kToast('⚠️ 1. Mahnung: Zu wenig Geld für die Kreditrate. Sie wird morgen Abend zusätzlich abgebucht.',5000);
+ else if(KG.lnO===2)setTimeout(kLnWarn,200);
+ else kLnTake()}
+function kLnPick(need){const B=KG.buys||[],out=[];let v=0;for(let k=B.length-1;k>=0&&v<need;k--){out.push(B[k]);v+=Math.round(B[k].c/2)}return {l:out,v}}
+function kLnBox(h){let o=document.getElementById('klnbox');if(!o){o=document.createElement('div');o.id='klnbox';document.body.appendChild(o)}
+ o.style.cssText='position:fixed;inset:0;z-index:9999;background:rgba(20,30,50,.55);display:flex;align-items:center;justify-content:center;padding:16px';
+ o.innerHTML=`<div style="background:var(--card,#fff);color:var(--tx,#2b3a55);border-radius:18px;max-width:400px;width:100%;padding:16px 16px 14px;box-shadow:0 10px 30px rgba(0,0,0,.35);font-size:15px;line-height:1.4">${h}<div style="text-align:center;margin-top:14px"><button class="btn" id="klnok" style="font-size:16px;padding:10px 26px">Verstanden</button></div></div>`;
+ const pz=!KW.paused;KW.paused=true;kHud(1);
+ document.getElementById('klnok').onclick=()=>{o.remove();if(pz)KW.paused=false;kHud(1);kUIdirty()}}
+function kLnWarn(){if(!KG||!(KG.lnO>=2))return;const P=Math.min(KG.loan,Math.max(0,KG.lnR-kLnZins())),due=(KG.lnOA||0)+P+kLnZins(),p=kLnPick((KG.lnOA||0)+P);
+ const it=p.l.length?p.l.map(e=>'<b>'+kesc(e.n)+'</b>').join(', '):null;
+ kLnBox(`<div style="font:700 20px 'Fredoka',sans-serif;color:#c0392b;margin-bottom:6px">⚠️ 2. Mahnung der Bank</div>
+ Schon zwei Kreditraten sind offen. Morgen Abend sind <b>${kfmt(due)}</b> fällig.<br><br>
+ ${it?`Reicht das Geld wieder nicht, nimmt die Bank ${it} zurück – zum halben Kaufpreis (${kfmt(p.v)}).`:'Reicht das Geld wieder nicht, bucht die Bank den Betrag trotzdem ab – deine Kassa rutscht dann ins Minus.'}
+ <div style="margin-top:8px;font-size:13px;color:var(--mut)">Tipp: Preise anpassen oder einen Teil vorzeitig zurückzahlen.</div>`)}
+// Rücknahme nach der 3. offenen Rate
+function kLnTake(){const need=KG.lnOA||0,B=KG.buys||(KG.buys=[]),tk=[];let v=0;
+ while(v<need&&B.length){const e=B.pop();kLnUndo(e);v+=Math.round(e.c/2);tk.push(e.n)}
+ let paid=Math.min(need,v),rest=v-paid;KG.loan-=paid;KG.lnOA=need-paid;
+ if(KG.lnOA>0){KG.money-=KG.lnOA;KG.loan-=KG.lnOA;KG.lnOA=0}
+ if(rest>0){const r=Math.min(rest,KG.loan);KG.loan-=r;rest-=r;KG.money+=rest}
+ KG.lnN=Math.max(1,(KG.lnN||1)-(KG.lnO||0));KG.lnO=0;KG.loan=Math.max(0,Math.round(KG.loan));
+ if(KG.loan<1)kLnClr();else KG.lnR=kLnAnn(KG.loan,KG.lnI,KG.lnN);
+ kLog('🏦',tk.length?'Die Bank hat zurückgenommen: '+tk.join(', ')+' (+'+kfmt(v)+')':'Die Bank hat '+kfmt(need)+' von der Kassa abgebucht');
+ KG.lnMsg={t:tk,v,n:need};
+ if(tk.length){KW.halt=1;setTimeout(()=>{kSave();kStart(KG.id)},60)}else setTimeout(kLnMsgShow,200)}
+function kLnMsgShow(){const M=KG&&KG.lnMsg;if(!M)return;KG.lnMsg=null;
+ kLnBox(`<div style="font:700 20px 'Fredoka',sans-serif;color:#c0392b;margin-bottom:6px">🏦 Die Bank hat zugegriffen</div>
+ Drei Kreditraten waren offen (${kfmt(M.n)}).<br><br>${M.t.length?'Zurückgenommen zum halben Kaufpreis:<br>'+M.t.map(x=>'• <b>'+kesc(x)+'</b>').join('<br>')+'<br><br>Erlös: <b>'+kfmt(M.v)+'</b>'+(M.v<M.n?', der Rest wurde von der Kassa abgebucht.':', das deckt die offenen Raten'+(M.v>M.n?' – der Rest verringert deinen Kredit.':'.')):'Es gab nichts mehr zum Zurücknehmen – der Betrag wurde von der Kassa abgebucht.'}`);kSave()}
+// Käufe merken: Zustand vor dem Kauf, Unterschied danach (auch, wenn die Baustelle später fertig wird)
+const KLNSKIP={money:1,inc:1,cost:1,seaBau:1,seaWer:1,seaCost:1,seaInc:1,lg:1,hist:1,buys:1,lnMsg:1,res:1,dem:1,bau:1,rej:1,gDay:1,t:1,sat:1,rv:1,lastDay:1,stars:1,goals:1,loan:1,lnR:1,lnN:1,lnO:1,lnOA:1,lnI:1,lnT:1,lnD:1};
+function kLnDiff(a,b,p,out){if(a===b)return;const ja=JSON.stringify(a),jb=JSON.stringify(b);if(ja===jb)return;
+ if(a&&b&&typeof a==='object'&&typeof b==='object'&&!Array.isArray(a)&&!Array.isArray(b)){for(const k of new Set([...Object.keys(a),...Object.keys(b)])){if(!p.length&&KLNSKIP[k])continue;kLnDiff(a[k],b[k],p.concat(k),out)}return}
+ out.push([p,ja===undefined?'__u':ja])}
+function kLnUndo(e){for(let j=e.ch.length-1;j>=0;j--){const [p,o]=e.ch[j];let t=KG;for(let k=0;k<p.length-1;k++){if(t[p[k]]==null||typeof t[p[k]]!=='object')t[p[k]]={};t=t[p[k]]}const k=p[p.length-1];if(o==='__u')delete t[k];else t[k]=JSON.parse(o)}
+ KG.bau=KG.bau.filter(b=>!b.bk||b.bk!==e.bk)}
+function kLnRec(S,I,c){if(!S||c<100)return;if(KG.stage!==S.stage)return;const nb=KG.bau.filter(b=>!S.bau.some(o=>JSON.stringify(o)===JSON.stringify(b)));if(nb.some(b=>b.k==='stage'))return;
+ const ch=[];kLnDiff(S,KG,[],ch);if(!ch.length&&!nb.length)return;const bk=KG.day+'-'+Math.round(KG.t*100)+'-'+I.id;for(const b of nb)b.bk=bk;
+ const B=KG.buys||(KG.buys=[]);B.push({d:KG.day,c,n:I.n,ch,bk});if(B.length>KLNBK)B.splice(0,B.length-KLNBK)}
+// Baustelle fertig: Änderungen dem Kauf zuordnen
+function kLnApplyWrap(b,f){const e=b.bk&&(KG.buys||[]).find(x=>x.bk===b.bk);if(!e){f();return}let S=null;try{S=JSON.parse(JSON.stringify(KG))}catch(x){}f();if(S){const ch=[];kLnDiff(S,KG,[],ch);e.ch=e.ch.concat(ch)}}
+// Fenster (Statistik › Kredit)
+function kLnHTML(){const L=KG.loan||0,M=kCredit(),st=kStars(),i=kLnRateI(),R=(a,b,c,cl)=>`<div class="row"><span>${a}${c?`<br><small style="color:var(--mut)">${c}</small>`:''}</span><b class="${cl||''}">${b}</b></div>`;
+ const pc=z=>String(Math.round(z*10000)/100).replace('.',',')+' %';
+ const sb=`<div style="display:flex;gap:4px;margin:6px 0 2px">${[1,2,3,4,5].map(k=>{const z=(.004+(5-k)*.0008)*(KPK('bank')?2/3:1);return `<div style="flex:1;text-align:center;border-radius:8px;padding:4px 0;font-size:12px;${k===st?'background:#e8a33a;color:#fff;font-weight:700':'background:var(--line)'}">${k}★<br>${pc(z)}</div>`}).join('')}</div>`;
+ kLnFit();const F=kLnFree(),N=L+kLnAmt,iN=L?Math.min(KG.lnI,i):i,r=kLnAnn(N,iN,kLnTm),lock=(KG.lnO||0)>0;
+ const form=t=>`<div class="bgh">${t}</div>
+ <div class="row"><span>Betrag</span><span style="display:flex;gap:6px;align-items:center"><button class="btn ghost" data-a="lna" data-v="-" ${kLnAmt<=0||lock?'disabled':''}>−</button><b style="min-width:80px;text-align:center">${kfmt(kLnAmt)}</b><button class="btn ghost" data-a="lna" data-v="+" ${kLnAmt>=F||lock?'disabled':''}>+</button><button class="btn ghost" data-a="lna" data-v="max" ${lock||!F?'disabled':''}>Max</button></span></div>
+ <div class="row"><span>Laufzeit</span><span style="display:flex;gap:6px">${KLNTS.map(t=>`<button class="btn ${kLnTm===t?'':'ghost'}" data-a="lnt" data-v="${t}" ${lock?'disabled':''}>${t/7} Wo.</button>`).join('')}</span></div>
+ ${R('Rate pro Tag','−'+kfmt(r),L?'neue Rate für '+kfmt(N)+' (alter Rest + neuer Betrag)':'wird jeden Abend automatisch abgebucht','neg')}${R('Zinsen insgesamt',kfmt(Math.max(0,r*kLnTm-N)))}${R('Zurück insgesamt',kfmt(r*kLnTm))}
+ <div style="text-align:center;margin:10px 0 4px"><button class="btn" data-a="ln" data-v="take" style="font-size:16px;padding:10px 22px" ${lock||kLnAmt<=0?'disabled':''}>${lock?'🔒 erst ohne Mahnung':'🏦 '+(L?'Kredit aufstocken':'Kredit aufnehmen')}</button></div>`;
+ const rahmen=R('Wie viel bekomme ich?','',`8 × deine Einnahmen pro Tag (Ø letzte 7 Tage), mindestens ${kfmt(KVOR.credMin||5000)}${KPK('bank')?' · Hausbank: +50 %':''}`)+`<div class="row" style="display:block"><span>Zinsen pro Tag – je mehr Sterne, desto günstiger${KPK('bank')?' (Hausbank: ein Drittel weniger)':''}</span>${sb}</div>`;
+ const neg=KG.money<0?`<div style="background:#fde3e1;border:2px solid #d9534f;border-radius:12px;padding:8px 10px;margin:8px 0;font-size:14px;color:#7a1d1a"><b>⚠️ Kassa im Minus</b><br>Die laufenden Kosten waren höher als die Kassa. Auf das Minus fallen Zinsen an. Ist die Kassa 7 Tage hintereinander im Minus, ist der Berg verloren.${KG.pleite?' <b>Schon '+KG.pleite+' Tage!</b>':''}</div>`:'';
+ if(!L)return `${neg}<div class="kpi"><div><small>Kreditrahmen</small><b>${kfmt(M)}</b></div><div><small>Offener Kredit</small><b>–</b></div></div>${form('Neuer Kredit')}${rahmen}<p class="hint">Gekauft wird nur mit Geld aus der Kassa. Vorzeitig zurückzahlen geht jederzeit – dann sparst du dir die restlichen Zinsen. Kannst du eine Rate nicht bezahlen, gibt es eine Mahnung (Ruf −3). Nach der 3. offenen Rate nimmt die Bank das zuletzt Gekaufte zum halben Preis zurück (Ausbaustufen nie).</p>`;
+ const O=KG.lnO||0,P=Math.min(L,Math.max(0,KG.lnR-kLnZins())),due=(KG.lnOA||0)+P+kLnZins(),tot=KG.lnT||21,left=KG.lnN||0;
+ const mb=O?`<div style="background:#fde3e1;border:2px solid #d9534f;border-radius:12px;padding:8px 10px;margin:8px 0;font-size:14px;color:#7a1d1a"><b>⚠️ ${O}. Mahnung</b><br>${O===1?'Gestern Abend war zu wenig Geld für die Rate in der Kassa. Sie wird heute Abend zusätzlich abgebucht.':'Zwei Raten sind offen. Reicht das Geld heute Abend wieder nicht, nimmt die Bank das zuletzt Gekaufte zurück.'}<br><small>Ruf −3 je offene Rate · kein Aufstocken, bis alles bezahlt ist</small></div>`:'';
+ return `${mb}${neg}<div class="kpi"><div><small>Offener Kredit</small><b>${kfmt(L)}</b><div class="kbar2"><i style="width:${Math.max(0,Math.min(100,100*(tot-left)/tot))}%;background:#4caf50"></i></div></div><div><small>Heute Abend fällig</small><b class="neg">−${kfmt(due)}</b></div></div>
+ ${R('Rate pro Tag',kfmt(KG.lnR),'Laufzeit '+(tot%7?tot+' Tage':tot/7+' Wochen')+', '+pc(KG.lnI)+' pro Tag')}${R('Noch offen',left+' von '+tot+' Raten',O?O+' davon versäumt':'')}
+ <div class="row"><span>Vorzeitig zurückzahlen</span><span style="display:flex;gap:6px"><button class="btn ghost" data-a="ln" data-v="-5000" ${L<5000||KG.money<5000?'disabled':''}>−5.000 €</button><button class="btn ghost" data-a="ln" data-v="-all" ${KG.money<L?'disabled':''}>Alles</button></span></div>
+ ${form('Aufstocken · Rahmen '+kfmt(M)+', frei '+kfmt(F))}${rahmen}
+ <p class="hint">Alles auf einmal zurückzahlen kostet ${kfmt(L)} und spart dir ${kfmt(Math.max(0,KG.lnR*left-L))} Zinsen.</p>`}
+function kLnAct(a,v){const L=KG.loan||0;
+ if(a==='lna'){const s=kLnStep();kLnAmt=v==='max'?kLnFree():v==='+'?kLnAmt+s:Math.max(0,kLnAmt-s);if(kLnAmt<=0)kLnAmt=-1;kLnFit();if(kLnAmt<0)kLnAmt=0}
+ else if(a==='lnt')kLnTm=+v;
+ else if(v==='take'){kLnFit();if(kLnAmt>0&&!(KG.lnO>0)&&L+kLnAmt<=kCredit()){const N=L+kLnAmt;KG.lnI=L?Math.min(KG.lnI,kLnRateI()):kLnRateI();KG.money+=kLnAmt;kLnSet(N,kLnTm);
+   kLog('🏦',(L?'Kredit aufgestockt: +':'Kredit aufgenommen: +')+kfmt(kLnAmt)+', jetzt '+kfmt(N)+', Rate '+kfmt(KG.lnR)+' pro Tag');kSfx();kLnAmt=0}}
+ else if(v==='-all'){if(KG.money>=L&&L>0){KG.money-=L;kLnClr();kLog('🏦','Kredit ganz zurückgezahlt: '+kfmt(L))}}
+ else{const n=-v;if(n>0&&L>=n&&KG.money>=n){KG.money-=n;KG.loan=L-n;if(KG.loan<1)kLnClr();else KG.lnR=kLnAnn(KG.loan,KG.lnI,Math.max(1,KG.lnN-(KG.lnO||0)));kLog('🏦','Kredit vorzeitig zurückgezahlt: '+kfmt(n)+', noch '+kfmt(KG.loan))}}
+ kUI();kHud(1);kSave()}
+
 // --- Hauptschritt ---
-function kStep(dt){if(!KG||KG.done)return;
+function kStep(dt){if(!KG||KG.done||KW.halt)return;
  const busy=KW.folks.length>0||KW.cars.length>0||KW.buses.length>0;
  let nf=1;if((KG.t>=17.6||KG.t<7.2)&&!busy){nf=KW.groom&&KW.groom.st!=='home'?3.5:12}
  const dth=dt/KRT*nf,t0=KG.t;KG.t+=dth;KW.T+=dt;
@@ -2345,7 +2437,7 @@ function kMidnight(){const V=KVOR,d=KG.day;
  if(KG.hotel){const v=Math.round(V.hotel.rooms*(KG.hOcc||.4)*KG.price.hotel);kEarn('hot',v)}
  let cs=0;for(const k in c){c[k]=Math.round(c[k]);cs+=c[k]}
  // Zinsen
- if(KG.money<0){const z=Math.round(-KG.money*(.004+(5-kStars())*.0008)*(KPK('bank')?2/3:1));c.zins=z;cs+=z}
+ {let z=kLnZins();if(KG.money<0)z+=Math.round(-KG.money*kLnRateI()*1.5);if(z>0){c.zins=z;cs+=z}}
  for(const k in c)kSpend(k,c[k]);
  let inc=0;for(const k in KG.inc)if(k!=='bau')inc+=KG.inc[k];
  const g=KG.gDay,satA=KG.res.satN?KG.res.satS/KG.res.satN:null;
@@ -2368,8 +2460,10 @@ function kMidnight(){const V=KVOR,d=KG.day;
  KG.cmp=KG.cmp.filter(cm=>cm.end>d);
  // Baustellen fertig
  KG.day++;kBauDone();
+ // Kreditrate
+ kLnDay();
  // Pleite?
- if(KG.money<-kCredit()){KG.pleite=(KG.pleite||0)+1;if(KG.pleite===3||KG.pleite===5)kLog('⚠️','Die Kassa liegt seit '+KG.pleite+' Tagen unter dem Kreditrahmen. Nach 7 Tagen ist der Berg verloren!');if(KG.pleite>=7){KG.done=1;KG.lost=1;kSave();setTimeout(()=>kBergEnd(1),300);return}}else KG.pleite=0;
+ if(KG.money<0){KG.pleite=(KG.pleite||0)+1;if(KG.pleite===1)kToast('⚠️ Die Kassa ist im Minus! Nimm einen Kredit auf (🔨 Bauen › 🏦 Kredit), sonst ist der Berg nach 7 Tagen verloren.',5500);if(KG.pleite===3||KG.pleite===5)kLog('⚠️','Die Kassa ist seit '+KG.pleite+' Tagen im Minus. Nach 7 Tagen ist der Berg verloren!');if(KG.pleite>=7){KG.done=1;KG.lost=1;kSave();setTimeout(()=>kBergEnd(1),300);return}}else KG.pleite=0;
  KG.wxN=kWxRoll(V);
  // Saisonende?
  if((KG.day-1)%KSL===0){kSeasonEnd();return}
@@ -2378,7 +2472,7 @@ function kSnowCap(){return Math.min(100,KG.snow*2.4+8)}
 // --- Baustellen ---
 function kBauDays(days){return Math.max(0,days-(KPK('bau')?1:0))}
 function kBauStart(it){if(it.days<=0){kBauApply(it);return}it.d0=KG.day;KG.bau.push(it);kLog('🚧','Baustelle: '+it.n+' – fertig am '+kDayT(KG.day+it.days)+' früh.');kUIdirty()}
-function kBauDone(){const done=KG.bau.filter(b=>KG.day>=b.d0+b.days);KG.bau=KG.bau.filter(b=>KG.day<b.d0+b.days);for(const b of done)kBauApply(b,1)}
+function kBauDone(){const done=KG.bau.filter(b=>KG.day>=b.d0+b.days);KG.bau=KG.bau.filter(b=>KG.day<b.d0+b.days);for(const b of done)kLnApplyWrap(b,()=>kBauApply(b,1))}
 function kBauApply(b,late){if(b.k==='stage'){KG.stage=b.st;KG.buzzD=KG.day;KG.buzzN=KPK('name')?2:3;if(b.lift){KG.l[b.lift].on=1;kLiftSetup(b.lift)}kNeu(b.st)}
  else if(b.k==='lift'){KG.l[b.id].on=1;kLiftSetup(b.id)}
  else if(b.k==='b'){KG.b[b.id]=1;if(b.id==='hotel')KG.hotel=1}
@@ -2662,7 +2756,7 @@ function kClose(){KW.open=null;KW.inf=null;KW.dirty=1;kUI()}
 // --- obere Leiste ---
 let kHudS='';function kHud(force){if(!KG)return;const g=KW.folks.filter(f=>!f.ins&&f.st!=='gone').length;const st=kStars(),sc=kScore(),wi=KG.wx==='sonne'&&kBright()<.35?'🌙':KWI[KG.wx];
  const sea=KVOR.seasons,sn=KG.done?Math.min(kSeaN(),sea):kSeaN(),dd=KG.done&&kSeaN()>sea?KSL:kSeaD();const day=`<b>📅 ${KWN[kWd()]} • Woche ${kWeek()}<span style="opacity:.6">/4</span> ${wi}</b><small>Saison ${sn}${sea>1?' von '+sea:''} · ${kh(KG.t)}</small><span class="sbar"><i style="width:${Math.round((dd-1+Math.min(1,KG.t/24))/KSL*100)}%"></i></span>`;
- const mon=`<b>${kfmt(KG.money)}</b><small>${KG.money<0?'Kredit · bis −'+knum(kCredit()):'Heute '+(kTodayRes()>=0?'+':'')+knum(kTodayRes())+' €'}</small>`;
+ const mon=`<b>${kfmt(KG.money)}</b><small>${KG.money<0?'im Minus!':'Heute '+(kTodayRes()>=0?'+':'')+knum(kTodayRes())+' €'}${KG.loan>0?' · 🏦':''}</small>`;
  const gs=`<b>👥 ${g}</b><small>😊 ${Math.round(KG.ruf)} %</small>`,rf=`<b>🏆 ${sc}</b><small>${'★'.repeat(st)}<span style="opacity:.35">${'★'.repeat(5-st)}</span></small>`;
  const s=day+mon+gs+rf+(KW.paused?1:0)+KW.speed;if(s===kHudS&&!force)return;kHudS=s;
  const $=id=>document.getElementById(id);$('kmoney').innerHTML=mon;$('kmoney').classList.toggle('neg',KG.money<0);$('kday').innerHTML=day;$('kgst').innerHTML=gs;$('kruf').innerHTML=rf;
@@ -2687,6 +2781,7 @@ function kSheetClick(e){const b=e.target.closest('[data-a]');if(!b)return;const 
  if(a==='cmp'){kCmp(v);return}
  if(a==='go'){kOpen(v.split('|')[0],v.split('|')[1]);return}
  if(a==='ovh'){kOverhaul(v);return}
+ if(a==='lna'||a==='lnt'||a==='ln'){kLnAct(a,v);return}
  if(a==='can'){KG.canAuto=KG.canAuto===0?1:0;kUI();return}
  if(a==='endnow'){if(KW.endAsk){KG.done=1;kSave();kBergEnd(0)}else{KW.endAsk=1;kUI()}return}
  if(a==='leave'){kLeave('map');return}
@@ -2726,9 +2821,10 @@ function kBuildItems(){if(KVOR.items)return KVOR.items();const C=kCosts(),V=KVOR
  add('per',{id:'lw',ic:'🔧',n:'Liftwart',d:'Repariert Störungen in kurzer Zeit. Ohne Liftwart kommt ein Techniker von außen (650 €, über 1 Stunde).',c:C.lw,done:!!b.lw,up:'130 €/Tag'});
  add('per',{id:'bw',ic:'⛑️',n:'Bergwacht',d:'Holt Verletzte mit dem Motorschlitten und Akja von der Piste. Ohne Bergwacht leidet der Ruf.',c:KPK('bw')?0:C.bw,done:!!b.bw,up:KPK('bw')?'Verein · ohne Lohn':'140 €/Tag'});
  return I}
-function kBauHTML(){const tabs=[['aus','🏔️','Ausbau'],['lif','🚡','Lifte'],['pis','❄️','Piste'],['gas','🛖','Gastro'],['anr','🚗','Anreise'],['per','👷','Personal']];if(!KW.tab||!tabs.some(t=>t[0]===KW.tab))KW.tab='aus';
+function kBauHTML(){const tabs=[['aus','🏔️','Ausbau'],['lif','🚡','Lifte'],['pis','❄️','Piste'],['gas','🛖','Gastro'],['anr','🚗','Anreise'],['per','👷','Personal'],['kre','🏦','Kredit']];if(!KW.tab||!tabs.some(t=>t[0]===KW.tab))KW.tab='aus';
+ if(KW.tab==='kre')return kHead('🔨 Bauen',tabs)+`<p class="hint" style="margin:8px 0 2px">Kassa ${kfmt(KG.money)}</p>`+kLnHTML();
  const I=kBuildItems().filter(i=>i.tab===KW.tab);const open=I.filter(i=>!i.done),done=I.filter(i=>i.done);
- let h=kHead('🔨 Bauen',tabs)+`<p class="hint" style="margin:8px 0 2px">Kassa ${kfmt(KG.money)} · Kreditrahmen bis −${kfmt(kCredit())}</p>`;
+ let h=kHead('🔨 Bauen',tabs)+`<p class="hint" style="margin:8px 0 2px">Kassa ${kfmt(KG.money)}${KG.loan>0?' · Kredit offen '+kfmt(KG.loan):''} · <a data-a="tab" data-v="kre" style="color:#1e5fb0;font-weight:600;cursor:pointer">🏦 Kredit</a></p>`;
  for(const i of open.concat(done))h+=kCardHTML(i);
  if(KW.tab==='pis'&&KG.b.cannons)h+=`<div class="row"><span>❄️ Schneekanonen automatisch nachts</span><button class="btn" data-a="can">${KG.canAuto===0?'Aus':'An'}</button></div>`;
  if(KW.tab==='aus')h+=`<p class="hint">Jede Stufe öffnet neue Pisten und lockt mehr Gäste an. Neue Stufen sprechen sich in ${KPK('name')?2:3} Tagen herum.</p>`;
@@ -2737,7 +2833,8 @@ function kCardHTML(i){let btn='';if(i.done)btn=`<span class="kchip g">✓ ${i.lv
  else{const ok=kCanPay(i.c);btn=`<button class="btn" data-a="buy" data-v="${i.id}" ${ok?'':'disabled'}>${i.c?kfmt(i.c):'gratis'}</button><small>${i.days?'Bauzeit '+i.days+(i.days===1?' Tag':' Tage'):'sofort'}${i.up?' · '+i.up:''}</small>`}
  const rq=i.rq&&!i.done?'<small>'+i.rq.map(r=>`<span class="rq ${r.ok?'ok':''}">${r.ok?'✓':'○'} ${r.t}</span>`).join(' · ')+'</small>':'';
  return `<div class="kcard ${i.done?'done':''}"><span class="ic">${i.ic}</span><span class="tx"><b>${i.n}${i.lv?' <span style="font-weight:400;color:var(--mut);font-size:13px">'+i.lv+'</span>':''}</b><small>${i.d}</small>${rq}</span><span class="bt">${btn}</span></div>`}
-function kBuy(id){const I=kBuildItems().find(i=>i.id===id);if(!I||I.done||I.lock||I.bau)return;if(!kCanPay(I.c)){kToast('Zu wenig Geld – der Kreditrahmen reicht nicht.');return}
+function kBuy(id){const I=kBuildItems().find(i=>i.id===id);if(!I||I.done||I.lock||I.bau)return;if(!kCanPay(I.c)){kToast('Zu wenig Geld in der Kassa – bei Bedarf einen Kredit aufnehmen (🔨 Bauen › 🏦 Kredit).',4000);return}
+ let S0=null;try{S0=JSON.parse(JSON.stringify(KG))}catch(e){}
  const pay=()=>{KG.money-=I.c;KG.inc.bau=(KG.inc.bau||0);KG.cost.bau=(KG.cost.bau||0)+I.c;KG.seaBau=(KG.seaBau||0)+I.c};
  if(KVOR.buy&&KVOR.buy(id,I,pay)){}
  else if(id==='st2'||id==='st3'){const s=+id[2];pay();kBauStart({k:'stage',st:s,n:'Ausbau Stufe '+s,days:I.days,lift:s===2?'ses':null,id:'st'+s})}
@@ -2748,7 +2845,7 @@ function kBuy(id){const I=kBuildItems().find(i=>i.id===id);if(!I||I.done||I.lock
  else if(id==='kinder'||id==='school'||id==='hut'||id==='hotel'){pay();kBauStart({k:'b',id,n:I.n,days:I.days})}
  else if(id==='po'){pay();KG.lots.po=1;kLog('🅿️','Parkplatz Ost ist offen.')}
  else if(id==='paved'){pay();KG.paved=1}
- if(KG.t<13)KG.dem=kDemand();kSfx();kRebuild();kUI();kHud(1);kSave()}
+ if(KG.t<13)KG.dem=kDemand();try{kLnRec(S0,I,I.c)}catch(e){}kSfx();kRebuild();kUI();kHud(1);kSave()}
 function kUp4(){KG.l.ses.typ='s4';KG.l.ses.on=1;kLiftSetup('ses');kLog('🚡','Der Sonnenhang-Sessel ist jetzt ein 4er-Sessel.')}
 function kUpLift(id,typ,quiet){KG.l[id].typ=typ;KG.l[id].on=1;kLiftSetup(id);if(!quiet)kLog('🚡',kLC(id).n+' ist jetzt ein '+KLT[typ].n+'.')}
 function kSfx(){try{if(typeof sfx==='function')sfx('build',300)}catch(e){}}
@@ -2796,7 +2893,7 @@ function kStaHTML(){const tabs=[['heu','📅','Heute'],['ver','📈','Verlauf'],
   if(KVOR.famGoal)h+=`<div class="bgh">Ziel Familien</div><div class="row"><span>Tage mit Familien ≥ 75 % zufrieden</span><b>${Math.min(5,KG.famOK||0)} / 5</b></div><p class="hint">Familien mögen faire Preise, kurze Wartezeiten, das Kinderland und ein Mittagessen. Gezählt wird ein Tag ab 5 Familien-Gästen.</p>`}
  if(KW.tab==='fin'){const inc=KG.seaInc||0,cost=KG.seaCost||0;h+=`<div class="kpi"><div><small>Saison: Einnahmen</small><b>${kfmt(inc)}</b></div><div><small>Saison: laufende Kosten</small><b>${kfmt(cost)}</b></div><div><small>Betriebsergebnis</small><b class="${inc-cost>=0?'pos':'neg'}">${kfmt(inc-cost)}</b></div><div><small>Gebaut + Werbung</small><b>${kfmt((KG.seaBau||0)+(KG.seaWer||0))}</b></div></div>`;
   const L=KG.lastDay;if(L){h+='<div class="bgh">Kosten gestern</div>';const N={teich:'💧 Speicherteich',lift:'🚡 Lifte',kassa:'🎫 Kassa',hut:'🛖 '+(KVOR.hut?KVOR.hut.n:'Hütte'),kinder:'⭐ Kinderland',school:'⛷️ Skischule',kiosk:'🌭 Kiosk',raupe:'🚜 Pistenraupe',can:'❄️ Schneekanonen (Strom)',lots:'🅿️ Parkplätze',bus:'🚌 Skibus',hotel:'🏨 '+(KVOR.hotel?KVOR.hotel.n:'Gasthof'),lw:'🔧 Liftwart',bw:'⛑️ Bergwacht',zins:'🏦 Zinsen'};for(const k in L.c)h+=`<div class="row"><span>${N[k]||k}</span><b>${kfmt(L.c[k])}</b></div>`}
-  h+=`<div class="bgh">Kredit</div><div class="row"><span>Kreditrahmen</span><b>${kfmt(kCredit())}</b></div><p class="hint">Die Kassa darf bis zum Kreditrahmen ins Minus gehen. Auf das Minus fallen jeden Tag Zinsen an${KPK('bank')?' (Hausbank: ein Drittel weniger)':''}. Liegt die Kassa 7 Tage hintereinander unter dem Rahmen, ist der Berg verloren.${KG.pleite?' <b style="color:#e8504a">Schon '+KG.pleite+' Tage darunter!</b>':''}</p>`}
+  if(KG.loan>0)h+=`<div class="bgh">Kredit</div><div class="row"><span>Offener Kredit · Rate pro Tag</span><b>${kfmt(KG.loan)} · ${kfmt(KG.lnR)}</b></div><button class="btn ghost" data-a="go" data-v="bau|kre" style="margin-top:6px">🏦 Zum Kredit</button>`}
  return h}
 // --- Ziele, Sterne, Rangliste ---
 function kZielHTML(){const tabs=[['zi','🎯','Ziele'],['st','⭐','Sterne'],['rk','🏆','Rangliste']];if(!KW.tab||!tabs.some(t=>t[0]===KW.tab))KW.tab='zi';let h=kHead('🎯 '+KVOR.n,tabs);
@@ -2923,7 +3020,7 @@ function kMapIcon(c,q){const x=q.x,y=q.y;const tri=(x0,x1,xt,yt,yb,L,D)=>{c.fill
 const KBINFO={
  sonn:{goals:['2 Sterne und Ausbau Stufe 3 offen','An 5 Tagen Familien zu mindestens 75 % zufrieden','Saisonergebnis über 75.000 €'],spec:[['👨‍👩‍👧 Gäste','viele Familien und Anfänger'],['💶 Preise','Gäste achten stark auf den Preis'],['⭐ Besonderes Gebäude','Kinderland mit Zauberteppich']],tip:'Tipp: Kinderland, Skischule und faire Preise'},
  bich:{goals:['Schneekanonen in Betrieb und 2 Sterne','Platz 6 oder besser in der Rangliste','Pistenzustand in der letzten Woche nie unter 60 %'],spec:[['🌡️ Tauwetter','1,7-mal so oft'],['❄️ Neuschnee','nur 60 %'],['🚧 Engstellen','2 · Umfahrung baubar'],['💧 Besonderes Gebäude','Speicherteich']],tip:'Tipp: viel Kunstschnee nötig'},
- alt:{goals:['Schuldenfrei (Kassa über 0 €) und 2 Sterne','Alle 3 alten Lifte wieder in Betrieb – saniert oder neu – und Platz 6 oder besser','In der letzten Woche der 2. Saison keine einzige Liftpanne'],spec:[['☀️ Westhang (Sonnseite)','nachmittags weich'],['❄️ Osthang (Schattseite)','Schnee hält länger'],['🔧 Alte Lifte','Pannen 3-mal so oft'],['🏦 Kreditrahmen','20.000 €'],['🪑 Besonderes Gebäude','Nostalgie-Sessellift']],tip:'Tipp: Liftbau-Partner und Hausbank',
+ alt:{goals:['Schuldenfrei (Kredit abbezahlt, Kassa über 0 €) und 2 Sterne','Alle 3 alten Lifte wieder in Betrieb – saniert oder neu – und Platz 6 oder besser','In der letzten Woche der 2. Saison keine einzige Liftpanne'],spec:[['☀️ Westhang (Sonnseite)','nachmittags weich'],['❄️ Osthang (Schattseite)','Schnee hält länger'],['🔧 Alte Lifte','Pannen 3-mal so oft'],['🏦 Altschulden','8.000 € Kredit · Rahmen 20.000 €'],['🪑 Besonderes Gebäude','Nostalgie-Sessellift']],tip:'Tipp: Liftbau-Partner und Hausbank',
   extra:`<div class="bgh">🔧 Alte Lifte</div><div class="kold"><span class="h">Lift</span><span class="h">Sanieren</span><span class="h">Neu</span><span><b>Altbergbahn</b><br>2er-Sessel · 1971 · läuft noch</span><span>4.000 €</span><span>4er · 16.000 €</span><span><b>Ostlift</b><br>Schlepplift · 1968 · zu</span><span>3.000 €</span><span>4er · 13.000 €</span><span><b>Gipfelsessel</b><br>Einersessel · 1958 · zu</span><span>Nostalgie<br>9.000 €</span><span>6er · 22.000 €</span></div>`},
  seek:{goals:['3 Sterne','Einmal 500 Gäste an einem Tag','Platz 3 oder besser in der Rangliste'],spec:[['🌊 Lage','hinter einem See, nur 8 Parkplätze im Tal'],['🚶 Brücke','zu Fuß über eine Stunde'],['⛴️ Seeschiff','60 Plätze · alle 30 Minuten'],['🚠 Seebahn','Ausbau Stufe 5 · über den See'],['🏨 Besonderes Gebäude','Seehotel ★★★★ mit Steg']],tip:'Tipp: Die Anreise ist der Engpass'},
  eis:{goals:['4 Sterne','Platz 1 in der Rangliste','Platz 1 schon am Ende der 2. Saison'],spec:[['🌪️ Wind','oft Sturm – die oberen Bahnen stehen'],['⚠️ Lawinengefahr','ab Stufe 3: nach Neuschnee erst sprengen'],['🚡 Pendelbahn','Ausbau Stufe 5 · auf den Gipfel'],['🚠 3S-Gletscherexpress','Ausbau Stufe 6 · fährt auch bei Sturm'],['🍽️ Besonderes Gebäude','Gletscherrestaurant mit Eisgrotte']],tip:'Tipp: Konkurrenz baut schnell aus'}};
@@ -2973,13 +3070,13 @@ const KTH={};function kThumb(id){if(KTH[id])return KTH[id];const g0=KG,v0=KVOR,o
  finally{KG=g0;KVOR=v0;KON=on0;KST.c=st0.c;KST.rs=st0.rs;KW.pistes=pist0;KW.pmap=pm0;KW.paths=paths0;Object.assign(kZ,z0);if(KVOR){kBuildWorld()}}
  return KTH[id]=url}
 // Berg starten / verlassen
-function kStart(id,fresh){kCareerLoad();KVOR=KV[id];if(!KVOR)return;let s=fresh?null:kLoad(id);if(!s||s.done){s=kNewState(id,KC.perks||[]);s.firm=KC.firm}KG=s;
+function kStart(id,fresh){kCareerLoad();KVOR=KV[id];if(!KVOR)return;let s=fresh?null:kLoad(id);if(!s||s.done){s=kNewState(id,KC.perks||[]);s.firm=KC.firm}KG=s;KW.halt=0;kLnMig();if(KG.loanStart){kLnSet(KG.loanStart,56);KG.loanStart=0}
  KW.folks=[];KW.cars=[];KW.buses=[];KW.pops=[];KW.lift={};KW.school=[];KW.groom=null;KW.res=null;KW.neu=null;KW.open=null;KW.paused=false;KW.modal=0;KW.speed=1;KW.endAsk=0;KW.rsAsk=0;KW.canP=null;KW.acc=[];KW.lgNew=0;
  KW.paths=KVOR.paths();if(KVOR.onStart)KVOR.onStart();kBuildWorld();for(const id2 in KG.l)if(KG.l[id2].on)kLiftSetup(id2);KW.hutS=kHutS();
  if(fresh||!KG.dem){KG.dem=kDemand();if(KG.t>=6&&KG.day===1&&!KG.started){KG.wx='sonne';KG.started=1;kLog('🏔️',KVOR.welcome)}}
  KW.hotelN=0;kOvCSS();kOvHide();const n=document.getElementById('kname');if(n)n.remove();document.body.classList.add('kmode');kUIbuild();kCanvas();kZ.cv.style.display='block';document.getElementById('kui').hidden=false;
  const H=KVOR.home;kZ.S=H.S;kZ.camX=H.cx-kViewW()/2;kZ.camY=H.cy-kViewH()*.55;kClamp();kBuildStatic();KON=true;KW.last=0;cancelAnimationFrame(KW.raf);KW.raf=requestAnimationFrame(kLoop);kHud(1);kUI();
- if(KG.day===1&&KG.t<7&&KVOR.tip&&(KVOR.tipIf?KVOR.tipIf():true))setTimeout(()=>kToast(KVOR.tip,5000),900);kSave()}
+ if(KG.day===1&&KG.t<7&&KVOR.tip&&(KVOR.tipIf?KVOR.tipIf():true))setTimeout(()=>kToast(KVOR.tip,5000),900);if(KG.lnMsg)setTimeout(kLnMsgShow,400);else if(KG.lnO>=2)setTimeout(kLnWarn,400);kSave()}
 function kLeave(to){kSave();KON=false;cancelAnimationFrame(KW.raf);if(kZ.cv)kZ.cv.style.display='none';const u=document.getElementById('kui');if(u)u.hidden=true;KW.open=null;
  if(to==='map')kMap();else kToTitle()}
 function kRestartBerg(){const id=KG.id;KW.rsAsk=0;try{localStorage.removeItem(KBK(id))}catch(e){}KG=null;kStart(id,1)}
@@ -2988,7 +3085,7 @@ function kBergEnd(lost){const st=lost?0:kBergStars();kCareerLoad();const before=
 function kSeaHistRes(){const S=KG.seaHist;if(!S.length)return kSeaRes();return S.reduce((a,s)=>a+s.res,0)}
 function kEndHTML(){const R=KW.endR||{st:0,before:0,xp:kXP()};const i=KBERGE.findIndex(b=>b.id===KG.id),nx=KBERGE[i+1];const gain=Math.max(0,R.st-R.before);
  let h=`<div class="kneu"><h3>${R.lost?'💸 Pleite!':'🏁 '+KVOR.n+' – Bilanz'}</h3></div>`;
- if(R.lost)h+=`<p style="font-size:15px">Die Kassa lag 7 Tage hintereinander unter dem Kreditrahmen. Der Berg ist verloren – du kannst ihn jederzeit neu beginnen.</p>`;
+ if(R.lost)h+=`<p style="font-size:15px">Die Kassa war 7 Tage hintereinander im Minus. Der Berg ist verloren – du kannst ihn jederzeit neu beginnen.</p>`;
  else{h+=`<div style="text-align:center;font-size:44px;color:#e8a33a;letter-spacing:4px;margin:6px 0">${'★'.repeat(R.st)}<span style="opacity:.2">${'★'.repeat(3-R.st)}</span></div>`;
   h+=KVOR.goals.map((g,j)=>`<div class="kgoal"><span class="s">${KG.goals[g.k]?'✅':'❌'}</span><span><b>${['Pflicht','Zusatz','Meister'][j]}:</b> ${g.t}${g.prog?'<small>'+g.prog()+'</small>':''}</span></div>`).join('');
   h+=`<div class="kpi"><div><small>Neue Erfahrung</small><b>⭐ +${gain}</b><i>${R.before?'bisher bestes: '+R.before+' ★':''}</i></div><div><small>Erfahrung gesamt</small><b>⭐ ${R.xp}</b></div><div><small>Saisonergebnis</small><b>${kfmt(kSeaHistRes())}</b></div><div><small>Sterne des Gebiets</small><b>${'★'.repeat(kStars())}</b></div></div>`;
