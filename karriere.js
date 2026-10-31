@@ -2822,11 +2822,11 @@ function kHit(x,y){const V=KVOR,hit=[];const d=(a,b)=>Math.hypot(x-a,y-b);
 // Schleife
 function kLoop(n){if(!KON)return;KW.raf=requestAnimationFrame(kLoop);const dt=Math.min(.05,(n-(KW.last||n))/1000);KW.last=n;
  if(!KW.paused&&!KW.modal&&KG&&!KG.done){const sp=KW.speed||1;for(let i=0;i<sp;i++)kStep(dt)}
- KW.fa=(KW.fa||0)+dt;const fps60=typeof SET!=='undefined'&&SET.fps===60&&!SET.perf;if(fps60||KW.fa>=1/31-.004){KW.fa=0;kDraw();kHud()}if(KW.dirty)kUI();
+ KW.fa=(KW.fa||0)+dt;const fps60=typeof SET!=='undefined'&&SET.fps===60&&!SET.perf;if(fps60||KW.fa>=1/31-.004){KW.fa=0;kDraw();kHud();kSnb()}if(KW.dirty)kUI();
  KW.svT=(KW.svT||0)+dt;if(KW.svT>20){KW.svT=0;kSave()}}
 
 // ===== Bedienung im Karriere-Berg =====
-function kCloneCSS(){if(document.getElementById('kcss'))return;const map=[['#sheet','#ksheet'],['#bar','#kbar'],['#pz','#kpz'],['#ff','#kff'],['#rail','#krail'],['#toast','#ktoast'],['#lbar','#klbar'],['#abar','#kabar'],['#money','#kmoney'],['#day','#kday'],['#gst','#kgst'],['#ruf','#kruf']];
+function kCloneCSS(){if(document.getElementById('kcss'))return;const map=[['#sheet','#ksheet'],['#bar','#kbar'],['#pz','#kpz'],['#ff','#kff'],['#rail','#krail'],['#toast','#ktoast'],['#lbar','#klbar'],['#abar','#kabar'],['#money','#kmoney'],['#day','#kday'],['#gst','#kgst'],['#ruf','#kruf'],['#snb','#ksnb']];
  const out=[];const re=new RegExp('('+map.map(m=>m[0].replace('#','#')).join('|')+')(?![\\w-])','g');const rep=s=>s.replace(re,m=>map.find(x=>x[0]===m)[1]);
  const walk=(rules,wrap)=>{for(const r of rules){if(r.cssRules&&r.media){walk(r.cssRules,x=>wrap('@media '+r.media.mediaText+'{'+x+'}'));continue}if(r.cssRules&&r.conditionText){walk(r.cssRules,x=>wrap('@supports '+r.conditionText+'{'+x+'}'));continue}
   if(r.selectorText&&re.test(r.selectorText)){re.lastIndex=0;out.push(wrap(rep(r.cssText)))}re.lastIndex=0}};
@@ -2857,6 +2857,7 @@ function kCloneCSS(){if(document.getElementById('kcss'))return;const map=[['#she
 `;document.head.appendChild(st)}
 function kUIbuild(){if(document.getElementById('kui'))return;kCloneCSS();const d=document.createElement('div');d.id='kui';d.hidden=true;
  d.innerHTML=`<div id="kbar"><div class="chip" id="kmoney"></div><div class="chip" id="kday"></div><div class="chip" id="kgst"></div><div class="chip" id="kruf"></div></div>
+<div id="ksnb"><div class="sb" id="ksbS"><i></i><span></span></div><div class="sb" id="ksbP"><i></i><span></span></div></div>
 <button class="rb" id="kpz">⏸</button><button class="rb" id="kff">×1</button>
 <div id="krail"><button data-k="ziel"><span>🎯</span>Ziele</button><button data-k="bau"><span>🔨</span>Bauen</button><button data-k="pre"><span>💰</span>Preise</button><button data-k="wer"><span>📣</span><b class="l2" style="font-weight:600">Ruf &amp;<br>Werbung</b></button><button data-k="sta"><span>📊</span>Statistik</button><button data-k="opt"><span>⚙️</span>Optionen</button></div>
 <div id="kabar"></div><div id="klbar"><span class="lw"><span class="lt"></span><span class="li">📖</span><span class="lx">Willkommen</span></span><span class="lk">›</span></div><div id="ksheet"></div><div id="ktoast"></div>`;
@@ -2865,13 +2866,19 @@ function kUIbuild(){if(document.getElementById('kui'))return;kCloneCSS();const d
  document.getElementById('kpz').onclick=()=>{KW.paused=!KW.paused;kHud(1)};
  document.getElementById('kff').onclick=()=>{KW.speed=KW.speed>=3?1:KW.speed+1;kHud(1)};
  document.getElementById('klbar').onclick=()=>kOpen('log');
- document.getElementById('kmoney').onclick=()=>kOpen('sta','fin');document.getElementById('kday').onclick=()=>kOpen('sta','heu');document.getElementById('kgst').onclick=()=>kOpen('sta','gst');document.getElementById('kruf').onclick=()=>kOpen('ziel','st');
+ document.getElementById('kmoney').onclick=()=>kOpen('sta','fin');document.getElementById('kday').onclick=()=>kOpen('sta','heu');document.getElementById('kgst').onclick=()=>kOpen('sta','gst');document.getElementById('kruf').onclick=()=>kOpen('ziel','st');document.getElementById('ksbS').onclick=document.getElementById('ksbP').onclick=()=>kOpen('sta','heu');
  document.getElementById('ksheet').addEventListener('click',kSheetClick)}
 let kTT=0;function kToast(m,ms=2600){const t=document.getElementById('ktoast');if(!t)return;t.textContent=m;t.classList.add('on');clearTimeout(kTT);kTT=setTimeout(()=>t.classList.remove('on'),ms)}
 function kUIdirty(){KW.dirty=1}
 function kOpen(k,tab){KW.open=k;if(tab)KW.tab=tab;else if(k!=='inf')KW.tab=null;KW.dirty=1;kUI()}
 function kClose(){KW.open=null;KW.inf=null;KW.dirty=1;kUI()}
 // --- obere Leiste ---
+// Balken Schneehöhe / Pistenzustand (wie am Heimatberg)
+function kSnb(){if(!KG)return;const u=document.getElementById('kui'),e=document.getElementById('ksnb');if(!u||!e)return;
+ if(e._on!==true){e._on=true;e.style.display='flex';u.style.setProperty('--sbh','24px')}
+ const cl=(v)=>Math.max(0,Math.min(100,Math.round(v)));
+ const B=(id,t,v,c,lo)=>{const b=document.getElementById(id),k=t+v+c;if(b._k===k)return;b._k=k;const i=b.firstChild;i.style.width=v+'%';i.style.background=v<lo?'#e8504a':c;b.lastChild.textContent=t+': '+v+' %'};
+ B('ksbS','Schneehöhe',cl(KG.snow),'#3f8fd2',30);B('ksbP','Pistenzustand',cl(kPQavg()),'#3fa865',50)}
 let kHudS='';function kHud(force){if(!KG)return;const g=KW.folks.filter(f=>!f.ins&&f.st!=='gone').length;const st=kStars(),sc=kScore(),wi=KG.wx==='sonne'&&kBright()<.35?'🌙':KWI[KG.wx];
  const sea=KVOR.seasons,sn=KG.done?Math.min(kSeaN(),sea):kSeaN(),dd=KG.done&&kSeaN()>sea?KSL:kSeaD();const day=`<b>📅 ${KWN[kWd()]} • Woche ${kWeek()}<span style="opacity:.6">/4</span> ${wi}</b><small>Saison ${sn}${sea>1?' von '+sea:''} · ${kh(KG.t)}</small><span class="sbar"><i style="width:${Math.round((dd-1+Math.min(1,KG.t/24))/KSL*100)}%"></i></span>`;
  const mon=`<b>${kfmt(KG.money)}</b><small>${KG.money<0?'im Minus!':'Heute '+(kTodayRes()>=0?'+':'')+knum(kTodayRes())+' €'}${KG.loan>0?' · 🏦':''}</small>`;
