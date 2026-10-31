@@ -312,10 +312,10 @@ KV.bich.drawB=function(add,t){const V=KVOR;
   if(bau){if(!lo)add(L.b[1]+20,c=>kSite(c,L.b[0],L.b[1]+10,60,t));add(L.t[1]+20,c=>kSite(c,L.t[0],L.t[1]+10,50,t));continue}
   const up=KG.bau.find(b=>b.k==='up'&&b.lift===L.id);
   if(!s.on&&!up)continue;const co=KLT[s.typ].co;
-  if(!lo)add(L.b[1]+22,c=>{liftStation(c,L.b[0],L.b[1],co,true);kBrkSign(c,L,t);if(up)kSign(c,L.b[0],L.b[1]-48,'🚧 UMBAU','#f2701f','#fff',6)});
+  if(!lo)add(L.b[1]+22,c=>{kStationM(c,L.b[0],L.b[1],co,true);kBrkSign(c,L,t);if(up)kSign(c,L.b[0],L.b[1]-48,'🚧 UMBAU','#f2701f','#fff',6)});
   else if(up)add(L.b[1]+30,c=>kSign(c,L.b[0],L.b[1]-56,'🚧 UMBAU','#f2701f','#fff',6));
   const nx=L.nx&&KG.l[L.nx]&&KG.l[L.nx].on;
-  add(L.t[1]+18,c=>{liftStation(c,L.t[0],L.t[1],nx?KLT[KG.l[L.nx].typ].co:co,false);kSign(c,L.t[0],L.t[1]-36,L.tn.toUpperCase(),'#fff','#2b3a55',5.5);if(nx){const N=kLC(L.nx);kBrkSign(c,N,t)}})}
+  add(L.t[1]+18,c=>{kStationM(c,L.t[0],L.t[1],nx?KLT[KG.l[L.nx].typ].co:co,false);kSign(c,L.t[0],L.t[1]-36,L.tn.toUpperCase(),'#fff','#2b3a55',5.5);if(nx){const N=kLC(L.nx);kBrkSign(c,N,t)}})}
  // Waldhütte
  if(KG.b.hut)add(V.hut.y,c=>{kHutDraw(c,V.hut.x,V.hut.y,t);kSign(c,V.hut.x,V.hut.y-56,'WALDHÜTTE','#8f5a34','#fff',6)});else if(KG.bau.find(b=>b.id==='hut'))add(V.hut.y,c=>kSite(c,V.hut.x,V.hut.y,64,t));
  // Speicherteich: Pumpenhaus
@@ -646,14 +646,14 @@ function kABoards(c,P){c.fillStyle='#8a6a48';for(const [a,b,r] of P){c.save();c.
 // Seil und Stützen eines stehenden Liftes (stillgelegt, im Umbau)
 function kAPy(L,len,drag){if(L.py)return L.py;const n=Math.max(2,Math.ceil(len/(drag?70:110))),o=[];for(let i=1;i<n;i++)o.push(i/n);return o}
 function kAltRope(add,L,st){const s=KG.l[L.id],T0=KLT[s.typ],[bx,by]=L.b,[tx,ty]=L.t,len=Math.hypot(tx-bx,ty-by),co=T0.co,ux=(tx-bx)/len,uy=(ty-by)/len,PY=kAPy(L,len,T0.drag);
- for(const u of PY){const x=bx+(tx-bx)*u,y=by+(ty-by)*u;add(y,c=>{if(T0.drag){c.fillStyle='rgba(110,140,180,.25)';c.beginPath();c.ellipse(x+3,y+2,5,1.6,0,0,7);c.fill();c.fillStyle='#8a6048';c.fillRect(x-1,y-17,2,18);c.fillStyle='#5b3f2e';c.fillRect(x-4,y-17,8,1.6)}else if(st==='neu')pylonN(c,x,y,co+3);else kAOldPylon(c,x,y,co+2,st!=='old'&&st!=='off')})}
+ for(const u of PY){const x=bx+(tx-bx)*u,y=by+(ty-by)*u;add(y,c=>{if(T0.drag){c.fillStyle='rgba(110,140,180,.25)';c.beginPath();c.ellipse(x+3,y+2,5,1.6,0,0,7);c.fill();c.fillStyle='#8a6048';c.fillRect(x-1,y-17,2,18);c.fillStyle='#5b3f2e';c.fillRect(x-4,y-17,8,1.6)}else if(st==='neu')kPylonR(c,x,y,co,ux,uy);else kAOldPylon(c,x,y,co+2,st!=='old'&&st!=='off')})}
  add(1e5,c=>{c.strokeStyle=st==='neu'?'#161a28':'#3a2f2a';c.lineWidth=T0.drag?.8:1;if(T0.drag){c.beginPath();c.moveTo(bx,by-14);c.lineTo(tx,ty-14);c.stroke();return}const px=-uy,py=ux;for(const sd of [-1,1]){c.beginPath();c.moveTo(bx+px*co*sd,by+py*co*sd);c.lineTo(tx+px*co*sd,ty+py*co*sd);c.stroke()}})}
 const KALAB={ab:s=>['ALTBERGBAHN'+(s.zs===0?' · 1971':s.zs===1?' · saniert':''),'GABELUNG'],gs:s=>[s.nost?'NOSTALGIE-SESSEL':'GIPFELSESSEL','GIPFEL'],ol:s=>['OSTLIFT',''],wl:s=>['WESTLIFT','']};
 function kAltSta(add,L,st,t){const s=KG.l[L.id],T0=KLT[s.typ],co=T0.co,lab=KALAB[L.id](s);
  if(T0.drag){for(const [p,big] of [[L.b,1],[L.t,0]]){const [x,y]=p;add(y+10,c=>{if(st==='off'){c.save();c.globalAlpha=.8;stationN(c,x+14,y,0);c.restore()}else stationN(c,x+14,y,t);if(big&&st!=='off'){kBrkSign(c,L,t);kSign(c,x,y-26,lab[0],'#fff','#2b3a55',5.5)}})}
   if(st==='off')add(L.b[1]+30,c=>{kATape(c,L.b[0]-22,L.b[1]+26,L.b[0]+24,L.b[1]+26);kSign(c,L.b[0],L.b[1]+48,'⛔ AUSSER BETRIEB · seit 1998','#e8504a','#fff',5.5)});return}
  for(const [p,big] of [[L.b,1],[L.t,0]]){const [x,y]=p,tx=lab[big?0:1];
-  if(st==='neu'){const bg=big&&L.id!=='gs';add(y+(bg?22:18),c=>{liftStation(c,x,y,co,bg);if(big)kBrkSign(c,L,t);if(tx)kSign(c,x,y-(bg?30:36),tx,'#fff','#2b3a55',5.5)})}
+  if(st==='neu'){const bg=big&&L.id!=='gs';add(y+(bg?22:18),c=>{kStationM(c,x,y,co,bg);if(big)kBrkSign(c,L,t);if(tx)kSign(c,x,y-(bg?30:36),tx,'#fff','#2b3a55',5.5)})}
   else add(y+8,c=>{kAOldStation(c,x,y,!!big,st);if(big&&st!=='off')kBrkSign(c,L,t);if(tx&&st!=='off')kSign(c,x,y-(big?44:40),tx,st==='nost'?'#7a3b2a':st==='old'?'#8c7462':'#fff',st==='nost'||st==='old'?'#fff':'#2b3a55',5.5)})}
  if(L.id==='gs'&&st==='off')add(890,c=>{kATape(c,478,866,522,866);kSign(c,500,882,'⛔ GIPFELSESSEL · seit 1994 zu','#e8504a','#fff',5.5)})}
 // Gebäude zeichnen
@@ -683,14 +683,15 @@ KV.alt.drawB=function(add,t){const V=KVOR,K=V.kassa,l=KG.l;add(K.y,c=>kKassaDraw
  // Ausbau-Baustellen
  const sbt=KG.bau.find(b=>b.k==='stage');if(sbt){const S={2:[[700,910],[668,1340]],4:[[758,480],[798,920]]}[sbt.st]||[];for(const [x,y] of S)add(y,c=>kSite(c,x,y,50,t))}};
 // laufende Lifte: alter Look, eigene Stützen, Einersessel, Schlepplift-Bügel, Gondeln
+KV.alt.noClip=id=>kAltSt(id)!=='neu';
 KV.alt.liftLook=function(c,o,t){const id=o.L.id,s=KG.l[id],T0=o.T,{bx,by,tx,ty,len,ux,uy}=o,co=T0.co,st=kAltSt(id),PY=kAPy(o.L,len,T0.drag);
  if(T0.drag){c.strokeStyle=st==='neu'?'#2a2e44':'#4b3a30';c.lineWidth=.8;c.beginPath();c.moveTo(bx,by-14);c.lineTo(tx,ty-14);c.stroke();
   for(const u of PY){const px=bx+(tx-bx)*u,py=by+(ty-by)*u;if(!kInV(px,py))continue;c.fillStyle='rgba(110,140,180,.25)';c.beginPath();c.ellipse(px+3,py+2,5,1.6,0,0,7);c.fill();c.fillStyle=st==='old'?'#8a6048':'#a8714b';c.fillRect(px-1,py-17,2,18);c.fillStyle='#5b3f2e';c.fillRect(px-4,py-17,8,1.6)}
   for(const ch of o.ch){if(ch.u>=1)continue;const [x,y0]=kLiftPos(o,ch.u),y=y0-14;if(!kInV(x,y,20))continue;c.strokeStyle='#2a2e44';c.lineWidth=.6;c.beginPath();c.moveTo(x,y);c.lineTo(x,y+9);c.stroke();c.strokeStyle=st==='old'?'#8a7a6a':'#3a3f58';c.lineWidth=1.1;c.beginPath();c.moveTo(x-3.5,y+9.5);c.lineTo(x+3.5,y+9.5);c.stroke()}
   return true}
  c.strokeStyle=st==='neu'?'#161a28':'#3a2f2a';c.lineWidth=s.typ==='s1'?.9:1.2;const px=-uy,py=ux;for(const sd of [-1,1]){c.beginPath();c.moveTo(bx+px*co*sd,by+py*co*sd);c.lineTo(tx+px*co*sd,ty+py*co*sd);c.stroke()}
- for(const u of PY){const x=bx+(tx-bx)*u,y=by+(ty-by)*u;if(!kInV(x,y))continue;if(st==='neu')pylonN(c,x,y,co+3);else kAOldPylon(c,x,y,co+2,st!=='old')}
- const cap=T0.cap;for(const ch of o.ch){if(ch.u<.03||ch.u>1.97||Math.abs(ch.u-1)<.03)continue;const [x,y]=kLiftPos(o,ch.u);if(!kInV(x,y,30))continue;const k={r:ch.r.map(f=>({col:f.col}))};
+ for(const u of PY){const x=bx+(tx-bx)*u,y=by+(ty-by)*u;if(!kInV(x,y))continue;if(st==='neu')kPylonR(c,x,y,co,ux,uy);else kAOldPylon(c,x,y,co+2,st!=='old')}
+ const cap=T0.cap;for(const ch of o.ch){if(ch.u<.03||ch.u>1.97||Math.abs(ch.u-1)<.03||Math.min(ch.u<1?ch.u:2-ch.u,Math.abs(1-ch.u))*len<20)continue;const [x,y]=kLiftPos(o,ch.u);if(!kInV(x,y,30))continue;const k={r:ch.r.map(f=>({col:f.col}))};
   c.save();c.translate(x,y);c.rotate(Math.sin(ch.u*40+t*.8)*(st==='old'?.09:.04));if(s.typ==='s1')kAChair1(c,k,!!s.nost);else if(s.typ==='g8')kACabin(c,k);else if(st==='neu')gondola(c,k,cap);else kAChair2(c,k,st!=='old');c.restore()}
  return true};
 // Warteschlange am Gipfelsessel: zwischen Westhang und Bergstation der Altbergbahn, 8 je Reihe
@@ -862,8 +863,8 @@ KV.seek.fence=function(c,o,id){const n=o.q.length;
 // Lifte zeichnen: eigene Stützenplätze (nie auf einer Piste)
 KV.seek.liftLook=function(c,o,t){const s=KG.l[o.L.id],T0=o.T,{bx,by,tx,ty,len,ux,uy}=o,co=T0.co,PY=kAPy(o.L,len,0);
  c.strokeStyle='#161a28';c.lineWidth=1.2;const px=-uy,py=ux;for(const sd of [-1,1]){c.beginPath();c.moveTo(bx+px*co*sd,by+py*co*sd);c.lineTo(tx+px*co*sd,ty+py*co*sd);c.stroke()}
- for(const u of PY){const x=bx+(tx-bx)*u,y=by+(ty-by)*u;if(kInV(x,y))pylonN(c,x,y,co+3)}
- const cap=T0.cap;for(const ch of o.ch){if(ch.u<.03||ch.u>1.97||Math.abs(ch.u-1)<.03)continue;const [x,y]=kLiftPos(o,ch.u);if(!kInV(x,y,30))continue;const k={r:ch.r.map(f=>({col:f.col}))};
+ for(const u of PY){const x=bx+(tx-bx)*u,y=by+(ty-by)*u;if(kInV(x,y))kPylonR(c,x,y,co,ux,uy)}
+ const cap=T0.cap;for(const ch of o.ch){if(ch.u<.03||ch.u>1.97||Math.abs(ch.u-1)<.03||Math.min(ch.u<1?ch.u:2-ch.u,Math.abs(1-ch.u))*len<20)continue;const [x,y]=kLiftPos(o,ch.u);if(!kInV(x,y,30))continue;const k={r:ch.r.map(f=>({col:f.col}))};
   c.save();c.translate(x,y);c.rotate(Math.sin(ch.u*40+t*.8)*.04);if(s.typ==='g8')kACabin(c,k);else gondola(c,k,cap);c.restore()}return true};
 
 // ---------- Anreise: Wege, Seeschiff, Seebahn, Autos, Skibus ----------
@@ -1211,9 +1212,9 @@ KV.seek.drawB=function(add,t){const V=KVOR,K=V.kassa;add(K.y,c=>kKassaDraw(c,K.x
  for(const L of V.lifts){const s=KG.l[L.id],bau=KG.bau.find(b=>b.lift===L.id&&b.k!=='up'),lo=kLowerOf(L.id);
   if(bau){add(L.t[1]+20,c=>kSite(c,L.t[0],L.t[1]+10,50,t));continue}
   const up=KG.bau.find(b=>b.k==='up'&&b.lift===L.id);if(!s.on&&!up)continue;const co=KLT[s.typ].co;
-  if(!lo)add(L.b[1]+22,c=>{liftStation(c,L.b[0],L.b[1],co,true);kSign(c,L.b[0],L.b[1]-30,'TALSTATION','#fff','#2b3a55',5.5);kBrkSign(c,L,t);if(up)kSign(c,L.b[0],L.b[1]-48,'🚧 UMBAU','#f2701f','#fff',6)});
+  if(!lo)add(L.b[1]+22,c=>{kStationM(c,L.b[0],L.b[1],co,true);kSign(c,L.b[0],L.b[1]-30,'TALSTATION','#fff','#2b3a55',5.5);kBrkSign(c,L,t);if(up)kSign(c,L.b[0],L.b[1]-48,'🚧 UMBAU','#f2701f','#fff',6)});
   else if(up)add(L.b[1]+30,c=>kSign(c,L.b[0],L.b[1]-56,'🚧 UMBAU','#f2701f','#fff',6));
-  const nx=L.nx&&KG.l[L.nx]&&KG.l[L.nx].on;add(L.t[1]+18,c=>{liftStation(c,L.t[0],L.t[1],nx?KLT[KG.l[L.nx].typ].co:co,false);kSign(c,L.t[0],L.t[1]-36,L.tn.toUpperCase(),'#fff','#2b3a55',5.5);if(nx)kBrkSign(c,kLC(L.nx),t)})}
+  const nx=L.nx&&KG.l[L.nx]&&KG.l[L.nx].on;add(L.t[1]+18,c=>{kStationM(c,L.t[0],L.t[1],nx?KLT[KG.l[L.nx].typ].co:co,false);kSign(c,L.t[0],L.t[1]-36,L.tn.toUpperCase(),'#fff','#2b3a55',5.5);if(nx)kBrkSign(c,kLC(L.nx),t)})}
  // Karhütte
  const H0=V.hut;if(KG.b.hut)add(H0.y+2,c=>{chalet(c,H0.x,H0.y,48,26,1);for(const [wx,wy] of chWin(H0.x,H0.y,48,26))kWin(wx,wy,6,6);kSign(c,H0.x,H0.y-46,'KARHÜTTE','#8f5a34','#fff',5.5);
   c.fillStyle='#c9a77a';c.fillRect(H0.x-28,H0.y+4,56,12);c.strokeStyle='rgba(120,90,60,.4)';c.lineWidth=.5;for(let x=H0.x-28;x<H0.x+28;x+=5){c.beginPath();c.moveTo(x,H0.y+4);c.lineTo(x,H0.y+16);c.stroke()}
@@ -1228,8 +1229,8 @@ KV.seek.drawB=function(add,t){const V=KVOR,K=V.kassa;add(K.y,c=>kKassaDraw(c,K.x
  const sb=KG.bau.find(b=>b.k==='stage');if(KG.stage>=3)add(838,c=>kSeeGalerie(c));
  if(sb){const S={2:[[470,780],[690,860]],3:[[214,790],[300,970]],4:[[750,520],[700,920]],5:[[KSE.SBX,KSE.SBS+10],[KSE.SBX,KSE.SBN+16]]}[sb.st]||[];for(const [x,y] of S)add(y,c=>kSite(c,x,y,56,t))}
  // Seebahn
- if(KG.stage>=5){const X=KSE.SBX,o=KW.sbw;add(KSE.SBS+22,c=>{liftStation(c,X,KSE.SBS,10,true);kSign(c,X,KSE.SBS-30,'🚠 SEEBAHN · SÜD','#1f6fb0','#fff',5.5);kSign(c,X+38,KSE.SBS+8,'🎫 inkl.','#fff','#1f6fb0',4.6)});
-  add(KSE.SBN+18,c=>{liftStation(c,X,KSE.SBN,10,false);kSign(c,X,KSE.SBN-36,'🚠 SEEBAHN','#1f6fb0','#fff',5.5)});
+ if(KG.stage>=5){const X=KSE.SBX,o=KW.sbw;add(KSE.SBS+22,c=>{kStationM(c,X,KSE.SBS,10,true);kSign(c,X,KSE.SBS-30,'🚠 SEEBAHN · SÜD','#1f6fb0','#fff',5.5);kSign(c,X+38,KSE.SBS+8,'🎫 inkl.','#fff','#1f6fb0',4.6)});
+  add(KSE.SBN+18,c=>{kStationM(c,X,KSE.SBN,10,false);kSign(c,X,KSE.SBN-36,'🚠 SEEBAHN','#1f6fb0','#fff',5.5)});
   for(const u of [.32,.66]){const y=KSE.SBS-(KSE.SBS-KSE.SBN)*u;add(y,c=>kSeeBigPylon(c,X,y,14,1))}
   add(1e5,c=>{if(!kInV(X,1700,400))return;c.strokeStyle='#161a28';c.lineWidth=1.2;for(const sd of [-1,1]){c.beginPath();c.moveTo(X+10*sd,KSE.SBS);c.lineTo(X+10*sd,KSE.SBN);c.stroke()}
    if(o)for(const ch of o.ch){if(ch.u<.07||ch.u>1.93||Math.abs(ch.u-1)<.06)continue;const [x,y]=kSeeSbPos(ch.u);if(!kInV(x,y,30))continue;c.save();c.translate(x,y);c.rotate(Math.sin(ch.u*30+t*.8)*.03);kSeeSbCabin(c,ch.r.length);c.restore()}})}
@@ -1770,11 +1771,11 @@ KV.eis.drawB=function(add,t){const V=KVOR,K=V.kassa,l=KG.l;add(K.y,c=>kKassaDraw
   if(!s.on&&!up)continue;const co=KLT[s.typ].co;
   if(L.id==='gt'){add(L.b[1]+12,c=>{stationN(c,L.b[0]+14,L.b[1],t);kSign(c,L.b[0]+14,L.b[1]-24,'GLETSCHERLIFT','#fff','#2b3a55',5);kBrkSign(c,L,t)});add(L.t[1]+12,c=>stationN(c,L.t[0]+14,L.t[1],t));continue}
   const big3=L.id==='s3',lab={am:['TALSTATION','ALM'],kb:['','KESSEL'],rl:['RINNENLIFT','RINNENKOPF'],gb:['GLETSCHERBAHN','GLETSCHERSTATION'],s3:['3S · GLETSCHEREXPRESS','3S · GLETSCHER OST']}[L.id];
-  if(!lo)add(L.b[1]+22,c=>{liftStation(c,L.b[0],L.b[1],big3?14:co,true);kEisPlate(c,L.b[0],L.b[1],lab[0],big3);kBrkSign(c,L,t);if(up)kSign(c,L.b[0],L.b[1]-48,'🚧 UMBAU','#f2701f','#fff',6)});
+  if(!lo)add(L.b[1]+22,c=>{kStationM(c,L.b[0],L.b[1],big3?14:co,true);kEisPlate(c,L.b[0],L.b[1],lab[0],big3);kBrkSign(c,L,t);if(up)kSign(c,L.b[0],L.b[1]-48,'🚧 UMBAU','#f2701f','#fff',6)});
   else if(up)add(L.b[1]+30,c=>kSign(c,L.b[0],L.b[1]-56,'🚧 UMBAU','#f2701f','#fff',6));
-  const nx=L.nx&&l[L.nx]&&l[L.nx].on;add(L.t[1]+18,c=>{liftStation(c,L.t[0],L.t[1],big3?14:nx?KLT[l[L.nx].typ].co:co,false);kSign(c,L.t[0],L.t[1]-36,lab[1],big3?'#2b3040':'#fff',big3?'#fff':'#2b3a55',5.5);if(nx)kBrkSign(c,kLC(L.nx),t)})}
+  const nx=L.nx&&l[L.nx]&&l[L.nx].on;add(L.t[1]+18,c=>{kStationM(c,L.t[0],L.t[1],big3?14:nx?KLT[l[L.nx].typ].co:co,false);kSign(c,L.t[0],L.t[1]-36,lab[1],big3?'#2b3040':'#fff',big3?'#fff':'#2b3a55',5.5);if(nx)kBrkSign(c,kLC(L.nx),t)})}
  // Pendelbahn
- if(KG.stage>=5){const {b}=KEI.PB;add(b[1]+22,c=>{liftStation(c,b[0],b[1],10,true);kEisPlate(c,b[0],b[1],'PENDELBAHN · GIPFEL');if(kEisWS('pb'))kSign(c,b[0],b[1]-46,'💨 WIND – STEHT','#5b6578','#fff',5.5)});
+ if(KG.stage>=5){const {b}=KEI.PB;add(b[1]+22,c=>{kStationM(c,b[0],b[1],10,true);kEisPlate(c,b[0],b[1],'PENDELBAHN · GIPFEL');if(kEisWS('pb'))kSign(c,b[0],b[1]-46,'💨 WIND – STEHT','#5b6578','#fff',5.5)});
   const m=[b[0]+(KEI.PB.t[0]-b[0])*.5,b[1]+(KEI.PB.t[1]-b[1])*.5+14];add(m[1],c=>{kSeeBigPylon(c,m[0],m[1],17);c.fillStyle='#3a3f58';c.fillRect(m[0]-23,m[1]-50,46,4)});
   add(1e5,c=>{if(!kInV(500,400,320))return;kEisPbRope(c);for(const i of [0,1]){const p=kEisPbPos(i),C=KW.pb&&KW.pb.cab[i];if(p.ph.u<.05||p.ph.u>.95)continue;kEisPbCab(c,p.x,p.y,C?C.r.length:0)}})}
  if(KG.stage>=5||sb&&sb.st===5)add(270,c=>kEisGipfel(c,t));
@@ -1809,8 +1810,8 @@ KV.eis.liftLook=function(c,o,t){const id=o.L.id,s=KG.l[id],T0=o.T,{bx,by,tx,ty,l
   for(const ch of o.ch){if(ch.u>=1)continue;const [x,y0]=kLiftPos(o,ch.u),y=y0-14;if(!kInV(x,y,20))continue;c.strokeStyle='#2a2e44';c.lineWidth=.6;c.beginPath();c.moveTo(x,y);c.lineTo(x,y+9);c.stroke();c.strokeStyle='#3a3f58';c.lineWidth=1.1;c.beginPath();c.moveTo(x-3.5,y+9.5);c.lineTo(x+3.5,y+9.5);c.stroke()}return true}
  const px=-uy,py=ux;c.strokeStyle='#161a28';c.lineWidth=id==='s3'?1.4:1.2;for(const sd of [-1,1]){c.beginPath();c.moveTo(bx+px*co*sd,by+py*co*sd);c.lineTo(tx+px*co*sd,ty+py*co*sd);c.stroke()}
  if(id==='s3'){c.lineWidth=.7;c.strokeStyle='rgba(22,26,40,.7)';for(const sd of [-1,1]){c.beginPath();c.moveTo(bx+px*(co-4)*sd,by+py*(co-4)*sd+2);c.lineTo(tx+px*(co-4)*sd,ty+py*(co-4)*sd+2);c.stroke()}}
- for(const u of PY){const x=bx+(tx-bx)*u,y=by+(ty-by)*u;if(!kInV(x,y))continue;if(id==='s3')kSeeBigPylon(c,x,y,co+6);else pylonN(c,x,y,co+3)}
- const cap=T0.cap;for(const ch of o.ch){if(ch.u<.03||ch.u>1.97||Math.abs(ch.u-1)<.03)continue;const [x,y]=kLiftPos(o,ch.u);if(!kInV(x,y,30))continue;
+ for(const u of PY){const x=bx+(tx-bx)*u,y=by+(ty-by)*u;if(!kInV(x,y))continue;if(id==='s3')kSeeBigPylon(c,x,y,co+6);else kPylonR(c,x,y,co,ux,uy)}
+ const cap=T0.cap;for(const ch of o.ch){if(ch.u<.03||ch.u>1.97||Math.abs(ch.u-1)<.03||Math.min(ch.u<1?ch.u:2-ch.u,Math.abs(1-ch.u))*len<20)continue;const [x,y]=kLiftPos(o,ch.u);if(!kInV(x,y,30))continue;
   c.save();c.translate(x,y);c.rotate(Math.sin(ch.u*40+t*.8)*(id==='s3'?.015:.04));if(id==='s3'){c.scale(1.35,1.35);kEis3SCab(c,ch.r.length)}else if(s.typ==='g8')kACabin(c,{r:ch.r.map(f=>({col:f.col}))});else gondola(c,{r:ch.r.map(f=>({col:f.col}))},cap);c.restore()}
  return true};
 // Sperren, Sprengungen, Lawinen (unter den Gästen)
@@ -2609,17 +2610,33 @@ function kDrawFences(c){for(const id in KW.lift){const o=KW.lift[id];if(!KG.l[id
 function kWait(id){const o=KW.lift[id];if(!o)return 0;// Schätzung aus Schlangenlänge und Förderleistung
  const perS=o.T.v/(o.len*2/o.n)*o.T.cap;const s=o.q.length/Math.max(.1,perS);return s/KRT*60}
 // Lifte: Seile, Stützen, Sessel/Teller
+// V319: Lift-Stationen und Stützen wie am Heimatberg – dunkle Einfahrt mit Seilscheibe und Seilschlaufe, Gebäude mit hohem Dach und Fahne, Stützen mit Rollenbatterien
+function kPylonR(c,x,y,co,ux,uy){pylonN(c,x,y,co+3);pylSt(c,x,y,co,ux,uy)}
+function kStFront(c,x,y,op,big){const hw=op+(big?20:7),nt=1-kBright(),wc=big?'#d9955f':'#c9ccd8',wd=big?'#b9764a':'#aeb2c2';
+ c.fillStyle=wc;c.fillRect(x-hw,y-6,hw-op,24);c.fillStyle=wd;c.fillRect(x+op,y-6,hw-op,24);c.fillStyle='rgba(0,0,0,.15)';c.fillRect(x-op-1.5,y-6,1.5,24);c.fillRect(x+op,y-6,1.5,24);
+ if(big){for(const wx of [x-hw+4,x+op+4]){const w=Math.min(9,hw-op-8);c.fillStyle='#a8dcf5';c.fillRect(wx,y,w,8);kWin(wx,y,w,8)}}
+ c.fillStyle='#5d6380';c.fillRect(x-hw,y-8,2*hw,3);
+ c.fillStyle='#4a4d78';c.beginPath();c.moveTo(x-hw-5,y-6);c.lineTo(x-hw+3,y-44);c.lineTo(x+hw-3,y-44);c.lineTo(x+hw+5,y-6);c.closePath();c.fill();c.fillStyle='rgba(255,255,255,.08)';for(let q=1;q<4;q++)c.fillRect(x-hw,y-6-q*9.5,2*hw,1);
+ c.fillStyle='#fff';c.beginPath();c.moveTo(x-hw+3,y-44);c.lineTo(x+hw-3,y-44);c.lineTo(x+hw-1,y-38);c.lineTo(x-hw+1,y-38);c.closePath();c.fill();
+ c.strokeStyle='#8e93b8';c.lineWidth=1;c.beginPath();c.moveTo(x+hw-3,y-42);c.lineTo(x+hw-3,y-58);c.stroke();c.fillStyle=big?'#e8504a':'#2f80ed';c.beginPath();c.moveTo(x+hw-3,y-58);c.lineTo(x+hw+6,y-55);c.lineTo(x+hw-3,y-52);c.fill()}
+function kStationM(c,x,y,co,big,ex,eb){const op=co+9+(ex||0);stBack(c,x,y,op,big);
+ c.strokeStyle='#161a28';c.lineWidth=1.3;c.beginPath();for(let i=0;i<=16;i++){const th=i/16*Math.PI,px=x-co*Math.cos(th),py=y+(big?1:-1)*co*Math.sin(th);i?c.lineTo(px,py):c.moveTo(px,py)}c.stroke();
+ sheave(c,x,y,co,-(KW.T||0)*1.6);kStFront(c,x,y,op,big)}
+// Seil und Sessel hinter den Stationsgebäuden verstecken (Dach und Seitenwände; die Einfahrt bleibt offen)
+function kStClip(c,o,id,vw,vh){const co=o.T.co,op=co+9,lo=typeof kLowerOf==='function'&&kLowerOf(id);c.beginPath();c.rect(kZ.camX-300,kZ.camY-300,vw+600,vh+600);
+ for(const [x,y,big] of [[o.bx,o.by,!lo],[o.tx,o.ty,false]]){const hw=op+(big?20:7);c.moveTo(x-hw-5,y-6);c.lineTo(x-hw+3,y-44);c.lineTo(x+hw-3,y-44);c.lineTo(x+hw+5,y-6);c.closePath();c.rect(x-hw,y-6,hw-op,24);c.rect(x+op,y-6,hw-op,24)}
+ c.clip('evenodd')}
 function kDrawLifts(c,t){const vw=kViewW(),vh=kViewH();for(const id in KW.lift){const o=KW.lift[id];if(!KG.l[id].on&&!o.run)continue;const {bx,by,tx,ty,len,ux,uy}=o,co=o.T.co;
  if(Math.max(bx,tx)<kZ.camX-80||Math.min(bx,tx)>kZ.camX+vw+80||Math.max(by,ty)<kZ.camY-80||Math.min(by,ty)>kZ.camY+vh+80)continue;
- if(KVOR.liftLook&&KVOR.liftLook(c,o,t))continue;
+ if(KVOR.liftLook){c.save();if(!o.T.drag&&!(KVOR.noClip&&KVOR.noClip(id)))kStClip(c,o,id,vw,vh);const dn=KVOR.liftLook(c,o,t);c.restore();if(dn)continue}
  if(o.T.cap===1){c.strokeStyle='#2a2e44';c.lineWidth=.8;c.beginPath();c.moveTo(bx,by-14);c.lineTo(tx,ty-14);c.stroke();
   const n=Math.max(2,Math.ceil(len/70));for(let i=1;i<n;i++){const px=bx+(tx-bx)*i/n,py=by+(ty-by)*i/n;c.fillStyle='rgba(110,140,180,.25)';c.beginPath();c.ellipse(px+3,py+2,5,1.6,0,0,7);c.fill();c.fillStyle='#6a6890';c.fillRect(px-1,py-17,2,18);c.fillStyle='#3a3f58';c.fillRect(px-4,py-17,8,1.6)}
   for(const ch of o.ch){if(ch.u>=1)continue;const x=bx+(tx-bx)*ch.u,y=by+(ty-by)*ch.u-14;c.strokeStyle='#2a2e44';c.lineWidth=.6;c.beginPath();c.moveTo(x,y);c.lineTo(x,y+9);c.stroke();c.fillStyle='#f2c53b';c.beginPath();c.arc(x,y+10,1.6,0,7);c.fill()}
   continue}
- c.strokeStyle='#161a28';c.lineWidth=1.2;const px=-uy,py=ux;for(const sd of [-1,1]){c.beginPath();c.moveTo(bx+px*co*sd,by+py*co*sd);c.lineTo(tx+px*co*sd,ty+py*co*sd);c.stroke()}
- const n=Math.max(2,Math.ceil(len/110));for(let i=1;i<n;i++){const x=bx+(tx-bx)*i/n,y=by+(ty-by)*i/n;if(kInV(x,y))pylonN(c,x,y,co+3)}
- const cap=o.T.cap;for(const ch of o.ch){if(ch.u<.03||ch.u>1.97||Math.abs(ch.u-1)<.03)continue;const [x,y]=kLiftPos(o,ch.u);if(!kInV(x,y,30))continue;const k={r:ch.r.map(f=>({col:f.col}))};c.save();c.translate(x,y);c.rotate(Math.sin(ch.u*40+t*.8)*.04);gondola(c,k,cap);c.restore()}
- }}
+ const n=Math.max(2,Math.ceil(len/110));c.save();kStClip(c,o,id,vw,vh);c.strokeStyle='#161a28';c.lineWidth=1.3;const px=-uy,py=ux;for(const sd of [-1,1]){const ox=px*co*sd,oy=py*co*sd;c.beginPath();c.moveTo(bx+ox,by+oy);for(let i=1;i<=n;i++){const f0=(i-.5)/n,f1=i/n;c.quadraticCurveTo(bx+(tx-bx)*f0+ox,by+(ty-by)*f0+oy+4,bx+(tx-bx)*f1+ox,by+(ty-by)*f1+oy)}c.stroke()}
+for(let i=1;i<n;i++){const x=bx+(tx-bx)*i/n,y=by+(ty-by)*i/n;if(kInV(x,y))kPylonR(c,x,y,co,ux,uy)}
+ const cap=o.T.cap;for(const ch of o.ch){if(ch.u<.03||ch.u>1.97||Math.abs(ch.u-1)<.03)continue;const dEnd=Math.min(ch.u<1?ch.u:2-ch.u,Math.abs(1-ch.u))*len;if(dEnd<20)continue;const [x,y0]=kLiftPos(o,ch.u),ff=ch.u<1?ch.u:2-ch.u,y=y0+2*Math.sin(Math.PI*((ff*n)%1));if(!kInV(x,y,30))continue;const k={r:ch.r.map(f=>({col:f.col}))};c.save();c.translate(x,y);c.rotate(Math.sin(ch.u*40+t*.8)*.04);gondola(c,k,cap);c.restore()}
+ c.restore()}}
 // Gebäude
 function kDrawBuildings(add,t){const V=KVOR;if(V.drawB)return V.drawB(add,t);
  // Kassa
@@ -2630,7 +2647,7 @@ function kDrawBuildings(add,t){const V=KVOR;if(V.drawB)return V.drawB(add,t);
   if(bau){add(L.b[1]+20,c=>kSite(c,L.b[0],L.b[1]+10,60,t));add(L.t[1]+20,c=>kSite(c,L.t[0],L.t[1]+10,50,t));continue}
   if(!s.on)continue;
   if(L.typ==='teller'||s.typ==='teller'){add(L.b[1]+12,c=>{stationN(c,L.b[0]+14,L.b[1],t);kBrkSign(c,L,t)});add(L.t[1]+12,c=>stationN(c,L.t[0]+14,L.t[1],t))}
-  else{const co=KLT[s.typ].co;add(L.b[1]+22,c=>{liftStation(c,L.b[0],L.b[1],co,true);kBrkSign(c,L,t)});add(L.t[1]+18,c=>{liftStation(c,L.t[0],L.t[1],co,false);kSign(c,L.t[0],L.t[1]-36,'BERGSTATION','#fff','#2b3a55',5.5)})}}
+  else{const co=KLT[s.typ].co;add(L.b[1]+22,c=>{kStationM(c,L.b[0],L.b[1],co,true);kSign(c,L.b[0],L.b[1]-26,'TALSTATION','#fff','#2b3a55',6);kBrkSign(c,L,t)});add(L.t[1]+18,c=>{kStationM(c,L.t[0],L.t[1],co,false);kSign(c,L.t[0],L.t[1]-36,'BERGSTATION','#fff','#2b3a55',5.5)})}}
  // Sonnalm
  if(KG.b.hut)add(V.hut.y,c=>{kHutDraw(c,V.hut.x,V.hut.y,t);kSign(c,V.hut.x,V.hut.y-56,'SONNALM','#8f5a34','#fff',6)});else if(KG.bau.find(b=>b.id==='hut'))add(V.hut.y,c=>kSite(c,V.hut.x,V.hut.y,64,t));
  // Kinderland
@@ -3130,7 +3147,7 @@ const KTH={};function kThumb(id){if(KTH[id])return KTH[id];const g0=KG,v0=KVOR,o
  try{KVOR=KV[id];KG=kNewState(id,[]);KG.stage=KVOR.stages;for(const k in KG.l)KG.l[k].on=1;if(KVOR.thumbPrep)KVOR.thumbPrep(KG);else{KG.l.ses.typ='s4';KG.b.kinder=1;KG.b.school=1}KG.b.hut=1;KG.b.kiosk=1;KW.paths=KVOR.paths();kBuildWorld();kZ.S=.5;kZ.dpr=1;KST.c=null;
   const b=KVOR.bounds,rs=.62;const cv=document.createElement('canvas');cv.width=Math.ceil((b.x1-b.x0)*rs);cv.height=Math.ceil((b.y1-b.y0)*rs);const c=cv.getContext('2d');c.setTransform(rs,0,0,rs,-b.x0*rs,-b.y0*rs);
   kWithGame(()=>{KW.winOn=0;KVOR.bg(c);for(const L of KVOR.lots)kLot(c,L,0);kDrawPaths(c);kDrawPistes(c);const O=KST.objs.slice();for(const t of KST.trees)O.push({y:t.y,f:c2=>t.t==='p'?pineN(c2,t.x,t.y,t.s):kDecid(c2,t.x,t.y,t.s,t.t==='o')});for(const h of KST.houses)O.push({y:h.y,f:c2=>chalet(c2,h.x,h.y,h.w,h.h,h.k)});
-   for(const L of KVOR.lifts){const co=L.typ==='teller'?0:8;if(!kLowerOf(L.id))O.push({y:L.b[1]+22,f:c2=>L.typ==='teller'?stationN(c2,L.b[0]+14,L.b[1],0):liftStation(c2,L.b[0],L.b[1],co,true)});O.push({y:L.t[1]+18,f:c2=>L.typ==='teller'?stationN(c2,L.t[0]+14,L.t[1],0):liftStation(c2,L.t[0],L.t[1],co,false)});
+   for(const L of KVOR.lifts){const co=L.typ==='teller'?0:8;if(!kLowerOf(L.id))O.push({y:L.b[1]+22,f:c2=>L.typ==='teller'?stationN(c2,L.b[0]+14,L.b[1],0):kStationM(c2,L.b[0],L.b[1],co,true)});O.push({y:L.t[1]+18,f:c2=>L.typ==='teller'?stationN(c2,L.t[0]+14,L.t[1],0):kStationM(c2,L.t[0],L.t[1],co,false)});
     O.push({y:3000,f:c2=>{c2.strokeStyle='#161a28';c2.lineWidth=1.2;for(const sd of [-1,1]){c2.beginPath();c2.moveTo(L.b[0]+sd*co,L.b[1]-(co?0:14));c2.lineTo(L.t[0]+sd*co,L.t[1]-(co?0:14));c2.stroke()}}})}
    O.push({y:KVOR.hut.y,f:c2=>hut(c2,0)});O.push({y:KVOR.kassa.y,f:c2=>kKassaDraw(c2,KVOR.kassa.x,KVOR.kassa.y)});if(KVOR.kinder){O.push({y:KVOR.kinder.y-60,f:c2=>kKidBack(c2,0)});O.push({y:KVOR.kinder.y+40,f:c2=>kKidCarpet(c2,0)})}if(KVOR.thumbObjs)KVOR.thumbObjs(O);
    O.sort((a,b)=>a.y-b.y);for(const o of O)o.f(c)});
