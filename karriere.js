@@ -1894,8 +1894,11 @@ function kRange(c,peaks,base,opt={}){const rock=opt.rock||['#8f96a6','#a9afbd'],
   c.fillStyle=snow;c.beginPath();c.moveTo(px,py);c.lineTo(px+w*h/(base-py),py+h);for(let q=1;q<4;q++)c.lineTo(px+w*h/(base-py)*(1-q/4),py+h*(.7+r()*.35));c.lineTo(px,py+h*.9);c.closePath();c.fill()}}
 function kRoad(c,y,x0,x1,w=34){c.fillStyle='#c3c9d3';c.fillRect(x0,y-w/2-3,x1-x0,w+6);c.fillStyle='#4b5160';c.fillRect(x0,y-w/2,x1-x0,w);c.strokeStyle='#ffffff';c.lineWidth=1.4;c.setLineDash([12,10]);c.beginPath();c.moveTo(x0,y);c.lineTo(x1,y);c.stroke();c.setLineDash([])}
 function kSign(c,x,y,t,bg='#fff',fg='#2b3040',fs=6){c.font='700 '+fs+'px Fredoka,sans-serif';const w=c.measureText(t).width+6;c.fillStyle=bg;c.beginPath();c.roundRect(x-w/2,y-fs*.85,w,fs*1.5,2);c.fill();c.fillStyle=fg;c.textAlign='center';c.textBaseline='middle';c.fillText(t,x,y);c.textBaseline='alphabetic'}
-function kLot(c,L,gravel){const {x0,x1,y0,y1}=L;c.fillStyle='#c3c9d3';c.fillRect(x0-3,y0-3,x1-x0+6,y1-y0+6);c.fillStyle=gravel?'#b9ab93':'#5a6170';c.fillRect(x0,y0,x1-x0,y1-y0);
- if(gravel){const r=kRNG(x0);c.fillStyle='rgba(120,100,70,.35)';for(let i=0;i<220;i++)c.fillRect(x0+r()*(x1-x0),y0+r()*(y1-y0),1.1,1.1)}
+// Zufahrt: Parkplatz reicht bis zur Straße (nur Berge mit Standard-Autos, die direkt von der Straße einparken)
+function kLotFront(L){if(KVOR.spawnCar||!KVOR.road)return 0;const ry=KVOR.road.y-17,g=ry-L.y1;return g>0&&g<50?ry:0}
+function kLampsF(){const A=KVOR.lamps();if(KVOR.spawnCar||!KVOR.road)return A;const ry=KVOR.road.y-14;return A.filter(([x,y])=>!KVOR.lots.some(L=>kLotFront(L)&&y>L.y1-2&&y<ry&&x>L.x0-10&&x<L.x1+10))}
+function kLot(c,L,gravel){const {x0,x1,y0,y1}=L;const fr=kLotFront(L),yb=fr||y1;c.fillStyle='#c3c9d3';c.fillRect(x0-3,y0-3,x1-x0+6,yb-y0+(fr?0:6));c.fillStyle=gravel?'#b9ab93':'#5a6170';c.fillRect(x0,y0,x1-x0,yb-y0);
+ if(gravel){const r=kRNG(x0);c.fillStyle='rgba(120,100,70,.35)';for(let i=0;i<220*(yb-y0)/(y1-y0);i++)c.fillRect(x0+r()*(x1-x0),y0+r()*(yb-y0),1.1,1.1)}
  c.strokeStyle=gravel?'rgba(255,255,255,.55)':'rgba(255,255,255,.8)';c.lineWidth=1;for(let x=x0;x<=x1+.1;x+=kLotW){c.beginPath();c.moveTo(x,y0+2);c.lineTo(x,y1-8);c.stroke()}}
 const kLotW=18;
 function kLotFree(c,L){c.strokeStyle='rgba(150,165,185,.6)';c.lineWidth=1;c.setLineDash([5,4]);c.strokeRect(L.x0,L.y0,L.x1-L.x0,L.y1-L.y0);c.setLineDash([]);kSign(c,(L.x0+L.x1)/2,(L.y0+L.y1)/2,'🅿️ '+L.n+(L.st?' · ab Stufe '+L.st:''),'rgba(43,58,85,.65)','#fff',8)}
@@ -1953,7 +1956,7 @@ function kBuildStatic(){const V=KVOR,b=V.bounds,rs=kStaticRes();const cv=KST.c&&
   for(const h of KST.houses){if(KG.hotel&&V.hotel&&h.x===V.hotel.x&&h.y===V.hotel.y)continue;O.push({y:h.y,f:c2=>chalet(c2,h.x,h.y,h.w,h.h,h.k)})}
   O.sort((a,b)=>a.y-b.y);for(const o of O)o.f(c);
   // Laternen (Masten) am Gehweg und an der Straße
-  for(const [x,y] of KVOR.lamps())kLampPost(c,x,y);if(V.staticExtra)V.staticExtra(c)});
+  for(const [x,y] of kLampsF())kLampPost(c,x,y);if(V.staticExtra)V.staticExtra(c)});
  // Fenster der Dorfhäuser für die Nacht
  KST.winS=[];for(const h of KST.houses){if(KG.hotel&&V.hotel&&h.x===V.hotel.x&&h.y===V.hotel.y)continue;const r=kRNG(h.x*3+h.y);for(const [wx,wy] of chWin(h.x,h.y,h.w,h.h))if(r()<.7)KST.winS.push([wx,wy,6,6])}
  for(const [cx,cy] of KST.churchW)for(const q of [2,16,30])KST.winS.push([cx+q,cy-26,7,14])}
@@ -2567,7 +2570,7 @@ function kCanSpray(c,t){for(const p of kCanPos()){if(!kInV(p.x,p.y))continue;for
 function kDrawNight(c){const b=kBright();if(b>=1)return;const a=(1-b)*.58;const vw=kViewW(),vh=kViewH();c.fillStyle='rgba(16,26,62,'+a.toFixed(3)+')';c.fillRect(kZ.camX-10,kZ.camY-10,vw+20,vh+20);
  if(b<.75){const g=Math.min(1,(.75-b)*2.2);c.fillStyle='rgba(255,214,130,'+(.9*g).toFixed(2)+')';for(const w of KW.win){if(!kInV(w[0],w[1]))continue;c.fillRect(w[0],w[1],w[2],w[3])}if(KST.winS)for(const w of KST.winS){if(!kInV(w[0],w[1]))continue;c.fillRect(w[0],w[1],w[2],w[3])}
   // Laternen am Gehweg und an der Straße
-  for(const [x,y] of KVOR.lamps())kLamp(c,x,y-22,g)
+  for(const [x,y] of kLampsF())kLamp(c,x,y-22,g)
   if(KW.groom&&KW.groom.st!=='home'){const R=KW.groom,a2=R.a;const gr=c.createRadialGradient(R.x+Math.cos(a2)*26,R.y+Math.sin(a2)*26,2,R.x+Math.cos(a2)*26,R.y+Math.sin(a2)*26,34);gr.addColorStop(0,'rgba(255,240,190,'+(.55*g)+')');gr.addColorStop(1,'rgba(255,240,190,0)');c.fillStyle=gr;c.beginPath();c.arc(R.x+Math.cos(a2)*26,R.y+Math.sin(a2)*26,34,0,7);c.fill()}
   for(const car of KW.cars){if(car.st==='park')continue;const a2=car.a;c.fillStyle='rgba(255,240,190,'+(.35*g)+')';c.beginPath();c.moveTo(car.x+Math.cos(a2)*14,car.y+Math.sin(a2)*14);c.lineTo(car.x+Math.cos(a2+.35)*48,car.y+Math.sin(a2+.35)*48);c.lineTo(car.x+Math.cos(a2-.35)*48,car.y+Math.sin(a2-.35)*48);c.fill()}}}
 function kLamp(c,x,y,g){if(!kInV(x,y))return;const gr=c.createRadialGradient(x,y+6,1,x,y+10,30);gr.addColorStop(0,'rgba(255,226,150,'+(.42*g).toFixed(2)+')');gr.addColorStop(1,'rgba(255,226,150,0)');c.fillStyle=gr;c.beginPath();c.ellipse(x,y+12,30,16,0,0,7);c.fill();c.fillStyle='rgba(255,236,170,'+(.95*g).toFixed(2)+')';c.beginPath();c.arc(x,y-1,2.2,0,7);c.fill()}
@@ -2618,7 +2621,7 @@ function kCloneCSS(){if(document.getElementById('kcss'))return;const map=[['#she
  for(const sh of document.styleSheets){let rules;try{rules=sh.cssRules}catch(e){continue}if(rules)walk(rules,x=>x)}
  const st=document.createElement('style');st.id='kcss';st.textContent=out.join('\n')+`
 #kui{position:fixed;inset:0;z-index:3;pointer-events:none}#kui>*{pointer-events:auto}#kui[hidden]{display:none}
-#ksheet{z-index:7}#ksheet.big{max-height:86vh}#ktoast{z-index:8}
+#ksheet{z-index:7}#ksheet.big{max-height:86vh}#ktoast{z-index:8;pointer-events:none!important}
 #kabar{bottom:calc(48px + env(safe-area-inset-bottom,0px));flex-wrap:nowrap!important;gap:5px!important}#kabar .ch{flex:1 1 0!important;min-width:0;padding:3px 7px!important}#kabar .ch b{font-size:11.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block}#kabar .ch .i{font-size:11px!important;color:#ffd84d}#kabar .ch.ok{background:#2e9e5b}
 .kchip{display:inline-flex;align-items:center;gap:4px;background:var(--chip);border-radius:9px;padding:3px 8px;font-size:12.5px;font-weight:600;color:var(--tx);margin:0 4px 4px 0}
 .kchip.g{background:#e3f5ea;color:#1d6e3e}.kchip.o{background:#fff0dc;color:#b8480c}.kchip.b{background:#e1efff;color:#1e5fb0}.kchip.r{background:#fde4e2;color:#b8302b}
