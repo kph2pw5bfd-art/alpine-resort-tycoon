@@ -2877,8 +2877,8 @@ function kClose(){KW.open=null;KW.inf=null;KW.dirty=1;kUI()}
 function kSnb(){if(!KG)return;const u=document.getElementById('kui'),e=document.getElementById('ksnb');if(!u||!e)return;
  if(e._on!==true){e._on=true;e.style.display='flex';u.style.setProperty('--sbh','24px')}
  const cl=(v)=>Math.max(0,Math.min(100,Math.round(v)));
- const B=(id,t,v,c,lo)=>{const b=document.getElementById(id),k=t+v+c;if(b._k===k)return;b._k=k;const i=b.firstChild;i.style.width=v+'%';i.style.background=v<lo?'#e8504a':c;b.lastChild.textContent=t+': '+v+' %'};
- B('ksbS','Schneehöhe',cl(KG.snow),'#3f8fd2',30);B('ksbP','Pistenzustand',cl(kPQavg()),'#3fa865',50)}
+ const B=(id,t,v,c,lo,u)=>{const b=document.getElementById(id),k=t+v+c;if(b._k===k)return;b._k=k;const i=b.firstChild;i.style.width=Math.min(100,v)+'%';i.style.background=v<lo?'#e8504a':c;b.lastChild.textContent=t+': '+v+(u||' %')};
+ B('ksbS','Schneehöhe',Math.max(0,Math.round(KG.snow)),'#3f8fd2',30,' cm');B('ksbP','Pistenzustand',cl(kPQavg()),'#3fa865',50)}
 let kHudS='';function kHud(force){if(!KG)return;const g=KW.folks.filter(f=>!f.ins&&f.st!=='gone').length;const st=kStars(),sc=kScore(),wi=KG.wx==='sonne'&&kBright()<.35?'🌙':KWI[KG.wx];
  const sea=KVOR.seasons,sn=KG.done?Math.min(kSeaN(),sea):kSeaN(),dd=KG.done&&kSeaN()>sea?KSL:kSeaD();const day=`<b>📅 ${KWN[kWd()]} • Woche ${kWeek()}<span style="opacity:.6">/4</span> ${wi}</b><small>Saison ${sn}${sea>1?' von '+sea:''} · ${kh(KG.t)}</small><span class="sbar"><i style="width:${Math.round((dd-1+Math.min(1,KG.t/24))/KSL*100)}%"></i></span>`;
  const mon=`<b>${kfmt(KG.money)}</b><small>${KG.money<0?'im Minus!':'Heute '+(kTodayRes()>=0?'+':'')+knum(kTodayRes())+' €'}${KG.loan>0?' · 🏦':''}</small>`;
