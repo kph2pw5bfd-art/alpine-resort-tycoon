@@ -563,11 +563,11 @@ KV.alt.items=function(){const V=KVOR,st=KG.stage,l=KG.l,b=KG.b,lf=KPK('lift')?.9
  add('aus',{id:'st4',ic:'⚫',n:'Ausbau Stufe 4: '+S[4].n,d:S[4].d,c:Math.round(S[4].cost*lf),days:kBauDays(S[4].days),done:st>=4,bau:sB(4),lock:lkOf(4),rq:rqOf(4)});
  // Lifte: Altbergbahn
  const A=l.ab;
- if(A.zs===0)add('lif',{id:'san_ab',lift:'ab',kind:'a',ic:'🔧',n:'Altbergbahn sanieren',d:'Neue Seile, Bremsen und Polster für den 2er-Sessel von 1971 – danach viel weniger Pannen. Der Lift steht bis zum nächsten Morgen.',c:Math.round(4000*lf),days:kBauDays(1),bau:upOf('ab','san_ab'),lock:upLk('ab','san_ab'),
+ if(A.zs===0)add('lif',{id:'san_ab',lift:'ab',kind:'a',ic:'🔧',n:'Altbergbahn sanieren',d:'Neue Seile, Bremsen und Polster für den 2er-Sessel von 1971 – danach viel weniger Pannen. Umbau in der Nacht – heute fährt der Lift noch, morgen steht er.',c:Math.round(4000*lf),days:kBauDays(1),bau:upOf('ab','san_ab'),lock:upLk('ab','san_ab'),
   pro:['Pannen fast so selten wie bei einem neuen Lift','günstig · nur 1 Tag Bauzeit'],con:['bleibt ein 2er-Sessel','Pannen etwas öfter als neu']});
  if(A.zs<2)add('lif',{id:'neu_ab',lift:'ab',kind:'n',ic:'🏗️',n:'Altbergbahn abreißen → neuer 4er-Sessel',d:'Abriss und Neubau: doppelt so viele Plätze je Sessel, kaum Pannen. Der Lift steht 2 Tage.',c:Math.round(16000*lf),days:kBauDays(2),bau:upOf('ab','neu_ab'),lock:upLk('ab','neu_ab'),
   pro:['doppelt so viele Plätze – kürzere Schlange','kaum Pannen, später 6er möglich'],con:['teuer','2 Tage ohne Lift – in der Zeit kommen kaum Gäste']});
- else add('lif',{id:'up6_ab',lift:'ab',ic:'🚡',n:'Altbergbahn: 6er-Sessel',d:'Noch mehr Plätze – hier steigen fast alle Gäste ein. Der Lift steht bis zum nächsten Morgen.',c:Math.round(14000*lf),days:kBauDays(1),done:A.typ==='s6',bau:upOf('ab','up6_ab'),lock:upLk('ab','up6_ab')});
+ else add('lif',{id:'up6_ab',lift:'ab',ic:'🚡',n:'Altbergbahn: 6er-Sessel',d:'Noch mehr Plätze – hier steigen fast alle Gäste ein. Umbau in der Nacht – heute fährt der Lift noch, morgen steht er.',c:Math.round(14000*lf),days:kBauDays(1),done:A.typ==='s6',bau:upOf('ab','up6_ab'),lock:upLk('ab','up6_ab')});
  if(A.zs>=1)add('lif',{id:'lg_ab',ic:'💺',n:'Altbergbahn: mehr Sessel',d:'Zusätzliche Sessel am Seil – mehr Gäste pro Stunde.',c:Math.round(2500*lf),done:(A.lg||0)>=2,lock:upB('ab')?'Umbau läuft':'',lv:(A.lg||0)+' / 2'});
  // Ostlift
  const O=l.ol,lo2=st<2?'erst Stufe 2':'';
@@ -1052,7 +1052,7 @@ KV.seek.items=function(){const V=KVOR,st=KG.stage,l=KG.l,b=KG.b,lf=KPK('lift')?.
  const I=[];const add=(tab,o)=>{o.tab=tab;I.push(o);return o};const S=V.stageInfo;
  for(const s of [2,3,4,5]){const rq=S[s].req.map(r=>({t:r[r.length-1],ok:kReq(r)}));add('aus',{id:'st'+s,ic:['','','🚡','🔴','🚠','⛴️'][s],n:'Ausbau Stufe '+s+': '+S[s].n,d:S[s].d,c:Math.round(S[s].cost*lf),days:kBauDays(S[s].days),done:st>=s,bau:KG.bau.find(x=>x.k==='stage'&&x.st===s),lock:st<s-1?'erst Stufe '+(s-1):rq.some(r=>!r.ok)?'Voraussetzungen fehlen':'',rq})}
  const T=l.ts,upB=L=>KG.bau.find(x=>x.k==='up'&&x.lift===L);
- add('lif',{id:'up6_ts',ic:'🚡',n:'Talsessel: 6er-Sessel',d:'Talstation → Mittelstation. Mehr Plätze je Sessel – hier steigen alle Gäste ein. Der Lift steht bis zum nächsten Morgen.',c:Math.round(16000*lf),days:kBauDays(1),done:T.typ==='s6',bau:upB('ts')});
+ add('lif',{id:'up6_ts',ic:'🚡',n:'Talsessel: 6er-Sessel',d:'Talstation → Mittelstation. Mehr Plätze je Sessel – hier steigen alle Gäste ein. Umbau in der Nacht – heute fährt der Lift noch, morgen steht er.',c:Math.round(16000*lf),days:kBauDays(1),done:T.typ==='s6',bau:upB('ts')});
  add('lif',{id:'lg_ts',ic:'💺',n:'Talsessel: mehr Sessel',d:'Zusätzliche Sessel am Seil – mehr Gäste pro Stunde.',c:Math.round(2500*lf),done:(T.lg||0)>=2,lock:upB('ts')?'Umbau läuft':'',lv:(T.lg||0)+' / 2'});
  if(st>=2&&l.ks.on)add('lif',{id:'lg_ks',ic:'💺',n:'Karsessel: mehr Sessel',d:'Mittelstation → Karstation. Zusätzliche Sessel am Seil.',c:Math.round(3000*lf),done:(l.ks.lg||0)>=2,lv:(l.ks.lg||0)+' / 2'});
  if(st>=4&&l.gg.on)add('lif',{id:'lg_gg',ic:'🚠',n:'Gipfelgondel: mehr Kabinen',d:'Karstation → Gipfel. Zusätzliche Kabinen am Seil.',c:Math.round(3500*lf),done:(l.gg.lg||0)>=2,lv:(l.gg.lg||0)+' / 2'});
@@ -1612,7 +1612,7 @@ KV.eis.items=function(){const V=KVOR,st=KG.stage,l=KG.l,b=KG.b,lf=KPK('lift')?.9
  const I=[];const add=(tab,o)=>{o.tab=tab;I.push(o);return o};const S=V.stageInfo;
  for(const s of [2,3,4,5,6]){const rq=S[s].req.map(r=>({t:r[r.length-1],ok:kReq(r)}));add('aus',{id:'st'+s,ic:['','','🪑','⚫','🧊','🚡','🚠'][s],n:'Ausbau Stufe '+s+': '+S[s].n,d:S[s].d,c:Math.round(S[s].cost*lf),days:kBauDays(S[s].days),done:st>=s,bau:KG.bau.find(x=>x.k==='stage'&&x.st===s),lock:st<s-1?'erst Stufe '+(s-1):rq.some(r=>!r.ok)?'Voraussetzungen fehlen':'',rq})}
  const upB=L=>KG.bau.find(x=>x.k==='up'&&x.lift===L),A=l.am;
- add('lif',{id:'up6_am',ic:'🚡',n:'Almbahn: 6er-Sessel',d:'Talstation → Alm. Hier steigen alle Gäste ein – mehr Plätze je Sessel. Der Lift steht bis zum nächsten Morgen.',c:Math.round(16000*lf),days:kBauDays(1),done:A.typ==='s6',bau:upB('am')});
+ add('lif',{id:'up6_am',ic:'🚡',n:'Almbahn: 6er-Sessel',d:'Talstation → Alm. Hier steigen alle Gäste ein – mehr Plätze je Sessel. Umbau in der Nacht – heute fährt der Lift noch, morgen steht er.',c:Math.round(16000*lf),days:kBauDays(1),done:A.typ==='s6',bau:upB('am')});
  add('lif',{id:'lg_am',ic:'💺',n:'Almbahn: mehr Sessel',d:'Zusätzliche Sessel am Seil – mehr Gäste pro Stunde.',c:Math.round(2500*lf),done:(A.lg||0)>=2,lock:upB('am')?'Umbau läuft':'',lv:(A.lg||0)+' / 2'});
  if(st>=2&&l.kb.on)add('lif',{id:'lg_kb',ic:'💺',n:'Kesselbahn: mehr Sessel',d:'Alm → Kessel. Zusätzliche Sessel am Seil.',c:Math.round(3000*lf),done:(l.kb.lg||0)>=2,lv:(l.kb.lg||0)+' / 2'});
  if(st>=3&&l.rl.on)add('lif',{id:'lg_rl',ic:'💺',n:'Rinnenlift: mehr Sessel',d:'Kessel → Rinnenkopf. Zusätzliche Sessel am Seil.',c:Math.round(3000*lf),done:(l.rl.lg||0)>=2,lv:(l.rl.lg||0)+' / 2'});
