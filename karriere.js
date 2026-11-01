@@ -2134,7 +2134,7 @@ const kLowerOf=(id)=>KVOR.lifts.find(x=>x.nx===id);
 // ===== Simulation =====
 function kLog(ic,tx){if(!KG)return;KG.lg.unshift({d:KG.day,t:KG.t,ic,tx});if(KG.lg.length>80)KG.lg.length=80;KW.lgNew=1}
 function kPop(x,y,v,col){KW.pops.push({x,y,v,t:0,col:col||'#f2c53b'})}
-function kEarn(k,v,x,y,bid){if(!v)return;KG.money+=v;KG.inc[k]=(KG.inc[k]||0)+v;kRentInc(bid||KRSRC[k],v);if(x!=null)kPop(x,y,v)}
+function kEarn(k,v,x,y,bid){if(!v)return;KG.money+=v;KG.inc[k]=(KG.inc[k]||0)+v;kRentInc(bid||KRSRC[k],v);kGbEarn(k,v,bid);if(x!=null)kPop(x,y,v)}
 function kSpend(k,v){KG.money-=v;KG.cost[k]=(KG.cost[k]||0)+v}
 // --- Lifte ---
 function kLiftGeo(id){const L=kLC(id),[bx,by]=L.b,[tx,ty]=L.t,len=Math.hypot(tx-bx,ty-by);return {L,bx,by,tx,ty,len,ux:(tx-bx)/len,uy:(ty-by)/len}}
@@ -2550,6 +2550,7 @@ function kStep(dt){if(!KG||KG.done||KW.halt)return;
  const dth=dt/KRT*nf,t0=KG.t;KG.t+=dth;KW.T+=dt;
  // Ereignisse über die Uhr
  if(t0<6&&KG.t>=6)kMorning();
+ kGbTick();
  if(KG.t>=24){KG.t-=24;kMidnight()}
  // Ankunft
  if(KVOR.tick)KVOR.tick(dt,dth);
@@ -2590,7 +2591,7 @@ function kGuestDone(f){if(f.ins||f.ty==='staff')return;const k=f.kid?'fam':f.ty,
 // --- Morgen ---
 // V320: Pistenraupe wie am Heimatberg – wer in der Nacht präpariert hat, hat am Morgen alle offenen Pisten frisch (höchstens so viel, wie der Schnee hergibt)
 function kGroomAll(){const cap=kSnowCap();for(const p of KW.pistes)if(KG.pq[p.id]!=null&&kPisteOpen(p))KG.pq[p.id]=Math.max(KG.pq[p.id],cap)}
-function kMorning(){if(KW.groom&&KW.groom.st!=='home'){KW.groom=null;KG.groomDone=KG.lastGroom}if(KG.b.raupe&&KG.groomDone!=null&&KG.groomDone===KG.lastGroom&&KG.lastGroom>=KG.day-1){kGroomAll();KG.groomDone=null}
+function kMorning(){try{kGbDay()}catch(e){console.error(e)}if(KW.groom&&KW.groom.st!=='home'){KW.groom=null;KG.groomDone=KG.lastGroom}if(KG.b.raupe&&KG.groomDone!=null&&KG.groomDone===KG.lastGroom&&KG.lastGroom>=KG.day-1){kGroomAll();KG.groomDone=null}
  KG.wx=KG.wxN||'sonne';KG.wxN=kWxRoll(KVOR);KG.dem=kDemand();KG.gDay=0;KG.rej=0;KG.inc={};KG.cost={};KG.sat={};KG.res={};KW.arrAcc=0;
  KG.busShare=KG.b.bus&&KG.dem>0?Math.min(.3,90/KG.dem):0;
  // Hotel
@@ -2979,7 +2980,7 @@ function kHit(x,y){const V=KVOR,hit=[];const d=(a,b)=>Math.hypot(x-a,y-b);
 // Schleife
 function kLoop(n){if(!KON)return;KW.raf=requestAnimationFrame(kLoop);const dt=Math.min(.05,(n-(KW.last||n))/1000);KW.last=n;
  if(!KW.paused&&!KW.modal&&KG&&!KG.done){const sp=KW.speed||1;for(let i=0;i<sp;i++)kStep(dt)}
- KW.fa=(KW.fa||0)+dt;const fps60=typeof SET!=='undefined'&&SET.fps===60&&!SET.perf;if(fps60||KW.fa>=1/31-.004){KW.fa=0;kDraw();kHud();kSnb()}if(KW.dirty)kUI();
+ KW.fa=(KW.fa||0)+dt;const fps60=typeof SET!=='undefined'&&SET.fps===60&&!SET.perf;if(fps60||KW.fa>=1/31-.004){KW.fa=0;kDraw();kHud();kSnb()}if(KW.dirty)kUI();else kGbUpd();
  KW.svT=(KW.svT||0)+dt;if(KW.svT>20){KW.svT=0;kSave()}}
 
 // ===== Bedienung im Karriere-Berg =====
@@ -3052,13 +3053,15 @@ function kUI(){KW.dirty=0;const sh=document.getElementById('ksheet');if(!sh)retu
  if(KW.neu&&!o){KW.open='neu'}
  const k=KW.open;if(!k){sh.classList.remove('on');sh.innerHTML='';kGoalBar();return}
  let h='';try{h=({bau:kBauHTML,pre:kPreHTML,wer:kWerHTML,sta:kStaHTML,ziel:kZielHTML,opt:kOptHTML,inf:kInfHTML,neu:kNeuHTML,log:kLogHTML,sea:kSeaHTML,end:kEndHTML,kre:kStaHTML})[k]()}catch(e){h='<h3>Fehler<a data-a="x">✕</a></h3><p class="hint">'+kesc(e.message)+'</p>';console.error(e)}
- const top=sh.dataset.k===k+(KW.tab||'')?sh.scrollTop:0;sh.innerHTML=h;sh.dataset.k=k+(KW.tab||'');sh.classList.add('on');sh.classList.toggle('big',k==='end');sh.classList.toggle('gbw',k==='inf');sh.scrollTop=top;kGoalBar()}
+ const kk=k+(KW.tab||'')+(k==='inf'?KW.inf||'':''),top=sh.dataset.k===kk?sh.scrollTop:0;sh.innerHTML=h;sh.dataset.k=kk;sh.classList.add('on');sh.classList.toggle('big',k==='end');sh.classList.toggle('gbw',k==='inf');sh.scrollTop=top;kGoalBar()}
 function kHead(t,tabs){return `<div class="bhead"><h3>${t}<a data-a="x">✕</a></h3>${tabs?`<div class="btab">${tabs.map(([id,ic,n])=>`<button data-a="tab" data-v="${id}" class="${KW.tab===id?'on':''}"><span>${ic}</span>${n}</button>`).join('')}</div>`:''}</div>`}
 function kSheetClick(e){const b=e.target.closest('[data-a]');if(!b)return;const a=b.dataset.a,v=b.dataset.v;
  if(KVOR&&KVOR.act&&KVOR.act(a,v))return;
  if(a==='x'){if(KW.open==='neu'){KW.neu=null}kClose();return}
  if(a==='tab'){KW.tab=v;kUI();return}
  if(a==='gbs'){kGbSort=v;kUI();return}
+ if(a==='gbc'){kGbC=+v;kGbChUpd();return}
+ if(a==='gbr'){kGbR=v==='1'?'w':'t';kGbChUpd();return}
  if(a==='ginf'){kOpenInfo(v);return}
  if(a==='buy'){kBuy(v);return}
  if(a==='pr'){const [k,d]=v.split('|');kPrice(k,+d);return}
@@ -3305,12 +3308,14 @@ function kSeaHTML(){const S=KG.seaHist.slice(-1)[0];if(!S)return '';return `<h3>
 function kOpenInfo(k){KW.inf=k;kOpen('inf')}
 function kInfHTML(){const k=KW.inf||'',V=KVOR;
  if(k.startsWith('l:')){const id=k.slice(2),L=kLC(id),s=KG.l[id],o=KW.lift[id];if(!s.on){const b=KG.bau.find(x=>x.lift===id);return kHead((L.typ==='teller'?'🎿 ':'🚡 ')+L.n)+(b?`<p class="hint">🚧 Im Bau – fertig ${kDayT(b.d0+b.days)} früh.</p>`:'<p class="hint">Noch nicht gebaut.</p>')}
+  {const G2=kGbHTML(k);if(G2)return G2}
   const w=kWait(id),T0=KLT[s.typ];const ovh=kOvhC(id);
   let h=kHead((s.typ==='teller'?'🎿 ':'🚡 ')+L.n)+`<div style="margin:4px 0"><span class="kchip b">${T0.n}</span>${s.lg?`<span class="kchip">+${s.lg} Ausbau</span>`:''}${s.brk?'<span class="kchip r">⚠️ Störung</span>':kLiftOpen(id)?'<span class="kchip g">in Betrieb</span>':'<span class="kchip">steht</span>'}</div>`;
   h+=`<div class="kpi"><div><small>Wartezeit</small><b>${w<1?'keine':Math.round(w)+' Min.'}</b></div><div><small>In der Schlange</small><b>${o?o.q.length:0}</b></div><div><small>Fahrten heute</small><b>${o?o.cnt:0}</b></div><div><small>Zustand</small><b>${Math.round(s.cond)} %</b></div></div>`;
   if(L.tn)h+=`<div class="row"><span>Strecke</span><b>${L.bn||'Talstation'} → ${L.tn}</b></div>`;
   if(kWS(id))h+=KVOR.windHint?KVOR.windHint(id):'<p class="hint">🌪️ Bei Sturm steht der Sessellift.</p>';
   h+=`<div class="row"><span>🔧 Generalüberholung (Zustand 100 %, weniger Störungen)</span><button class="btn" data-a="ovh" data-v="${id}" ${s.cond>92||!kCanPay(ovh)?'disabled':''}>${kfmt(ovh)}</button></div><div class="row"><span>Ausbau</span><button class="btn" data-a="go" data-v="bau|lif">Baumenü ›</button></div>`;if(V.liftInfo)h+=V.liftInfo(id)||'';return h}
+ {const G2=kGbHTML(k);if(G2)return G2}
  if(V.infHTML){const r=V.infHTML(k);if(r)return r}
  const Hd={kas:'🎫 Kassa',kio:'🌭 Kiosk',hut:'🛖 '+(V.hut?V.hut.n:'Hütte'),kid:'⭐ Kinderland',sch:'⛷️ Skischule',rau:'🚜 Pistenraupe',hot:'🏨 '+(V.hotel?V.hotel.n:'Gasthof'),park:'🅿️ Parkplätze'};
  if(Hd[k]){let h=kHead(Hd[k]);const inc=KG.inc;
@@ -3327,6 +3332,113 @@ function kInfHTML(){const k=KW.inf||'',V=KVOR;
 function kOvhC(id){const L=kLC(id);return Math.round((L.ovh||(id==='tl'?600:3000))*(KPK('lift')?.9:1))}
 function kOverhaul(id){const c=kOvhC(id);if(!kCanPay(c))return;KG.money-=c;KG.cost.bau=(KG.cost.bau||0)+c;KG.seaBau=(KG.seaBau||0)+c;KG.l[id].cond=100;kLog('🔧',kLC(id).n+' generalüberholt.');kUI()}
 
+// ===== V347: Lift- und Gebäude-Fenster wie am Heimatberg (Kacheln mit Vergleich zu gestern, Diagramm Heute/7 Tage, Preis im Fenster, Gäste-Stimme, Hinweise) =====
+const KGB0=7,KGBF={kiosk:'kio',hut:'hut',grest:'grest'},KGBE={tk:'kas',pk:'park',kid:'kid',sch:'sch',mus:'mus',nsk:'fl'};
+let kGbC=0,kGbR='t',kGbAt=0,kGbSl=-9,kGbL={};
+function kGbD(){return KG.gbs||(KG.gbs={t:{},y:{},h:{},c:{}})}
+function kGbNow(){return Math.floor((KG.t-KGB0)*2)}
+function kGbDf(){return Math.min(1,Math.max(0,(KG.t-KGB0)/17))}
+// Einnahmen und Gäste je Gebäude mitzählen (wird in kEarn aufgerufen)
+function kGbEarn(k,v,bid){if(!KG)return;const g=k==='food'?KGBF[bid]:KGBE[k];if(!g)return;const c=kGbD().c,r=c[g]||(c[g]={m:0,n:0});r.m+=v;r.n++}
+function kGbC0(g){const c=kGbD().c[g];return c||{m:0,n:0}}
+function kGbRun(id){try{return kRunCosts()[id]||0}catch(e){return 0}}
+function kGbFolk(st){return KW.folks.filter(f=>f.st===st).length}
+function kLiftUt(id){const o=KW.lift[id];if(!o||!o.ch||!o.ch.length||!kLiftOpen(id))return null;const cap=(o.T&&o.T.cap)||1;let r=0,n=0;for(const c of o.ch){if(c.u<1){n++;r+=c.r.length}}return n?Math.min(1,r/(n*cap)):null}
+function kGbStatus(id){const s=KG.l[id];return s.brk?'⚠️ Störung':kWS(id)?'🌪️ steht wegen Wind':kLiftOpen(id)?'▶️ in Betrieb':'⏸️ steht'}
+// Meta je Fenster: g Gruppe, m Geld heute, n Gäste/Fahrten heute, a Füllstand jetzt (0..1), gn Gäste gerade, w Wartezeit, u Unterhalt/Tag, pk Preis-Schlüssel
+function kGbM(k){if(!KG)return null;const V=KVOR,b=KG.b;
+ if(k.startsWith('l:')){const id=k.slice(2),s=KG.l[id];if(!s||!s.on)return null;const T0=KLT[s.typ];return {g:'lift',id,ic:T0.drag?'🎿':'🚡',t:kLC(id).n,n:()=>KW.lift[id]?KW.lift[id].cnt:0,w:()=>kLiftOpen(id)?kWait(id):0,a:()=>kLiftUt(id),rel:()=>s.cond,u:()=>Math.round((T0.up*(kLC(id).upF||1)+(s.lg||0)*30)*(KPK('team')?.9:1))}}
+ if(k==='kas')return {g:'kas',ic:'🎫',t:'Kassa',sub:'Hier kaufen alle Gäste ihre Karte',m:()=>kGbC0('kas').m,n:()=>kGbC0('kas').n,gn:()=>kGbFolk('kas'),u:()=>kGbRun('kassa'),pk:kWE()?'tw':'ticket'};
+ if(k==='park'){const sp=kSpots().length;return {g:'park',ic:'🅿️',t:'Parkplätze',sub:'Alle Parkplätze zusammen',m:()=>kGbC0('park').m,n:()=>kGbC0('park').n,a:()=>sp?KW.cars.filter(c=>c.spot).length/sp:0,cap:sp,u:()=>kGbRun('lots'),pk:'park'}}
+ if(k==='kio'&&b.kiosk)return {g:'gas',ic:'🌭',t:'Kiosk',sub:'Snacks und Getränke bei der Kassa',m:()=>kGbC0('kio').m,n:()=>kGbC0('kio').n,gn:()=>kGbFolk('kiosk'),u:()=>kGbRun('kiosk'),pk:'food'};
+ if(k==='hut'&&b.hut)return {g:'gas',ic:'🛖',t:V.hut?V.hut.n:'Hütte',sub:'Mittagessen auf der Sonnenterrasse',m:()=>kGbC0('hut').m,n:()=>kGbC0('hut').n,gn:()=>kGbFolk('hut'),u:()=>kGbRun('hut'),pk:'food'};
+ if(k==='grest'&&b.grest)return {g:'gas',ic:'🍽️',t:'Gletscherrestaurant',sub:'Glaskubus mit Sonnenterrasse und Eisgrotte',m:()=>kGbC0('grest').m,n:()=>kGbC0('grest').n,gn:()=>kGbFolk('rest'),u:()=>kGbRun('grest'),pk:'food',pf:1.35};
+ if(k==='kid'&&b.kinder)return {g:'gas',ic:'⭐',t:'Kinderland',sub:'Förderband, Figuren und Spielwiese für die Kleinen',m:()=>kGbC0('kid').m,n:()=>kGbC0('kid').n,gn:()=>kGbFolk('kidin'),u:()=>kGbRun('kinder'),pk:'kids',nl:'Kinder'};
+ if(k==='sch'&&b.school)return {g:'gas',ic:'⛷️',t:'Skischule',sub:'Kurse für Anfänger und Kinder',m:()=>kGbC0('sch').m,n:()=>kGbC0('sch').n,gn:()=>KW.school.filter(x=>x.st==='run'||x.st==='wait').reduce((a,x)=>a+((x.pu&&x.pu.length)||0),0),u:()=>kGbRun('school'),pk:'school',nl:'Kursgäste'};
+ if(k==='mus'&&b.mus)return {g:'gas',ic:'🏛️',t:'Altberg-Museum',sub:'Einersessel von 1958 und die erste Pistenraupe',m:()=>kGbC0('mus').m,n:()=>KG.res.musN||0,gn:()=>kGbFolk('mus'),u:()=>kGbRun('mus'),pk:'mus',nl:'Besucher'};
+ if(k==='fl'&&b.fl)return {g:'gas',ic:'💡',t:'Flutlicht Westhang',sub:'Nachtskilauf an ausgewählten Abenden',m:()=>kGbC0('fl').m,n:()=>KG.res.nskN||0,gn:null,u:()=>kGbRun('fl'),pk:'nsk',nl:'Abendgäste'};
+ if(k==='hot'&&KG.hotel){const R=V.hotel?V.hotel.rooms:20;return {g:'hotel',ic:'🏨',t:V.hotel?V.hotel.n:'Gasthof',m:kHotEst,n:()=>Math.round(R*(KG.hOcc||.4)),a:()=>KG.hOcc||.4,cap:R,u:()=>kGbRun('hotel'),pk:'hotel'}}
+ return null}
+function kGbKeys(){const K=[];for(const L of KVOR.lifts)if(KG.l[L.id]&&KG.l[L.id].on)K.push('l:'+L.id);for(const k of ['kas','park','kio','hut','grest','kid','sch','hot','mus','fl'])if(kGbM(k))K.push(k);return K}
+// ---- Aufzeichnung: halbstündlich ab 7 Uhr, Tagesabschluss um 6 Uhr früh ----
+function kGbTick(){if(!KG||KG.t<KGB0)return;const i=kGbNow();if(i===KW.gbI)return;KW.gbI=i;kGbSample(i)}
+function kGbSample(i){const D=kGbD();for(const k of kGbKeys()){const M=kGbM(k);if(!M)continue;const r=D.t[k]||(D.t[k]={m:[],n:[],a:[],w:[]});
+ try{if(M.m)r.m[i]=Math.round(M.m());r.n[i]=M.n?M.n():null;const a=M.a?M.a():null;r.a[i]=a==null?(M.gn?M.gn():null):Math.round(a*100);if(M.w)r.w[i]=Math.round(M.w()*10)/10}catch(e){}}}
+function kGbDay(){const D=kGbD();if(D.ld===KG.day)return;D.ld=KG.day;const av=x=>{const v=(x||[]).filter(q=>q!=null);return v.length?Math.round(v.reduce((a,b)=>a+b,0)/v.length*10)/10:null};
+ for(const k of kGbKeys()){const M=kGbM(k);if(!M)continue;const r=D.t[k]||{a:[],w:[]};let m=0,n=0;try{m=M.m?Math.round(M.m()):0;n=M.n?M.n():0}catch(e){}
+  const h=D.h[k]||(D.h[k]=[]);h.push({d:KG.day-1,m,n,a:M.g==='hotel'?Math.round((M.a?M.a():0)*100):av(r.a),w:av(r.w),u:M.u?M.u():0});if(h.length>7)h.splice(0,h.length-7)}
+ D.y=D.t;D.t={};D.c={};KW.gbI=null}
+// ---- Fenster ----
+function kGbArr(v,u,bad){if(v==null||!isFinite(v))return '';const r=Math.round(v*10)/10;if(Math.abs(r)<.05)return '<i>±0</i>';const up=r>0,good=bad?!up:up;return `<i class="${good?'up':'dn'}">${up?'▲':'▼'} ${knum(Math.abs(r))}${u||''}</i>`}
+function kGbY(k,f){const D=KG.gbs,i=kGbNow();if(!D||!D.y||!D.y[k]||i<0)return null;const a=D.y[k][f];if(!a)return null;for(let j=Math.min(i,a.length-1);j>=0;j--)if(a[j]!=null)return a[j];return null}
+function kGbLast(k){const h=KG.gbs&&KG.gbs.h[k];return h&&h.length?h[h.length-1]:null}
+function kGbKpi(k,M){const t=(l,v,x)=>`<div><small>${l}</small><b>${v}</b>${x||''}</div>`;let h='';
+ if(M.g==='lift'){const w=M.w(),yw=kGbY(k,'w'),n=M.n(),yn=kGbY(k,'n'),a=M.a(),ya=kGbY(k,'a'),r=M.rel();
+  h=t('Wartezeit gerade',(w<8?'🟢':w<12?'🟠':'🔴')+' '+(w<1?'keine':Math.round(w)+' Min'),yw!=null?kGbArr(w-yw,' Min',1):'')+t('Fahrten heute',knum(n),yn!=null?kGbArr(n-yn):'')
+  +t('Auslastung',a==null?'–':Math.round(a*100)+' %',ya!=null&&a!=null?kGbArr(a*100-ya,' %'):'')+t('Zustand',(r>=80?'🟢':r>=55?'🟠':'🔴')+' '+Math.round(r)+' %',`<i style="color:var(--mut)">Risiko ${kLsRisk(M.id)} %</i>`)}
+ else if(M.g==='hotel'){const L=kGbLast(k),n=M.n(),a=M.a(),m=M.m(),u=M.u();
+  h=t('Gäste heute Nacht',n+' von '+M.cap,L?kGbArr(n-L.n):'')+t('Belegung',Math.round(a*100)+' %',L?kGbArr(a*100-L.a,' %'):'')+t('Einnahmen pro Nacht',kfmt(m),L?kGbArr(m-L.m,' €'):'')+t('Gewinn pro Nacht',`<span class="${m-u>=0?'pos':'neg'}">${m-u>=0?'+':'−'}${kfmt(Math.abs(m-u))}</span>`,`<i style="color:var(--mut)">Unterhalt ${kfmt(u)}</i>`)}
+ else{const m=M.m(),ym=kGbY(k,'m'),n=M.n(),yn=kGbY(k,'n'),g=M.gn?M.gn():null,a=M.a?M.a():null,u=M.u?M.u():0;
+  h=t(M.g==='kas'?'Karten heute':M.g==='park'?'Autos heute':(M.nl||'Gäste')+' heute',knum(n),yn!=null?kGbArr(n-yn):'')+t('Einnahmen heute',kfmt(m),ym!=null?kGbArr(m-ym,' €'):'')
+  +t(M.g==='park'?'Belegt':a!=null?'Auslastung':M.g==='kas'?'Gerade an der Kassa':M.id==='fl'||k==='fl'?'Abend':'Gerade drinnen',M.g==='park'?Math.round(a*M.cap)+' / '+M.cap:a!=null?Math.round(a*100)+' %':g==null?(KG.b.fl&&kFlOn&&kFlOn()?'🌙 an':'–'):knum(g))
+  +(M.g==='kas'?t('Pro Karte',n?kfmt(m/n):'–'):(()=>{const L=kGbLast(k),p=L?L.m-L.u:m-Math.round(u*kGbDf()),uu=L?L.u:Math.round(u*kGbDf());return t(L?'Gewinn gestern':'Gewinn heute (bisher)',`<span class="${p>=0?'pos':'neg'}">${p>=0?'+':'−'}${kfmt(Math.abs(p))}</span>`,`<i style="color:var(--mut)">Unterhalt ${kfmt(uu)}</i>`)})())}
+ return h}
+function kGbMets(M){return M.g==='lift'?[['w','⏱️ Wartezeit'],['n','👥 Fahrgäste'],['a','📶 Auslastung']]:M.g==='hotel'?[['m','💶 Einnahmen'],['a','🛏️ Belegung'],['n','👥 Gäste']]:M.g==='kas'?[['m','💶 Einnahmen'],['n','🎟️ Karten'],['a','👥 An der Kassa']]:M.g==='park'?[['m','💶 Einnahmen'],['n','🚗 Autos'],['a','🅿️ Belegt']]:[['m','💶 Einnahmen'],['n','👥 '+(M.nl||'Gäste')],['a',M.a?'📶 Auslastung':'👥 Drinnen']]}
+function kGbChart(k,M){const ms=kGbMets(M);if(kGbC>=ms.length)kGbC=0;const [f,tl]=ms[kGbC],hot=M.g==='hotel',rg=hot?'w':kGbR,cum=f==='m'||f==='n';
+ const seg=(a,on,act)=>`<div class="seg sm">${a.map((x,i)=>`<button data-a="${act}" data-v="${i}" class="${i===on?'on':''}">${x}</button>`).join('')}</div>`;
+ let h=seg(ms.map(x=>x[1]),kGbC,'gbc')+(hot?'':seg(['Heute','7 Tage'],rg==='t'?0:1,'gbr'));const pct=f==='a'&&(M.a||hot),fm=f==='m'?(v=>v>=1000?Math.round(v/100)/10+'k':Math.round(v)):f==='w'?(v=>Math.round(v)+'′'):pct?(v=>Math.round(v)+'%'):(v=>Math.round(v));
+ if(rg==='w'){const H=(KG.gbs&&KG.gbs.h[k])||[];if(H.length<1)return h+'<p class="hint" style="margin:8px 2px">Noch kein Tag aufgezeichnet. Die 7-Tage-Ansicht füllt sich ab dem ersten Tagesabschluss.</p>';
+  const v=H.map(x=>x[f]);return h+chB(tl+(f==='m'?(hot?' pro Nacht':' pro Tag'):f==='a'?(hot?' pro Nacht':' (Tagesschnitt)'):f==='w'?' (Tagesschnitt)':' pro Tag')+', letzte Tage',svgLine([{v,c:'#7a52c7',fill:1,dots:1}],H.map(x=>KWN[(x.d-1+700)%7]),{f:fm,every:1,h:120,max:pct?100:0}),'Unten: Wochentag.')}
+ const D=KG.gbs||{},T=(D.t&&D.t[k])||{},Y=(D.y&&D.y[k])||{},dif=a=>{const o=[];let p=0;for(let i=0;i<(a||[]).length;i++){const v=a[i];if(v==null){o.push(null);continue}o.push(Math.max(0,v-p));p=v}return o};
+ let tv=T[f]||[],yv=Y[f]||[];if(cum){tv=dif(tv);yv=dif(yv)}const N=Math.max(tv.length,yv.length,4);if(!tv.some(x=>x!=null)&&!yv.some(x=>x!=null))return h+'<p class="hint" style="margin:8px 2px">Ab 7 Uhr wird alle halbe Stunde gemessen.</p>';
+ const lab=[];for(let i=0;i<N;i++){const hh=KGB0+i/2;lab.push(hh%1?'':String(Math.floor(hh)%24))}const pad=a=>{const o=a.slice(0,N);while(o.length<N)o.push(null);return o};
+ const ser=[{v:pad(tv),c:'#2f7fd8',fill:1}];if(yv.some(x=>x!=null))ser.unshift({v:pad(yv),c:'#b9c7d6'});
+ return h+chB(tl+' heute'+(cum?' je halbe Stunde':''),svgLine(ser,lab,{f:fm,every:2,h:120,max:pct?100:0})+lgd([['Heute','#2f7fd8']].concat(yv.some(x=>x!=null)?[['Gestern','#b9c7d6']]:[])),'Zahl unten = Uhrzeit.')}
+function kGbPI(M){if(!M.pk)return null;try{return kPreItems().find(x=>x.k===M.pk)||null}catch(e){return null}}
+function kGbVoice(k,M){let q=null,s='';const P=kGbPI(M);
+ if(M.g==='lift'){const w=M.w(),R=KG.res,wm=(R.lw||{})[M.id]||0;if(KG.l[M.id].brk)q='😟 „Schon wieder kaputt…“';else if(w>=12)q='😤 „Das dauert ja ewig…“';else if(wm>=15){q='😤 „Viel zu lange angestanden!“';s='Heute bis '+Math.round(wm)+' Min gewartet'}else if(w<3&&kLiftOpen(M.id))q='😊 „Kaum gewartet, super!“';else q='🙂 „Geht schon, kurz angestanden.“'}
+ else{const r=P?KG.price[P.k]/Math.max(1,P.f):1,a=M.a?M.a():null;if(r>1.3)q='💸 „Ganz schön teuer hier!“';else if(a!=null&&a>.95)q=M.g==='hotel'?'😕 „Alles ausgebucht…“':M.g==='park'?'😕 „Kein Parkplatz mehr frei…“':'😕 „Kein Platz mehr frei…“';else if(r<.85)q='😋 „Günstig – gerne wieder!“';else q=M.g==='hotel'?'😊 „Schöne Zimmer, fairer Preis.“':'🙂 „Passt alles.“'}
+ return q?`<div class="gbvo"><span>💬</span><div><span class="q">${q}</span><br><small>${s||'So reden die Gäste gerade'}</small></div></div>`:''}
+function kGbHint(k,M){const H=[];
+ if(M.g==='lift'){const s=KG.l[M.id],T=KG.gbs&&KG.gbs.t[k],mw=Math.max(0,...((T&&T.w)||[]).filter(x=>x!=null));if(s.brk)H.push(['w','🔧 <b>Störung</b> – der Lift steht, bis repariert ist.'+(KG.b.lw?' Der Liftwart ist unterwegs.':''),null]);
+  if(mw>=12)H.push(['w','⚠️ Heute bis '+Math.round(mw)+' Min Wartezeit. Ab etwa 12 Minuten werden die Gäste unzufrieden.','Bauen ›']);
+  if(s.cond<55)H.push(['w','🔧 Zustand schlecht – Pannen werden häufiger. Eine Generalüberholung hilft.',null])}
+ const P=kGbPI(M);if(P){const r=KG.price[P.k]/Math.max(1,P.f);if(r>1.3)H.push(['w','💸 Preis deutlich über fair – das kostet Gäste und Ruf.',null])}
+ if(M.g==='hotel'){const h=(KG.gbs&&KG.gbs.h[k])||[];if(h.length>=3&&h.slice(-3).every(x=>x.a>=90))H.push(['g','💡 Fast jede Nacht voll – ein etwas höherer Preis lohnt sich.',null])}
+ if(M.g==='park'&&KG.rej>0)H.push(['w','🚫 Heute '+KG.rej+' Autos ohne freien Platz umgekehrt.','Bauen ›'])
+ if(M.g==='gas'){const L=kGbLast(k);if(L&&L.m-L.u<0&&L.u>0)H.push(['w','📉 Gestern hat es mehr gekostet ('+kfmt(L.u)+') als es gebracht hat ('+kfmt(L.m)+').',null])}
+ if(M.g==='kas'&&KG.res.prRej)H.push(['w','💸 '+KG.res.prRej+' Gäste fanden die Karte zu teuer und sind umgekehrt.',null]);
+ return H.map(x=>`<div class="gbhi ${x[0]}"><span>${x[1]}</span>${x[2]?`<button class="btn" data-a="go" data-v="${M.g==='park'?'bau|anr':'bau|lif'}">${x[2]}</button>`:''}</div>`).join('')}
+function kGbPriceHTML(M){const i=kGbPI(M);if(!i)return '';const v=KG.price[i.k],r=v/Math.max(1,i.f),cl=r>1.3?'xx':r>1.15?'hi':r<.9?'lo':'ok',tx=r>1.3?'viel zu teuer':r>1.15?'zu teuer':r<.75?'sehr günstig':r<.9?'günstig':'fair';
+ const sub=M.pf?`hier ${Math.round(v*M.pf)} € mit Gletscher-Zuschlag`:`fair ca. ${i.f} €${i.k==='food'?' · gilt für alle Lokale':i.sub&&i.k!=='ticket'&&i.k!=='tw'?' · '+i.sub:''}`;
+ return `<div class="kpr" style="border-top:0;margin:6px 0"><span class="ic">🏷️</span><span class="tx"><b>${M.g==='hotel'?'Zimmerpreis':i.n}</b><small>${sub}</small></span><span class="kpg ${cl}">${tx}</span><button class="kpm" data-a="pr" data-v="${i.k}|-${i.st}" ${v<=i.min?'disabled':''}>−</button><span class="v">${v} €</span><button class="kpm" data-a="pr" data-v="${i.k}|${i.st}" ${v>=i.max?'disabled':''}>+</button></div>`}
+// Details unten: was das alte Fenster an Besonderem zeigte
+function kGbDet(k,M){const V=KVOR;let h='';const row=(a,b)=>`<div class="row"><span>${a}</span><b>${b}</b></div>`;
+ if(M.g==='lift'){const id=M.id,L=kLC(id),s=KG.l[id],o=KW.lift[id],R=KG.res,n=(R.lr||{})[id]||0;
+  h+=row('In der Schlange',o?o.q.length:0)+(L.tn?row('Strecke',(L.bn||'Talstation')+' → '+L.tn):'')+row('Ø Wartezeit heute',n?Math.round(((R.lws||{})[id]||0)/n)+' Min':'–')+row('Pannen diese Saison',s.pS||0)+row('Unterhalt',kfmt(M.u())+'/Tag');
+  if(kWS(id))h+=V.windHint?V.windHint(id):'<p class="hint">🌪️ Bei Sturm steht der Sessellift.</p>';
+  const ovh=kOvhC(id);h+=`<div class="row"><span>🔧 Generalüberholung (Zustand 100 %, weniger Störungen)</span><button class="btn" data-a="ovh" data-v="${id}" ${s.cond>92||!kCanPay(ovh)?'disabled':''}>${kfmt(ovh)}</button></div><div class="row"><span>Ausbau</span><button class="btn" data-a="go" data-v="bau|lif">Baumenü ›</button></div>`;
+  if(V.liftInfo)h+=V.liftInfo(id)||'';return h}
+ if(k==='kas')h+=row('Gäste heute',knum(KG.gDay))+'<p class="hint">Halbtageskarte ab 12 Uhr: 60 % · Kinder: 50 %.</p>';
+ if(k==='park')h+=row('Heute abgewiesen',KG.rej);
+ if(k==='kio'||k==='hut'||k==='grest')h+=row('Essen heute (alle Lokale)',kfmt(KG.inc.food||0))+'<p class="hint">Mittagszeit ist zwischen 11 und 14 Uhr.'+(k==='kio'?' Der Kiosk-Snack kostet 55 % vom Mittagsmenü.':'')+'</p>';
+ if(k==='sch'){const g=KW.school.filter(x=>x.st==='run'||x.st==='wait');h+=row('Gruppen gerade',g.length)+'<p class="hint">Kurse beginnen jeweils zur halben Stunde von 9:30 bis 14:30, bis zu 6 Teilnehmer je Gruppe.</p>'}
+ if(k==='mus')h+='<p class="hint">Am Nachmittag schauen viele Gäste auf dem Heimweg vorbei, bei Sturm und Tauwetter noch mehr. Dazu verkauft der Museumsladen Andenken.</p>';
+ if(k==='fl')h+=kNskDaysHTML();
+ if(k==='hot')h+=row('Unterhalt',kfmt(M.u())+'/Tag')+'<p class="hint">Hotelgäste übernachten am Berg und sind morgens als Erste auf der Piste.</p>';
+ return h}
+function kGbHTML(k){const M=kGbM(k);if(!M)return null;let h=kHead(M.ic+' '+M.t);
+ if(M.g==='lift'){const s=KG.l[M.id];h+=`<div class="gbst"><span class="sb">${KLT[s.typ].n}</span>${s.lg?`<span class="sb ok">+${s.lg} Ausbau</span>`:''}<span>${kGbStatus(M.id)}</span></div>`}
+ else if(M.sub)h+=`<p class="hint" style="margin:2px 0 6px">${M.sub}</p>`;
+ kGbL={h:kGbHint(k,M),k:kGbKpi(k,M),v:kGbVoice(k,M)};
+ h+=`<div id="kgbh">${kGbL.h}</div><div class="kpi gbk" id="kgbk">${kGbL.k}</div><div class="gbch" id="kgbch">${kGbChart(k,M)}</div>${kGbPriceHTML(M)}<div id="kgbv">${kGbL.v}</div>`;
+ const d=kGbDet(k,M);if(d)h+=`<div class="pgh">📋 Details</div>`+d;
+ kGbSl=kGbNow();return h}
+// Live-Aktualisierung (ca. 1× pro Sekunde), Diagramm bei jeder neuen halben Stunde
+function kGbUpd(){if(KW.open!=='inf'||!KG)return;const e=document.getElementById('kgbk');if(!e)return;const now=performance.now();if(now-kGbAt<900)return;kGbAt=now;const k=KW.inf,M=kGbM(k);if(!M)return;
+ const x=kGbKpi(k,M);if(x!==kGbL.k){kGbL.k=x;e.innerHTML=x}const v=document.getElementById('kgbv'),y=kGbVoice(k,M);if(v&&y!==kGbL.v){kGbL.v=y;v.innerHTML=y}const hh=document.getElementById('kgbh'),z=kGbHint(k,M);if(hh&&z!==kGbL.h){kGbL.h=z;hh.innerHTML=z}
+ const s=kGbNow();if(s!==kGbSl){kGbSl=s;const c=document.getElementById('kgbch');if(c)c.innerHTML=kGbChart(k,M)}}
+function kGbChUpd(){const c=document.getElementById('kgbch'),M=kGbM(KW.inf);if(c&&M)c.innerHTML=kGbChart(KW.inf,M)}
 // ===== Karriere: Titel, Firmenname, Landkarte, Berg-Fenster, Vorteile, Bilanz =====
 function kOvCSS(){kCloneCSS();if(document.getElementById('kocss'))return;const s=document.createElement('style');s.id='kocss';s.textContent=`
 body.kmode>*:not(#kc):not(#kui):not(#kov):not(#kname):not(script):not(style){display:none!important}
