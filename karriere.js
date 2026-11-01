@@ -2485,7 +2485,7 @@ function kGuestDone(f){if(f.ins||f.ty==='staff')return;const k=f.kid?'fam':f.ty,
 // V320: Pistenraupe wie am Heimatberg – wer in der Nacht präpariert hat, hat am Morgen alle offenen Pisten frisch (höchstens so viel, wie der Schnee hergibt)
 function kGroomAll(){const cap=kSnowCap();for(const p of KW.pistes)if(KG.pq[p.id]!=null&&kPisteOpen(p))KG.pq[p.id]=Math.max(KG.pq[p.id],cap)}
 function kMorning(){if(KW.groom&&KW.groom.st!=='home'){KW.groom=null;KG.groomDone=KG.lastGroom}if(KG.b.raupe&&KG.groomDone!=null&&KG.groomDone===KG.lastGroom&&KG.lastGroom>=KG.day-1){kGroomAll();KG.groomDone=null}
- KG.wx=KG.wxN||'sonne';KG.dem=kDemand();KG.gDay=0;KG.rej=0;KG.inc={};KG.cost={};KG.sat={};KG.res={};KW.arrAcc=0;
+ KG.wx=KG.wxN||'sonne';KG.wxN=kWxRoll(KVOR);KG.dem=kDemand();KG.gDay=0;KG.rej=0;KG.inc={};KG.cost={};KG.sat={};KG.res={};KW.arrAcc=0;
  KG.busShare=KG.b.bus&&KG.dem>0?Math.min(.3,90/KG.dem):0;
  // Hotel
  KW.hotelN=0;if(KG.hotel){const H=KVOR.hotel,r=KG.price.hotel/KVOR.fair.hotel,occ=kcl(.2+.11*kStars()+KG.ruf/420-(r-1)*.9,.08,1);KG.hOcc=occ;KW.hotelN=Math.round(H.rooms*occ*1.7)}
@@ -2539,7 +2539,6 @@ function kMidnight(){const V=KVOR,d=KG.day;
  kLnDay();
  // Pleite?
  if(KG.money<0){KG.pleite=(KG.pleite||0)+1;if(KG.pleite===1)kToast('⚠️ Die Kassa ist im Minus! Nimm einen Kredit auf (📊 Statistik › 🏦 Kredit), sonst ist der Berg nach 7 Tagen verloren.',5500);if(KG.pleite===3||KG.pleite===5)kLog('⚠️','Die Kassa ist seit '+KG.pleite+' Tagen im Minus. Nach 7 Tagen ist der Berg verloren!');if(KG.pleite>=7){KG.done=1;KG.lost=1;kSave();setTimeout(()=>kBergEnd(1),300);return}}else KG.pleite=0;
- KG.wxN=kWxRoll(V);
  // Saisonende?
  if((KG.day-1)%KSL===0){kSeasonEnd();return}
  kSave();kUIdirty()}
@@ -3070,7 +3069,7 @@ function kCostNow(){const c=kRunCosts();let s=0;for(const k in c)s+=c[k];return 
 function kStaHTML(){const tabs=[['heu','📊','Übersicht'],['fin','💶','Finanzen'],['kre','🏦','Kredit'],['gst','👥','Gäste']];if(KVOR.staTab)tabs.splice(1,0,KVOR.staTab);if(!KW.tab||!tabs.some(t=>t[0]===KW.tab))KW.tab='heu';let h=kHead('📊 Statistik',tabs);
  if(KW.tab==='heu'){const inc=kIncNow(),pr=inc-kCostNow()-kLnZins();
   h+=`<div class="kpi"><div style="grid-column:1/-1"><small>Kasse</small><b class="${KG.money<0?'neg':''}">${kfmt(KG.money)}</b>${KG.loan>0?`<i style="color:var(--mut)">Kredit offen ${kfmt(KG.loan)}</i>`:''}</div><div><small>Einnahmen heute</small><b>${kfmt(inc)}</b><i style="color:var(--mut)">${KG.gDay} Gäste${KG.rej?' · '+KG.rej+' Autos abgewiesen':''}</i></div><div><small>Gewinn heute (bisher)</small><b class="${pr<0?'neg':'pos'}">${(pr>0?'+':'')+kfmt(pr)}</b><i style="color:var(--mut)">nach Kosten</i></div></div>
- <div class="wx wx2"><div><small>Wetter</small><span>${KWI[KG.wx]} ${KWNM[KG.wx]}</span></div><div><small>Vorhersage</small><span>${KWI[KG.wxN]} ${KWNM[KG.wxN]}<small>morgen</small></span></div></div>`;
+ <div class="wx wx2"><div><small>Wetter</small><span>${KWI[KG.wx]} ${KWNM[KG.wx]}</span></div><div><small>Vorhersage</small><span>${KWI[KG.wxN]} ${KWNM[KG.wxN]}<small>${KG.t<6?'ab 6 Uhr':'morgen'}</small></span></div></div>`;
   h+=kStaHist();
   h+='<div class="bgh" style="margin-top:12px">🚡 Lifte und Pisten</div>';for(const L2 of KVOR.lifts){if(!KG.l[L2.id].on)continue;h+=`<div class="row"><span>${L2.typ==='teller'?'🎿':'🚡'} ${L2.n}</span><b>Warten ${Math.round(kWait(L2.id))} Min.</b></div>`}
   h+=`<div class="row"><span>❄️ Schneehöhe</span><b>${Math.round(KG.snow)} cm</b></div>`+kCanRows();
