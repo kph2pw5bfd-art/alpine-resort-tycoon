@@ -1020,7 +1020,8 @@ function kSeeQSlot(kind,side,i){
  if(side==='S'){const k=Math.min(i,71),r=Math.floor(k/9),j=k%9;return [776-(r%2?8-j:j)*7,1968+r*7]}
  const k=Math.min(i,48),r=Math.floor(k/7),j=k%7;return [812+(r%2?6-j:j)*7,1486+r*7]}
 KV.seek.folkStep=function(f,dt){const st=f.st;
- if(st==='shipw'||st==='sbw'){const Q=st==='shipw'?KW.shipQ[f.qs]:KW.sbw.q[f.qs],i=Q.indexOf(f);if(i<0)return;const [sx,sy]=kSeeQSlot(st==='shipw'?'ship':'sb',f.qs,i),dx=sx-f.x,dy=sy-f.y,d=Math.hypot(dx,dy);if(d>.3){const m=Math.min(d,26*dt);f.x+=dx/d*m;f.y+=dy/d*m}f.sv=0;return}
+ if(st==='shipw'||st==='sbw'){const Q=st==='shipw'?KW.shipQ[f.qs]:(KW.sbw||kSeeSbSetup()).q[f.qs];let i=Q.indexOf(f);if(i<0){Q.push(f);i=Q.length-1}// V348: Warteschlange wurde neu angelegt (z. B. nach einem Ausbau) – Gast stellt sich wieder an, statt ewig stehenzubleiben
+ const [sx,sy]=kSeeQSlot(st==='shipw'?'ship':'sb',f.qs,i),dx=sx-f.x,dy=sy-f.y,d=Math.hypot(dx,dy);if(d>.3){const m=Math.min(d,26*dt);f.x+=dx/d*m;f.y+=dy/d*m}f.sv=0;return}
  if(st==='shipb'){const sh=KW.ships[f.shipI],g=f.gang,dx=g[0]-f.x,dy=g[1]-f.y,d=Math.hypot(dx,dy),m=60*dt;if(d<=m){kSeeAboard(sh,f)}else{f.x+=dx/d*m;f.y+=dy/d*m}}};
 function kSeeAboard(sh,f){f.st='ship';f.hide=1;const i=sh.bd.indexOf(f);if(i>=0)sh.bd.splice(i,1);sh.load.push(f)}
 // Schiffe bewegen, ein- und aussteigen
@@ -1040,7 +1041,7 @@ function kSeeShipUnload(sh,side,g){let k=0;for(const f of sh.load){f.hide=0;f.x=
   else if(f.car)kWalk(f,[[KSE.PX,g[1]+6],[KSE.PX,1884],[KSE.PX,KSE.GY],[kSeeCarX(f.car),KSE.GY]].concat(kSeeToCar(f.car).slice(1)),'car',11);else f.st='gone'}
  sh.load=[]}
 // Seebahn: Kabinen im Kreis, Einstieg an beiden Stationen
-function kSeeSbTick(dt){if(KG.stage<5)return;const o=KW.sbw||kSeeSbSetup();const riders=o.ch.some(c=>c.r.length),on=kSeeSbOn()&&KG.t>=7.4&&KG.t<18.6;o.run=on||riders&&KG.wx!=='sturm';if(!o.run)return;
+function kSeeSbTick(dt){if(KG.stage<5)return;const o=KW.sbw||kSeeSbSetup();const riders=o.ch.some(c=>c.r.length),on=kSeeSbOn()&&(KG.t>=7.4&&KG.t<18.6||(o.q.S.length+o.q.N.length)>0);o.run=on||riders&&KG.wx!=='sturm';if(!o.run)return;
  const du=KSE.sbV*dt/o.len;for(const c of o.ch){const u0=c.u;c.u+=du;
   if(u0<1&&c.u>=1){kSeeSbOut(c,'N');if(on)kSeeSbIn(o,c,'N')}
   if(c.u>=2){c.u-=2;kSeeSbOut(c,'S');if(on)kSeeSbIn(o,c,'S')}}
@@ -1518,7 +1519,7 @@ function kEisAtGst(f){const ty=f.ty,sk=ty==='pro'||ty==='sb';
 function kEisRestSeat(i){const S=[[-44,12],[-34,12],[-24,12],[-14,12],[-4,12],[6,12],[16,12],[26,12],[-40,20],[-28,20],[-16,20],[-4,20],[8,20],[20,20],[32,20],[42,12]];const q=S[i%S.length];return [KEI.REST[0]+q[0],KEI.REST[1]+q[1]]}
 function kEisRest(f){const i=(KW.restN=(KW.restN||0)+1);const s=kEisRestSeat(i);kWalk(f,[[420,586],[376,566],[s[0],s[1]+8],s],'rest',11)}
 function kEisRestDone(f){const P=KG.price,r=P.food/KVOR.fair.food;f.ate=1;f.sit=0;
- if(r<1.7||kR()<.45){const v=Math.round(P.food*1.35*(f.ty==='pro'?1.15:1));kEarn('food',v,KEI.REST[0],KEI.REST[1]-74,'grest');f.paid=(f.paid||0)+v;if(r>1)kNg(f,'fp',(r-1)*20);else f.sat+=6;f.sat+=3}else kNg(f,'fp',4);
+ if(r<1.7||kR()<.45){const v=Math.round(P.food*1.35*(f.ty==='pro'?1.15:1));kEarn('food',v,KEI.REST[0],KEI.REST[1]-74,'grest');f.paid=(f.paid||0)+v;if(r>1.15)kNg(f,'fp',(r-1.15)*20);else f.sat+=6;f.sat+=3}else kNg(f,'fp',4);
  kWalk(f,[[f.x,f.y+8],[376,566],[430,588]],'gst',11)}
 KV.eis.arrive=function(f,nx){if(nx.startsWith('sk:')){kSkiStart(f,nx.slice(3));return true}
  if(nx==='rest'){f.st='rest';f.sit=1;f.tEnd=KG.t+.45+kR()*.4;return true}
@@ -2214,7 +2215,7 @@ function kAfterRun(f){f.st='walk';f.path=null;
  if(!f.ate&&KG.b.kiosk&&KG.t>=11.4&&KG.t<13.8&&(f.pid==='ueb'||!KG.b.hut||KVOR.kioskAlways&&!f.ateCk)&&(!KVOR.kioskOK||KVOR.kioskOK(f))&&kR()<.7)return kGoKiosk(f);
  // Wechsel zwischen Übungshang und Sessel
  const lid=KVOR.chooseLift?KVOR.chooseLift(f):kChooseLift(f);if(lid)kToQueue(f,lid)}
-function kAnyLiftFor(f){for(const L of KVOR.lifts)if(KG.l[L.id].on&&(KG.t<16.25||kNskOpen(L.id,16.9))&&!kWS(L.id))return 1;return 0}
+function kAnyLiftFor(f){if(KG.t<6.5)return 0;for(const L of KVOR.lifts)if(KG.l[L.id].on&&(KG.t<16.25||kNskOpen(L.id,16.9))&&!kWS(L.id))return 1;return 0}
 function kChooseLift(f){const ses=KG.l.ses&&KG.l.ses.on&&KG.wx!=='sturm'&&KG.stage>=2,tl=KG.l.tl&&KG.l.tl.on;
  if(!ses)return 'tl';if(!tl)return 'ses';
  const p={fam:.82,anf:.25,pro:.97,sb:.95}[f.ty]||.6;const anfP=f.ty==='anf'?Math.min(.75,.18+(f.runs||0)*.07):p;return kR()<anfP?'ses':'tl'}
@@ -2230,10 +2231,10 @@ function kWhere(f){// Bereich, an dem der Gast gerade ist: kas | tl | ses | kid 
 function kRoute(from,to,f){if(KVOR.route)return KVOR.route(from,to,f);const P=KW.paths,toK={tl:P.kTl,ses:P.kSes,kid:P.kKid,sch:P.kSchool};let path=[];if(from===to)return path;if(from!=='kas'&&toK[from])path=kRev(toK[from]);if(to!=='kas'&&toK[to])path=path.concat(toK[to]);else path.push([KVOR.kassa.x,KVOR.kassa.y+8]);return path}
 function kToQueue(f,lid){const o=KW.lift[lid],here=kWhere(f);const path=here===lid?(KVOR.route?KVOR.route(here,lid,f):[]):kRoute(here,lid,f);
  const end=kQSlot(o,o.q.length+1);path.push(end);f.path=path;f.pi=0;f.st='walk';f.wsp=path.length>2?11:14;f.nx='q:'+lid}
-function kJoinQ(f,lid){const o=KW.lift[lid];if(!o||!KG.l[lid].on||KG.t>=16.25&&!kNskOpen(lid,16.9)||kWS(lid)){return f.ins?kInsHome(f):kGoHome(f)}f.st='q';f.qT=KG.t;f.lid=lid;o.q.push(f)}
+function kJoinQ(f,lid){const o=KW.lift[lid];if(!o||!KG.l[lid].on||KG.t<6.5||KG.t>=16.25&&!kNskOpen(lid,16.9)||kWS(lid)){return f.ins?kInsHome(f):kGoHome(f)}f.st='q';f.qT=KG.t;f.lid=lid;o.q.push(f)}
 function kQStep(o,dt){const qv=o.T.cap>1?30:14;for(let i=0;i<o.q.length;i++){const f=o.q[i],[sx,sy]=kQSlot(o,i),dx=sx-f.x,dy=sy-f.y,d=Math.hypot(dx,dy);if(d>.3){const m=Math.min(d,qv*dt);f.x+=dx/d*m;f.y+=dy/d*m;f.sv=0}}
  // Liftschluss: wer noch steht, geht heim
- if(KG.t>=16.25&&!kNskOpen(o.L.id,16.9)||!KG.l[o.L.id].on){while(o.q.length){const f=o.q.shift();if(f.ins)kInsHome(f);else kGoHome(f)}}}
+ if(KG.t<6.5||KG.t>=16.25&&!kNskOpen(o.L.id,16.9)||!KG.l[o.L.id].on){while(o.q.length){const f=o.q.shift();if(f.ins)kInsHome(f);else kGoHome(f)}}}
 // --- Gehen ---
 // Zebrastreifen (V325): Fußgänger haben Vorrang. Wer am Gehsteig wartet, meldet sich an (f.zw) – Fahrzeuge halten davor.
 // Fußgänger warten nur, solange ein Fahrzeug schon auf dem Streifen steht oder zu nah zum Bremsen ist.
@@ -2264,8 +2265,9 @@ function kKassaDone(f){const V=KVOR,P=KG.price,F=V.fair;if(!kAnyLiftFor(f)){kNg(
  if(f.kid&&f.toKid){kEarn('kid',P.kids,V.kinder.x,V.kinder.y-40);kWalk(f,KW.paths.kKid,'kid',10);return}
  const tk=kTk(),fairT=kFairTk(),half=KG.t>=12,pr=f.kid?Math.round(tk*.5):half?Math.round(tk*.6):tk,r=tk/fairT;
  const sens=V.priceSens*(f.ty==='fam'?1.3:f.ty==='anf'?1.1:.8);
- if(r>1.12&&kR()<(r-1.12)*sens*.9){kNg(f,'p',12);kGoHome(f,1);KG.res.prRej=(KG.res.prRej||0)+1;return}
- if(r>1)kNg(f,'p',(r-1)*45*sens);else f.sat+=(1-r)*14;kEarn('tk',pr,f.kasP?f.kasP[0]:V.kassa.x,(f.kasP?f.kasP[1]:V.kassa.y)-30);f.paid=(f.paid||0)+pr;f.half=half;
+ // V348: bis 15 % über fair kommen nur weniger Gäste (Nachfrage), wer kommt, ist nicht verärgert
+ if(r>1.15&&kR()<(r-1.15)*sens*.9){kNg(f,'p',12);kGoHome(f,1);KG.res.prRej=(KG.res.prRej||0)+1;return}
+ if(r>1.15)kNg(f,'p',(r-1.15)*45*sens);else if(r<1)f.sat+=(1-r)*14;kEarn('tk',pr,f.kasP?f.kasP[0]:V.kassa.x,(f.kasP?f.kasP[1]:V.kassa.y)-30);f.paid=(f.paid||0)+pr;f.half=half;
  // Skischule buchen
  if(KG.b.school&&(f.ty==='anf'||f.kid&&!KG.b.kinder)&&!f.lessonD&&KG.t<14.4){const g=kSchoolSlot();if(g&&kR()<kcl(1.3-P.school/F.school*.55,.12,.85)){f.lessonD=1;g.pu.push(f);f.grp=g;kEarn('sch',P.school,V.school.x,V.school.y-30);f.paid+=P.school;f.sat+=6;kWalk(f,KW.paths.kSchool,'school',10);return}}
  kAfterRun(f)}
@@ -2283,7 +2285,7 @@ function kHomeTail(f){const V=KVOR,k=V.kassa,W=V.walkY;if(f.hotelG)return V.hote
 function kAtCar(f){f.st='gone';const c=f.car;if(c){c.back++;if(c.back>=c.n&&c.st==='park'){c.st='out';c.tw=.4+kR()*.6}}}
 // --- Hütte ---
 function kHutSeat(f){const H=KVOR.hut,i=(KW.hutN=(KW.hutN||0)+1)%10;const sp=[[-26,6],[-20,6],[-12,6],[10,6],[14,6],[18,6],[-8,14],[-2,14],[4,14],[8,14]][i];f.x=H.x+sp[0];f.y=H.y+sp[1];f.sit=1}
-function kHutDone(f){const V=KVOR,P=KG.price,r=P.food/V.fair.food;f.sit=0;f.ate=1;if(r<1.6||kR()<.5){const v=Math.round(P.food*(f.ty==='fam'?1.15:1));kEarn('food',v,V.hut.x,V.hut.y-46,'hut');f.paid+=v;if(r>1)kNg(f,'fp',(r-1)*22);else f.sat+=5}else kNg(f,'fp',4);
+function kHutDone(f){const V=KVOR,P=KG.price,r=P.food/V.fair.food;f.sit=0;f.ate=1;if(r<1.6||kR()<.5){const v=Math.round(P.food*(f.ty==='fam'?1.15:1));kEarn('food',v,V.hut.x,V.hut.y-46,'hut');f.paid+=v;if(r>1.15)kNg(f,'fp',(r-1.15)*22);else f.sat+=5}else kNg(f,'fp',4);
  kWalk(f,kRev(V.hut.in),'hutback',12)}
 function kGoKiosk(f){const k=KVOR.kassa;const path=kRoute(kWhere(f),'kas',f).concat([[k.x+36,k.y+12]]);kWalk(f,path,'kiosk',11)}
 function kKioskDone(f){const V=KVOR,P=KG.price;f.ate=1;const v=Math.round(P.food*.55);kEarn('food',v,V.kassa.x+36,V.kassa.y-14,'kiosk');f.paid+=v;f.sat+=3;
@@ -2431,8 +2433,11 @@ function kDemand(){const V=KVOR,base=KBASE[V.id]||KBASE.sonn,st=KG.stage;if(!Obj
  let cmp=0;for(const c of KG.cmp)cmp+=c.eff;
  // V340: Sturm und kein einziger Lift fährt – die Gäste kennen den Wetterbericht und bleiben daheim
  const allStop=kStormAllStop();
- const d=b*KWF[kWd()]*(allStop ? 0.05 : (KVOR.wxF&&KVOR.wxF[KG.wx])||KWXF[KG.wx]||1)*(.35+KG.ruf/100*.95)*(.8+.1*kStars())*priceF*att*(.72+.28*q/100)*(1+cmp);
- return Math.round(d)}
+ const d=b*KWF[kWd()]*(allStop ? 0.05 : (KVOR.wxF&&KVOR.wxF[KG.wx])||KWXF[KG.wx]||1)*(.35+KG.ruf/100*.95)*(.8+.1*kStars())*priceF*att*(.72+.28*q/100);
+ // V348: in der letzten Ausbaustufe weiche Obergrenze – so viele Gäste, wie Parkplätze, Busse, Hotel und Lifte schaffen; Werbung wirkt danach (gezielt mehr Gäste an einzelnen Tagen)
+ let dd=d;const C=KCAP[V.id];if(C&&st>=base.length-1){const k=.75*C;if(d>k)dd=k+(C-k)*Math.tanh((d-k)/(C-k))}
+ return Math.round(dd*(1+cmp))}
+const KCAP={sonn:290,bich:340,alt:420,seek:480,eis:390};
 function kStormAllStop(){if(KG.wx!=='sturm'||KVOR.windStop)return false;for(const id in KG.l)if(KG.l[id].on&&!kWS(id))return false;return true}
 function kPQavg(){let s=0,n=0;for(const p of KW.pistes){if(p.conn||!kPisteOpen(p))continue;s+=KG.pq[p.id];n++}return n?s/n:100}
 function kArrRate(t){if(t<8||t>=13.1)return 0;return t<9?1:t<10.6?1.6:t<12?.8:.62}
