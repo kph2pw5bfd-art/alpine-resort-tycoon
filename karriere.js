@@ -1067,11 +1067,23 @@ function kSeeOutPts(c){const W=KVOR.bounds.x0-80,E=KVOR.bounds.x1+80,east=kR()<.
  if(c.lot==='pn')return [[sx-14,1508],[1078,1508],[1090,1519],[1078,1530],[896,1530],[896,east?2225:2207],east?[E,2225]:[W,2207]];
  const F=kSeeFY(c)+4;return [[sx-14,F],[664,F],[664,east?2225:2207],east?[E,2225]:[W,2207]]}
 // Fahrzeug folgt seinem Weg; hält, wenn vorne jemand fährt
-function kSeeMove(v,dt,sp){const L=v.d[v.d.length-1][3];
- if(!v.prio){let blk=0;const ma=v.rev?v.a+Math.PI:v.a,mx=Math.cos(ma),my=Math.sin(ma);for(const o of KW.cars.concat(KW.buses)){if(o===v||o.st==='park'||o.st==='gone'||o.x==null||o.st==='in'&&o.turnS!=null&&o.s>o.turnS+4)continue;const dx=o.x-v.x,dy=o.y-v.y,al=dx*mx+dy*my,la=Math.abs(dx*my-dy*mx);if(al>0&&al<((v.bus||o.bus)?42:30)&&la<8){blk=1;break}}
-  if(blk){v.wt=(v.wt||0)+dt;if(v.wt<2.5)return 0}else v.wt=0}
+// V346: Abstand wie am Heimatberg – wer vorne jemanden hat, wartet (kein Durchfahren nach 2,5 s mehr).
+// Auch in engen Kurven wird das vordere Fahrzeug erkannt; stehen zwei genau übereinander (Kartenrand), wartet das jüngere.
+// Blockieren sich zwei gegenseitig, fährt das ältere zuerst. Notausgang erst nach 15 s.
+let kSeeUid=0;
+function kSeeMove(v,dt,sp){const L=v.d[v.d.length-1][3];if(!v.uid)v.uid=++kSeeUid;
+ if(!v.prio){let blk=null;const ma=v.rev?v.a+Math.PI:v.a,mx=Math.cos(ma),my=Math.sin(ma);
+  for(const o of KW.cars.concat(KW.buses)){if(o===v||o.st==='park'||o.st==='out'||o.st==='gone'||o.x==null||o.st==='in'&&o.turnS!=null&&o.s>o.turnS+4)continue;
+   const dx=o.x-v.x,dy=o.y-v.y,al=dx*mx+dy*my,la=Math.abs(dx*my-dy*mx),dd=Math.hypot(dx,dy),R=(v.bus||o.bus)?42:30;
+   if(al>0&&al<R&&la<8||dd<12&&la<12&&(al>.5||Math.abs(al)<=.5&&(o.uid||1e9)<v.uid)){blk=o;break}}
+  if(blk){v.wt=(v.wt||0)+dt;const mut=blk.blk===v&&(blk.wt||0)>.3;v.blk=blk;if(!(mut&&v.uid<(blk.uid||1e9))&&v.wt<15)return 0}else{v.wt=0;v.blk=null}}
  const rem=L-v.s;let s2=sp;if(v.slow&&rem<36)s2=Math.max(7,sp*rem/36);v.s=Math.min(L,v.s+s2*dt);
  const p=kAt(v.d,v.s),q1=kAt(v.d,Math.min(L,v.s+3)),q0=kAt(v.d,Math.max(0,v.s-3));v.x=p[0];v.y=p[1];if(Math.hypot(q1[0]-q0[0],q1[1]-q0[1])>.5){let a=Math.atan2(q1[1]-q0[1],q1[0]-q0[0]);if(v.rev)a+=Math.PI;v.a=a}return v.s>=L}
+// Ausparken erst, wenn der Rückwärtsweg frei ist und niemand gerade auf die Stelle zufährt
+function kSeeRevFree(c,P){for(const o of KW.cars.concat(KW.buses)){if(o===c||o.st==='park'||o.st==='out'||o.st==='gone'||o.x==null)continue;
+  for(const q of P)if(Math.hypot(o.x-q[0],o.y-q[1])<(o.bus?30:24))return false;
+  if(o.st==='rev')continue;const e=P[P.length-1],dx=e[0]-o.x,dy=e[1]-o.y,d=Math.hypot(dx,dy);if(d<80&&dx*Math.cos(o.a)+dy*Math.sin(o.a)>0)return false}
+ return true}
 KV.seek.spawnCar=function(ty){const sp=kSeeFreeSpot();if(!sp){KG.rej++;KG.res.rej=(KG.res.rej||0)+1;KG.res.rjG=(KG.res.rjG||0)+(ty==='fam'?3.5:ty==='pro'?1.5:2);return 0}
  const g=kGroup(ty),arr=KG.t,lt=kLeaveT(ty,arr);for(const f of g)kSetupFolk(f,arr,lt);
  const c={st:'in',spot:sp,sx:sp.x,py:sp.y,lot:sp.lot,nose:sp.nose,fromW:kR()<.5,col:kpick(['#e8504a','#3a78d0','#f2f2f2','#6cc07a','#f2c53b','#ff8fb8','#8e93b8','#2fb3b8']),ppl:g,n:g.length,back:0,ty,slow:1};
@@ -1080,7 +1092,7 @@ KV.seek.carStep=function(c,dt){
  if(c.st==='in'){if(kSeeMove(c,dt,c.y>2190?170:c.lot==='pn'&&c.y>1540?110:84)){c.st='park';c.x=c.sx;c.y=c.py;c.a=c.nose;kSeeUnloadCar(c)}return}
  if(c.st==='park')return;
  if(c.st==='out'){c.tw-=dt;if(c.tw>0)return;// rückwärts ausparken, wenn die Fahrgasse frei ist
-  const P=kSeeRevPts(c),e=P[2];for(const o of KW.cars){if(o===c||o.st==='park')continue;if(Math.hypot(o.x-e[0],o.y-e[1])<34)return}
+  const P=kSeeRevPts(c);if(!kSeeRevFree(c,P))return;
   c.st='rev';c.d=kSeeRnd(P,10);c.s=0;c.rev=1;c.prio=1;c.slow=0;return}
  if(c.st==='rev'){if(kSeeMove(c,dt,16)){c.st='leave';c.rev=0;c.prio=0;c.d=kSeeRnd(kSeeOutPts(c),14);c.s=0;c.spot=null}return}
  if(c.st==='leave'){if(kSeeMove(c,dt,c.y>2190?170:c.lot==='pn'&&c.y>1540?110:84))c.st='gone'}};
@@ -1597,7 +1609,7 @@ KV.eis.spawnCar=function(ty){const sp=kEisFreeSpot();if(!sp){KG.rej++;KG.res.rej
 KV.eis.carStep=function(c,dt){
  if(c.st==='in'){if(kSeeMove(c,dt,kEisCarSp(c))){c.st='park';c.x=c.sx;c.y=c.py;c.a=c.nose;kEisUnloadCar(c)}return}
  if(c.st==='park')return;
- if(c.st==='out'){c.tw-=dt;if(c.tw>0)return;const P=kEisRevPts(c),e=P[2];for(const o of KW.cars){if(o===c||o.st==='park')continue;if(Math.hypot(o.x-e[0],o.y-e[1])<34)return}
+ if(c.st==='out'){c.tw-=dt;if(c.tw>0)return;const P=kEisRevPts(c);if(!kSeeRevFree(c,P))return;
   c.st='rev';c.d=kSeeRnd(P,10);c.s=0;c.rev=1;c.prio=1;c.slow=0;return}
  if(c.st==='rev'){if(kSeeMove(c,dt,16)){c.st='leave';c.rev=0;c.prio=0;c.d=kSeeRnd(kEisOutPts(c),14);c.s=0;c.spot=null}return}
  if(c.st==='leave'){if(kSeeMove(c,dt,kEisCarSp(c)))c.st='gone'}};
