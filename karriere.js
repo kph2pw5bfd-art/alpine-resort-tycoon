@@ -95,7 +95,7 @@ KV.sonn={id:'sonn',n:'Sonnleiten',bounds:{x0:-140,x1:1140,y0:150,y1:2140},home:{
  goals:[
   {k:'pf',t:'2 Sterne und Ausbau Stufe 3 offen',sh:'2 ★ + Stufe 3',ok:()=>kStars()>=2&&KG.stage>=3,lock:1},
   {k:'zu',t:'An 5 Tagen Familien zu mindestens 75 % zufrieden',sh:'Familien ≥ 75 %',prog:()=>Math.min(5,KG.famOK||0)+' / 5',ok:()=>(KG.famOK||0)>=5,lock:1},
-  {k:'me',t:'Saisonergebnis über 75.000 €',sh:'75.000 € Ergebnis',prog:()=>kfmt(kSeaRes()),ok:()=>kSeaRes()>=75000,end:1}],
+  {k:'me',t:'Saisonergebnis von 75.000 € erreicht',sh:'75.000 € Ergebnis',prog:()=>kfmt(kSeaRes())+' von 75.000 €',ok:()=>kSeaRes()>=75000,after:1}],
  stageInfo:[null,
   {n:'Übungshang',d:'Tellerlift, Übungshang, Kassa und Parkplatz West.'},
   {n:'Sonnenhang',d:'2er-Sessellift bis zum Gipfel und die breite blaue Hauptabfahrt „Sonnenhang“.',cost:8000,days:2,req:[['tl','Tellerlift gebaut'],['ruf',55,'Ruf mindestens 55 %'],['gst',150,'150 Gäste insgesamt']]},
@@ -191,8 +191,8 @@ KV.bich={id:'bich',n:'Bichlberg',am:'am Bichlberg',bounds:{x0:-120,x1:1120,y0:-3
  umf:{cost:8000,days:2,st:2},
  goals:[
   {k:'pf',t:'Schneekanonen in Betrieb und 2 Sterne',sh:'Kanonen + 2 ★',prog:()=>(KG.canEver?'Kanonen ✓':KG.b.cannons?'Kanonen gekauft':'keine Kanonen')+' · '+kStars()+' ★',ok:()=>!!KG.canEver&&kStars()>=2,lock:1},
-  {k:'zu',t:'Platz 6 oder besser in der Rangliste',sh:'Platz 6',prog:()=>'jetzt Platz '+kRank(),ok:()=>kRank()<=6,lock:1},
-  {k:'me',t:'Pistenzustand in der letzten Woche nie unter 60 %',sh:'Piste ≥ 60 %',prog:()=>kBichLW(),ok:()=>!!KG.lwSeen&&(KG.lwMin==null||KG.lwMin>=60),end:1}],
+  {k:'zu',t:'3 Tage am Stück Platz 6 oder besser in der Rangliste',sh:'Platz 6',need:3,day:()=>kRank()<=6,prog:()=>'jetzt Platz '+kRank()+' · '+kGsN('zu')+' / 3 Tage',lock:1},
+  {k:'me',t:'7 Tage am Stück Pistenzustand nie unter 60 %',sh:'Piste ≥ 60 %',need:7,after:1,day:()=>KG.dMin==null||KG.dMin>=60,prog:()=>kGsN('me')+' / 7 Tage'+(KG.dMin!=null?' · heute tiefster Wert '+Math.round(KG.dMin)+' %':''),lock:1}],
  stageInfo:[null,
   {n:'Talabfahrt',d:'2er-Sessel bis zur Mittelstation 1 und der untere Teil der Bichlberg-Abfahrt.'},
   {n:'Mittelstation 2',d:'Zweiter Sessel bis zur Mittelstation 2. Die Abfahrt wird doppelt so lang – mit der unteren Engstelle.',cost:5000,days:2,req:[['ruf',52,'Ruf mindestens 52 %'],['gst',120,'120 Gäste insgesamt']]},
@@ -201,7 +201,7 @@ KV.bich={id:'bich',n:'Bichlberg',am:'am Bichlberg',bounds:{x0:-120,x1:1120,y0:-3
  fair:{ticket:[0,22,28,33,38],park:3,food:13,kids:7,school:24,hotel:50}
 };
 // Pistenzustand in der letzten Woche (Meister-Ziel)
-function kBichLW(){const last=kSeaN()===KVOR.seasons&&kSeaD()>=KSL-6;if(KG.lwSeen)return 'tiefster Wert bisher: '+Math.round(KG.lwMin)+' %';return last?'zählt ab heute':'zählt ab MO • Woche 4 der Saison '+KVOR.seasons}
+// V349: Meister-Ziel = 7 Tage am Stück (zählt erst nach Pflicht + Zusatz); tiefster Pistenzustand des Tages in KG.dMin
 KV.bich.init=function(s){s.l.l1.on=1;s.snow=34;s.b.can2=0;s.b.teich=0;s.b.umf=0;s.b.bus2=0;s.wat=100};
 KV.bich.lamps=function(){const o=[];for(let x=-40;x<=960;x+=82)o.push([x,1860]);for(let x=-100;x<=1100;x+=120)o.push([x,1948]);return o};
 // Ausbau-Abschnitte und Zubringer verknüpfen, Engstellen finden
@@ -247,7 +247,7 @@ KV.bich.morning=function(){if(KG.b.bus2&&KG.dem>0)KG.busShare=Math.min(.45,150/K
 KV.bich.tick=function(dt,dth){// Tauwetter weicht die Piste tagsüber auf (die Raupe richtet sie nachts wieder her)
  if(KG.wx==='tau'&&KG.t>=10&&KG.t<16)for(const k in KG.pq)KG.pq[k]=Math.max(0,KG.pq[k]-dth*2.4);
  if(KG.b.teich){if(KW.canOn)KG.wat=Math.max(0,KG.wat-dth*6);else KG.wat=Math.min(100,KG.wat+dth*4)}
- if(kSeaN()===KVOR.seasons&&kSeaD()>=KSL-6&&KG.t>=8.6&&KG.t<16.25&&!KG.done){const q=kPQavg();KG.lwSeen=1;KG.lwMin=KG.lwMin==null?q:Math.min(KG.lwMin,q)}
+ if(KG.t>=8.6&&KG.t<16.25&&!KG.done){const q=kPQavg();KG.dMin=KG.dMin==null?q:Math.min(KG.dMin,q)}
  for(const e of KW.eng||[])if(e.q.length)e.q=e.q.filter(f=>f.st==='ski'&&f.engQ===e&&!f.dead)};
 // Schneekanonen: Abdeckung (unten/oben) und Wasser (Bach allein reicht nur halb)
 function kBichCov(){const M=KW.pmap.main,L=M.d[M.d.length-1][3],s0=kOpenS(M),y0=960;let lo=0,hi=0;const sMid=(()=>{for(const q of M.d)if(q[1]>=y0)return q[3];return L})();
@@ -446,8 +446,8 @@ KV.alt={id:'alt',n:'Altberg',am:'am Altberg',bounds:{x0:-100,x1:1100,y0:150,y1:2
  cannons:{cost:9000,st:2},
  goals:[
   {k:'pf',t:'Schuldenfrei (Kredit abbezahlt, Kassa über 0 €) und 2 Sterne',sh:'Schuldenfrei + 2 ★',prog:()=>(KG.loan>0?'noch '+kfmt(KG.loan)+' Kredit':KG.money<=0?'Kassa im Minus':'schuldenfrei ✓')+' · '+kStars()+' ★',ok:()=>!(KG.loan>0)&&KG.money>0&&kStars()>=2,lock:1},
-  {k:'zu',t:'Alle 3 alten Lifte wieder in Betrieb – saniert oder neu – und Platz 6 oder besser',sh:'3 Lifte + Platz 6',prog:()=>kAltOldN()+' / 3 Lifte · Platz '+kRank(),ok:()=>kAltOldN()>=3&&kRank()<=6,lock:1},
-  {k:'me',t:'In der letzten Woche der 2. Saison keine einzige Liftpanne',sh:'Keine Panne',prog:()=>kAltLW(),ok:()=>!!KG.lwSeen&&!KG.lwBrk,end:1}],
+  {k:'zu',t:'Alle 3 alten Lifte wieder in Betrieb – saniert oder neu – und 3 Tage am Stück Platz 6 oder besser',sh:'3 Lifte + Platz 6',need:3,day:()=>kAltOldN()>=3&&kRank()<=6,prog:()=>kAltOldN()+' / 3 Lifte · Platz '+kRank()+' · '+kGsN('zu')+' / 3 Tage',lock:1},
+  {k:'me',t:'7 Tage am Stück keine einzige Liftpanne',sh:'Keine Panne',need:7,after:1,day:()=>!KG.dBrk,prog:()=>kGsN('me')+' / 7 Tage'+(KG.dBrk?' · heute Panne ✗':''),lock:1}],
  stageInfo:[null,
   {n:'Westhang',d:'Die alte Altbergbahn bis zur Gabelung und der sonnige Westhang.'},
   {n:'Osthang',d:'Der rote Osthang auf der Schattseite wird freigeräumt – dort hält der Schnee länger. Der alte Ostlift kann saniert oder ersetzt werden.',cost:5000,days:2,req:[['ruf',50,'Ruf mindestens 50 %'],['gst',120,'120 Gäste insgesamt']]},
@@ -457,7 +457,7 @@ KV.alt={id:'alt',n:'Altberg',am:'am Altberg',bounds:{x0:-100,x1:1100,y0:150,y1:2
 };
 const KALT_OLD=['ab','gs','ol'];
 function kAltOldN(){let n=0;for(const id of KALT_OLD){const s=KG.l[id];if(s.on&&s.zs>=1)n++}return n}
-function kAltLW(){if(KG.lwBrk)return 'Panne in der letzten Woche ✗';if(KG.lwSeen)return 'bisher keine Panne';return 'zählt ab MO • Woche 4 der Saison '+KVOR.seasons}
+// V349: Meister-Ziel = 7 Tage am Stück ohne Panne (zählt erst nach Pflicht + Zusatz); Pannen des Tages in KG.dBrk
 function kAltSt(id){const s=KG.l[id];if(s.nost)return 'nost';return s.zs===0?'old':s.zs===1?'san':'neu'}
 KV.alt.init=function(s){const l=s.l;l.ab.on=1;l.ab.zs=0;l.ab.cond=62;l.gs.zs=0;l.gs.cond=18;l.gs.nost=0;l.gs.ch='';l.ol.zs=0;l.ol.cond=25;l.wl.zs=2;s.snow=40};
 KV.alt.lamps=function(){const o=[],W=KVOR.walkY,R=KVOR.road.y;for(let x=60;x<=960;x+=90)o.push([x,W-4]);for(let x=-80;x<=1080;x+=120)o.push([x,R-26]);return o};
@@ -514,13 +514,13 @@ KV.alt.descend=function(f){if(f.st==='hurt'&&f.pid){f.st='ski';f.v=Math.min(f.v|
 KV.alt.resPre=function(f){let P=KW.pmap[f.pid],g=0;while(P&&P.next&&g++<6)P=KW.pmap[P.next.p];return P&&P.id==='ost'?[[372,1700],[470,1738],[620,1734],[668,1640]]:[[372,1660]]};
 // Pannen: unsaniert 3-mal so oft, saniert etwas öfter als neu; frisch überholt sehr selten
 KV.alt.brkP=function(id,s){const m=s.zs===0?3:s.zs===1?1.4:1;return Math.min(.45,(.008+(1-s.cond/100)*.3)*m)};
-KV.alt.onBrk=function(id){if(kSeaN()===KVOR.seasons&&kSeaD()>=KSL-6&&!KG.done){if(!KG.lwBrk)kLog('⚠️','Panne in der letzten Woche – das Meister-Ziel ist nicht mehr zu schaffen.');KG.lwBrk=(KG.lwBrk||0)+1}};
+KV.alt.onBrk=function(id){if(KG.done)return;if(!KG.dBrk&&kGoalOpen('me')&&kGsN('me')>0)kLog('⚠️','Liftpanne – die Tage ohne Panne beginnen morgen wieder bei 0.');KG.dBrk=(KG.dBrk||0)+1};
 // Sonnseite: Westhang wird nachmittags weich · letzte Woche beobachten
 KV.alt.tick=function(dt,dth){if(KG.wx==='sonne'&&KG.t>=13&&KG.t<16.25&&KG.pq.west>40)KG.pq.west=Math.max(40,KG.pq.west-dth*2.2);
  if(kNskToday()&&KG.wx!=='sturm'&&KG.l.wl.on){if(KG.t>=16.6&&KG.t<17.3&&!KG.nskRan){KG.nskRan=1;KW.nskAcc=0;const pf=kcl(1.5-.5*(KG.price.nsk??12)/12,.15,1.3),wf=KG.wx==='neuschnee'?1.1:KG.wx==='tau'?.8:1;KW.nskN=Math.round(Math.min(190,KG.dem*.28)*pf*wf);kLog('🌙','Heute Nachtski am Westhang – 17:30 bis 21:00.');KW.nskHot=KG.hotel?Math.round((KW.hotelN||0)*.35*pf):0}
   if(KW.nskHot>0&&KG.t>=17.0){const V=KVOR,H=V.hotel,n=KW.nskHot;KW.nskHot=0;for(let i=0;i<n;i++){const f=kMkFolk(kMix(),0);f.hotelG=1;f.nsk=1;kSetupFolk(f,KG.t,20.3+kR()*.6);f.hungry=0;f.toKid=0;f.x=H.x-20+kR()*6;f.y=H.y+4;kWalk(f,V.hotel.pin(),'kassa',11);f.delay=Math.floor(i/4)*2.2+(i%4)*.35;KW.folks.push(f)}}
   if(KG.t>=16.7&&KG.t<19.2&&KW.nskN>0){if(KG.t<18.7)KW.nskAcc=(KW.nskAcc||0)+KW.nskN/2.9/2*dth;while(KW.nskAcc>=1){if(!kFreeSpot())break;KW.nskAcc-=1;const n0=KW.cars.length;kSpawnCar(kMix());const c=KW.cars[n0];if(c){c.nsk=1;for(const g of c.ppl){g.nsk=1;g.leaveT=20.3+kR()*.6;g.hungry=0;g.toKid=0}}}}}
- if(kSeaN()===KVOR.seasons&&kSeaD()>=KSL-6&&KG.t>=8.5&&KG.t<16.25&&!KG.done)KG.lwSeen=1};
+};
 // Schattseite: Osthang (und Rinne) verlieren bei Tauwetter nur halb so viel
 KV.alt.midnight=function(){if(KG.wx==='tau')for(const k of ['ost','rinne'])KG.pq[k]=Math.min(100,KG.pq[k]+6)};
 KV.alt.onBoard=function(o,f){if(o.L.id==='gs'&&KG.l.gs.nost&&!f.nosP){f.nosP=1;f.sat+=2;const v=3;kEarn('nos',v,o.L.b[0],o.L.b[1]-40);f.paid=(f.paid||0)+v}};
@@ -805,7 +805,7 @@ KV.alt.liftInfo=function(id){const s=KG.l[id],st=kAltSt(id);const n={old:'unsani
  const O=kAOpts(id).filter(i=>i.kind);if(O.length)h+='<div class="bgh">Sanieren oder neu bauen</div>'+O.map(kAOptHTML).join('');return h};
 KV.alt.pisteInfo=function(p){if(p.id==='west')return '<p class="hint">☀️ Sonnseite: bei Sonne wird der Westhang ab 13 Uhr weich und sulzig. Die Raupe richtet ihn nachts wieder her.</p>';if(p.id==='ost'||p.id==='rinne')return '<p class="hint">❄️ Schattseite: bei Tauwetter verliert der Hang nur halb so viel.</p>';return ''};
 KV.alt.staExtra=function(){let h='<div class="bgh">Alte Lifte</div>';for(const id of ['ab','gs','ol','wl']){const s=KG.l[id];if(!s.on)continue;h+=`<div class="row"><span>🔧 ${kLC(id).n} · ${{old:'unsaniert',san:'saniert',nost:'Nostalgie',neu:'neu'}[kAltSt(id)]}</span><b>Zustand ${Math.round(s.cond)} %</b></div>`}
- if(kSeaN()===KVOR.seasons)h+=`<div class="row"><span>🏁 Letzte Woche</span><b>${kAltLW()}</b></div>`;return h};
+ if(kGoalOpen('me'))h+=`<div class="row"><span>🏁 Tage ohne Panne</span><b>${kGsN('me')} / 7${KG.dBrk?' · heute Panne':''}</b></div>`;return h};
 KV.alt.voices=function(out){const l=KG.l;if(l.ab.on&&l.ab.zs===0)out.push(['🔩','„Die alte Altbergbahn quietscht und ruckelt.“']);
  if(KG.wx==='sonne'&&KG.t>=13.5&&kPisteOpen(KW.pmap.west))out.push(['☀️','„Am Westhang wird es am Nachmittag sulzig.“']);
  if(KG.wx==='tau'&&kPisteOpen(KW.pmap.ost))out.push(['❄️','„Auf der Schattseite ist der Schnee noch gut!“']);
@@ -885,7 +885,7 @@ KV.seek={id:'seek',n:'Seekar',am:'am Seekar',bounds:{x0:-140,x1:1140,y0:150,y1:2
  goals:[
   {k:'pf',t:'3 Sterne',sh:'3 ★',prog:()=>kStars()+' ★',ok:()=>kStars()>=3,lock:1},
   {k:'zu',t:'Einmal '+knum(KSE.goalG)+' Gäste an einem Tag',sh:knum(KSE.goalG)+' Gäste',prog:()=>'bester Tag: '+knum(Math.max(KG.maxG||0,KG.gDay||0)),ok:()=>Math.max(KG.maxG||0,KG.gDay||0)>=KSE.goalG,lock:1},
-  {k:'me',t:'Platz 3 oder besser in der Rangliste',sh:'Platz 3',prog:()=>'jetzt Platz '+kRank(),ok:()=>kRank()<=3,end:1}],
+  {k:'me',t:'3 Tage am Stück Platz 3 oder besser in der Rangliste',sh:'Platz 3',need:3,after:1,day:()=>kRank()<=3,prog:()=>'jetzt Platz '+kRank()+' · '+kGsN('me')+' / 3 Tage',lock:1}],
  stageInfo:[null,
   {n:'Talabfahrt',d:'Der Talsessel bis zur Mittelstation und der untere Teil der Karabfahrt.'},
   {n:'Kar',d:'Der 6er-Karsessel fährt von der Mittelstation ins breite Kar. Die ganze Karabfahrt ist offen, die Karhütte kann gebaut werden.',cost:12000,days:2,req:[['ruf',52,'Ruf mindestens 52 %'],['gst',150,'150 Gäste insgesamt']]},
@@ -1433,8 +1433,8 @@ KV.eis={id:'eis',n:'Eisspitz',am:'am Eisspitz',bounds:{x0:-140,x1:1140,y0:90,y1:
  cannons:{cost:9000,st:2},
  goals:[
   {k:'pf',t:'4 Sterne',sh:'4 ★',prog:()=>kStars()+' ★',ok:()=>kStars()>=4,lock:1},
-  {k:'zu',t:'Platz 1 in der Rangliste',sh:'Platz 1',prog:()=>'jetzt Platz '+kRank(),ok:()=>kRank()<=1,lock:1},
-  {k:'me',t:'Platz 1 schon am Ende der 2. Saison',sh:'Platz 1 nach Saison 2',prog:()=>KG.r2==null?(kSeaN()<=2?'zählt am letzten Tag der 2. Saison · jetzt Platz '+kRank():'–'):KG.r2?'Platz 1 am Ende der 2. Saison ✓':'am Ende der 2. Saison Platz '+KG.r2p,ok:()=>KG.r2===1,lock:1}],
+  {k:'zu',t:'3 Tage am Stück Platz 1 in der Rangliste',sh:'Platz 1',need:3,day:()=>kRank()<=1,prog:()=>'jetzt Platz '+kRank()+' · '+kGsN('zu')+' / 3 Tage',lock:1},
+  {k:'me',t:'Platz 1 noch in der 2. Saison 7 Tage am Stück halten',sh:'Platz 1 · 7 Tage',need:7,after:1,day:()=>kRank()<=1&&kSeaN()<=2,prog:()=>kSeaN()>2&&!KG.goals.me?'nur bis Ende der 2. Saison möglich ✗':kGsN('me')+' / 7 Tage · jetzt Platz '+kRank(),lock:1}],
  stageInfo:[null,
   {n:'Almbahn',d:'Die Almbahn bis zur Alm und die blaue Talabfahrt.'},
   {n:'Kessel',d:'Der 6er-Sessel fährt von der Alm in den Kessel unter dem Felsband. Die rote Kesselabfahrt ist offen, die Almhütte kann gebaut werden.',cost:14000,days:2,req:[['ruf',50,'Ruf mindestens 50 %'],['gst',150,'150 Gäste insgesamt']]},
@@ -1682,7 +1682,7 @@ KV.eis.tick=function(dt,dth){const t0=KG.t-dth,t1=KG.t;
 KV.eis.midnight=function(){KG.maxG=Math.max(KG.maxG||0,KG.gDay||0);
  if(KG.lwH>0){KG.ruf=Math.max(5,KG.ruf-Math.min(2.5,KG.lwH*.22));KG.lwH=0}
  for(const id of ['nr','tr','gpa'])KG.pq[id]=Math.min(kSnowCap(),(KG.pq[id]||80)+5);
- if(kSeaN()===2&&kSeaD()===KSL&&KG.r2==null){KG.r2p=kRank();KG.r2=KG.r2p<=1?1:0;kLog(KG.r2?'🏆':'📉',KG.r2?'Ende der 2. Saison auf Platz 1 – Meister-Ziel geschafft!':'Ende der 2. Saison auf Platz '+KG.r2p+' – das Meister-Ziel ist nicht mehr zu schaffen.')}};
+ if(false){KG.r2p=kRank();KG.r2=KG.r2p<=1?1:0;kLog(KG.r2?'🏆':'📉',KG.r2?'Ende der 2. Saison auf Platz 1 – Meister-Ziel geschafft!':'Ende der 2. Saison auf Platz '+KG.r2p+' – das Meister-Ziel ist nicht mehr zu schaffen.')}};
 KV.eis.costs=function(c,tm){if(KG.stage>=5)c.pb=Math.round((520+(KG.pbLg||0)*60)*tm);if(KG.stage>=6)c.kassa=(c.kassa||0)+70*tm;if(KG.b.bus2)c.bus=(c.bus||0)+100;
  const nm=Object.keys(KG.b.mast||{}).length;if(nm)c.mast=nm*25;if(KG.b.grest)c.grest=Math.round(160*tm)};
 KV.eis.att=function(){return (KG.b.grest?.05:0)+(KG.stage>=5&&!kEisWS('pb')?.03:0)+(KG.stage>=6?.03:0)};
@@ -2108,7 +2108,7 @@ function kNewState(id,perks){const V=KV[id],B=KBERGE.find(b=>b.id===id);
   lots:{},paved:0,hotel:0,bau:[],wat:100,
   price:{ticket:V.fair.ticket[1],park:V.fair.park,food:V.fair.food,kids:V.fair.kids,school:V.fair.school,hotel:V.fair.hotel},
   ruf:50+((perks||[]).includes('name')?10:0),wx:'sonne',wxN:'sonne',snow:42,pq:{},inc:{},cost:{},hist:[],gT:0,gDay:0,rej:0,famOK:0,
-  sat:{},cmp:[],rv:V.rivS.slice(),seaM0:0,seaInc:0,seaCost:0,goals:{},done:0,pleite:0,lg:[],buzz:0,res:{},sea:1,kupg:0,dem:0,stars:1,seaHist:[],tu:0};
+  sat:{},cmp:[],rv:V.rivS.slice(),seaM0:0,seaInc:0,seaCost:0,goals:{},gs:{},done:0,pleite:0,lg:[],buzz:0,res:{},sea:1,kupg:0,dem:0,stars:1,seaHist:[],tu:0};
  for(const L of V.lifts)s.l[L.id]={on:0,typ:L.typ,lg:0,cond:100,brk:null};
  for(const L of V.lots)s.lots[L.id]=L.base?1:0;
  for(const p of V.pistes)s.pq[p.id]=100;
@@ -2641,6 +2641,8 @@ function kMidnight(){const V=KVOR,d=KG.day;
  for(const p of V.pistes){if(KG.wx==='tau')KG.pq[p.id]-=(V.tauPQ||12);if(KG.wx==='neuschnee')KG.pq[p.id]=Math.max(KG.pq[p.id],82);KG.pq[p.id]=kcl(KG.pq[p.id],0,kSnowCap())}if(V.midnight)V.midnight();
  // Lifte altern
  for(const id in KG.l){const s=KG.l[id];if(!s.on)continue;s.cond=Math.max(15,s.cond-(.9+(KW.lift[id]?KW.lift[id].cnt:0)/500));if(KW.lift[id])KW.lift[id].cnt=0}
+ // Ziele: Tage am Stück werten (V349) – vor dem Wachsen der Konkurrenz
+ kGoalDay();
  // Konkurrenz
  KG.rv=KG.rv.map(v=>Math.round(v+(.8+kR()*2.2)*(V.rivG||1)));
  // Kampagnen
@@ -2710,7 +2712,24 @@ function kSeasonEnd(){KG.seaHist.push({n:kSeaN()-1,inc:Math.round(KG.seaInc),cos
  // weitere Saison (für spätere Berge): Ruf vergisst etwas, Saisonwerte zurücksetzen
  for(const id in KG.l){KG.l[id].pS=0;KG.l[id].pH=0}KG.ruf=Math.max(20,KG.ruf-15);KG.seaInc=0;KG.seaCost=0;KG.seaBau=0;KG.seaWer=0;KG.snow=KVOR.snow0||40;KG.wat=100;kSave();kSeaWin()}
 // --- Ziele ---
-function kGoalCheck(fin){if(!KG||!KVOR)return;for(const g of KVOR.goals){if(KG.goals[g.k])continue;if(g.end&&!fin)continue;if(g.ok()){KG.goals[g.k]=1;if(!fin){kLog('🎯','Ziel geschafft: '+g.t);kToast('🎯 Ziel geschafft: '+g.sh,4000)}}}}
+// V349: Ziel 3 (after) zählt erst, wenn Pflicht und Zusatz geschafft sind. Ziele mit need/day zählen Tage am Stück
+// (am Tagesende in kGoalDay). Sind alle 3 geschafft, kommt einmal das Fenster „Alle Ziele erreicht“.
+function kGsN(k){return (KG.gs&&KG.gs[k])||0}
+function kGoalOpen(k){const g=KVOR.goals.find(x=>x.k===k);return !!g&&!KG.goals[k]&&!(g.after&&!(KG.goals.pf&&KG.goals.zu))}
+function kGoalOk(g){if(g.after&&!(KG.goals.pf&&KG.goals.zu))return false;if(g.need)return kGsN(g.k)>=g.need;return g.ok()}
+function kGoalDay(){if(!KG||!KVOR||KG.done)return;KG.gs=KG.gs||{};for(const g of KVOR.goals){if(KG.goals[g.k]||!g.day)continue;if(g.after&&!(KG.goals.pf&&KG.goals.zu)){KG.gs[g.k]=0;continue}
+  const n0=KG.gs[g.k]||0,on=!!g.day();KG.gs[g.k]=on?n0+1:0;if(on&&KG.gs[g.k]<g.need)kLog('🎯',g.sh+': '+KG.gs[g.k]+' von '+g.need+' Tagen am Stück.');else if(!on&&n0>0)kLog('📉',g.sh+': Serie nach '+n0+(n0===1?' Tag':' Tagen')+' unterbrochen – es geht wieder bei 0 los.')}
+ KG.dMin=null;KG.dBrk=0;kGoalCheck()}
+function kGoalCheck(fin){if(!KG||!KVOR)return;for(const g of KVOR.goals){if(KG.goals[g.k])continue;if(kGoalOk(g)){KG.goals[g.k]=1;if(!fin){kLog('🎯','Ziel geschafft: '+g.t);kToast('🎯 Ziel geschafft: '+g.sh,4000)}}}
+ if(!fin&&!KG.done&&!KG.allAsk&&KVOR.goals.every(g=>KG.goals[g.k])){KG.allAsk=1;kSave();setTimeout(()=>{if(KG&&!KG.done&&!KW.modal){KW.modal=1;KW.endAsk=0;kOpen('alle')}else if(KG)KG.allAsk=0},400)}}
+// Berg vorzeitig abschließen: die laufende Saison zählt mit ins Ergebnis
+function kEndNow(){if(KG.done)return;if(kSeaD()>1||KG.seaInc||KG.seaCost)KG.seaHist.push({n:kSeaN(),inc:Math.round(KG.seaInc||0),cost:Math.round(KG.seaCost||0),res:kSeaRes(),st:kStars(),rank:kRank(),part:1});KW.modal=0;KG.done=1;kSave();kBergEnd(0)}
+function kAlleHTML(){const st=kBergStars(),sd=kSeaD(),left=(KVOR.seasons-kSeaN())*KSL+(KSL-sd)+1;
+ return `<div class="kneu"><h3>🏆 Alle Ziele erreicht!</h3><div style="text-align:center;font-size:44px;color:#e8a33a;letter-spacing:4px;margin:4px 0 6px">${'★'.repeat(st)}</div>`+
+ KVOR.goals.map((g,j)=>`<div class="kgoal"><span class="s">✅</span><span><b>${['Pflicht','Zusatz','Meister'][j]}:</b> ${g.t}</span></div>`).join('')+
+ `<p style="font-size:15px;line-height:1.4;margin:10px 0 4px">${KVOR.n} hat alle 3 Sterne. Du kannst den Berg jetzt abschließen – oder weiterspielen, solange du magst (noch ${left} ${left===1?'Tag':'Tage'}${KVOR.seasons>1?' bis zum Ende von Saison '+KVOR.seasons:' bis zum Saisonende'}).</p>`+
+ `<p class="hint">Abschließen geht auch später jederzeit über 🎯 Ziele.</p>`+
+ `<button class="tb green" data-a="alleend" style="width:100%;margin-top:10px">🏁 Berg abschließen</button><button class="tb blue" data-a="allego" style="width:100%;margin-top:8px">▶ Weiterspielen</button></div>`}
 function kBergStars(){const g=KG.goals;if(!g.pf)return 0;return 1+(g.zu?1:0)+(g.me?1:0)}
 // --- Neu freigeschaltet ---
 function kNeu(st){const I=KVOR.stageInfo[st];KW.neu={st,n:I.n,d:I.d};kUIdirty()}
@@ -3050,19 +3069,19 @@ let kHudS='';function kHud(force){if(!KG)return;const g=KW.folks.filter(f=>!f.in
  const $=id=>document.getElementById(id);$('kmoney').innerHTML=mon;$('kmoney').classList.toggle('neg',KG.money<0);$('kday').innerHTML=day;$('kgst').innerHTML=gs;$('kruf').innerHTML=rf;
  $('kpz').textContent=KW.paused?'▶':'⏸';$('kff').textContent='×'+KW.speed;kGoalBar();kLogBar()}
 function kTodayRes(){let i=0;for(const k in KG.inc)if(k!=='bau')i+=KG.inc[k];return i}
-let kGBs='';function kGoalBar(){const el=document.getElementById('kabar');if(!el)return;const h=KVOR.goals.map((g,i)=>{const ok=KG.goals[g.k];const pr=g.prog?g.prog():'';return `<button class="ch ${ok?'ok':''}" data-g="${i}"><span class="i">${ok?'✓':'★'.repeat(i+1)}</span><span style="min-width:0"><b>${g.sh}</b><small>${ok?'geschafft':pr||(i===0?'Pflicht':'offen')}</small></span></button>`}).join('');
+let kGBs='';function kGoalBar(){const el=document.getElementById('kabar');if(!el)return;const h=KVOR.goals.map((g,i)=>{const ok=KG.goals[g.k];const pr=g.prog?g.prog():'';return `<button class="ch ${ok?'ok':''}" data-g="${i}"><span class="i">${ok?'✓':'★'.repeat(i+1)}</span><span style="min-width:0"><b>${g.sh}</b><small>${ok?'geschafft':g.after&&!(KG.goals.pf&&KG.goals.zu)?'🔒 nach Ziel 1+2':pr||(i===0?'Pflicht':'offen')}</small></span></button>`}).join('');
  if(h!==kGBs){kGBs=h;el.innerHTML=h;el.querySelectorAll('.ch').forEach(b=>b.onclick=()=>kOpen('ziel','zi'))}el.classList.toggle('off',!!KW.open)}
 let kLBs='';function kLogBar(){const el=document.getElementById('klbar');if(!el)return;const e=KG.lg[0];const s=e?(kh(e.t)+e.ic+e.tx):'';if(s===kLBs)return;kLBs=s;el.querySelector('.lt').textContent=e?kh(e.t):'';el.querySelector('.li').textContent=e?e.ic:'📖';el.querySelector('.lx').textContent=e?e.tx:'Noch keine Einträge';if(KW.lgNew){el.classList.remove('nw');void el.offsetWidth;el.classList.add('nw');KW.lgNew=0}}
 // --- Fenster ---
 function kUI(){KW.dirty=0;const sh=document.getElementById('ksheet');if(!sh)return;const o=KW.open;
  if(KW.neu&&!o){KW.open='neu'}
  const k=KW.open;if(!k){sh.classList.remove('on');sh.innerHTML='';kGoalBar();return}
- let h='';try{h=({bau:kBauHTML,pre:kPreHTML,wer:kWerHTML,sta:kStaHTML,ziel:kZielHTML,opt:kOptHTML,inf:kInfHTML,neu:kNeuHTML,log:kLogHTML,sea:kSeaHTML,end:kEndHTML,kre:kStaHTML})[k]()}catch(e){h='<h3>Fehler<a data-a="x">✕</a></h3><p class="hint">'+kesc(e.message)+'</p>';console.error(e)}
+ let h='';try{h=({bau:kBauHTML,pre:kPreHTML,wer:kWerHTML,sta:kStaHTML,ziel:kZielHTML,opt:kOptHTML,inf:kInfHTML,neu:kNeuHTML,log:kLogHTML,sea:kSeaHTML,end:kEndHTML,alle:kAlleHTML,kre:kStaHTML})[k]()}catch(e){h='<h3>Fehler<a data-a="x">✕</a></h3><p class="hint">'+kesc(e.message)+'</p>';console.error(e)}
  const kk=k+(KW.tab||'')+(k==='inf'?KW.inf||'':''),top=sh.dataset.k===kk?sh.scrollTop:0;sh.innerHTML=h;sh.dataset.k=kk;sh.classList.add('on');sh.classList.toggle('big',k==='end');sh.classList.toggle('gbw',k==='inf');sh.scrollTop=top;kGoalBar()}
 function kHead(t,tabs){return `<div class="bhead"><h3>${t}<a data-a="x">✕</a></h3>${tabs?`<div class="btab">${tabs.map(([id,ic,n])=>`<button data-a="tab" data-v="${id}" class="${KW.tab===id?'on':''}"><span>${ic}</span>${n}</button>`).join('')}</div>`:''}</div>`}
 function kSheetClick(e){const b=e.target.closest('[data-a]');if(!b)return;const a=b.dataset.a,v=b.dataset.v;
  if(KVOR&&KVOR.act&&KVOR.act(a,v))return;
- if(a==='x'){if(KW.open==='neu'){KW.neu=null}kClose();return}
+ if(a==='x'){if(KW.open==='neu'){KW.neu=null}if(KW.open==='alle')KW.modal=0;kClose();return}
  if(a==='tab'){KW.tab=v;kUI();return}
  if(a==='gbs'){kGbSort=v;kUI();return}
  if(a==='gbc'){kGbC=+v;kGbChUpd();return}
@@ -3078,7 +3097,9 @@ function kSheetClick(e){const b=e.target.closest('[data-a]');if(!b)return;const 
  if(a==='lna'||a==='lnt'||a==='ln'){kLnAct(a,v);return}
  if(a==='bm'){const sh=document.getElementById('ksheet'),sc=sh?sh.scrollTop:0;KW.bm=v;kUI();if(sh)sh.scrollTop=sc;return}
  if(a==='can'){KG.canAuto=KG.canAuto===0?1:0;kUI();return}
- if(a==='endnow'){if(KW.endAsk){KG.done=1;kSave();kBergEnd(0)}else{KW.endAsk=1;kUI()}return}
+ if(a==='endnow'){if(KW.endAsk){kEndNow()}else{KW.endAsk=1;kUI()}return}
+ if(a==='alleend'){kEndNow();return}
+ if(a==='allego'){KW.modal=0;kClose();return}
  if(a==='leave'){kLeave('map');return}
  if(a==='title'){kLeave('title');return}
  if(a==='restart'){if(KW.rsAsk){kRestartBerg()}else{KW.rsAsk=1;kUI()}return}
@@ -3290,10 +3311,10 @@ function kRentHTML(){const R=kRentFix(),ids=KRB.filter(id=>R[id]);let h='<div cl
  return h+'<p class="hint">Gezählt ab dem Kauf. Lifte, Pisten und Parkplätze verdienen über Tageskarten und Parken gemeinsam – darum hier nicht einzeln.</p>'}
 // --- Ziele, Sterne, Rangliste ---
 function kZielHTML(){const tabs=[['zi','🎯','Ziele'],['st','⭐','Sterne'],['rk','🏆','Rangliste']];if(!KW.tab||!tabs.some(t=>t[0]===KW.tab))KW.tab='zi';let h=kHead('🎯 '+KVOR.n,tabs);
- if(KW.tab==='zi'){const B=KBERGE.find(b=>b.id===KG.id);h+=`<p class="hint" style="margin:8px 0 4px">Bis zum Ende von Saison ${KVOR.seasons}. Jedes Ziel ist ein Stern für die Karriere – ohne das Pflichtziel gibt es keinen.</p>`;
-  KVOR.goals.forEach((g,i)=>{const ok=KG.goals[g.k];h+=`<div class="kgoal"><span class="s">${'★'.repeat(i+1)}<i>${'★'.repeat(2-i)}</i></span><span><b>${['Pflicht','Zusatz','Meister'][i]}:</b> ${g.t}<small>${ok?'<span class="ok">✓ geschafft</span>':g.prog?'Stand: '+g.prog():g.k==='pf'?'Sterne jetzt: '+kStars()+' · Stufe '+KG.stage:''}${g.end&&!ok?' · zählt am Saisonende':''}</small></span></div>`});
+ if(KW.tab==='zi'){const B=KBERGE.find(b=>b.id===KG.id);h+=`<p class="hint" style="margin:8px 0 4px">Bis zum Ende von Saison ${KVOR.seasons}. Jedes Ziel ist ein Stern für die Karriere – ohne das Pflichtziel gibt es keinen. Das Meister-Ziel zählt erst, wenn Pflicht und Zusatz geschafft sind.</p>`;
+  KVOR.goals.forEach((g,i)=>{const ok=KG.goals[g.k];h+=`<div class="kgoal"><span class="s">${'★'.repeat(i+1)}<i>${'★'.repeat(2-i)}</i></span><span><b>${['Pflicht','Zusatz','Meister'][i]}:</b> ${g.t}<small>${ok?'<span class="ok">✓ geschafft</span>':g.after&&!(KG.goals.pf&&KG.goals.zu)?'🔒 zählt erst nach Pflicht und Zusatz':g.prog?'Stand: '+g.prog():g.k==='pf'?'Sterne jetzt: '+kStars()+' · Stufe '+KG.stage:''}</small></span></div>`});
   h+=`<div class="bgh">Saison</div><div class="row"><span>Tag</span><b>${kSeaD()} von ${KSL}</b></div>`;
-  if(KG.goals.pf)h+=`<p class="hint">Das Pflichtziel ist geschafft. Du kannst bis zum Saisonende weiterspielen, um die anderen Ziele zu holen – oder den Berg jetzt abschließen.</p><button class="btn" data-a="endnow" style="width:100%;margin-top:6px">${KW.endAsk?'Wirklich jetzt abschließen? Nochmal tippen':'🏁 Berg jetzt abschließen'}</button>`}
+  if(KG.goals.pf)h+=`<p class="hint">${KVOR.goals.every(g=>KG.goals[g.k])?'Alle Ziele sind geschafft. Du kannst weiterspielen oder den Berg jetzt abschließen.':'Das Pflichtziel ist geschafft. Du kannst weiterspielen, um die anderen Ziele zu holen – oder den Berg jetzt abschließen.'}</p><button class="btn" data-a="endnow" style="width:100%;margin-top:6px">${KW.endAsk?'Wirklich jetzt abschließen? Nochmal tippen':'🏁 Berg jetzt abschließen'}</button>`}
  if(KW.tab==='st'){const st=kStars(),sc=kScore(),TH=kSTH(),nx=TH[Math.min(5,st+1)];h+=`<div class="kpi"><div><small>Sterne</small><b style="color:#e8a33a">${'★'.repeat(st)}<span style="opacity:.25">${'★'.repeat(5-st)}</span></b></div><div><small>Punkte</small><b>${sc}</b>${st<5?`<i>nächster Stern ab ${nx}</i>`:''}</div></div>`;
   h+=`<div class="bgh">Woraus die Punkte bestehen</div><div class="row"><span>🏗️ Angebot (Lifte, Pisten, Gebäude)</span><b>${Math.round(kOffer()*.6)}</b></div><div class="row"><span>😊 Ruf ${Math.round(KG.ruf)} %</span><b>${Math.round(KG.ruf*2.2)}</b></div><div class="row"><span>❄️ Pistenzustand ${Math.round(kPQavg())} %</span><b>${Math.round(kPQavg()*.8)}</b></div><p class="hint">Sterne: 2 ab ${TH[2]}, 3 ab ${TH[3]}, 4 ab ${TH[4]}, 5 ab ${TH[5]} Punkten.</p>`}
  if(KW.tab==='rk'){const L=KVOR.rivals.map((n,i)=>({n,s:KG.rv[i]})).concat([{n:KG.firm?kesc(KG.firm):'Dein Skigebiet',s:kScore(),me:1}]).sort((a,b)=>b.s-a.s);h+='<div class="bgh">Skigebiete der Gegend</div>'+L.map((r,i)=>`<div class="row" style="${r.me?'font-weight:600;color:var(--ac)':''}"><span>${i+1}. ${r.n}</span><b>${r.s}</b></div>`).join('')}
@@ -3522,19 +3543,19 @@ function kMapIcon(c,q){const x=q.x,y=q.y;const tri=(x0,x1,xt,yt,yb,L,D)=>{c.fill
  if(q.k==='e'){tri(x-40,x+40,x,y-44,y+18,'#9097a6','#6f7685');c.fillStyle='#eef7fd';c.beginPath();c.moveTo(x,y-44);c.lineTo(x-20,y-8);c.lineTo(x-6,y-14);c.lineTo(x+4,y-4);c.lineTo(x+20,y-10);c.closePath();c.fill();c.fillStyle='#cfe8f7';c.beginPath();c.moveTo(x,y-44);c.lineTo(x+4,y-4);c.lineTo(x+20,y-10);c.fill()}})}
 // Berg-Fenster
 const KBINFO={
- sonn:{goals:['2 Sterne und Ausbau Stufe 3 offen','An 5 Tagen Familien zu mindestens 75 % zufrieden','Saisonergebnis über 75.000 €'],spec:[['👨‍👩‍👧 Gäste','viele Familien und Anfänger'],['💶 Preise','Gäste achten stark auf den Preis'],['⭐ Besonderes Gebäude','Kinderland mit Zauberteppich']],tip:'Tipp: Kinderland, Skischule und faire Preise'},
- bich:{goals:['Schneekanonen in Betrieb und 2 Sterne','Platz 6 oder besser in der Rangliste','Pistenzustand in der letzten Woche nie unter 60 %'],spec:[['🌡️ Tauwetter','1,7-mal so oft'],['❄️ Neuschnee','nur 60 %'],['🚧 Engstellen','2 · Umfahrung baubar'],['💧 Besonderes Gebäude','Speicherteich']],tip:'Tipp: viel Kunstschnee nötig'},
- alt:{goals:['Schuldenfrei (Kredit abbezahlt, Kassa über 0 €) und 2 Sterne','Alle 3 alten Lifte wieder in Betrieb – saniert oder neu – und Platz 6 oder besser','In der letzten Woche der 2. Saison keine einzige Liftpanne'],spec:[['☀️ Westhang (Sonnseite)','nachmittags weich'],['❄️ Osthang (Schattseite)','Schnee hält länger'],['🔧 Alte Lifte','Pannen 3-mal so oft'],['🏦 Altschulden','8.000 € Kredit · Rahmen 20.000 €'],['🪑 Besonderes Gebäude','Nostalgie-Sessellift']],tip:'Tipp: Liftbau-Partner und Hausbank',
+ sonn:{goals:['2 Sterne und Ausbau Stufe 3 offen','An 5 Tagen Familien zu mindestens 75 % zufrieden','Saisonergebnis von 75.000 € erreicht'],spec:[['👨‍👩‍👧 Gäste','viele Familien und Anfänger'],['💶 Preise','Gäste achten stark auf den Preis'],['⭐ Besonderes Gebäude','Kinderland mit Zauberteppich']],tip:'Tipp: Kinderland, Skischule und faire Preise'},
+ bich:{goals:['Schneekanonen in Betrieb und 2 Sterne','3 Tage am Stück Platz 6 oder besser in der Rangliste','7 Tage am Stück Pistenzustand nie unter 60 %'],spec:[['🌡️ Tauwetter','1,7-mal so oft'],['❄️ Neuschnee','nur 60 %'],['🚧 Engstellen','2 · Umfahrung baubar'],['💧 Besonderes Gebäude','Speicherteich']],tip:'Tipp: viel Kunstschnee nötig'},
+ alt:{goals:['Schuldenfrei (Kredit abbezahlt, Kassa über 0 €) und 2 Sterne','Alle 3 alten Lifte wieder in Betrieb – saniert oder neu – und 3 Tage am Stück Platz 6 oder besser','7 Tage am Stück keine einzige Liftpanne'],spec:[['☀️ Westhang (Sonnseite)','nachmittags weich'],['❄️ Osthang (Schattseite)','Schnee hält länger'],['🔧 Alte Lifte','Pannen 3-mal so oft'],['🏦 Altschulden','8.000 € Kredit · Rahmen 20.000 €'],['🪑 Besonderes Gebäude','Nostalgie-Sessellift']],tip:'Tipp: Liftbau-Partner und Hausbank',
   extra:`<div class="bgh">🔧 Alte Lifte</div><div class="kold"><span class="h">Lift</span><span class="h">Sanieren</span><span class="h">Neu</span><span><b>Altbergbahn</b><br>2er-Sessel · 1971 · läuft noch</span><span>4.000 €</span><span>4er · 16.000 €</span><span><b>Ostlift</b><br>Schlepplift · 1968 · zu</span><span>3.000 €</span><span>4er · 13.000 €</span><span><b>Gipfelsessel</b><br>Einersessel · 1958 · zu</span><span>Nostalgie<br>9.000 €</span><span>6er · 22.000 €</span></div>`},
- seek:{goals:['3 Sterne','Einmal 500 Gäste an einem Tag','Platz 3 oder besser in der Rangliste'],spec:[['🌊 Lage','hinter einem See, nur 8 Parkplätze im Tal'],['🚶 Brücke','zu Fuß über eine Stunde'],['⛴️ Seeschiff','60 Plätze · alle 30 Minuten'],['🚠 Seebahn','Ausbau Stufe 5 · über den See'],['🏨 Besonderes Gebäude','Seehotel ★★★★ mit Steg']],tip:'Tipp: Die Anreise ist der Engpass'},
- eis:{goals:['4 Sterne','Platz 1 in der Rangliste','Platz 1 schon am Ende der 2. Saison'],spec:[['🌪️ Wind','oft Sturm – die oberen Bahnen stehen'],['⚠️ Lawinengefahr','ab Stufe 3: nach Neuschnee erst sprengen'],['🚡 Pendelbahn','Ausbau Stufe 5 · auf den Gipfel'],['🚠 3S-Gletscherexpress','Ausbau Stufe 6 · fährt auch bei Sturm'],['🍽️ Besonderes Gebäude','Gletscherrestaurant mit Eisgrotte']],tip:'Tipp: Konkurrenz baut schnell aus'}};
+ seek:{goals:['3 Sterne','Einmal 500 Gäste an einem Tag','3 Tage am Stück Platz 3 oder besser in der Rangliste'],spec:[['🌊 Lage','hinter einem See, nur 8 Parkplätze im Tal'],['🚶 Brücke','zu Fuß über eine Stunde'],['⛴️ Seeschiff','60 Plätze · alle 30 Minuten'],['🚠 Seebahn','Ausbau Stufe 5 · über den See'],['🏨 Besonderes Gebäude','Seehotel ★★★★ mit Steg']],tip:'Tipp: Die Anreise ist der Engpass'},
+ eis:{goals:['4 Sterne','3 Tage am Stück Platz 1 in der Rangliste','Platz 1 noch in der 2. Saison 7 Tage am Stück halten'],spec:[['🌪️ Wind','oft Sturm – die oberen Bahnen stehen'],['⚠️ Lawinengefahr','ab Stufe 3: nach Neuschnee erst sprengen'],['🚡 Pendelbahn','Ausbau Stufe 5 · auf den Gipfel'],['🚠 3S-Gletscherexpress','Ausbau Stufe 6 · fährt auch bei Sturm'],['🍽️ Besonderes Gebäude','Gletscherrestaurant mit Eisgrotte']],tip:'Tipp: Konkurrenz baut schnell aus'}};
 function kBergWin(id){kCareerLoad();const i=KBERGE.findIndex(b=>b.id===id),B=KBERGE[i],I=KBINFO[id],lk=!kOpenB(i),av=!!KV[id],sv=kLoad(id),best=KC.best[id]||0,R=KC.res[id];
  const img=av?kThumb(id):'';const perks=(KC.perks||[]).filter(p=>KPERK.find(x=>x.id===p));const used=kPerkUsed(perks),xp=kXP();
  let h=`<div class="kh"><a data-o="map">‹ Karte</a><h2 style="text-align:center">${B.n}</h2><span style="width:50px"></span></div><div class="card">`;
  h+=img?`<img src="${img}" style="width:100%;height:230px;object-fit:cover;border-radius:14px;display:block">`:`<div style="height:120px;border-radius:14px;background:linear-gradient(#dfeaf6,#f3f8fd);display:flex;align-items:center;justify-content:center;font-size:44px">🏔️</div>`;
  h+=`<div style="margin:10px 0 2px"><b style="font-size:18px">${B.n} – ${B.sub}</b></div><div style="margin:6px 0 2px"><span class="kchip b">${B.lv}</span><span class="kchip">🏗️ ${B.st} Ausbaustufen</span><span class="kchip">📅 ${B.sea} ${B.sea>1?'Saisons':'Saison'}</span><span class="kchip">💶 Start ${kfmt(B.start)}</span></div>`;
  if(av)h+=`<p style="margin:6px 0;font-size:13.5px;color:#33516f;line-height:1.35">${KV[id].desc}</p>`;
- h+=`<div class="bgh">🎯 Ziele <small style="font-weight:400">· jedes Ziel ein Stern</small></div>`+I.goals.map((g,j)=>`<div class="kgoal"><span class="s">${'★'.repeat(j+1)}<i>${'★'.repeat(2-j)}</i></span><span><b>${['Pflicht','Zusatz','Meister'][j]}:</b> ${g}${j===0&&i<4?`<small>Ohne diesen Stern bleibt ${KBERGE[i+1].n} zu</small>`:''}</span></div>`).join('');
+ h+=`<div class="bgh">🎯 Ziele <small style="font-weight:400">· jedes Ziel ein Stern</small></div>`+I.goals.map((g,j)=>`<div class="kgoal"><span class="s">${'★'.repeat(j+1)}<i>${'★'.repeat(2-j)}</i></span><span><b>${['Pflicht','Zusatz','Meister'][j]}:</b> ${g}${j===0&&i<4?`<small>Ohne diesen Stern bleibt ${KBERGE[i+1].n} zu</small>`:j===2?'<small>Zählt erst, wenn Pflicht und Zusatz geschafft sind</small>':''}</span></div>`).join('');
  h+=`<div class="bgh">🌦️ Besonderheiten</div>`+I.spec.map(s=>`<div class="row"><span>${s[0]}</span><b style="text-align:right">${s[1]}</b></div>`).join('');if(I.extra)h+=I.extra;
  h+=`<div class="bgh">🧰 Firmen-Vorteile <small style="font-weight:400">· ${used} von ${xp} Erfahrung verteilt</small></div><div style="padding:6px 0 2px">${perks.length?perks.map(p=>{const P=KPERK.find(x=>x.id===p);return `<span class="kchip g">${P.ic} ${P.n}</span>`}).join(''):'<span style="color:var(--mut);font-size:13px">'+(xp?'noch keine gewählt':'Erfahrung bekommst du mit dem ersten Stern')+'</span>'} ${xp?'<a data-o="perk" data-v="'+id+'" style="font-size:13px;color:var(--ac);font-weight:600;cursor:pointer">Ändern ›</a>':''}</div>`;
  h+=`<div class="row" style="border:0;padding-top:10px"><span><small style="color:var(--mut)">Bester Versuch</small><br><b>${best?'<span class="kst">'+'★'.repeat(best)+'<i>'+'★'.repeat(3-best)+'</i></span>'+(R&&R.res!=null?' · Ergebnis '+kfmt(R.res):''):R?'0 Sterne':'– noch nicht gespielt'}</b></span></div>`;
