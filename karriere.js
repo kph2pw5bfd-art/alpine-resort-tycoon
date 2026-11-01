@@ -2262,7 +2262,7 @@ function kKassaDone(f){const V=KVOR,P=KG.price,F=V.fair;if(!kAnyLiftFor(f)){kNg(
  if(f.nsk){const pr=P.nsk??12,r=pr/12;if(r>1.15&&kR()<(r-1.15)*1.2){kNg(f,'p',10);KG.res.prRej=(KG.res.prRej||0)+1;kGoHome(f,1);return}if(r>1)kNg(f,'p',(r-1)*30);else f.sat+=(1-r)*10;
   const v=f.kid?Math.round(pr*.5):pr;kEarn('nsk',v,V.kassa.x,V.kassa.y-30);f.paid=(f.paid||0)+v;KG.res.nskN=(KG.res.nskN||0)+1;kAfterRun(f);return}
  if(f.kid&&f.toKid){kEarn('kid',P.kids,V.kinder.x,V.kinder.y-40);kWalk(f,KW.paths.kKid,'kid',10);return}
- const fairT=F.ticket[KG.stage]+(kStars()-1)*1.5,half=KG.t>=12,pr=f.kid?Math.round(P.ticket*.5):half?Math.round(P.ticket*.6):P.ticket,r=P.ticket/fairT;
+ const tk=kTk(),fairT=kFairTk(),half=KG.t>=12,pr=f.kid?Math.round(tk*.5):half?Math.round(tk*.6):tk,r=tk/fairT;
  const sens=V.priceSens*(f.ty==='fam'?1.3:f.ty==='anf'?1.1:.8);
  if(r>1.12&&kR()<(r-1.12)*sens*.9){kNg(f,'p',12);kGoHome(f,1);KG.res.prRej=(KG.res.prRej||0)+1;return}
  if(r>1)kNg(f,'p',(r-1)*45*sens);else f.sat+=(1-r)*14;kEarn('tk',pr,f.kasP?f.kasP[0]:V.kassa.x,(f.kasP?f.kasP[1]:V.kassa.y)-30);f.paid=(f.paid||0)+pr;f.half=half;
@@ -2418,10 +2418,15 @@ const KBASE={sonn:[0,110,260,380],bich:[0,120,190,270,380],alt:[0,150,220,290,37
 const KWXF={sonne:1.12,neuschnee:1.22,tau:.82,sturm:.5};
 const KWI={sonne:'☀️',neuschnee:'🌨️',tau:'🌡️',sturm:'🌪️'},KWNM={sonne:'Sonne',neuschnee:'Neuschnee',tau:'Tauwetter',sturm:'Sturm'};
 function kFairT(){return KVOR.fair.ticket[KG.stage]+(kStars()-1)*1.5}
+// V346: Wochenend-Karte Sa/So wie am Heimatberg (eigener Preis, fair = Wochentags-fair +15 %)
+function kWE(){return kWd()>=5}
+function kTwP(){if(KG.price.tw==null)KG.price.tw=Math.round(KG.price.ticket*1.15);return KG.price.tw}
+function kTk(){return kWE()?kTwP():KG.price.ticket}
+function kFairTk(){return kFairT()*(kWE()?1.15:1)}
 function kDemand(){const V=KVOR,base=KBASE[V.id]||KBASE.sonn,st=KG.stage;if(!Object.values(KG.l).some(l=>l.on))return 0;
  // neue Stufe spricht sich herum
  let b=base[st];if(KG.buzzD&&KG.day-KG.buzzD<KG.buzzN){const u=(KG.day-KG.buzzD+1)/(KG.buzzN+1);b=base[st-1]+(base[st]-base[st-1])*u}
- const r=KG.price.ticket/kFairT(),priceF=kcl(1.15-(r-.85)*V.priceSens*.9,.3,1.3);
+ const r=kTk()/kFairTk(),priceF=kcl(1.15-(r-.85)*V.priceSens*.9,.3,1.3);
  const q=kPQavg();let att=1+(KG.b.kinder?.07:0)+(KG.b.school?.05:0)+(KG.b.hut&&st>=(V.hut?V.hut.st:2)?.06:0)+(KG.b.kiosk?.02:0)+(V.att?V.att():0);
  let cmp=0;for(const c of KG.cmp)cmp+=c.eff;
  // V340: Sturm und kein einziger Lift fährt – die Gäste kennen den Wetterbericht und bleiben daheim
@@ -2824,7 +2829,7 @@ function kKassaDraw(c,x,y){const nt=kBright()<.5;c.fillStyle='rgba(110,140,180,.
  c.fillStyle='#d8433d';c.beginPath();c.moveTo(x-31,y-23);c.lineTo(x-22,y-36);c.lineTo(x+22,y-36);c.lineTo(x+31,y-23);c.closePath();c.fill();c.fillStyle='#fff';c.beginPath();c.moveTo(x-27,y-26);c.lineTo(x-21,y-34);c.lineTo(x+21,y-34);c.lineTo(x+27,y-26);c.closePath();c.fill();
  kSign(c,x,y-44,'🎫 KASSA','#2b3040','#fff',6);
  // Preistafel
- c.fillStyle='#2b3040';c.beginPath();c.roundRect(x-55,y-22,23,16,1.5);c.fill();c.fillStyle='#fff';c.font='700 3.2px Fredoka,sans-serif';c.textAlign='center';c.fillText('TAGESKARTE',x-43.5,y-17);c.font='700 4.6px Fredoka,sans-serif';c.fillStyle='#ffd84d';c.fillText(KG.price.ticket+' €',x-43.5,y-11.5);c.fillStyle='#5d667a';c.fillRect(x-44.2,y-6,1.4,8)}
+ c.fillStyle='#2b3040';c.beginPath();c.roundRect(x-55,y-22,23,16,1.5);c.fill();c.fillStyle='#fff';c.font='700 3.2px Fredoka,sans-serif';c.textAlign='center';c.fillText('TAGESKARTE',x-43.5,y-17);c.font='700 4.6px Fredoka,sans-serif';c.fillStyle='#ffd84d';c.fillText(kTk()+' €',x-43.5,y-11.5);c.fillStyle='#5d667a';c.fillRect(x-44.2,y-6,1.4,8)}
 function kKioskDraw(c,x,y,t){c.fillStyle='rgba(110,140,180,.25)';c.beginPath();c.ellipse(x+2,y+2,14,3,0,0,7);c.fill();c.fillStyle='#8f5a34';c.fillRect(x-11,y-12,22,13);c.fillStyle='#6e4426';c.fillRect(x+4,y-12,7,13);c.fillStyle='#ffe2a8';c.fillRect(x-9,y-9,12,5);
  for(let i=0;i<5;i++){c.fillStyle=i%2?'#fff':'#e8504a';c.beginPath();c.moveTo(x-13+i*5.2,y-12);c.lineTo(x-13+i*5.2+5.2,y-12);c.lineTo(x-13+i*5.2+5.2,y-16);c.lineTo(x-13+i*5.2,y-16);c.fill()}
  c.fillStyle='#fff';c.fillRect(x-13,y-18,26,2);kSign(c,x,y-23,'KIOSK','#e8504a','#fff',4.6);hSmoke(c,x+8,y-20,t,2)}
@@ -2985,7 +2990,7 @@ function kCloneCSS(){if(document.getElementById('kcss'))return;const map=[['#she
  for(const sh of document.styleSheets){let rules;try{rules=sh.cssRules}catch(e){continue}if(rules)walk(rules,x=>x)}
  const st=document.createElement('style');st.id='kcss';st.textContent=out.join('\n')+`
 #kui{position:fixed;inset:0;z-index:3;pointer-events:none}#kui>*{pointer-events:auto}#kui[hidden]{display:none}
-#ksheet{z-index:7}#ksheet.big{max-height:86vh}#ktoast{z-index:8;pointer-events:none!important}
+#ksheet{z-index:7}#ksheet.big{max-height:86vh}#ksheet.gbw{max-height:70vh}#ktoast{z-index:8;pointer-events:none!important}
 #kabar{bottom:calc(48px + env(safe-area-inset-bottom,0px));flex-wrap:nowrap!important;gap:5px!important}#kabar .ch{flex:1 1 0!important;min-width:0;padding:3px 7px!important}#kabar .ch b{font-size:11.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block}#kabar .ch .i{font-size:11px!important;color:#ffd84d}#kabar .ch.ok{background:#2e9e5b}
 .kchip{display:inline-flex;align-items:center;gap:4px;background:var(--chip);border-radius:9px;padding:3px 8px;font-size:12.5px;font-weight:600;color:var(--tx);margin:0 4px 4px 0}
 .kchip.g{background:#e3f5ea;color:#1d6e3e}.kchip.o{background:#fff0dc;color:#b8480c}.kst-bar{height:8px;border-radius:5px;background:var(--line);overflow:hidden;margin:3px 0 2px}.kst-bar i{display:block;height:100%;border-radius:5px}.kst-card{background:var(--chip);border-radius:12px;padding:9px 11px;margin:8px 0 0}.kst-card.eng{box-shadow:inset 0 0 0 2px #f0a020}.kst-card .h{display:flex;justify-content:space-between;align-items:center;gap:8px;font-weight:600;font-size:15px}.kst-card .g{display:grid;grid-template-columns:1fr 1fr;gap:4px 12px;margin-top:6px;font-size:13px}.kst-card .g small{display:block;color:var(--mut);font-size:11.5px}.kst-card .g b{font-size:14.5px}.kst-card .s{font-size:12.5px;color:var(--mut);margin-top:3px}.kst-rj{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:7px 0;border-top:1px solid var(--line);font-size:14.5px}.kst-rj a{color:#1e5fb0;font-weight:600;cursor:pointer;font-size:13px;white-space:nowrap}.kchip.b{background:#e1efff;color:#1e5fb0}.kchip.r{background:#fde4e2;color:#b8302b}
@@ -2994,7 +2999,7 @@ function kCloneCSS(){if(document.getElementById('kcss'))return;const map=[['#she
 .kcard{border:1px solid var(--line);border-radius:14px;padding:9px 11px;margin:8px 0;display:flex;gap:10px;align-items:center}.kcard .ic{font-size:26px;flex:none;width:34px;text-align:center}.kcard .tx{flex:1;min-width:0}.kcard .tx b{display:block;font-size:15px}.kcard .tx small{display:block;color:var(--mut);font-size:12.5px;line-height:1.3}.kcard .tx .rq{color:#b8480c}.kcard .tx .rq.ok{color:#2e9e5b}
 .kcard.done{opacity:.6}.kcard .bt{flex:none;text-align:right}.kcard .bt small{display:block;color:var(--mut);font-size:11px;margin-top:3px}
 .kpr{display:flex;align-items:center;gap:8px;padding:8px 0;border-top:1px solid var(--line)}.kpr:first-of-type{border-top:0}.kpr .tx{flex:1;min-width:0}.kpr .tx b{display:block;font-size:14.5px}.kpr .tx small{display:block;color:var(--mut);font-size:12px}
-.kpr .v{min-width:56px;text-align:center;font-weight:600;font-size:16px}.kpr button{width:36px;height:34px;border:0;border-radius:10px;background:var(--chip);color:var(--tx);font:600 20px Fredoka,sans-serif;cursor:pointer}
+.kpr .v{flex:none;min-width:44px;text-align:center;font-weight:600;font-size:16px;font-variant-numeric:tabular-nums}.kpr .ic{flex:none;font-size:18px;width:24px;text-align:center}.kpr .tx small{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.kpr .kpg{flex:none;font-size:11px;font-weight:600;border-radius:8px;padding:2px 7px;color:#fff;background:#8a94a8;white-space:nowrap;line-height:1.35}.kpr .kpg.lo{background:#2e9e5b;color:#fff}.kpr .kpg.ok{background:#2f7fd8;color:#fff}.kpr .kpg.hi{background:#e8a33a;color:#fff}.kpr .kpg.xx{background:#e8504a;color:#fff}.kpr .kpm{flex:none;width:30px;height:30px;border:0;border-radius:50%;background:var(--ac,#e8504a);color:#fff;font:600 19px/1 Fredoka,sans-serif;box-shadow:0 2px 0 #b83a35;cursor:pointer;touch-action:manipulation;padding:0}.kpr .kpm:active{transform:translateY(2px);box-shadow:0 1px 0 #b83a35}.kpr .kpm:disabled{opacity:.35}.kseg{display:flex;gap:6px;margin:8px 0 4px}.kseg button{flex:1;border:0;border-radius:10px;background:var(--chip);color:var(--tx);font:600 12px Fredoka,sans-serif;padding:6px 0;cursor:pointer}.kseg button.on{background:var(--ac,#e8504a);color:#fff}.kgbr{display:flex;align-items:center;gap:8px;padding:7px 0;border-top:1px solid var(--line)}.bgh+.kgbr{border-top:0}.kgbr .i{flex:none;font-size:20px;width:26px;text-align:center}.kgbr .t{flex:1;min-width:0;font-size:14.5px;font-weight:600;line-height:1.2}.kgbr .t small{font-weight:400;color:var(--mut);font-size:12px}.kgbr .v{flex:none;text-align:right;font-weight:600;font-size:15px;font-variant-numeric:tabular-nums}.kgbr .v small{display:block;font-weight:400;color:var(--mut);font-size:11px}.kgbr button{flex:none;width:30px;height:30px;border:0;border-radius:9px;background:var(--chip);color:var(--tx);font:600 18px Fredoka,sans-serif;cursor:pointer}.kpgh{margin:10px 0 2px;padding:6px 10px;border-radius:10px;background:var(--chip);font-weight:600;font-size:13px;color:var(--mut)}.kpgh+.kpr{border-top:0}
 .kpr .hi{color:#e8504a}.kpr .lo{color:#2e9e5b}
 .kbar2{height:8px;border-radius:5px;background:var(--line);overflow:hidden;margin-top:4px}.kbar2 i{display:block;height:100%;background:linear-gradient(90deg,#f2c53b,#e8a33a)}
 .kbars{display:flex;align-items:flex-end;gap:3px;height:90px;margin:8px 0 2px}.kbars div{flex:1;display:flex;flex-direction:column;justify-content:flex-end;gap:1px;min-width:0}.kbars i{display:block;border-radius:3px 3px 0 0}.kbars small{font-size:9px;color:var(--mut);text-align:center}
@@ -3047,12 +3052,14 @@ function kUI(){KW.dirty=0;const sh=document.getElementById('ksheet');if(!sh)retu
  if(KW.neu&&!o){KW.open='neu'}
  const k=KW.open;if(!k){sh.classList.remove('on');sh.innerHTML='';kGoalBar();return}
  let h='';try{h=({bau:kBauHTML,pre:kPreHTML,wer:kWerHTML,sta:kStaHTML,ziel:kZielHTML,opt:kOptHTML,inf:kInfHTML,neu:kNeuHTML,log:kLogHTML,sea:kSeaHTML,end:kEndHTML,kre:kStaHTML})[k]()}catch(e){h='<h3>Fehler<a data-a="x">✕</a></h3><p class="hint">'+kesc(e.message)+'</p>';console.error(e)}
- const top=sh.dataset.k===k+(KW.tab||'')?sh.scrollTop:0;sh.innerHTML=h;sh.dataset.k=k+(KW.tab||'');sh.classList.add('on');sh.classList.toggle('big',k==='bau'||k==='end'||k==='sta'||k==='ziel');sh.scrollTop=top;kGoalBar()}
+ const top=sh.dataset.k===k+(KW.tab||'')?sh.scrollTop:0;sh.innerHTML=h;sh.dataset.k=k+(KW.tab||'');sh.classList.add('on');sh.classList.toggle('big',k==='end');sh.classList.toggle('gbw',k==='inf');sh.scrollTop=top;kGoalBar()}
 function kHead(t,tabs){return `<div class="bhead"><h3>${t}<a data-a="x">✕</a></h3>${tabs?`<div class="btab">${tabs.map(([id,ic,n])=>`<button data-a="tab" data-v="${id}" class="${KW.tab===id?'on':''}"><span>${ic}</span>${n}</button>`).join('')}</div>`:''}</div>`}
 function kSheetClick(e){const b=e.target.closest('[data-a]');if(!b)return;const a=b.dataset.a,v=b.dataset.v;
  if(KVOR&&KVOR.act&&KVOR.act(a,v))return;
  if(a==='x'){if(KW.open==='neu'){KW.neu=null}kClose();return}
  if(a==='tab'){KW.tab=v;kUI();return}
+ if(a==='gbs'){kGbSort=v;kUI();return}
+ if(a==='ginf'){kOpenInfo(v);return}
  if(a==='buy'){kBuy(v);return}
  if(a==='pr'){const [k,d]=v.split('|');kPrice(k,+d);return}
  if(a==='cmp'){kCmp(v);return}
@@ -3105,7 +3112,7 @@ function kBuildItems0(){if(KVOR.items)return KVOR.items();const C=kCosts(),V=KVO
  add('per',{id:'lw',ic:'🔧',n:'Liftwart',d:'Repariert Störungen in kurzer Zeit. Ohne Liftwart kommt ein Techniker von außen (650 €, über 1 Stunde).',c:C.lw,done:!!b.lw,up:'130 €/Tag'});
  add('per',{id:'bw',ic:'⛑️',n:'Bergwacht',d:'Holt Verletzte mit dem Motorschlitten und Akja von der Piste. Ohne Bergwacht leidet der Ruf.',c:KPK('bw')?0:C.bw,done:!!b.bw,up:KPK('bw')?'Verein · ohne Lohn':'140 €/Tag'});
  return I}
-function kBauHTML(){const tabs=[['aus','🏔️','Ausbau'],['lif','🚡','Lifte'],['pis','❄️','Piste'],['gas','🛖','Gastro'],['anr','🚗','Anreise'],['per','👷','Personal']];if(!KW.tab||!tabs.some(t=>t[0]===KW.tab))KW.tab='aus';
+function kBauHTML(){const tabs=[['aus','⛰️','Ausbau'],['lif','🚡','Lifte'],['anr','🅿️','Anreise'],['gas','🏨','Gastro'],['pis','❄️','Piste'],['per','👷','Personal']];if(!KW.tab||!tabs.some(t=>t[0]===KW.tab))KW.tab='aus';
  const I=kBuildItems().filter(i=>i.tab===KW.tab);const open=I.filter(i=>!i.done),done=I.filter(i=>i.done);
  let h=kHead('🔨 Bauen',tabs)+`<p class="hint" style="margin:8px 0 2px">Kassa ${kfmt(KG.money)}${KG.loan>0?' · Kredit offen '+kfmt(KG.loan):''} · <a data-a="go" data-v="sta|kre" style="color:#1e5fb0;font-weight:600;cursor:pointer">🏦 Kredit</a></p>`;
  for(const i of open.concat(done))h+=kCardHTML(i);
@@ -3133,15 +3140,16 @@ function kUp4(){KG.l.ses.typ='s4';KG.l.ses.on=1;kLiftSetup('ses');kLog('🚡','D
 function kUpLift(id,typ,quiet){KG.l[id].typ=typ;KG.l[id].on=1;kLiftSetup(id);if(!quiet)kLog('🚡',kLC(id).n+' ist jetzt ein '+KLT[typ].n+'.')}
 function kSfx(){try{if(typeof sfx==='function')sfx('build',300)}catch(e){}}
 // --- Preise ---
-function kPreItems(){const F=KVOR.fair,b=KG.b;const I=[{k:'ticket',ic:'🎫',n:'Tageskarte',f:Math.round(kFairT()),min:5,max:80,st:1,sub:'Halbtag ab 12 Uhr: 60 % · Kinder: 50 %'},{k:'park',ic:'🅿️',n:'Parken',f:F.park,min:0,max:20,st:1}];
- I.push({k:'food',ic:'🍲',n:'Mittagsmenü',f:F.food,min:5,max:40,st:1,sub:b.hut?KVOR.hut.n+' · Kiosk-Snack: 55 %':'Kiosk-Snack: 55 % davon',hide:!b.hut&&!b.kiosk});
- I.push({k:'kids',ic:'⭐',n:'Kinderland Eintritt',f:F.kids,min:0,max:30,st:1,hide:!b.kinder});I.push({k:'school',ic:'⛷️',n:'Skikurs (2 Stunden)',f:F.school,min:5,max:80,st:1,hide:!b.school});I.push({k:'hotel',ic:'🏨',n:(KVOR.hotel?KVOR.hotel.n:'Gasthof')+' je Nacht',f:F.hotel,min:20,max:150,st:2,hide:!KG.hotel});
+function kPreItems(){const F=KVOR.fair,b=KG.b;kTwP();const I=[{g:'🎟️ Liftkarten',k:'ticket',ic:'☀️',n:'Tageskarte Mo–Fr',f:Math.round(kFairT()),min:5,max:80,st:1,sub:'Halbtag ab 12 Uhr: 60 % · Kinder: 50 %'},{g:'🎟️ Liftkarten',k:'tw',ic:'🎉',n:'Wochenend-Karte Sa/So',f:Math.round(kFairT()*1.15),min:5,max:95,st:1,sub:'Halbtag ab 12 Uhr: 60 % · Kinder: 50 %'},{g:'🅿️ Parken',k:'park',ic:'🚗',n:'Parkplatz',f:F.park,min:0,max:20,st:1,sub:'pro Auto'}];
+ I.push({g:'🍽️ Essen & Trinken',k:'food',ic:'🍲',n:'Mittagsmenü',f:F.food,min:5,max:40,st:1,sub:b.hut?KVOR.hut.n+' · Kiosk-Snack: 55 %':'Kiosk-Snack: 55 % davon',hide:!b.hut&&!b.kiosk});
+ I.push({g:'⛷️ Skischule & Kinderland',k:'kids',ic:'⭐',n:'Kinderland Eintritt',f:F.kids,min:0,max:30,st:1,hide:!b.kinder});I.push({g:'⛷️ Skischule & Kinderland',k:'school',ic:'⛷️',n:'Skikurs (2 Stunden)',f:F.school,min:5,max:80,st:1,hide:!b.school});I.push({g:'🛏️ Übernachten · pro Nacht',k:'hotel',ic:'🏨',n:(KVOR.hotel?KVOR.hotel.n:'Gasthof')+' je Nacht',f:F.hotel,min:20,max:150,st:2,hide:!KG.hotel});
  if(KG.price.mus==null)KG.price.mus=8;if(KG.price.nsk==null)KG.price.nsk=12;
- I.push({k:'mus',ic:'🏛️',n:'Museum Eintritt',f:8,min:0,max:30,st:1,sub:'Kinder: 50 %',hide:!b.mus});I.push({k:'nsk',ic:'🌙',n:'Abendkarte Nachtski',f:12,min:3,max:40,st:1,sub:'17:30–21:00 · Kinder: 50 %',hide:!b.fl});
- return I.filter(i=>!i.hide)}
+ I.push({g:'🏛️ Museum',k:'mus',ic:'🏛️',n:'Museum Eintritt',f:8,min:0,max:30,st:1,sub:'Kinder: 50 %',hide:!b.mus});I.push({g:'🎟️ Liftkarten',k:'nsk',ic:'🌙',n:'Abendkarte Nachtski',f:12,min:3,max:40,st:1,sub:'17:30–21:00 · Kinder: 50 %',hide:!b.fl});
+ const GO=['🎟️ Liftkarten','🅿️ Parken','🍽️ Essen & Trinken','⛷️ Skischule & Kinderland','🛏️ Übernachten · pro Nacht','🏛️ Museum'];return I.filter(i=>!i.hide).map((i,n)=>Object.assign(i,{n0:n})).sort((a,b)=>GO.indexOf(a.g)-GO.indexOf(b.g)||a.n0-b.n0)}
 function kPreHTML(){let h=kHead('💰 Preise')+'<p class="hint" style="margin:8px 0 4px">'+KVOR.preHint+'</p>';
- for(const i of kPreItems()){const v=KG.price[i.k],r=v/Math.max(1,i.f);const cl=r>1.15?'hi':r<.9?'lo':'';const tx=r>1.3?'viel zu teuer':r>1.15?'zu teuer':r<.75?'sehr günstig':r<.9?'günstig':'fair';
-  h+=`<div class="kpr"><span style="font-size:22px">${i.ic}</span><span class="tx"><b>${i.n}</b><small>fair ca. ${i.f} € · <span class="${cl}">${tx}</span>${i.sub?' · '+i.sub:''}</small></span><button data-a="pr" data-v="${i.k}|-${i.st}">−</button><span class="v">${v} €</span><button data-a="pr" data-v="${i.k}|${i.st}">+</button></div>`}
+ let g0='';for(const i of kPreItems()){const v=KG.price[i.k],r=v/Math.max(1,i.f);const cl=r>1.3?'xx':r>1.15?'hi':r<.9?'lo':'ok';const tx=r>1.3?'viel zu teuer':r>1.15?'zu teuer':r<.75?'sehr günstig':r<.9?'günstig':'fair';
+  if(i.g!==g0){g0=i.g;h+=`<div class="kpgh">${i.g}</div>`}
+  h+=`<div class="kpr"><span class="ic">${i.ic}</span><span class="tx"><b>${i.n}</b><small>fair ca. ${i.f} €${i.sub?' · '+i.sub:''}</small></span><span class="kpg ${cl}">${tx}</span><button class="kpm" data-a="pr" data-v="${i.k}|-${i.st}" ${v<=i.min?'disabled':''}>−</button><span class="v">${v} €</span><button class="kpm" data-a="pr" data-v="${i.k}|${i.st}" ${v>=i.max?'disabled':''}>+</button></div>`}
  if(KVOR.nsk&&KG.b[KVOR.nsk.need])h+=kNskDaysHTML();
  return h}
 function kPrice(k,d){const i=kPreItems().find(x=>x.k===k);if(!i)return;KG.price[k]=kcl(KG.price[k]+d,i.min,i.max);kUI();kHud(1)}
@@ -3156,7 +3164,7 @@ function kWerHTML(){const tabs=[['ruf','😊','Ruf'],['wer','📣','Werbung']];i
   for(const c of KCMP){const run=KG.cmp.find(x=>x.id===c.id),lk=c.st&&KG.stage<c.st,cost=kCmpCost(c);h+=`<div class="kcard"><span class="ic">${c.ic}</span><span class="tx"><b>${c.n}</b><small>${c.d} · ${c.days} Tage</small></span><span class="bt">${run?`<span class="kchip g">läuft<br>bis ${KWN[(run.end-1)%7]}</span>`:lk?`<button class="btn" disabled>${kfmt(cost)}</button><small>ab Stufe ${c.st}</small>`:`<button class="btn" data-a="cmp" data-v="${c.id}" ${kCanPay(cost)?'':'disabled'}>${kfmt(cost)}</button>`}</span></div>`}}
  return h}
 function kCmp(id){const c=KCMP.find(x=>x.id===id),cost=kCmpCost(c);if(!kCanPay(cost)||KG.cmp.find(x=>x.id===id))return;KG.money-=cost;KG.cost.wer=(KG.cost.wer||0)+cost;KG.seaWer=(KG.seaWer||0)+cost;KG.cmp.push({id,end:KG.day+c.days,eff:c.eff,ruf:c.ruf,ty:c.ty||null});kLog(c.ic,c.n+' läuft '+c.days+' Tage.');KG.dem=kDemand();kUI();kHud(1)}
-function kVoices(){const out=[];let w=0;for(const id in KW.lift)if(KG.l[id].on)w=Math.max(w,kWait(id));const wt=0;const r=KG.price.ticket/kFairT();if(KVOR.voices)KVOR.voices(out);
+function kVoices(){const out=[];let w=0;for(const id in KW.lift)if(KG.l[id].on)w=Math.max(w,kWait(id));const wt=0;const r=kTk()/kFairTk();if(KVOR.voices)KVOR.voices(out);
  if(Math.max(w,wt)>15)out.push(['⏳','„Die Schlange am Lift ist viel zu lang!“']);if(r>1.15)out.push(['💸','„Die Tageskarte ist hier ganz schön teuer.“']);else if(r<.9)out.push(['💶','„So günstig – toll für Familien!“']);
  if(kPQavg()<60)out.push(['🧊','„Die Piste ist ganz zerfahren.“']);if(KVOR.kinder){if(!KG.b.kinder)out.push(['👧','„Für die Kleinen gibt es hier nicht viel.“']);else out.push(['⭐','„Das Kinderland ist super!“'])}
  if(!KG.b.hut&&!KG.b.kiosk)out.push(['🍽️','„Wo kann man hier etwas essen?“']);if(KG.rej>3)out.push(['🅿️','„Kein Parkplatz mehr frei – wir sind umgedreht.“']);if(KG.res.hurt&&!KG.b.bw)out.push(['⛑️','„Nach dem Unfall hat lange niemand geholfen.“']);
@@ -3184,7 +3192,7 @@ function kStaHist(){const hs=KG.hist.slice(-10);if(!hs.length)return '<p class="
  return h}
 function kIncNow(){let i=0;for(const k in KG.inc)if(k!=='bau')i+=KG.inc[k];return i}
 function kCostNow(){const c=kRunCosts();let s=0;for(const k in c)s+=c[k];return s}
-function kStaHTML(){const tabs=[['heu','📊','Übersicht'],['lif','🚡','Lifte'],['fin','💶','Finanzen'],['kre','🏦','Kredit'],['gst','👥','Gäste']];if(KVOR.staTab)tabs.splice(1,0,KVOR.staTab);if(!KW.tab||!tabs.some(t=>t[0]===KW.tab))KW.tab='heu';let h=kHead('📊 Statistik',tabs);
+function kStaHTML(){const tabs=[['heu','📊','Übersicht'],['lif','🚡','Lifte'],['geb','🏢','Gebäude'],['fin','💶','Finanzen'],['kre','🏦','Kredit'],['gst','👥','Gäste']];if(KVOR.staTab)tabs.splice(1,0,KVOR.staTab);if(!KW.tab||!tabs.some(t=>t[0]===KW.tab))KW.tab='heu';let h=kHead('📊 Statistik',tabs);
  if(KW.tab==='heu'){const inc=kIncNow(),pr=inc-kCostNow()-kLnZins();
   h+=`<div class="kpi"><div style="grid-column:1/-1"><small>Kasse</small><b class="${KG.money<0?'neg':''}">${kfmt(KG.money)}</b>${KG.loan>0?`<i style="color:var(--mut)">Kredit offen ${kfmt(KG.loan)}</i>`:''}</div><div><small>Einnahmen heute</small><b>${kfmt(inc)}</b><i style="color:var(--mut)">${KG.gDay} Gäste</i></div><div><small>Gewinn heute (bisher)</small><b class="${pr<0?'neg':'pos'}">${(pr>0?'+':'')+kfmt(pr)}</b><i style="color:var(--mut)">nach Kosten</i></div></div>
  ${kRjHTML()}<div class="wx wx2"><div><small>Wetter</small><span>${KWI[KG.wx]} ${KWNM[KG.wx]}</span></div><div><small>Vorhersage</small><span>${KWI[KG.wxN]} ${KWNM[KG.wxN]}<small>${KG.t<6?'ab 6 Uhr':'morgen'}</small></span></div></div>`;
@@ -3194,12 +3202,13 @@ function kStaHTML(){const tabs=[['heu','📊','Übersicht'],['lif','🚡','Lifte
   for(const p of KW.pistes)if(!p.conn&&kPisteOpen(p))h+=`<div class="row"><span>${p.col==='r'?'🔴':p.col==='s'?'⚫':'🔵'} ${p.n}</span><b>Zustand ${Math.round(KG.pq[p.id])} %</b></div>`;
   if(KVOR.staExtra)h+=KVOR.staExtra()}
  if(KW.tab==='lif')h+=kLiftTabHTML();
+ if(KW.tab==='geb')h+=kGebTabHTML();
  if(KW.tab==='kre')h+=kLnHTML();
  if(KVOR.staTab&&KW.tab===KVOR.staTab[0])h+=KVOR.staTabHTML();
  if(KW.tab==='gst'){const S=KG.sat,N={fam:'👨‍👩‍👧 Familien',anf:'🔰 Anfänger',pro:'⛷️ Profis',sb:'🏂 Snowboarder'};h+=kGxHTML()+'<div class="bgh" style="margin-top:14px">Heute abgereiste Gäste · Zufriedenheit</div>';
   for(const k in N){const s=S[k];h+=`<div class="row"><span>${N[k]}</span><b>${s&&s.n?Math.round(s.s/s.n)+' % · '+s.n:'–'}</b></div>`}
   if(KVOR.famGoal)h+=`<div class="bgh">Ziel Familien</div><div class="row"><span>Tage mit Familien ≥ 75 % zufrieden</span><b>${Math.min(5,KG.famOK||0)} / 5</b></div><p class="hint">Familien mögen faire Preise, kurze Wartezeiten, das Kinderland und ein Mittagessen. Gezählt wird ein Tag ab 5 Familien-Gästen.</p>`}
- if(KW.tab==='fin'){const inc=KG.seaInc||0,cost=KG.seaCost||0;h+=kFinTab()+`<div class="bgh">Saison bisher</div><div class="kpi"><div><small>Saison: Einnahmen</small><b>${kfmt(inc)}</b></div><div><small>Saison: laufende Kosten</small><b>${kfmt(cost)}</b></div><div><small>Betriebsergebnis</small><b class="${inc-cost>=0?'pos':'neg'}">${kfmt(inc-cost)}</b></div><div><small>Gebaut + Werbung</small><b>${kfmt((KG.seaBau||0)+(KG.seaWer||0))}</b></div></div>`+kRentHTML();
+ if(KW.tab==='fin'){const inc=KG.seaInc||0,cost=KG.seaCost||0;h+=kFinTab()+`<div class="bgh">Saison bisher</div><div class="kpi"><div><small>Saison: Einnahmen</small><b>${kfmt(inc)}</b></div><div><small>Saison: laufende Kosten</small><b>${kfmt(cost)}</b></div><div><small>Betriebsergebnis</small><b class="${inc-cost>=0?'pos':'neg'}">${kfmt(inc-cost)}</b></div><div><small>Gebaut + Werbung</small><b>${kfmt((KG.seaBau||0)+(KG.seaWer||0))}</b></div></div>`;
   const L=KG.lastDay;if(L){h+='<div class="bgh">Kosten gestern</div>';const N={teich:'💧 Speicherteich',lift:'🚡 Lifte',kassa:'🎫 Kassa',hut:'🛖 '+(KVOR.hut?KVOR.hut.n:'Hütte'),kinder:'⭐ Kinderland',school:'⛷️ Skischule',kiosk:'🌭 Kiosk',raupe:'🚜 Pistenraupe',can:'❄️ Schneekanonen (Strom)',lots:'🅿️ Parkplätze',bus:'🚌 Skibus',hotel:'🏨 '+(KVOR.hotel?KVOR.hotel.n:'Gasthof'),lw:'🔧 Liftwart',bw:'⛑️ Bergwacht',mus:'🏛️ Museum',fl:'💡 Flutlicht (Strom, Personal)',zins:'🏦 Zinsen'};for(const k in L.c)h+=`<div class="row"><span>${N[k]||k}</span><b>${kfmt(L.c[k])}</b></div>`}
   if(KG.loan>0)h+=`<div class="bgh">Kredit</div><div class="row"><span>Offener Kredit · Rate pro Tag</span><b>${kfmt(KG.loan)} · ${kfmt(KG.lnR)}</b></div><button class="btn ghost" data-a="tab" data-v="kre" style="margin-top:6px">🏦 Zum Kredit</button>`}
  return h}
@@ -3246,8 +3255,22 @@ const KRSRC={hot:'hotel',kid:'kinder',sch:'school',mus:'mus',nsk:'fl'},KRB=['kio
 function kRentFix(){if(!KG.rent)KG.rent={};if(KG.rentV===1)return KG.rent;KG.rentV=1;let I=[];try{I=kBuildItems0()}catch(e){}
  for(const id of KRB){if(KG.rent[id])continue;const it=I.find(i=>i.id===id);if(it&&it.done)KG.rent[id]={c:it.c||0,d:null,d0:KG.day+KG.t/24,inc:0,cost:0,n:it.n,ic:it.ic}}return KG.rent}
 function kRentNew(id,I){if(!KRB.includes(id))return;kRentFix();KG.rent[id]={c:I.c||0,d:KG.day,d0:KG.day+KG.t/24,inc:0,cost:0,n:I.n,ic:I.ic}}
-function kRentInc(bid,v){if(!bid||!KG)return;const r=kRentFix()[bid];if(r)r.inc+=v}
+function kRentInc(bid,v){if(!bid||!KG)return;const r=kRentFix()[bid];if(!r)return;r.inc+=v;if(r.dd!==KG.day){r.dd=KG.day;r.incD=0;r.nD=0}r.incD+=v;r.nD++}
 function kRentCost(c){const R=kRentFix();for(const id in R)if(c[id])R[id].cost+=c[id]}
+// V346: Reiter Gebäude wie am Heimatberg – Lifte (Wartezeit) und Gebäude heute, dazu „Seit Bau“ (Rentabilität)
+const KGINF={kiosk:'kio',hut:'hut',grest:'grest',hotel:'hot',kinder:'kid',school:'sch',mus:'mus',fl:'fl'};let kGbSort='m';
+function kGebTabHTML(){const seg=`<div class="kseg">${[['m','💶 Gewinn'],['n','👥 Gäste'],['r','🏗️ Seit Bau']].map(x=>`<button data-a="gbs" data-v="${x[0]}" class="${kGbSort===x[0]?'on':''}">${x[1]}</button>`).join('')}</div>`;
+ if(kGbSort==='r')return seg+kRentHTML();
+ const R=kRentFix(),c=kRunCosts(),f=Math.min(1,Math.max(0,KG.t)/24),rows=[];
+ for(const id of KRB){const r=R[id];if(!r)continue;let inc=r.dd===KG.day?r.incD||0:0,n=r.dd===KG.day?r.nD||0:0,u=Math.round((c[id]||0)*f),sub;
+  if(id==='hotel'){inc=kHotEst();n=KVOR.hotel?Math.round(KVOR.hotel.rooms*(KG.hOcc||.4)):0;sub=Math.round((KG.hOcc||.4)*100)+' % belegt'}else sub=c[id]?'Unterhalt bisher '+kfmt(u):'kein Unterhalt';
+  rows.push({id,ic:r.ic||'🏠',t:(r.n||id).replace(/ sanieren$/,''),p:inc-u,n,sub,nl:id==='hotel'?'heute Nacht':'Gäste'})}
+ const key=x=>kGbSort==='n'?x.n:x.p;rows.sort((a,b)=>key(b)-key(a));
+ let h=seg+`<p class="hint" style="margin:4px 2px 2px">Heute bis jetzt, Unterhalt anteilig bis zur aktuellen Uhrzeit. Hotel: Schätzung für heute Nacht. › öffnet das Fenster des Gebäudes.</p>`;
+ h+='<div class="bgh">🚡 Lifte</div>';for(const L of KVOR.lifts){if(!KG.l[L.id].on)continue;const w=kWait(L.id);h+=`<div class="kgbr"><span class="i">${L.typ==='teller'?'🎿':'🚡'}</span><span class="t">${kLC(L.id).n}</span><span class="v ${w>=12?'neg':''}">${w<1?'keine':Math.round(w)+' Min'}<small>Wartezeit</small></span><button data-a="ginf" data-v="l:${L.id}">›</button></div>`}
+ h+='<div class="bgh">🏠 Gebäude</div>';if(!rows.length)h+='<p class="hint">Noch kein Gebäude mit eigenen Einnahmen gebaut (Kiosk, Hütte, Hotel, Skischule …).</p>';
+ for(const x of rows){const v=kGbSort==='n'?x.n:(x.p>=0?'+':'−')+kfmt(Math.abs(x.p));h+=`<div class="kgbr"><span class="i">${x.ic}</span><span class="t">${x.t}<br><small>${kGbSort==='n'?'heute':x.sub}</small></span><span class="v ${kGbSort==='m'?(x.p>=0?'pos':'neg'):''}">${v}<small>${kGbSort==='n'?x.nl:'heute'}</small></span><button data-a="ginf" data-v="${KGINF[x.id]||x.id}">›</button></div>`}
+ return h}
 function kRentHTML(){const R=kRentFix(),ids=KRB.filter(id=>R[id]);let h='<div class="bgh">🏗️ Rentabilität je Gebäude</div>';
  if(!ids.length)return h+'<p class="hint">Noch kein Gebäude mit eigenen Einnahmen gebaut (Kiosk, Hütte, Hotel, Skischule …).</p>';
  for(const id of ids){const r=R[id],net=r.inc-r.cost,days=Math.max(.25,KG.day+KG.t/24-r.d0),pd=net/days,p=r.c?net/r.c*100:100,ok=net>=r.c;
@@ -3291,7 +3314,7 @@ function kInfHTML(){const k=KW.inf||'',V=KVOR;
  if(V.infHTML){const r=V.infHTML(k);if(r)return r}
  const Hd={kas:'🎫 Kassa',kio:'🌭 Kiosk',hut:'🛖 '+(V.hut?V.hut.n:'Hütte'),kid:'⭐ Kinderland',sch:'⛷️ Skischule',rau:'🚜 Pistenraupe',hot:'🏨 '+(V.hotel?V.hotel.n:'Gasthof'),park:'🅿️ Parkplätze'};
  if(Hd[k]){let h=kHead(Hd[k]);const inc=KG.inc;
-  if(k==='kas')h+=`<div class="kpi"><div><small>Gäste heute</small><b>${KG.gDay}</b></div><div><small>Tageskarten heute</small><b>${kfmt(inc.tk||0)}</b></div></div><div class="row"><span>Tageskarte</span><button class="btn" data-a="go" data-v="pre">${KG.price.ticket} € ›</button></div>${KG.res.prRej?`<p class="hint">${KG.res.prRej} Gäste fanden die Karte zu teuer und sind umgekehrt.</p>`:''}`;
+  if(k==='kas')h+=`<div class="kpi"><div><small>Gäste heute</small><b>${KG.gDay}</b></div><div><small>Tageskarten heute</small><b>${kfmt(inc.tk||0)}</b></div></div><div class="row"><span>Tageskarte</span><button class="btn" data-a="go" data-v="pre">${kTk()} € ›</button></div>${KG.res.prRej?`<p class="hint">${KG.res.prRej} Gäste fanden die Karte zu teuer und sind umgekehrt.</p>`:''}`;
   if(k==='kio'||k==='hut')h+=`<div class="kpi"><div><small>Essen heute (alle)</small><b>${kfmt(inc.food||0)}</b></div><div><small>Mittagsmenü</small><b>${KG.price.food} €</b></div></div><p class="hint">Mittagszeit ist zwischen 11 und 14 Uhr.</p>`;
   if(k==='kid')h+=`<div class="kpi"><div><small>Kinderland heute</small><b>${kfmt(inc.kid||0)}</b></div><div><small>Kinder gerade</small><b>${KW.folks.filter(f=>f.st==='kidin').length}</b></div></div>`;
   if(k==='sch'){const g=KW.school.filter(x=>x.st==='run'||x.st==='wait');h+=`<div class="kpi"><div><small>Skikurse heute</small><b>${kfmt(inc.sch||0)}</b></div><div><small>Gruppen gerade</small><b>${g.length}</b></div></div><p class="hint">Kurse beginnen jeweils zur halben Stunde von 9:30 bis 14:30, bis zu 6 Teilnehmer je Gruppe.</p>`}
