@@ -3234,7 +3234,7 @@ function kHsRj(x){const r=x.rj;return r?{p:r.p||0,pr:r.pr||0,l:r.l||0}:{p:Math.r
 function kRjHTML(){const R=KG.res,p=Math.round(R.rjG||0),pr=R.prRej||0,l=R.rjL||0,n=p+pr+l;
  let h=`<div class="bgh" style="margin-top:8px">🚫 Abgewiesen heute${n?' · ca. '+n+' Gäste':''}</div>`;
  if(!n)return h+`<div class="kst-rj"><span>✅ Bisher niemand umgedreht</span></div>`;
- if(p)h+=`<div class="kst-rj"><span>🅿️ Parkplatz voll<br><small style="color:var(--mut)">${KG.rej} ${KG.rej===1?'Auto':'Autos'} · ca. ${p} Gäste</small></span><a data-a="go" data-v="bau|anr">Anreise ausbauen ›</a></div>`;
+ if(p)h+=`<div class="kst-rj"><span>🅿️ Parkplatz voll<br><small style="color:var(--mut)">${KG.rej} ${KG.rej===1?'Auto':'Autos'} · ca. ${p} Gäste</small></span>${kFixLeft('anr')?'<a data-a="go" data-v="bau|anr">Anreise ausbauen ›</a>':'<a data-a="go" data-v="pre">Preise ›</a>'}</div>${kFixLeft('anr')?'':'<p class="hint" style="margin:2px 0 6px">Die Anreise ist voll ausgebaut. Ein höherer Kartenpreis senkt den Andrang.</p>'}`;
  if(pr)h+=`<div class="kst-rj"><span>💸 Karte zu teuer<br><small style="color:var(--mut)">${pr} Gäste an der Kassa umgekehrt</small></span><a data-a="go" data-v="pre">Preise ›</a></div>`;
  if(l)h+=`<div class="kst-rj"><span>🚡 Kein passender Lift offen<br><small style="color:var(--mut)">${l} Gäste – Sturm, Panne oder Liftschluss</small></span><a data-a="tab" data-v="lif">Lifte ›</a></div>`;
  return h}
@@ -3252,7 +3252,7 @@ function kLiftTabHTML(){const R=KG.res,EN=kEngpass();let h='<p class="hint" styl
   <div class="g"><div><small>Schlange jetzt · Ø heute</small><b>${Math.round(kWait(id))} · ${n?Math.round(wa):'–'} Min.</b></div><div><small>Längste Wartezeit heute</small><b>${n?Math.round(wm)+' Min.':'–'}</b>${n&&wm>=1?` <small style="display:inline">${kHM((R.lwt||{})[id]||KG.t)}</small>`:''}</div>
   <div><small>Auslastung ${u==null?'–':u+' %'} · ${n.toLocaleString('de-AT')} Fahrten</small>${kBarHTML(u||0,uc)}</div><div><small>Zustand ${c} % · Risiko ${rk} %</small>${kBarHTML(c,cc)}</div></div>
   ${(R.lq||{})[id]>=.25?`<div class="s">⏳ Schlange über 15 Min.: <b style="color:var(--tx)">${String(Math.round(R.lq[id]*10)/10).replace('.',',')} Std.</b> heute</div>`:''}<div class="s">🔧 Pannen diese Saison: <b style="color:var(--tx)">${s.pS||0}</b>${s.pS?' · Stillstand ca. '+(Math.round((s.pH||0)*60))+' Min.':''}</div></div>`}
- h+=`<p class="hint">⚠️ Engpass = der Lift mit der längsten Wartezeit (ab 12 Min.). Abhilfe: mehr Sessel, größerer Lift oder ein zweiter Lift, der Gäste abnimmt. Ein schlechter Zustand macht Pannen wahrscheinlicher – Sanieren hilft, der Liftwart repariert nur schneller.</p><button class="btn ghost" data-a="go" data-v="bau|lif" style="margin-top:8px">🔨 Lifte ausbauen</button>`;
+ h+=kFixLeft('lif')?`<p class="hint">⚠️ Engpass = der Lift mit der längsten Wartezeit (ab 12 Min.). Abhilfe: mehr Sessel, größerer Lift oder ein zweiter Lift, der Gäste abnimmt. Ein schlechter Zustand macht Pannen wahrscheinlicher – Sanieren hilft, der Liftwart repariert nur schneller.</p><button class="btn ghost" data-a="go" data-v="bau|lif" style="margin-top:8px">🔨 Lifte ausbauen</button>`:`<p class="hint">⚠️ Engpass = der Lift mit der längsten Wartezeit (ab 12 Min.). Alle Lifte sind voll ausgebaut. Ein höherer Kartenpreis senkt den Andrang. Ein schlechter Zustand macht Pannen wahrscheinlicher – eine Generalüberholung hilft.</p><button class="btn ghost" data-a="go" data-v="pre" style="margin-top:8px">💰 Preise</button>`;
  return h}
 const KRSRC={hot:'hotel',kid:'kinder',sch:'school',mus:'mus',nsk:'fl'},KRB=['kiosk','hut','grest','hotel','kinder','school','mus','fl'];
 function kRentFix(){if(!KG.rent)KG.rent={};if(KG.rentV===1)return KG.rent;KG.rentV=1;let I=[];try{I=kBuildItems0()}catch(e){}
@@ -3332,6 +3332,8 @@ function kInfHTML(){const k=KW.inf||'',V=KVOR;
 function kOvhC(id){const L=kLC(id);return Math.round((L.ovh||(id==='tl'?600:3000))*(KPK('lift')?.9:1))}
 function kOverhaul(id){const c=kOvhC(id);if(!kCanPay(c))return;KG.money-=c;KG.cost.bau=(KG.cost.bau||0)+c;KG.seaBau=(KG.seaBau||0)+c;KG.l[id].cond=100;kLog('🔧',kLC(id).n+' generalüberholt.');kUI()}
 
+// V347: Hinweise bieten nur echte Abhilfen an – noch etwas im Reiter baubar? (gekauft oder im Bau zählt nicht)
+function kFixLeft(tab){try{return kBuildItems().filter(i=>i.tab===tab&&!i.done&&!i.bau).length}catch(e){return 0}}
 // ===== V347: Lift- und Gebäude-Fenster wie am Heimatberg (Kacheln mit Vergleich zu gestern, Diagramm Heute/7 Tage, Preis im Fenster, Gäste-Stimme, Hinweise) =====
 const KGB0=7,KGBF={kiosk:'kio',hut:'hut',grest:'grest'},KGBE={tk:'kas',pk:'park',kid:'kid',sch:'sch',mus:'mus',nsk:'fl'};
 let kGbC=0,kGbR='t',kGbAt=0,kGbSl=-9,kGbL={};
@@ -3401,14 +3403,14 @@ function kGbVoice(k,M){let q=null,s='';const P=kGbPI(M);
  return q?`<div class="gbvo"><span>💬</span><div><span class="q">${q}</span><br><small>${s||'So reden die Gäste gerade'}</small></div></div>`:''}
 function kGbHint(k,M){const H=[];
  if(M.g==='lift'){const s=KG.l[M.id],T=KG.gbs&&KG.gbs.t[k],mw=Math.max(0,...((T&&T.w)||[]).filter(x=>x!=null));if(s.brk)H.push(['w','🔧 <b>Störung</b> – der Lift steht, bis repariert ist.'+(KG.b.lw?' Der Liftwart ist unterwegs.':''),null]);
-  if(mw>=12)H.push(['w','⚠️ Heute bis '+Math.round(mw)+' Min Wartezeit. Ab etwa 12 Minuten werden die Gäste unzufrieden.','Bauen ›']);
+  if(mw>=12)H.push(kFixLeft('lif')?['w','⚠️ Heute bis '+Math.round(mw)+' Min Wartezeit. Ab etwa 12 Minuten werden die Gäste unzufrieden. Im Baumenü gibt es noch Lift-Ausbauten.','Bauen ›','bau|lif']:['w','⚠️ Heute bis '+Math.round(mw)+' Min Wartezeit. Alle Lifte sind voll ausgebaut – ein höherer Kartenpreis bringt weniger, dafür zahlendere Gäste.','Preise ›','pre']);
   if(s.cond<55)H.push(['w','🔧 Zustand schlecht – Pannen werden häufiger. Eine Generalüberholung hilft.',null])}
  const P=kGbPI(M);if(P){const r=KG.price[P.k]/Math.max(1,P.f);if(r>1.3)H.push(['w','💸 Preis deutlich über fair – das kostet Gäste und Ruf.',null])}
  if(M.g==='hotel'){const h=(KG.gbs&&KG.gbs.h[k])||[];if(h.length>=3&&h.slice(-3).every(x=>x.a>=90))H.push(['g','💡 Fast jede Nacht voll – ein etwas höherer Preis lohnt sich.',null])}
- if(M.g==='park'&&KG.rej>0)H.push(['w','🚫 Heute '+KG.rej+' Autos ohne freien Platz umgekehrt.','Bauen ›'])
+ if(M.g==='park'&&KG.rej>0)H.push(kFixLeft('anr')?['w','🚫 Heute '+KG.rej+' Autos ohne freien Platz umgekehrt. Bei der Anreise gibt es noch etwas zu bauen.','Bauen ›','bau|anr']:['w','🚫 Heute '+KG.rej+' Autos ohne freien Platz umgekehrt. Alles ist gebaut – ein höherer Kartenpreis senkt den Andrang.','Preise ›','pre']);
  if(M.g==='gas'){const L=kGbLast(k);if(L&&L.m-L.u<0&&L.u>0)H.push(['w','📉 Gestern hat es mehr gekostet ('+kfmt(L.u)+') als es gebracht hat ('+kfmt(L.m)+').',null])}
  if(M.g==='kas'&&KG.res.prRej)H.push(['w','💸 '+KG.res.prRej+' Gäste fanden die Karte zu teuer und sind umgekehrt.',null]);
- return H.map(x=>`<div class="gbhi ${x[0]}"><span>${x[1]}</span>${x[2]?`<button class="btn" data-a="go" data-v="${M.g==='park'?'bau|anr':'bau|lif'}">${x[2]}</button>`:''}</div>`).join('')}
+ return H.map(x=>`<div class="gbhi ${x[0]}"><span>${x[1]}</span>${x[2]?`<button class="btn" data-a="go" data-v="${x[3]}">${x[2]}</button>`:''}</div>`).join('')}
 function kGbPriceHTML(M){const i=kGbPI(M);if(!i)return '';const v=KG.price[i.k],r=v/Math.max(1,i.f),cl=r>1.3?'xx':r>1.15?'hi':r<.9?'lo':'ok',tx=r>1.3?'viel zu teuer':r>1.15?'zu teuer':r<.75?'sehr günstig':r<.9?'günstig':'fair';
  const sub=M.pf?`hier ${Math.round(v*M.pf)} € mit Gletscher-Zuschlag`:`fair ca. ${i.f} €${i.k==='food'?' · gilt für alle Lokale':i.sub&&i.k!=='ticket'&&i.k!=='tw'?' · '+i.sub:''}`;
  return `<div class="kpr" style="border-top:0;margin:6px 0"><span class="ic">🏷️</span><span class="tx"><b>${M.g==='hotel'?'Zimmerpreis':i.n}</b><small>${sub}</small></span><span class="kpg ${cl}">${tx}</span><button class="kpm" data-a="pr" data-v="${i.k}|-${i.st}" ${v<=i.min?'disabled':''}>−</button><span class="v">${v} €</span><button class="kpm" data-a="pr" data-v="${i.k}|${i.st}" ${v>=i.max?'disabled':''}>+</button></div>`}
