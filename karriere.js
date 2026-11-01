@@ -435,14 +435,14 @@ KV.alt={id:'alt',n:'Altberg',am:'am Altberg',bounds:{x0:-100,x1:1100,y0:150,y1:2
  lifts:[
   {id:'ab',n:'Altbergbahn',sh:'Altbergbahn',typ:'s2',st:1,b:[548,1626],t:[566,858],exit:[556,900],pistes:['zab','zao','west','ost'],bn:'Talstation',tn:'Gabelung',ovh:2500,up:1,upF:.7},
   {id:'gs',n:'Gipfelsessel',sh:'Gipfelsessel',typ:'s1',st:3,b:[500,846],t:[436,300],exit:[452,312],py:[.45,.65,.84],pistes:['zgs','gh','rinne','west','ost'],bn:'Gabelung',tn:'Gipfel',ovh:3000,up:1,upF:.7},
-  {id:'ol',n:'Ostlift',sh:'Ostlift',typ:'schlepp',st:2,b:[880,1600],t:[856,1066],exit:[840,1076],pistes:['zol','ost'],bn:'Talstation Ost',tn:'Bergstation Ost',ovh:2000,up:1,upF:.7},
-  {id:'wl',n:'Westlift',sh:'Westlift',typ:'s6',st:4,b:[150,1600],t:[206,962],exit:[226,972],pistes:['zwl','west'],bn:'Talstation West',tn:'Bergstation West',ovh:3000,up:1,upF:.7}],
+  {id:'ol',n:'Ostlift',sh:'Ostlift',typ:'schlepp',st:2,b:[880,1600],t:[856,1066],exit:[846,1092],pistes:['zol','ost'],bn:'Talstation Ost',tn:'Bergstation Ost',ovh:2000,up:1,upF:.7},
+  {id:'wl',n:'Westlift',sh:'Westlift',typ:'s6',st:4,b:[150,1600],t:[206,962],exit:[222,990],pistes:['zwl','west'],bn:'Talstation West',tn:'Bergstation West',ovh:3000,up:1,upF:.7}],
  kassa:{x:420,y:1716},
  lots:[{id:'pw',n:'Parkplatz',x0:-90,x1:330,y0:1784,y1:1840,base:1},{id:'po',n:'Parkplatz Ost',x0:560,x1:1090,y0:1784,y1:1840,base:1}],
  hut:{x:690,y:640,in:[[626,656],[648,660],[668,652]],cost:8000,days:2,st:3,n:'Gabelhütte',pid:'gh'},
  garage:{x:20,y:1690},bwHut:{x:330,y:1708},bwStart:[352,1714],
- hotel:{x:762,y:1756,w:110,h:44,k:2,cost:18000,days:3,st:2,rooms:30,n:'Hotel Alpenrose',sign:'HOTEL ALPENROSE ★★★',
-  pin:()=>[[740,1770],[420,1770],[420,1724]],pout:()=>[[420,1724],[420,1770],[740,1770],[752,1760]]},
+ hotel:{x:762,y:1746,w:110,h:44,k:2,cost:18000,days:3,st:2,rooms:30,n:'Hotel Alpenrose',sign:'HOTEL ALPENROSE ★★★',
+  pin:()=>[[740,1770],[420,1770],[420,1724]],pout:()=>[[420,1724],[420,1770],[740,1770],[752,1750]]},
  cannons:{cost:9000,st:2},
  goals:[
   {k:'pf',t:'Schuldenfrei (Kredit abbezahlt, Kassa über 0 €) und 2 Sterne',sh:'Schuldenfrei + 2 ★',prog:()=>(KG.loan>0?'noch '+kfmt(KG.loan)+' Kredit':KG.money<=0?'Kassa im Minus':'schuldenfrei ✓')+' · '+kStars()+' ★',ok:()=>!(KG.loan>0)&&KG.money>0&&kStars()>=2,lock:1},
@@ -470,9 +470,9 @@ KV.alt.drawPaths=function(c){const k=KVOR.kassa,W=KVOR.walkY;
  kPathLine(c,[[k.x,k.y+6],[k.x,W]],9);kPathLine(c,[[k.x+20,k.y+8],[466,1728],[484,1722]],8);kPathLine(c,[[446,1858],[446,W]],7);
  kPathLine(c,[[440,1594],[466,1632]],7);
  if(KG.stage>=2)kPathLine(c,[[652,1616],[642,1700],[572,1732],[490,1730]],7);
- if(KG.l.wl.on){kPathLine(c,[[k.x-20,k.y+10],[330,1742],[176,1708]],7);kPathLine(c,[[352,1612],[262,1680],[176,1708]],7)}
- if(KG.l.ol.on){kPathLine(c,[[690,1606],[790,1700]],7);kPathLine(c,[[k.x,W],[884,W],[884,1704]],7)}
- if(KG.hotel)kPathLine(c,[[740,1756],[740,W]],7);
+ if(KG.l.wl.on){kPathLine(c,[[k.x-20,k.y+10],[330,1742],[176,1708],[146,1668]],7);kPathLine(c,[[352,1612],[262,1680],[176,1708],[146,1668]],7)}
+ if(KG.l.ol.on){kPathLine(c,[[690,1606],[780,1676],[862,1668]],7);kPathLine(c,[[k.x,W],[884,W],[884,1704],[862,1668]],7)}
+ if(KG.hotel)kPathLine(c,[[740,1746],[740,W]],7);
  if(KG.b.hut){c.strokeStyle='#e9dcc4';c.lineWidth=6;c.lineCap='round';c.beginPath();KVOR.hut.in.forEach((p,i)=>i?c.lineTo(p[0],p[1]):c.moveTo(p[0],p[1]));c.stroke()}};
 // Wo ist der Gast? kas Tal/Kassa · ab/wl/ol Talstationen · wb/ob Ende West-/Osthang · abt Gabelung (Bergstation Altbergbahn) · gst Gipfel · wlt/olt Bergstationen
 KV.alt.where=function(f){const K=KVOR.kassa,d=(x,y)=>Math.hypot(f.x-x,f.y-y);if(d(K.x,K.y)<70||f.y>1735)return 'kas';
@@ -483,8 +483,8 @@ KV.alt.where=function(f){const K=KVOR.kassa,d=(x,y)=>Math.hypot(f.x-x,f.y-y);if(
 KV.alt.route=function(from,to,f){if(from===to)return [];const k=KVOR.kassa,W=KVOR.walkY,K0=[k.x,k.y+8];
  const T={
   ab:{kas:[K0,[472,1732]],wb:[[440,1594],[466,1632]],ob:[[652,1616],[642,1700],[572,1732]],wl:[[176,1708],[330,1742],[472,1732]],ol:[[884,1704],[884,W],[600,W],[572,1734]]},
-  wl:{kas:[K0,[330,1742],[176,1708]],wb:[[352,1612],[262,1680],[176,1708]],ob:[[652,1616],[642,1700],[572,1734],[330,1742],[176,1708]],ab:[[472,1732],[330,1742],[176,1708]]},
-  ol:{kas:[K0,[k.x,W],[884,W],[884,1704]],ob:[[690,1606],[790,1700]],wb:[[440,1594],[466,1660],[k.x+30,W],[884,W],[884,1704]],ab:[[572,1734],[600,W],[884,W],[884,1704]]},
+  wl:{kas:[K0,[330,1742],[176,1708],[146,1668]],wb:[[352,1612],[262,1680],[176,1708],[146,1668]],ob:[[652,1616],[642,1700],[572,1734],[330,1742],[176,1708],[146,1668]],ab:[[472,1732],[330,1742],[176,1708],[146,1668]]},
+  ol:{kas:[K0,[k.x,W],[884,W],[884,1704],[862,1668]],ob:[[690,1606],[780,1676],[862,1668]],wb:[[440,1594],[466,1660],[k.x+30,W],[884,W],[884,1704],[862,1668]],ab:[[572,1734],[600,W],[884,W],[884,1704],[862,1668]]},
   gs:{abt:[[524,906]]},
   kas:{wb:[[440,1594],[466,1660],[k.x+26,k.y+8]],ob:[[652,1616],[642,1700],[572,1734],K0],ab:[[472,1732],K0],wl:[[176,1708],[330,1742],K0],ol:[[884,1704],[884,W],[k.x,W],K0]}};
  const r=T[to]&&T[to][from];if(r)return r.map(p=>p.slice());
@@ -649,7 +649,7 @@ function kAPy(L,len,drag){if(L.py)return L.py;const n=Math.max(2,Math.ceil(len/(
 function kAltRope(add,L,st){const s=KG.l[L.id],T0=KLT[s.typ],[bx,by]=L.b,[tx,ty]=L.t,len=Math.hypot(tx-bx,ty-by),co=T0.co,ux=(tx-bx)/len,uy=(ty-by)/len,PY=kAPy(L,len,T0.drag);
  for(const u of PY){const x=bx+(tx-bx)*u,y=by+(ty-by)*u;add(y,c=>{if(T0.drag){c.fillStyle='rgba(110,140,180,.25)';c.beginPath();c.ellipse(x+3,y+2,5,1.6,0,0,7);c.fill();c.fillStyle='#8a6048';c.fillRect(x-1,y-17,2,18);c.fillStyle='#5b3f2e';c.fillRect(x-4,y-17,8,1.6)}else if(st==='neu')kPylonR(c,x,y,co,ux,uy);else kAOldPylon(c,x,y,co+2,st!=='old'&&st!=='off')})}
  add(1e5,c=>{c.strokeStyle=st==='neu'?'#161a28':'#3a2f2a';c.lineWidth=T0.drag?.8:1;if(T0.drag){c.beginPath();c.moveTo(bx,by-14);c.lineTo(tx,ty-14);c.stroke();return}const px=-uy,py=ux;for(const sd of [-1,1]){c.beginPath();c.moveTo(bx+px*co*sd,by+py*co*sd);c.lineTo(tx+px*co*sd,ty+py*co*sd);c.stroke()}})}
-const KALAB={ab:s=>['ALTBERGBAHN'+(s.zs===0?' · 1971':s.zs===1?' · saniert':''),'GABELUNG'],gs:s=>[s.nost?'NOSTALGIE-SESSEL':'GIPFELSESSEL','GIPFEL'],ol:s=>['OSTLIFT',''],wl:s=>['WESTLIFT','']};
+const KALAB={ab:s=>['ALTBERGBAHN'+(s.zs===0?' · 1971':s.zs===1?' · saniert':''),'GABELUNG'],gs:s=>[s.nost?'NOSTALGIE-SESSEL':'GIPFELSESSEL','GIPFEL'],ol:s=>['OSTLIFT','BERGSTATION OST'],wl:s=>['WESTLIFT','BERGSTATION WEST']};
 function kAltSta(add,L,st,t){const s=KG.l[L.id],T0=KLT[s.typ],co=T0.co,lab=KALAB[L.id](s);
  if(T0.drag){for(const [p,big] of [[L.b,1],[L.t,0]]){const [x,y]=p;add(y+10,c=>{if(st==='off'){c.save();c.globalAlpha=.8;stationN(c,x+14,y,0);c.restore()}else stationN(c,x+14,y,t);if(big&&st!=='off'){kBrkSign(c,L,t);kSign(c,x,y-26,lab[0],'#fff','#2b3a55',5.5)}})}
   if(st==='off')add(L.b[1]+30,c=>{kATape(c,L.b[0]-22,L.b[1]+26,L.b[0]+24,L.b[1]+26);kSign(c,L.b[0],L.b[1]+48,'⛔ AUSSER BETRIEB · seit 1998','#e8504a','#fff',5.5)});return}
@@ -2327,8 +2327,11 @@ function kDemand(){const V=KVOR,base=KBASE[V.id]||KBASE.sonn,st=KG.stage;if(!Obj
  const r=KG.price.ticket/kFairT(),priceF=kcl(1.15-(r-.85)*V.priceSens*.9,.3,1.3);
  const q=kPQavg();let att=1+(KG.b.kinder?.07:0)+(KG.b.school?.05:0)+(KG.b.hut&&st>=(V.hut?V.hut.st:2)?.06:0)+(KG.b.kiosk?.02:0)+(V.att?V.att():0);
  let cmp=0;for(const c of KG.cmp)cmp+=c.eff;
- const d=b*KWF[kWd()]*((KVOR.wxF&&KVOR.wxF[KG.wx])||KWXF[KG.wx]||1)*(.35+KG.ruf/100*.95)*(.8+.1*kStars())*priceF*att*(.72+.28*q/100)*(1+cmp);
+ // V340: Sturm und kein einziger Lift fährt – die Gäste kennen den Wetterbericht und bleiben daheim
+ const allStop=kStormAllStop();
+ const d=b*KWF[kWd()]*(allStop ? 0.05 : (KVOR.wxF&&KVOR.wxF[KG.wx])||KWXF[KG.wx]||1)*(.35+KG.ruf/100*.95)*(.8+.1*kStars())*priceF*att*(.72+.28*q/100)*(1+cmp);
  return Math.round(d)}
+function kStormAllStop(){if(KG.wx!=='sturm'||KVOR.windStop)return false;for(const id in KG.l)if(KG.l[id].on&&!kWS(id))return false;return true}
 function kPQavg(){let s=0,n=0;for(const p of KW.pistes){if(p.conn||!kPisteOpen(p))continue;s+=KG.pq[p.id];n++}return n?s/n:100}
 function kArrRate(t){if(t<8||t>=13.1)return 0;return t<9?1:t<10.6?1.6:t<12?.8:.62}
 const KARRI=1*1+1.6*1.6+.8*1.4+.62*1.1;
@@ -2493,7 +2496,7 @@ function kMorning(){if(KW.groom&&KW.groom.st!=='home'){KW.groom=null;KG.groomDon
  for(const id in KG.l){const s=KG.l[id];if(!s.on)continue;const p=KVOR.brkP?KVOR.brkP(id,s):.025+(1-s.cond/100)*.32;if(kR()<p){s.brkAt=9.4+kR()*5.6}else s.brkAt=0}
  const lam=.3+(KG.stage>=2?.35:0)+(kPQavg()<55?.4:0);KW.acc=[];let n=lam>1?1:0;if(kR()<lam%1)n++;for(let i=0;i<n;i++)KW.acc.push(9.6+kR()*5.5);KW.acc.sort((a,b)=>a-b);
  KG.fog=0;if(KVOR.morning)KVOR.morning();
- if(KVOR.windLog)KVOR.windLog();else if(KG.wx==='sturm')kLog('🌪️',KVOR.lifts.filter(L=>!KLT[KG.l[L.id].typ].drag&&KG.l[L.id].on).length>1?'Sturm – die Sessellifte bleiben heute zu.':'Sturm – der Sessellift bleibt heute zu.');
+ if(KVOR.windLog)KVOR.windLog();else if(kStormAllStop())kLog('🌪️','Sturm – alle Lifte stehen heute. Die meisten Gäste bleiben daheim.');else if(KG.wx==='sturm')kLog('🌪️',KVOR.lifts.filter(L=>!KLT[KG.l[L.id].typ].drag&&KG.l[L.id].on).length>1?'Sturm – die Sessellifte bleiben heute zu.':'Sturm – der Sessellift bleibt heute zu.');
  kSave()}
 // Laufende Kosten pro Tag (ohne Zinsen) – auch für die Schätzung „Gewinn heute“
 function kRunCosts(){const V=KVOR;
@@ -2646,7 +2649,7 @@ function kDrawWear(c){for(const p of KW.pistes){if(p.conn||!kPisteOpen(p))contin
 function kDrawFences(c){for(const id in KW.lift){const o=KW.lift[id];if(!KG.l[id].on)continue;if(KVOR.fence&&KVOR.fence(c,o,id))continue;const L=o.L,bx=L.b[0],by=L.b[1];c.strokeStyle='#8a94a8';c.lineWidth=1;
  if(o.T.cap===1){for(let r=-1;r<4;r++){const y=by+14.5+r*7;let a=bx-19,b=bx+19;if(r>=0&&r<3){if(r%2===0)b=bx+12;else a=bx-12}c.beginPath();c.moveTo(a,y);c.lineTo(b,y);c.stroke();c.fillStyle='#5d667a';for(let x=a;x<=b;x+=12)c.fillRect(x-.7,y-1.4,1.4,2.8)}}
  else{const R=Math.max(6,Math.min(9,Math.ceil(o.q.length/9)+1));for(let r=-1;r<R;r++){const y=by+12+r*8;let a=bx-14-8*7-5,b=bx-8;if(r>=0&&r<R-1){if(r%2===0)a=bx-14-8*7+3;else b=bx-18}c.beginPath();c.moveTo(a,y);c.lineTo(b,y);c.stroke();c.fillStyle='#5d667a';for(let x=a;x<=b;x+=13)c.fillRect(x-.8,y-1.6,1.6,3.2)}c.beginPath();c.moveTo(bx-14-8*7-5,by+4);c.lineTo(bx-14-8*7-5,by+12+(R-1)*8);c.stroke()}
- const w=kWait(id),x=o.T.cap===1?bx-30:bx-82,y=by+(o.T.cap===1?20:6);c.fillStyle='#5d667a';c.fillRect(x-.8,y,1.6,14);c.fillStyle=w>22?'#e8504a':w>8?'#f2a63b':'#2e9e5b';c.beginPath();c.roundRect(x-16,y-12,32,13,2.5);c.fill();c.fillStyle='#fff';c.font='700 5.6px Fredoka,sans-serif';c.textAlign='center';c.fillText('WARTEZEIT',x,y-6.4);c.font='600 5px Fredoka,sans-serif';c.fillText(w<1?'keine':Math.round(w)+' Min.',x,y-1.4)}}
+ const w=kWait(id),x=o.T.cap===1?bx-30:bx-82,y=by+(o.T.cap===1?20:-4);c.fillStyle='#5d667a';c.fillRect(x-.8,y,1.6,14);c.fillStyle=w>22?'#e8504a':w>8?'#f2a63b':'#2e9e5b';c.beginPath();c.roundRect(x-16,y-12,32,13,2.5);c.fill();c.fillStyle='#fff';c.font='700 5.6px Fredoka,sans-serif';c.textAlign='center';c.fillText('WARTEZEIT',x,y-6.4);c.font='600 5px Fredoka,sans-serif';c.fillText(w<1?'keine':Math.round(w)+' Min.',x,y-1.4)}}
 function kWait(id){const o=KW.lift[id];if(!o)return 0;// Schätzung aus Schlangenlänge und Förderleistung
  const perS=o.T.v/(o.len*2/o.n)*o.T.cap;const s=o.q.length/Math.max(.1,perS);return s/KRT*60}
 // Lifte: Seile, Stützen, Sessel/Teller
@@ -2923,7 +2926,7 @@ function kSnb(){if(!KG)return;const u=document.getElementById('kui'),e=document.
  const B=(id,t,v,c,lo,u)=>{const b=document.getElementById(id),k=t+v+c;if(b._k===k)return;b._k=k;const i=b.firstChild;i.style.width=Math.min(100,v)+'%';i.style.background=v<lo?'#e8504a':c;b.lastChild.textContent=t+': '+v+(u||' %')};
  B('ksbS','Schneehöhe',Math.max(0,Math.round(KG.snow)),'#3f8fd2',30,' cm');B('ksbP','Pistenzustand',cl(kPQavg()),'#3fa865',50)}
 let kHudS='';function kHud(force){if(!KG)return;const g=KW.folks.filter(f=>!f.ins&&f.st!=='gone').length;const st=kStars(),sc=kScore(),wi=KG.wx==='sonne'&&kBright()<.35?'🌙':KWI[KG.wx];
- const sea=KVOR.seasons,sn=KG.done?Math.min(kSeaN(),sea):kSeaN(),dd=KG.done&&kSeaN()>sea?KSL:kSeaD();const day=`<b>📅 ${KWN[kWd()]} • Woche ${kWeek()}<span style="opacity:.6">/4</span> ${wi}</b><small>Saison ${sn}${sea>1?' von '+sea:''} · ${kh(KG.t)}</small><span class="sbar"><i style="width:${Math.round((dd-1+Math.min(1,KG.t/24))/KSL*100)}%"></i></span>`;
+ const sea=KVOR.seasons,sn=KG.done?Math.min(kSeaN(),sea):kSeaN(),over=KG.done&&kSeaN()>sea,dd=over?KSL:kSeaD();const day=over?`<b>🏁 Saisonende</b><small>Saison ${sn}${sea>1?' von '+sea:''} · beendet</small><span class="sbar"><i style="width:100%"></i></span>`:`<b>📅 ${KWN[kWd()]} • Woche ${kWeek()}<span style="opacity:.6">/4</span> ${wi}</b><small>Saison ${sn}${sea>1?' von '+sea:''} · ${kh(KG.t)}</small><span class="sbar"><i style="width:${Math.round((dd-1+Math.min(1,KG.t/24))/KSL*100)}%"></i></span>`;
  const mon=`<b>${kfmt(KG.money)}</b><small>${KG.money<0?'im Minus!':'Heute '+(kTodayRes()>=0?'+':'')+knum(kTodayRes())+' €'}${KG.loan>0?' · 🏦':''}</small>`;
  const gs=`<b>👥 ${g}</b><small>😊 ${Math.round(KG.ruf)} %</small>`,rf=`<b>🏆 ${sc}</b><small>${'★'.repeat(st)}<span style="opacity:.35">${'★'.repeat(5-st)}</span></small>`;
  const s=day+mon+gs+rf+(KW.paused?1:0)+KW.speed;if(s===kHudS&&!force)return;kHudS=s;
@@ -3295,7 +3298,7 @@ function kEndHTML(){const R=KW.endR||{st:0,before:0,xp:kXP()};const i=KBERGE.fin
  if(R.lost)h+=`<p style="font-size:15px">Die Kassa war 7 Tage hintereinander im Minus. Der Berg ist verloren – du kannst ihn jederzeit neu beginnen.</p>`;
  else{h+=`<div style="text-align:center;font-size:44px;color:#e8a33a;letter-spacing:4px;margin:6px 0">${'★'.repeat(R.st)}<span style="opacity:.2">${'★'.repeat(3-R.st)}</span></div>`;
   h+=KVOR.goals.map((g,j)=>`<div class="kgoal"><span class="s">${KG.goals[g.k]?'✅':'❌'}</span><span><b>${['Pflicht','Zusatz','Meister'][j]}:</b> ${g.t}${g.prog?'<small>'+g.prog()+'</small>':''}</span></div>`).join('');
-  h+=`<div class="kpi"><div><small>Neue Erfahrung</small><b>⭐ +${gain}</b><i>${R.before?'bisher bestes: '+R.before+' ★':''}</i></div><div><small>Erfahrung gesamt</small><b>⭐ ${R.xp}</b></div><div><small>Saisonergebnis</small><b>${kfmt(kSeaHistRes())}</b></div><div><small>Sterne des Gebiets</small><b>${'★'.repeat(kStars())}</b></div></div>`;
+  h+=`<div class="kpi"><div><small>Neue Erfahrung</small><b>⭐ +${gain}</b><i>${R.before?'bisher bestes: '+R.before+' ★':''}</i></div><div><small>Erfahrung gesamt</small><b>⭐ ${R.xp}</b></div><div><small>${KVOR.seasons>1?'Ergebnis aller '+KVOR.seasons+' Saisons':'Saisonergebnis'}</small><b>${kfmt(kSeaHistRes())}</b></div><div><small>Sterne des Gebiets</small><b>${'★'.repeat(kStars())}</b></div></div>`;
   if(R.st>=1&&nx)h+=`<p class="hint">🔓 ${nx.n} ist jetzt offen.</p>`;if(R.st===0)h+=`<p class="hint">Ohne das Pflichtziel gibt es keinen Stern. Versuch es nochmal – es zählt das beste Ergebnis.</p>`}
  h+=`<button class="tb green" data-a="endmap" style="width:100%;margin-top:10px">🗺️ Zur Karriere-Karte</button>`;return h}
 
